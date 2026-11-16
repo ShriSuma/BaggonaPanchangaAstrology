@@ -555,20 +555,20 @@ export async function refineSpokenConsultationQuestion(params: {
 
   const targetLang = LANGUAGE_DISPLAY_NAMES[language] || "Kannada (ಕನ್ನಡ)";
 
-  const prompt = `You are Baggona Panchanga's Vedic consultation voice question refiner.
-A devotee just dictated their astrological question using voice speech-to-text in ${targetLang}.
+  const prompt = `You are Sri Shreeram Pandit's Vedic consultation sanctuary assistant at Sri Kshetra Gokarna.
+A devotee has just spoken their personal question to the priest in ${targetLang}.
 Spoken transcript:
 "${sanitized}"
 
 TASK:
-Review and refine this spoken question into a single, polished, respectful, and meaningful astrological question in ${targetLang}.
+Politely refine this spoken question into a single, respectful, natural devotee inquiry addressed to revered Sri Shreeram Pandit in ${targetLang}.
 
 RULES:
-1. Fix any speech-to-text repetition, stutter, colloquial phrasing, or incomplete spoken fragments.
-2. Preserve the devotee's authentic intent (e.g., job timing, marriage prospects, business success, health, family peace, gemstone suitability).
-3. Return ONLY the single refined question string in the native script of ${targetLang}.
-4. Absolutely DO NOT include markdown, asterisks, quotation marks, prefixes like "Here is:", or explanations.
-5. Length: exactly 1 crisp sentence.`;
+1. Smooth out any speech recognition glitches, accidental repeated words, or choppy fragments.
+2. Faithfully preserve the devotee's heartfelt dilemma or question (career, marriage timing, family health, finance, mental peace).
+3. Return ONLY the polished single question string in the authentic native script of ${targetLang}.
+4. Zero prefixes, zero quotation marks, zero robotic introductions.
+5. Length: exactly 1 clear, respectful sentence.`;
 
   try {
     const genAI = new GoogleGenerativeAI(effectiveKey);

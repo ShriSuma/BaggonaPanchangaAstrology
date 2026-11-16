@@ -46,6 +46,82 @@ import {
 } from "./consultationAIEngine";
 import { askGemini, type AskGeminiChatTurn } from "../../core/GeminiEngine";
 import { useAppStore } from "../../stores/appStore";
+import {
+  RASHIS_I18N,
+  NAKSHATRAS_I18N
+} from "./consultationPanchangaService";
+
+function localizeAstroParam(
+  text: string,
+  lang: ConsultationLanguage,
+  type: "rashi" | "nakshatra" | "dasha"
+): string {
+  if (lang === "kn" || !text) return text;
+  const hasKannada = /[\u0C80-\u0CFF]/.test(text);
+  if (!hasKannada) return text;
+
+  if (type === "rashi") {
+    const idx = RASHIS_I18N.kn.findIndex((r) => text.includes(r));
+    if (idx !== -1) {
+      return (RASHIS_I18N[lang] || RASHIS_I18N.en)[idx];
+    }
+    return (RASHIS_I18N[lang] || RASHIS_I18N.en)[0];
+  }
+
+  if (type === "nakshatra") {
+    const idx = NAKSHATRAS_I18N.kn.findIndex((n) => text.includes(n));
+    if (idx !== -1) {
+      return (NAKSHATRAS_I18N[lang] || NAKSHATRAS_I18N.en)[idx];
+    }
+    return (NAKSHATRAS_I18N[lang] || NAKSHATRAS_I18N.en)[0];
+  }
+
+  if (type === "dasha") {
+    let out = text;
+    const knPlanets: Record<string, { en: string; hi: string; te: string; ta: string; ml: string; mr: string }> = {
+      "ಗುರು": { en: "Jupiter", hi: "गुरु", te: "గురు", ta: "குரு", ml: "വ്യാഴം", mr: "गुरु" },
+      "ಶನಿ": { en: "Saturn", hi: "शनि", te: "శని", ta: "சனி", ml: "ശനി", mr: "शनि" },
+      "ಶುಕ್ರ": { en: "Venus", hi: "शुक्र", te: "శుక్ర", ta: "சுக்கிரன்", ml: "ശുക്രൻ", mr: "शुक्र" },
+      "ಬುಧ": { en: "Mercury", hi: "बुध", te: "బుధ", ta: "புதன்", ml: "ബുധൻ", mr: "बुध" },
+      "ಕುಜ": { en: "Mars", hi: "मंगल", te: "కుజ", ta: "செவ்வாய்", ml: "ചൊവ്വ", mr: "मंगळ" },
+      "ಮಂಗಳ": { en: "Mars", hi: "मंगल", te: "కుజ", ta: "செவ்வாய்", ml: "ചൊവ്വ", mr: "मंगळ" },
+      "ರವಿ": { en: "Sun", hi: "सूर्य", te: "రవి", ta: "சூரியன்", ml: "സൂര്യൻ", mr: "सूर्य" },
+      "ಸೂರ್ಯ": { en: "Sun", hi: "सूर्य", te: "రవి", ta: "சூரியன்", ml: "സൂര്യൻ", mr: "सूर्य" },
+      "ಚಂದ್ರ": { en: "Moon", hi: "चन्द्र", te: "చంద్ర", ta: "சந்திரன்", ml: "ചന്ദ്രൻ", mr: "चंद्र" },
+      "ರಾಹು": { en: "Rahu", hi: "राहु", te: "రాహు", ta: "ராகு", ml: "രാഹു", mr: "राहू" },
+      "ಕೇತು": { en: "Ketu", hi: "केतु", te: "కేతు", ta: "கேது", ml: "കേതു", mr: "केतू" },
+      "ಮಹಾದಶೆ": { en: "Mahadasha", hi: "महादशा", te: "మహర్దశ", ta: "மகாதிசை", ml: "മഹാദശ", mr: "महादशा" },
+      "ಮಹಾದಶಾ": { en: "Mahadasha", hi: "महादशा", te: "మహర్దశ", ta: "மகாதிசை", ml: "മഹാദശ", mr: "महादशा" },
+      "ಅಂತರ್ದಶೆ": { en: "Antardasha", hi: "अंतर्दशा", te: "అంతర్దశ", ta: "அந்தர்திசை", ml: "അന്തർദശ", mr: "अंतर्दशा" },
+      "ಅಂತರ್ದಶಾ": { en: "Antardasha", hi: "अंतर्दशा", te: "అంతర్దశ", ta: "அந்தர்திசை", ml: "അന്തർദശ", mr: "अंतर्दशा" },
+      "ದಶಾ": { en: "Dasha", hi: "दशा", te: "దశ", ta: "திசை", ml: "ദശ", mr: "दशा" },
+      "ದಶೆ": { en: "Dasha", hi: "दशा", te: "దశ", ta: "திசை", ml: "ദശ", mr: "दशा" },
+      "ಕಾಲ": { en: "period", hi: "काल", te: "కాలం", ta: "காலம்", ml: "കാലം", mr: "काळ" }
+    };
+
+    for (const [knWord, trans] of Object.entries(knPlanets)) {
+      if (out.includes(knWord)) {
+        out = out.split(knWord).join(trans[lang as keyof typeof trans] || trans.en);
+      }
+    }
+
+    if (/[\u0C80-\u0CFF]/.test(out)) {
+      const dashaFallback: Record<ConsultationLanguage, string> = {
+        en: "Auspicious Dasha period",
+        hi: "शुभ दशा काल",
+        te: "శుభ దశా కాలం",
+        ta: "சுப தசா காலம்",
+        ml: "ശുഭ ദശാ കാലം",
+        mr: "शुभ दशा काळ",
+        kn: "ಶುಭ ದಶಾ ಕಾಲ"
+      };
+      return dashaFallback[lang] || dashaFallback.en;
+    }
+    return out;
+  }
+
+  return text;
+}
 
 export type ConsultationQuestionCategory =
   | "SECURITY_SYSTEM_PROBE_BLOCKED"
@@ -706,11 +782,21 @@ export async function presentConsultationReply(params: {
   }
 
   // Step 2: For other inquiries, compute astrological baseline for grounding
-  let lagnaName = "ಮೇಷ";
-  let moonRashi = "ವೃಷಭ";
-  let nakshatra = "ರೋಹಿಣಿ";
+  const sessionLang = session.language || "kn";
+  let lagnaName = (RASHIS_I18N[sessionLang] || RASHIS_I18N.en)[0];
+  let moonRashi = (RASHIS_I18N[sessionLang] || RASHIS_I18N.en)[1];
+  let nakshatra = (NAKSHATRAS_I18N[sessionLang] || NAKSHATRAS_I18N.en)[3];
   let pada = 1;
-  let currentDashaText = "ಶುಭ ದಶಾ ಕಾಲ";
+  const dashaDefaults: Record<ConsultationLanguage, string> = {
+    en: "Auspicious Dasha period",
+    hi: "शुभ दशा काल",
+    te: "శుభ దశా కాలం",
+    ta: "சுப தசா காலம்",
+    ml: "ശുഭ ദശാ കാലം",
+    mr: "शुभ दशा काळ",
+    kn: "ಶುಭ ದಶಾ ಕಾಲ"
+  };
+  let currentDashaText = dashaDefaults[sessionLang] || dashaDefaults.en;
 
   try {
     const astro = await computeDevoteeKundli(session);
@@ -1096,13 +1182,13 @@ SACRED BEHAVIORAL PROTOCOL (THE 50+ YEAR EXPERIENCED GOKARNA MASTER PRIEST - "DA
 6. ONGOING CONVERSATION FLOW (NO REPEATED GREETINGS):
    - The opening welcome and introduction have ALREADY been delivered at the start of this 20-minute consultation.
    - Directly, respectfully, and compassionately answer this specific question as an ongoing, continuous face-to-face dialogue.
-7. CRITICAL DIRECT ANSWER FIRST RULE (UPFRONT - LIKE CHATGPT & GEMINI):
-   - The devotee wants the direct conclusion/answer UPFRONT immediately in Sentence 1 of Paragraph 1.
-   - Never bury the bottom-line answer in later paragraphs or behind lengthy preamble.
-   - If they ask about timing ("When will X happen?"), give the exact timeline range in Sentence 1.
-   - If they ask about a gemstone or color or remedy, state the exact recommendation in Sentence 1.
-   - If they ask a status or yes/no question, state the astrological verdict clearly in Sentence 1.
-   - Paragraph 1 serves as the prominent Direct Takeaway; subsequent paragraphs provide planetary reasoning, Dasha mechanics, and Gokarna spiritual remedies.${
+7. DIRECT WARM GUIDANCE & CONVERSATIONAL HOOK:
+   - Give the direct conclusion and verdict warmly in Paragraph 1 with fatherly care, avoiding unnecessary robotic delay.
+   - Keep each response concise (2 to 3 flowing paragraphs of 3 to 4 lines each). Never produce dense, academic walls of text!
+   - ALWAYS conclude with a warm, caring personal question inviting the devotee to share their next thought or inquiry (e.g. "ಮಗುವೇ, ಈ ವಿಷಯದಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಬೇರೇನಾದರೂ ಗೊಂದಲವಿದೆಯೇ? ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ.").
+8. STRICT BAN ON ROBOTIC / AI TERMS:
+   - Absolutely NEVER mention 'ChatGPT', 'Gemini', 'AI algorithm', 'NASA JPL', 'statistical percentage', or 'speech synthesis'.
+   - Speak 100% as the living, revered Chief Priest Sri Shreeram Pandit of Sri Kshetra Gokarna.${
      isSubsequentQuestion
        ? `\n8. SUBSEQUENT QUESTION DIRECTIVE (STRICT FOCUS - ZERO REPETITION):
    - This is question #${(questionIndex || 1) + 1} from the devotee in this ongoing 20-minute consultation.
@@ -1119,7 +1205,7 @@ SACRED BEHAVIORAL PROTOCOL (THE 50+ YEAR EXPERIENCED GOKARNA MASTER PRIEST - "DA
  * Specialized deterministic fallback replies for each category in all 7 languages.
  * Guarantees high-quality, authentic responses even without an active Gemini API key.
  */
-function generateSpecializedFallbackReply(params: {
+export function generateSpecializedFallbackReply(params: {
   session: ConsultationSession;
   userQuestion: string;
   sensed: SensedDevoteeContext;
@@ -1134,12 +1220,14 @@ function generateSpecializedFallbackReply(params: {
     session,
     sensed,
     userQuestion,
-    lagnaName,
-    moonRashi,
-    currentDashaText,
     isSubsequentQuestion,
     questionIndex
   } = params;
+  const lang = session.language || "kn";
+  const lagnaName = localizeAstroParam(params.lagnaName, lang, "rashi");
+  const moonRashi = localizeAstroParam(params.moonRashi, lang, "rashi");
+  const nakshatra = localizeAstroParam(params.nakshatra, lang, "nakshatra");
+  const currentDashaText = localizeAstroParam(params.currentDashaText, lang, "dasha");
   const isSubsequent = !!isSubsequentQuestion || (questionIndex !== undefined && questionIndex > 0);
   const isEn = session.language === "en";
   const isHi = session.language === "hi";
@@ -1157,6 +1245,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `My child ${session.name}, I deeply understand the weight of frustration, career roadblocks, and mental anxiety you are carrying right now. In Vedic Jyotisha, times of career churning are not curses, but cosmic testing phases meant to temper your inner resilience.\n\nAccording to your birth chart calculated with Baggona Panchanga, you are guided by ${lagnaName} Lagna and ${moonRashi} Moon Sign. The prevailing influence of ${currentDashaText} along with current transits is demanding immense patience. When the 10th house of profession experiences temporary planetary strain, hard work often feels unnoticed and workplace friction arises. Do not make impulsive resignations or react with anger.\n\nThe cosmic cycle will soon shift towards stability as favorable transits begin to aspect your key houses. Maintain disciplined dedication, avoid unnecessary workplace arguments, and recite the sacred Gayatri Mantra or Shiva Panchakshari daily. Offering prayers to Sri Mahabaleshwara at Sri Kshetra Gokarna will dissolve obstacles and bring career prosperity.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `कार्यक्षेत्र में रुकावट एवं तनाव ("${userQuestion}") के संदर्भ में, वर्तमान ${currentDashaText} एवं गोचर शनि का प्रभाव आपसे धैर्य और आत्मसंयम की मांग कर रहा है। दशम कर्म भाव पर ग्रहों का यह अस्थायी दबाव मानसिक तनाव व मेहनत के अनुरूप फल मिलने में देरी करता है। आवेश में आकर त्यागपत्र न दें। आगामी समय में शुभ ग्रहों का गोचर आपके पक्ष में होगा और नए अवसर प्राप्त होंगे। नित्य गायत्री मंत्र या ॐ नमः शिवाय का जप करें और शनिवार को गाय के घी का दीपक जलाएं। श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा से कार्यक्षेत्र की समस्त बाधाएं दूर होंगी।`;
+        }
+        return `वत्स ${session.name}, कार्यक्षेत्र में उत्पन्न तनाव और रुकावटों को मैं एक वरिष्ठ दैवज्ञ के रूप में भली-भांति समझता हूँ। वैदिक ज्योतिष अनुसार जीवन का यह मंथन काल आपके आत्मबल को निखारने का अवसर है। श्री बग्गोण पंचांग अनुसार आपकी कुंडली में ${lagnaName} लग्न और ${moonRashi} चंद्र राशि है। वर्तमान ${currentDashaText} एवं गोचर शनि का प्रभाव आपसे धैर्य की मांग कर रहा है। दशम भाव पर अस्थायी दबाव के कारण कार्यक्षेत्र में असमंजस है। धैर्यपूर्वक अपना कर्तव्य करते रहें। आगामी शुभ गोचर से नई उन्नति के द्वार खुलेंगे। नित्य गायत्री मंत्र का जप करें व श्री क्षेत्र गोकर्ण महाबलेश्वर का स्मरण करें।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `ఉద్యోగంలో ఇబ్బందులు మరియు నిరాశ ("${userQuestion}") గురించి, ప్రస్తుతం నడుస్తున్న ${currentDashaText} మరియు గోచార శని ప్రభావం మీ నుండి సంయమనం కోరుతోంది. దశమ కర్మ స్థానంపై గ్రహాల తాత్కాలిక ఒత్తిడి వల్ల ఎంత శ్రమించినా తగిన గుర్తింపు రావడం ఆలస్యమవుతోంది. ఆవేశంలో ఉద్యోగం వదలవద్దు. త్వరలోనే అనుకూల గ్రహాల సంచారం ప్రారంభమై కొత్త అవకాశాలు లభిస్తాయి. నిత్యం శివ పంచాక్షరీ లేదా గాయత్రీ మంత్రం జపించండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి కృపతో సర్వ విఘ్నాలు తొలగుతాయి.`;
+        }
+        return `నాయనా ${session.name}, ఉద్యోగంలో ఎదురవుతున్న ఒత్తిడి మరియు చికాకులను ఒక సీనియర్ దైవజ్ఞుడిగా నేను సంపూర్ణంగా అర్థం చేసుకోగలను. శ్రీ బగ్గోణ పంచాంగం ప్రకారం మీరు ${lagnaName} లగ్నం, ${moonRashi} రాశిలో జన్మించారు. ప్రస్తుతం నడుస్తున్న ${currentDashaText} మరియు గోచార శని ప్రభావం మీ నుండి ఓర్పును కోరుతోంది. దశమ స్థానంపై ఈ తాత్కాలిక ఒత్తిడి వల్ల శ్రమకు తగిన గుర్తింపు ఆలస్యమవుతోంది. కోపంతో తొందరపాటు నిర్ణయాలు తీసుకోవద్దు. రాబోయే కాలంలో శుభ గోచారం వల్ల మేలు జరుగుతుంది. నిత్యం శివ పంచాక్షరి జపించండి.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `வேலையில் ஏற்படும் தடைகள் மற்றும் சலிப்பு ("${userQuestion}") குறித்து, தற்போது நடைபெறும் ${currentDashaText} மற்றும் கோச்சார சனியின் தாக்கம் உங்களிடம் பொறுமையை எதிர்பார்க்கிறது. 10-ஆம் இடமான கர்ம ஸ்தானத்தில் உள்ள தற்காலிக கிரக அழுத்தத்தால் உழைப்பிற்கேற்ற அங்கீகாரம் தாமதமாகிறது. அவசரப்பட்டு முடிவுகள் எடுக்க வேண்டாம். விரைவில் நல்ல கிரக அமைப்புகள் அமைந்து புதிய வாய்ப்புகள் உருவாகும். தினமும் சிவ பஞ்சாட்சரம் அல்லது காயத்ரி மந்திரம் ஜெபிக்கவும். கோகர்ண மகாபலேஸ்வரர் அருளால் நன்மைகள் உண்டாகும்.`;
+        }
+        return `அன்புக் குழந்தாய் ${session.name}, வேலையில் ஏற்படும் மன உளைச்சலை ஒரு மூத்த ஜோதிடராக நான் முழுமையாக உணர்கிறேன். ஸ்ரீ பக்கவணா பஞ்சாங்கப்படி நீங்கள் ${lagnaName} லக்னம், ${moonRashi} ராசியில் பிறந்துள்ளீர்கள். தற்போது நடைபெறும் ${currentDashaText} காலம் உங்களை பக்குவப்படுத்துகிறது. 10-ஆம் இடத்தில் உள்ள தற்காலிக கிரக அழுத்தத்தால் உழைப்பிற்கேற்ற பலன் தாமதமாகிறது. அமைதியுடன் கடமையைச் செய்யுங்கள். விரைவில் நல்ல காலம் பிறக்கும். கோகர்ண மகாபலேஸ்வரரை வழிபடவும்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `തൊഴിൽ രംഗത്തെ തടസ്സങ്ങളും നിരാശയും ("${userQuestion}") സംബന്ധിച്ച്, നിലവിലെ ${currentDashaText} കാലവും ശനിഗോചാരവും നിങ്ങളിൽ നിന്ന് ക്ഷമയും ഏകാഗ്രതയും ആവശ്യപ്പെടുന്നു. പത്താം ഭാവത്തിലെ താൽക്കാലിക ഗ്രഹസമ്മർദ്ദം കാരണം പരിശ്രമത്തിന് തക്ക അംഗീകാരം വൈകുന്നുണ്ട്. ദേഷ്യപ്പെട്ട് തീരുമാനങ്ങൾ എടുക്കരുത്. ഉടൻ തന്നെ അനുകൂല ഗ്രഹമാറ്റം ഉണ്ടാകുകയും പുതിയ അവസരങ്ങൾ ലഭിക്കുകയും ചെയ്യും. ദിവസവും ഓം നമഃ ശിവായ അല്ലെങ്കിൽ ഗായത്രീ മന്ത്രം ജപിക്കുക. ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹം ലഭിക്കും.`;
+        }
+        return `മക്കളേ ${session.name}, തൊഴിൽ രംഗത്തെ പ്രയാസങ്ങൾ ഞാൻ മനസ്സിലാക്കുന്നു. ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗപ്രകാരം നിങ്ങൾ ${lagnaName} ലഗ്നത്തിലും ${moonRashi} രാശിയിലുമാണ് ജനിച്ചത്. നിലവിലെ ${currentDashaText} ദശയും ശനി സ്വാധീനവുമാണ് ഈ പരീക്ഷണങ്ങൾക്ക് കാരണം. പത്താം ഭാവത്തിലെ താൽക്കാലിക സമ്മർദ്ദം ഉടൻ മാറും. ശാന്തമായി ജോലിയിൽ ശ്രദ്ധിക്കുക. വരും മാസങ്ങളിൽ ഗ്രഹാനുകൂല്യം ലഭിക്കും. ദിവസവും ശിവപഞ്ചാക്ഷരി ജപിക്കുക.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `नोकरीतील अडचणी व नैराश्य ("${userQuestion}") या संदर्भात, सध्याची ${currentDashaText} आणि गोचर शनीचा प्रभाव आपल्याकडून संयमाची अपेक्षा करत आहे. दशम कर्म भावावरील तात्पुरत्या दबावामुळे कष्टाचे योग्य फळ मिळण्यास उशीर होत आहे. रागाच्या भरात नोकरी सोडण्याचा निर्णय घेऊ नका. लवकरच अनुकूल गोचर सुरू होऊन नवीन संधी मिळतील. नित्य गायत्री मंत्र किंवा ॐ नमः शिवाय जप करा. श्री क्षेत्र गोकर्ण महाबळेश्वराच्या कृपेने सर्व अडचणी दूर होतील.`;
+        }
+        return `वत्स ${session.name}, नोकरीतील अस्वस्थता मी एक ज्येष्ठ दैवज्ञ म्हणून समजू शकतो. श्री बग्गोण पंचांगानुसार आपले ${lagnaName} लग्न आणि ${moonRashi} चंद्र रास आहे. सध्याची ${currentDashaText} आणि गोचर शनीचा प्रभाव आपल्या संयमाची परीक्षा घेत आहे. दशम भावावरील तात्पुरत्या ग्रहांच्या प्रभावामुळे कष्टाचे श्रेय मिळण्यास विलंब होत आहे. संयम ठेवा. लवकरच अनुकूल काळ सुरू होईल. नित्य शिवपंचाक्षरी मंत्र जप करा.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ವೃತ್ತಿಜೀವನ ಹಾಗೂ ಉದ್ಯೋಗದಲ್ಲಿ ಎದುರಾಗುತ್ತಿರುವ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆಯ ಈ ಪ್ರಶ್ನೆಗೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDashaText} ಅವಧಿ ಹಾಗೂ ಗೋಚಾರ ಶನಿ ಪ್ರಭಾವವು ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ಹೊಸ ಆತ್ಮಾವಲೋಕನವನ್ನು ಅಪೇಕ್ಷಿಸುತ್ತಿದೆ. ೧೦ನೇ ಮನೆಯಾದ ಕರ್ಮಸ್ಥಾನದ ಮೇಲಿನ ಈ ತಾತ್ಕಾಲಿಕ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅತಿಯಾದ ಒತ್ತಡ, ಸಹೋದ್ಯೋಗಿಗಳಲ್ಲಿ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ ಹಾಗೂ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ತಡವಾಗುತ್ತಿದೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಕೋಪ ಅಥವಾ ಆತುರದಲ್ಲಿ ಅವಸರದ ಹೆಜ್ಜೆಗಳನ್ನು ಇಡಬೇಡಿ.\n\nಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ಕತ್ತಲೆ ಕರಗಿ ನಿಧಾನವಾಗಿ ಹೊಸ ಅವಕಾಶಗಳ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ. ಅಲ್ಲಿಯವರೆಗೂ ಶಾಂತಚಿತ್ತದಿಂದ ನಿಮ್ಮ ಕಾರ್ಯವನ್ನು ನಿಷ್ಠೆಯಿಂದ ಮುಂದುವರಿಸಿ. ಪ್ರತಿದಿನ ಶಿವಪಂಚಾಕ್ಷರೀ ಸ್ತೋತ್ರ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ಪ್ರತಿ ಶನಿವಾರ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಲಿವೆ.`;
       }
@@ -1169,6 +1288,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `Namaste ${session.name}. Your inquiry regarding "${userQuestion}" is thoughtful and engaging. In our Vedic tradition, the pursuit of worldly sciences and general knowledge (Vijnana) is recognized as essential for intellectual refinement.\n\nKnowledge of worldly systems, science, and history expands the intellect (governed by Mercury and Jupiter). Having satisfied your curiosity on this topic, remember that as we sit together in this sacred 20-minute Gokarna consultation room, I warmly invite you to share any personal questions regarding your career, family, health, or life journey. May Lord Mahabaleshwara bless your intellectual endeavors with wisdom and success.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `आपके द्वारा पूछे गए "${userQuestion}" सामान्य ज्ञान के विषय में, विज्ञान एवं इतिहास का ज्ञान बुद्धि (बुध व गुरु तत्व) को प्रखर करता है। इस जिज्ञासा के साथ ही, गोकर्ण के इस पावन परामर्श में अपने जीवन, आजीविका या परिवार से जुड़े प्रश्न भी अवश्य पूछें।`;
+        }
+        return `नमस्ते ${session.name} जी। "${userQuestion}" के विषय में आपकी जिज्ञासा सराहनीय है। यह सांसारिक ज्ञान बुद्धि का विस्तार करता है। इस २० मिनट के पवित्र परामर्श में आप अपने जीवन, करियर या भविष्य के विषय में भी निसंकोच प्रश्न पूछें। श्री क्षेत्र गोकर्ण महाबलेश्वर आपको सद्बुद्धि और सफलता प्रदान करें।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `మీరు అడిగిన "${userQuestion}" అనే సాధారణ జ్ఞాన విషయం గురించి, విజ్ఞానం మరియు చరిత్ర బుద్ధి వికాసానికి (బుధ, గురు గ్రహాలు) తోడ్పడతాయి. ఈ సమాచారంతో పాటు, మీ వ్యక్తిగత జీవితం, ఉద్యోగం లేదా కుటుంబ విషయాలపై ఏవైనా ప్రశ్నలు ఉంటే నిస్సంకోచంగా అడగండి.`;
+        }
+        return `నమస్కారం ${session.name} గారు. "${userQuestion}" గురించిన మీ ప్రశ్న ఆసక్తికరంగా ఉంది. లోక జ్ఞానం వివేకాన్ని పెంచుతుంది. ఈ పవిత్ర 20 నిమిషాల సంభాషణలో మీ కెరీర్, కుటుంబం లేదా వ్యక్తిగత విషయాల గురించి కూడా అడగవచ్చు. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి అనుగ్రహం మీపై ఉండుగాక.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `நீங்கள் கேட்ட "${userQuestion}" என்ற பொது அறிவு தகவல் குறித்து, உலகியல் விஞ்ஞானம் புத்தி கூர்மைக்கு (புதன், குரு தத்துவம்) உதவுகிறது. இந்த தகவலுடன், உங்கள் வாழ்க்கை, வேலை அல்லது குடும்பம் பற்றிய கேள்விகளையும் சுதந்திரமாகக் கேட்கலாம்.`;
+        }
+        return `வணக்கம் ${session.name}. "${userQuestion}" பற்றிய உங்கள் கேள்வி சிந்திக்கத்தக்கது. உலகியல் அறிவு விவேகத்தை வளர்க்கும். இந்த 20 நிமிட ஆன்மீக ஆலோசனையில் உங்கள் எதிர்காலம், தொழில் அல்லது குடும்பம் குறித்த கேள்விகளையும் கேட்கலாம். கோகர்ண மகாபலேஸ்வரர் அருள் புரிவாராக.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `നിങ്ങൾ ചോദിച്ച "${userQuestion}" എന്ന പൊതുവിജ്ഞാന വിഷയത്തിൽ, ശാസ്ത്രവും ചരിത്രവും ബുദ്ധിവികാസത്തിന് (ബുധൻ, വ്യാഴം) സഹായിക്കുന്നു. ഇതിനൊപ്പം നിങ്ങളുടെ ജീവിതം, ജോലി, കുടുംബം എന്നിവയെക്കുറിച്ചുള്ള സംശയങ്ങളും ചോദിക്കാവുന്നതാണ്.`;
+        }
+        return `നമസ്കാരം ${session.name}. "${userQuestion}" എന്നതിനെക്കുറിച്ചുള്ള അന്വേഷണം നല്ലതാണ്. ഇത് ബുദ്ധിയെ വികസിപ്പിക്കുന്നു. ഈ പവിത്രമായ 20 മിനിറ്റ് കൺസൾട്ടേഷനിൽ നിങ്ങളുടെ വ്യക്തിജീവിതം, കരിയർ എന്നിവയെക്കുറിച്ചും ചോദിക്കാം. ഗോകർണ്ണ മഹാബലേശ്വരൻ അനുഗ്രഹിക്കട്ടെ.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `आपण विचारलेल्या "${userQuestion}" या सामान्य ज्ञानाच्या संदर्भात, विज्ञान व इतिहासाचे ज्ञान बुद्धीला (बुध व गुरू तत्त्व) चालना देते. यासोबतच आपल्या वैयक्तिक जीवनाविषयी, नोकरी किंवा कुटुंबाविषयी शंका असल्यास जरूर विचारा.`;
+        }
+        return `नमस्कार ${session.name} जी. "${userQuestion}" बाबतची आपली उत्सुकता चांगली आहे. सांसारिक ज्ञान बुद्धीची वृद्धी करते. या २० मिनिटांच्या सत्रात आपल्या आयुष्याविषयी, करिअर किंवा भविष्याविषयी प्रश्नही आपण विचारू शकता. श्री क्षेत्र गोकर्ण महाबळेश्वर आपले कल्याण करो.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ನೀವು ಕೇಳಿರುವ "${userQuestion}" ಎಂಬ ಸಾಮಾನ್ಯ ಜ್ಞಾನದ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಇದು ಲೋಕ ವ್ಯವಸ್ಥೆ, ವಿಜ್ಞಾನ ಹಾಗೂ ಮಾನವ ಇತಿಹಾಸದ ಪ್ರಮುಖ ವಿಷಯವಾಗಿದೆ. ಜ್ಞಾನಾರ್ಜನೆಯು ಮನುಷ್ಯನ ಬುದ್ಧಿಶಕ್ತಿಯನ್ನು (ಬುಧ ಹಾಗೂ ಗುರು ತತ್ವ) ಸದಾ ಜಾಗೃತವಾಗಿಡುತ್ತದೆ.\n\nಈ ಮಾಹಿತಿಯ ಜೊತೆಗೆ, ನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ಈ ಪವಿತ್ರ ೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜೀವನ, ವೃತ್ತಿ, ವಿವಾಹ ಅಥವಾ ಕೌಟುಂಬಿಕ ವಿಚಾರಗಳ ಕುರಿತು ಮಾರ್ಗದರ್ಶನ ಬೇಕಿದ್ದಲ್ಲಿ ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯು ನಿಮ್ಮ ಮೇಲಿರಲಿ.`;
       }
@@ -1187,6 +1337,31 @@ function generateSpecializedFallbackReply(params: {
         }
         return `प्रिय ${session.name}, आपकी चंचल और मासूम बात देखकर एक वरिष्ठ के रूप में मेरे चेहरे पर मुस्कान आ गई! आपने जो "${userQuestion}" पूछा है, ऐसे काल्पनिक पात्रों और हास्य प्रसंगों में केवल मनोरंजन होता है। थोड़ा हंसना और मुस्कुराना मन को हल्का और प्रसन्न रखता है।\n\nलेकिन याद रखें, हम दोनों श्री क्षेत्र गोकर्ण के इस पवित्र 20 मिनट के परामर्श कक्ष में उपस्थित हैं। अब एक बार मुस्कुराने के बाद, अपने वास्तविक जीवन के बारे में बताएं। अपनी पढ़ाई, करियर, परिवार या भविष्य के बारे में यदि कोई सच्ची और गंभीर शंका हो तो पूछें; एक वरिष्ठ दैवज्ञ के रूप में मैं आपको सही मार्गदर्शन और आशीर्वाद दूंगा।`;
       }
+      if (isTe) {
+        if (isSubsequent) {
+          return `మీరు అడిగిన "${userQuestion}" సరదా ప్రశ్న చూసి నవ్వు వచ్చింది. హాస్యం మనస్సును తేలికపరుస్తుంది. కానీ మనం గోకర్ణ పవిత్ర 20 నిమిషాల గదిలో ఉన్నాము. ఇక మీ నిజ జీవితం, చదువు, ఉద్యోగం లేదా కుటుంబ విషయాలపై నిజమైన ప్రశ్నలను అడగండి. దైవజ్ఞుడిగా సరైన మార్గం చూపుతాను.`;
+        }
+        return `ప్రియమైన ${session.name}, మీ చమత్కారమైన ప్రశ్న చూసి ముఖంలో నవ్వు వెలిగింది! కాల్పనిక విషయాల వల్ల వినోదం లభిస్తుంది. కానీ మనం ఇక్కడ గోకర్ణ పవిత్ర సన్నిధిలో ఉన్నాము. మీ నిజజీవిత సమస్యలు, ఉద్యోగం లేదా భవిష్యత్తు గురించి నిర్భయంగా అడగండి; మార్గదర్శనం చేస్తాను.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `நீங்கள் கேட்ட "${userQuestion}" போன்ற நகைச்சுவை கேள்வி புன்னகையை வரவழைத்தது. நகைச்சுவை மனதை லேசாக்கும். ஆனால் நாம் கோகர்ண புண்ணிய ஆலோசனை அறையில் இருக்கிறோம். இப்போது உங்கள் நிஜ வாழ்க்கை, கல்வி, வேலை அல்லது எதிர்காலம் பற்றிய உண்மையான சந்தேகங்களைக் கேளுங்கள்; வழிகாட்டுகிறேன்.`;
+        }
+        return `அன்பான ${session.name}, உங்கள் விளையாட்டுத்தனமான கேள்வியைப் பார்த்து முதியவனாக என் முகத்தில் சிரிப்பு வந்தது! கற்பனை கதைகள் பொழுதுபோக்கிற்கு மட்டுமே. உங்கள் நிஜ வாழ்க்கை, வேலை, திருமணம் அல்லது எதிர்காலம் குறித்து மனந்திறந்து கேளுங்கள்; நல்லாசி வழங்குகிறேன்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `നിങ്ങൾ ചോദിച്ച "${userQuestion}" എന്ന തമാശ നിറഞ്ഞ ചോദ്യം സന്തോഷം നൽകി. ചിരി മനസ്സിന് ഉന്മേഷം നൽകും. എങ്കിലും ഗോകർണ്ണ പവിത്ര സന്നിധിയിലുള്ള ഈ സമയത്ത് നിങ്ങളുടെ പഠനം, തൊഴിൽ, ജീവിതം എന്നിവയെക്കുറിച്ചുള്ള പ്രധാന ചോദ്യങ്ങൾ ചോദിക്കുക; ഉചിതമായ വഴി പറഞ്ഞുതരാം.`;
+        }
+        return `പ്രിയ ${session.name}, നിങ്ങളുടെ നിഷ്കളങ്കമായ ചോദ്യം കണ്ടപ്പോൾ വാത്സല്യത്തോടെ ഒരു പുഞ്ചിരി വിടർന്നു! ഭാവനകൾ നല്ലതാണ്, എന്നാൽ ഈ പവിത്ര മുഹൂർത്തത്തിൽ നിങ്ങളുടെ യഥാർത്ഥ ജീവിതം, ഭാവി എന്നിവയെക്കുറിച്ച് ചോദിക്കുക; മുതിർന്ന ജ്യോത്സ്യനായി അനുഗ്രഹിക്കാം.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `आपण विचारलेला "${userQuestion}" हा हलकाफुलका प्रश्न वाचून चेहऱ्यावर हसू आले. विनोद मनाला हलके करतो. पण आपण गोकर्णच्या पवित्र सत्रात आहोत. आता आपल्या वास्तविक जीवनाविषयी, अभ्यास, नोकरी किंवा कुटुंबाविषयी खरी शंका विचारा; योग्य मार्गदर्शन नक्की मिळेल.`;
+        }
+        return `प्रिय ${session.name}, आपली निष्पाप आणि चतुर विचारणा पाहून एका ज्येष्ठाच्या नात्याने माझ्या चेहऱ्यावर हसू उमटले! अशा काल्पनिक गोष्टी केवळ मनोरंजनासाठी असतात. आता आपल्या खऱ्या आयुष्याबद्दल, करिअर किंवा भविष्याबद्दल प्रश्न विचारा; आशीर्वाद आणि योग्य सल्ला देतो.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ನೀವು ಕೇಳಿದ "${userQuestion}" ಎಂಬ ವಿಷಯದ ಬಗ್ಗೆ ಹೇಳುವುದಾದರೆ, ಇಂತಹ ಕಲ್ಪನಾ ಕಥೆಗಳು ಹಾಗೂ ಕಾಲ್ಪನಿಕ ಪಾತ್ರಗಳಲ್ಲಿ (ಉದಾಹರಣೆಗೆ ಸೂಪರ್ ಹೀರೋಗಳು ಅಥವಾ ಹಾಸ್ಯ ಪ್ರಸಂಗಗಳು) ಅಸಾಧ್ಯವಾದ ಕಲ್ಪನೆ ಮತ್ತು ರೋಚಕತೆ ಇರುತ್ತದೆ. ಹಾಸ್ಯ ಮತ್ತು ಮುಗ್ಧತೆಯಿಂದ ನಗುವುದು ಮನಸ್ಸನ್ನು ಸದಾ ಹಗುರವಾಗಿಯೂ, ಲವಲವಿಕೆಯಿಂದಲೂ ಇಡುತ್ತದೆ.\n\nಆದರೆ ನೆನಪಿಡಿ, ನಾವಿಬ್ಬರೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನಾ ಕೊಠಡಿಯಲ್ಲಿ ಕುಳಿತಿದ್ದೇವೆ. ಒಮ್ಮೆ ನಕ್ಕು ಹಗುರಾದ ಮೇಲೆ, ನಿಮ್ಮ ನೈಜ ಬದುಕಿನ ಬಗ್ಗೆ ತಿಳಿಸಿ. ನಿಮ್ಮ ವಿದ್ಯಾಭ್ಯಾಸ, ಉದ್ಯೋಗ, ಕುಟುಂಬ ಅಥವಾ ಭವಿಷ್ಯದ ಕುರಿತು ಯಾವುದೇ ಗೊಂದಲಗಳಿದ್ದರೆ ಪ್ರಾಮಾಣಿಕವಾಗಿ ಕೇಳಿ; ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಿಮಗೆ ಸನ್ಮಾರ್ಗ ಮತ್ತು ಪರಿಹಾರವನ್ನು ತಿಳಿಸುತ್ತೇನೆ.`;
       }
@@ -1199,6 +1374,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `My child ${session.name}, wipe away your tears and breathe in peace. Sitting in the divine presence of Sri Kshetra Gokarna, I reassure you with fatherly warmth that you are never alone.\n\nLife sometimes feels like an overwhelming storm, but remember that dark clouds can never extinguish the sun. In Vedic astrology, emotional pain is tied to the waxing and waning of the Moon (Chandra - ruler of the mind). This phase of mental sorrow is temporary and is clearing past karmic impressions to make way for renewal.\n\nDo not lose faith. Take care of your health, drink pure water, walk in fresh air, and recite the holy mantra 'Om Namah Shivaya'. Lord Mahabaleshwara is watching over you, and divine grace will soon restore peace, light, and happiness to your soul.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `गहरी और शांत सांस लें। श्री क्षेत्र गोकर्ण के इस पावन सान्निध्य में मैं आपको आश्वस्त करता हूँ कि आप अकेले नहीं हैं। ज्योतिष में चंद्रमा (मन का कारक) के उतार-चढ़ाव से मानसिक पीड़ा आती है। यह समय अस्थायी है। ॐ नमः शिवाय का जप करें; कष्ट के बादल शीघ्र छंटेंगे और मन में शांति का सवेरा होगा।`;
+        }
+        return `वत्स ${session.name}, अपने आंसू पोंछ लें और शांत हो जाएं। जीवन में कभी-कभी अंधकार गहरा प्रतीत होता है, किंतु सूर्य का उदय निश्चित है। जन्मकुंडली में चंद्र ग्रह के प्रभाव से ऐसी उदासी आती है। निराश न हों, ईश्वर पर आस्था रखें और नित्य ॐ नमः शिवाय का जप करें। श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा से शीघ्र ही जीवन में सुख और शांति लौटेगी।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `ప్రశాంతంగా శ్వాస తీసుకోండి. శ్రీ క్షేత్ర గోకర్ణ సన్నిధిలో నేను మీకు ధైర్యం చెబుతున్నాను; మీరు ఎప్పుడూ ఒంటరి కాదు. జ్యోతిషంలో మనఃకారకుడైన చంద్రుని ప్రభావం వల్ల తాత్కాలికంగా బాధ కలుగుతుంది. ధైర్యం వీడకండి. నిత్యం 'ఓం నమః శివాయ' జపించండి; త్వరలోనే ఈ కష్టాలు తొలగి మనశ్శాంతి లభిస్తుంది.`;
+        }
+        return `నాయనా ${session.name}, కన్నీరు తుడుచుకోండి. కష్టాల మేఘాలు ఎంత దట్టంగా ఉన్నా సూర్యోదయాన్ని ఆపలేవు. జాతకంలో చంద్రుని తాత్కాలిక బలహీనత వల్ల ఈ మానసిక క్షోభ కలుగుతోంది. ఆత్మవిశ్వాసం కోల్పోకండి. నిత్యం మహా మృత్యుంజయ మంత్రం లేదా శివ నామస్మరణ చేయండి. గోకర్ణ మహాబలేశ్వరుని దయతో సకల శుభాలు కలుగుతాయి.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `அமைதியாக மூச்சை இழுத்து விடுங்கள். கோகர்ண சந்நிதியில் ஒரு தந்தையாக உங்களுக்கு ஆறுதல் கூறுகிறேன்; நீங்கள் தனிமையில் இல்லை. ஜாதகத்தில் மனோகாரகனான சந்திரன் பலவீனத்தால் இந்த மனவேதனை ஏற்படுகிறது. இது தற்காலிகமானது. 'ஓம் நம சிவாய' மந்திரம் ஜெபியுங்கள்; அமைதியும் மகிழ்ச்சியும் விரைவில் திரும்பும்.`;
+        }
+        return `அன்புக் குழந்தாய் ${session.name}, கண்களைத் துடைத்துக் கொள்ளுங்கள். இருள் எவ்வளவு அடர்ந்தாலும் விடியலைத் தடுக்க முடியாது. சந்திரன் தரும் இந்த மன சஞ்சலம் விரைவில் மாறும். உங்கள் உயிர் மிகவும் மதிப்புமிக்கது. தினமும் சிவ நாமத்தை உச்சரியுங்கள். ஸ்ரீ க்ஷேத்ர கோகர்ண மகாபலேஸ்வரர் அருளால் நல்வாழ்வு மலரும்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `ശാന്തമായി ദീർഘശ്വാസമെടുക്കുക. ഗോകർണ്ണ സന്നിധിയിൽ ഞാൻ നിങ്ങൾക്ക് ധൈര്യം തരുന്നു; നിങ്ങൾ ഒരിക്കലും ഒറ്റയ്ക്കല്ല. ചന്ദ്രന്റെ സ്വാധീനം മൂലമുള്ള മാനസിക വിഷമമാണിത്. ഇത് ഉടൻ മാറും. 'ഓം നമഃ ശിവായ' ജപിക്കുക; മനസ്സിൽ ശാന്തിയും പ്രകാശവും നിറയും.`;
+        }
+        return `മക്കളേ ${session.name}, വിഷമങ്ങൾ കണ്ട് തളരരുത്. ഇരുൾ എത്ര കഠിനമായാലും പ്രഭാതം വരാതിരിക്കില്ല. ജാതകത്തിൽ മനസ്സിന്റെ കാരകനായ ചന്ദ്രന്റെ അശുഭാവസ്ഥയാണ് ഈ ദുഃഖത്തിന് കാരണം. ധൈര്യമായിരിക്കുക. ദിവസവും ശിവപഞ്ചാക്ഷരി ജപിക്കുക. ഗോകർണ്ണ മഹാബലേശ്വരൻ നിങ്ങളെ കാത്തുരക്ഷിക്കും.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `दीर्घ व शांत श्वास घ्या. गोकर्ण चरणी मी आपल्याला पितृतुल्य धीर देतो; आपण एकटे नाही आहात. चंद्र ग्रहाच्या प्रभावामुळे हे मानसिक दुःख आले आहे, जे तात्पुरते आहे. ॐ नमः शिवाय जप करा; दुःखाचे ढग विरून लवकरच जीवनात शांती नांदेल.`;
+        }
+        return `वत्स ${session.name}, अश्रू पुसा आणि शांत व्हा. अंधार कितीही दाट असला तरी सूर्योदय नक्की होतो. पत्रिकेतील चंद्र ग्रहाच्या प्रतिकूलतेमुळे ही निराशा आली आहे. न डगमगता ईश्वरावर विश्वास ठेवा आणि ॐ नमः शिवाय चा जप करा. श्री क्षेत्र गोकर्ण महाबळेश्वराच्या कृपेने लवकरच आनंद व शांती लाभेल.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ಶಾಂತಚಿತ್ತದಿಂದ ಆಳವಾದ ಉಸಿರು ತೆಗೆದುಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ನಿಮಗೆ ಧೈರ್ಯ ಹೇಳುತ್ತೇನೆ; ನೀವು ಎಂದಿಗೂ ಒಬ್ಬಂಟಿಯಲ್ಲ.\n\nಜೀವನದಲ್ಲಿ ಕೆಲವೊಮ್ಮೆ ಎಲ್ಲ ದಾರಿಗಳೂ ಮುಚ್ಚಿದಂತೆ, ಕತ್ತಲು ಆವರಿಸಿದಂತೆ ಅನ್ನಿಸುವುದು ಸಹಜ. ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಮನಸ್ಸಿಗೆ ಕಾರಕನಾದ ಚಂದ್ರ ಗ್ರಹದ ಮೇಲಿನ ಅಶುಭ ಪ್ರಭಾವದಿಂದ ಇಂತಹ ತೀವ್ರ ಖಿನ್ನತೆ ಮತ್ತು ನೋವು ಉಂಟಾಗುತ್ತದೆ. ಆದರೆ ನೆನಪಿಡಿ, ಕತ್ತಲು ಎಷ್ಟು ದಟ್ಟವಾಗಿದ್ದರೂ ಮುಂಜಾನೆಯ ಸೂರ್ಯೋದಯವನ್ನು ತಡೆಯಲು ಸಾಧ್ಯವಿಲ್ಲ.\n\nಧೃತಿಗೆಡಬೇಡಿ. ನಿಮ್ಮ ಜೀವ ಅತ್ಯಂತ ಅಮೂಲ್ಯವಾದದ್ದು. ಪ್ರತಿದಿನ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ತಾಜಾ ಗಾಳಿಯಲ್ಲಿ ನಡೆದಾಡಿ ಸಕಾರಾತ್ಮಕವಾಗಿರಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಶೀಘ್ರದಲ್ಲೇ ಈ ಕಷ್ಟದ ಮೋಡಗಳು ಕರಗಿ, ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`;
       }
@@ -1211,6 +1417,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `Dear Parents of ${session.name}, examining the birth chart of your child (${lagnaName} Lagna, ${moonRashi} Moon Sign), the child is endowed with keen natural curiosity and sharp cognitive potential.\n\nRegarding your inquiry on "${userQuestion}", the child's 4th house of learning and 5th house of intellect indicate strong grasping abilities, though occasional restlessness or playfulness is natural at this developmental stage. As loving parents, guiding them with patient encouragement rather than comparative academic pressure will inspire them to achieve excellence.\n\nFor concentration and memory power, lighting a pure ghee lamp during study hours and offering prayers to Lord Mahaganapati at Sri Kshetra Gokarna will bestow academic success and protection.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `बच्चे के संबंध में ("${userQuestion}"), कुंडली के चतुर्थ (विद्या) एवं पंचम (बुद्धि) भाव दर्शाते हैं कि बच्चे में तीव्र ग्रहण शक्ति है। इस आयु में चंचलता स्वाभाविक है। अत्यधिक दबाव बनाने के बजाय प्रेम से प्रेरित करें। नित्य सरस्वती वंदना करें और गोकर्ण महागणपति की कृपा से विद्या में अपार सफलता मिलेगी।`;
+        }
+        return `आदरणीय माता-पिता, आपके बालक (${session.name}) की जन्मकुंडली (${lagnaName} लग्न, ${moonRashi} राशि) में तीव्र मेधा शक्ति विद्यमान है। चतुर्थ एवं पंचम भाव सक्रिय हैं। बच्चे की स्वाभाविक चंचलता पर क्रोध न करें, अपितु धैर्यपूर्वक मार्गदर्शन करें। संध्या समय शुद्ध घी का दीपक जलाकर महासरस्वती स्तोत्र का पाठ करें; गोकर्ण महागणपति की कृपा से विद्या एवं एकाग्रता में अद्भुत उन्नति होगी।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `పిల్లల విషయం గురించి ("${userQuestion}"), జాతకంలోని 4వ విద్యా స్థానం, 5వ బుద్ధి స్థానాలు మంచి గ్రహణ శక్తిని సూచిస్తున్నాయి. ఈ వయస్సులో చంచలత్వం సహజం. ఒత్తిడి తేవద్దు. సరస్వతీ స్తోత్రం మరియు గోకర్ణ మహాగణపతి ప్రార్థన వల్ల చదువులో విశేష రాణింపు లభిస్తుంది.`;
+        }
+        return `ఆత్మీయ తల్లిదండ్రులారా, మీ బిడ్డ (${session.name}) జాతకంలో (${lagnaName} లగ్నం, ${moonRashi} రాశి) చక్కని మేధస్సు ఉంది. 4వ మరియు 5వ స్థానాల ప్రభావం వల్ల నేర్చుకునే ఉత్సాహం అధికం. పిల్లలపై అధిక ఒత్తిడి పెట్టకుండా ప్రేమతో గైడ్ చేయండి. సాయంత్రం దీపం వెలిగించి సరస్వతీ దేవిని ప్రార్థించండి; గోకర్ణ మహాగణపతి ఆశీస్సులతో మంచి విద్యాభివృద్ధి కలుగుతుంది.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `குழந்தையின் படிப்பு மற்றும் வளர்ச்சி ("${userQuestion}") குறித்து, 4-ஆம் கல்வி ஸ்தானமும் 5-ஆம் புத்தி ஸ்தானமும் சிறந்த ஆற்றலைக் காட்டுகின்றன. குழந்தைகளின் இயல்பான விளையாட்டை கண்டிப்புடன் அணுகாமல் அன்புடன் வழிகாட்டுங்கள். சரஸ்வதி ஸ்தோத்திரம் மற்றும் கோகர்ண கணபதி வழிபாடு கல்வியில் மேன்மை தரும்.`;
+        }
+        return `அன்பான பெற்றோரே, உங்கள் குழந்தையின் (${session.name}) ஜாதகத்தில் (${lagnaName} லக்னம், ${moonRashi} ராசி) நல்ல புத்தி கூர்மை உள்ளது. 4 மற்றும் 5-ஆம் வீடுகள் சுபமாக உள்ளன. அதிக மன அழுத்தம் தராமல் பாசத்துடன் வழிநடத்துங்கள். மாலையில் நெய் தீபம் ஏற்றி சரஸ்வதி வழிபாடு செய்யுங்கள்; கோகர்ண மகா கணபதி அருளால் படிப்பில் சிறந்து விளங்குவர்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `കുട്ടിയുടെ കാര്യത്തിൽ ("${userQuestion}"), ജാതകത്തിലെ 4-ാം ഭാവവും 5-ാം ഭാവവും നല്ല ഗ്രഹണശക്തിയെ സൂചിപ്പിക്കുന്നു. കുട്ടികളിലെ കളിചിരി സ്വാഭാവികമാണ്. കഠിനമായ സമ്മർദ്ദം നൽകാതെ സ്നേഹത്തോടെ പഠിപ്പിക്കുക. സരസ്വതീ സ്തോത്രവും ഗോകർണ്ണ ഗണപതി പ്രാർത്ഥനയും ഏകാഗ്രത വർദ്ധിപ്പിക്കും.`;
+        }
+        return `പ്രിയ രക്ഷിതാക്കളെ, നിങ്ങളുടെ കുട്ടിയുടെ (${session.name}) ജാതകത്തിൽ (${lagnaName} ലഗ്നം, ${moonRashi} രാശി) മികച്ച ബുദ്ധിശക്തി കാണുന്നുണ്ട്. വിദ്യയുടെ 4-ാം ഭാവവും 5-ാം ഭാവവും ശുഭകരമാണ്. വഴക്കുപറയാതെ ക്ഷമയോടെ നയിക്കുക. നിത്യവും ദീപം തെളിയിച്ച് പ്രാർത്ഥിക്കുക; ഗോകർണ്ണ മഹാഗണപതിയുടെ അനുഗ്രഹത്താൽ പഠനത്തിൽ ഉന്നത വിജയം നേടും.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `मुलाच्या संदर्भात ("${userQuestion}"), पत्रिकेतील चतुर्थ (विद्या) व पंचम (बुद्धी) भाव उत्तम आकलनशक्ती दर्शवतात. या वयात चंचलता असणे स्वाभाविक आहे. दबाव न आणता प्रेमाने मार्गदर्शन करा. सरस्वती स्तोत्र पठण आणि गोकर्ण महागणपतीच्या कृपेने अभ्यासात प्रगती होईल.`;
+        }
+        return `आदरणीय पालकहो, आपल्या बालकाच्या (${session.name}) पत्रिकेत (${lagnaName} लग्न, ${moonRashi} रास) उत्तम बुद्धिमत्ता दिसून येते. चतुर्थ व पंचम भाव बलवान आहेत. मुलावर अभ्यासाचा अति ताण न आणता कौतुकाने शिकवा. सायंकाळी तुपाचा दिवा लावून सरस्वती प्रार्थना करा; गोकर्ण महागणपतीच्या आशीर्वादाने शैक्षणिक यश लाभेल.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ಮಗುವಿನ "${userQuestion}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ ಮತ್ತು ೫ನೇ ಬುದ್ಧಿ ಸ್ಥಾನಗಳನ್ನು ಗಮನಿಸಿದಾಗ ಮಗುವಿಗೆ ವಿಷಯಗಳನ್ನು ಬೇಗನೆ ಗ್ರಹಿಸುವ ಶಕ್ತಿಯಿದೆ. ಆದರೆ ಮನಸ್ಸು ಒಮ್ಮೊಮ್ಮೆ ಆಟದ ಕಡೆಗೆ ಚಂಚಲಗೊಳ್ಳುವುದು ಸಹಜ. ಪೋಷಕರಾಗಿ ನೀವು ಮಗುವಿನ ಮೇಲೆ ಕಠಿಣ ಒತ್ತಡ ಹೇರದೆ, ಪ್ರೀತಿ ಮತ್ತು ಸಮಾಧಾನದಿಂದ ನಿಗದಿತ ಅಧ್ಯಯನ ದಿನಚರಿಯನ್ನು ರೂಪಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.\n\nಮಗುವಿನ ವಿದ್ಯಾ ಏಕಾಗ್ರತೆ ಹಾಗೂ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗಾಗಿ, ಸಂಜೆ ಮನೆಯಲ್ಲಿ ದೀಪ ಹಚ್ಚಿ ಸರಸ್ವತೀ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಪ್ರಾರ್ಥನೆ ಮಾಡಿಸಿ.`;
       }
@@ -1223,6 +1460,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `My child ${session.name}, I deeply understand the longing, emotional prayers, and societal sensitivity surrounding progeny and childbirth in your marriage. As a senior priest, I receive your inquiry with complete compassion.\n\nAccording to your birth chart (${lagnaName} Lagna, ${moonRashi} Moon Sign), your 5th house of progeny and Putrakaraka Jupiter (Guru) are undergoing a temporary karmic transit delay. Remove all self-doubt and marital stress; Vedic tradition teaches that parenthood requires the sacred alignment of health and divine grace (Daiva Bala).\n\nUpcoming planetary transits favor family growth. Chanting the sacred Sri Santhana Gopala Mantra daily and performing the Santhana Gopala Homa and Naga Pratishtha at Sri Kshetra Gokarna with chief priest Shreeram Pandit (9972339362) will dissolve obstacles and bring joyous parenthood blessings.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `संतान प्राप्ति की जिज्ञासा ("${userQuestion}") पर, पंचम भाव एवं पुत्रकारक गुरु पर गोचर का अस्थायी प्रभाव है। निराश न हों; चिकित्सा के साथ दैव कृपा का योग होने पर संतान सुख अवश्य मिलेगा। नित्य श्री संतान गोपाल मंत्र का जप करें। श्री क्षेत्र गोकर्ण में मुख्य पुरोहित श्रीराम पंडित जी (9972339362) के मार्गदर्शन में संतान गोपाल महायज्ञ कराने से शीघ्र शुभ समाचार प्राप्त होगा।`;
+        }
+        return `वत्स ${session.name}, संतान प्राप्ति को लेकर आपके मन की चिंता को मैं भली-भांति समझता हूँ। आपकी कुंडली (${lagnaName} लग्न, ${moonRashi} राशि) के पंचम भाव व गुरु पर गोचर ग्रहों का अस्थायी विलंब है। हताश न हों। नित्य श्री संतान गोपाल मंत्र का जप करें। श्री क्षेत्र गोकर्ण में मुख्य पुरोहित श्रीराम पंडित जी (9972339362) के सान्निध्य में संतान गोपाल पूजा कराने से शीघ्र ही संतान का पावन सुख प्राप्त होगा।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `సంతాన ప్రాప్తి గురించిన మీ ప్రశ్న ("${userQuestion}"), 5వ సంతాన స్థానం మరియు గురు గ్రహంపై తాత్కాలిక గోచార ప్రభావం ఉంది. నిరాశ చెందవద్దు. వైద్యంతో పాటు దైవబలం తోడైతే సంతాన భాగ్యం కలుగుతుంది. నిత్యం శ్రీ సంతాన గోపాల మంత్రం జపించండి. గోకర్ణంలో ప్రధాన పురోహితులు శ్రీరామ్ పండితుల (9972339362) ఆధ్వర్యంలో సంతాన గోపాల హోమం చేయించడం వల్ల శుభవార్త వింటారు.`;
+        }
+        return `నాయనా ${session.name}, దాంపత్యంలో సంతాన భాగ్యం గురించిన మీ ఆందోళనను అర్థం చేసుకోగలను. మీ జాతకంలోని (${lagnaName} లగ్నం, ${moonRashi} రాశి) 5వ స్థానం మరియు గురు గ్రహం అనుకూలించే సమయం దగ్గరపడుతోంది. నిరాశ వద్దు. శ్రీ సంతాన గోపాల మంత్రం పఠించండి. శ్రీ క్షేత్ర గోకర్ణంలో శ్రీరామ్ పండిట్ (9972339362) గారి ఆధ్వర్యంలో పూజ జరిపించడం ద్వారా శీఘ్ర సంతాన యోగం సిద్ధిస్తుంది.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `புத்திர பாக்கியம் குறித்த உங்கள் கேள்விக்கு ("${userQuestion}"), 5-ஆம் புத்திர ஸ்தானமும் குரு பகவானும் தற்போது தற்காலிக தாமதத்தை ஏற்படுத்துகின்றனர். கவலை வேண்டாம்; மருத்துவ சிகிச்சையுடன் தெய்வ பலமும் இணையும் போது மழலைச் செல்வம் கிட்டும். தினமும் ஸ்ரீ சந்தான கோபால மந்திரம் ஜெபியுங்கள். கோகர்ணத்தில் தலைமை பண்டிதர் ஸ்ரீராம் பண்டிதர் (9972339362) மூலம் பூஜை செய்விப்பது நற்பலன் தரும்.`;
+        }
+        return `அன்புக் குழந்தாய் ${session.name}, சந்தான பாக்கியம் குறித்த உங்கள் மனவேதனையை உணர்கிறேன். உங்கள் ஜாதகத்தில் (${lagnaName} லக்னம், ${moonRashi} ராசி) 5-ஆம் வீடும் குருவும் சாதகமாக மாறும் காலம் வருகிறது. நம்பிக்கையுடன் இருங்கள். சந்தான கோபால மந்திரம் ஓதுங்கள். ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் ஸ்ரீராம் பண்டிதர் (9972339362) வழிகாட்டலில் பரிகாரம் செய்வது மழலை பாக்கியத்தை அருளும்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `സന്താനലബ്ധിയെക്കുറിച്ചുള്ള ചോദ്യത്തിന് ("${userQuestion}"), അഞ്ചാം ഭാവത്തിലും വ്യാഴത്തിലും താൽക്കാലിക തടസ്സങ്ങൾ കാണുന്നുണ്ട്. വിഷമിക്കേണ്ടതില്ല; വൈദ്യസഹായത്തോടൊപ്പം ഈശ്വരാധീനവും ചേരുമ്പോൾ ഫലം ലഭിക്കും. ദിവസവും ശ്രീ സന്താന ഗോപാല മന്ത്രം ജപിക്കുക. ഗോകർണ്ണത്തിൽ മുഖ്യപുരോഹിതൻ ശ്രീറാം പണ്ഡിറ്റിന്റെ (9972339362) നേതൃത്വത്തിൽ സന്താന ഗോപാല പൂജ നടത്തുന്നത് ഉത്തമമാണ്.`;
+        }
+        return `മക്കളേ ${session.name}, ദാമ്പത്യത്തിലെ സന്താന ഭാഗ്യത്തെക്കുറിച്ചുള്ള ആഗ്രഹം സ്വാഭാവികമാണ്. നിങ്ങളുടെ ജാതകത്തിലെ (${lagnaName} ലഗ്നം, ${moonRashi} രാശി) അഞ്ചാം ഭാവത്തിന് അനുകൂല സമയം വരുന്നുണ്ട്. നിരാശ വേണ്ട. സന്താന ഗോപാല മന്ത്രം നിത്യവും ജപിക്കുക. ഗോകർണ്ണ ശ്രീറാം പണ്ഡിറ്റിന്റെ (9972339362) മേൽനോട്ടത്തിൽ പൂജ നടത്തുന്നത് സന്താന ഭാഗ്യം പ്രദാനം ചെയ്യും.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `संतान प्राप्तीबाबत ("${userQuestion}"), पत्रिकेतील पंचम भाव व गुरु ग्रहावर सध्या तात्पुरते गोचर विघ्न आहे. निराश होऊ नका; औषधोपचारासोबत दैवी कृपा लाभल्यास संतान सुख नक्की मिळेल. नित्य श्री संतान गोपाल मंत्र जप करा. गोकर्णात मुख्य पुरोहित श्रीराम पंडित (9972339362) यांच्या मार्गदर्शनाखाली संतान गोपाल पूजा केल्याने लवकरच आनंदवार्ता लाभेल.`
+        }
+        return `वत्स ${session.name}, संतान प्राप्तीबाबतच्या आपल्या मनातील चिंतेला मी समजू शकतो. पत्रिकेत (${lagnaName} लग्न, ${moonRashi} रास) पंचम भाव आणि गुरु ग्रहाची स्थिती अनुकूल होत आहे. धीर धरा. श्री संतान गोपाल मंत्राचा जप करा. श्री क्षेत्र गोकर्ण येथे मुख्य पुरोहित श्रीराम पंडित (9972339362) यांच्याकडून संकल्प पूजा करवून घेतल्याने संतान सुख प्राप्त होईल.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ಸಂತಾನ ಭಾಗ್ಯದ ಕುರಿತಾದ ನಿಮ್ಮ "${userQuestion}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನ ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು ತಾತ್ಕಾಲಿಕ ವಿಳಂಬವನ್ನು ಉಂಟುಮಾಡುತ್ತಿವೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ನಿರಾಶೆ ಹೊಂದಬೇಡಿ. ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯ ಜೊತೆಗೆ ದೈವಾನುಗ್ರಹವು ಜೋಡಿಯಾದಾಗ ಸೃಷ್ಟಿಯ ಭಾಗ್ಯವು ಖಂಡಿತವಾಗಿಯೂ ಸಿದ್ಧಿಸಲಿದೆ.\n\nದಂಪತಿಗಳಿಬ್ಬರೂ ಪ್ರತಿ ಗುರುವಾರ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಪೂಜೆಯನ್ನು ಮುಖ್ಯ ಪುರೋಹಿತರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ಶೀಘ್ರವೇ ಸಂತಾನ ಭಾಗ್ಯದ ಶುಭ ಸುದ್ಧಿ ಲಭಿಸಲಿದೆ.`;
       }
@@ -1334,6 +1602,31 @@ function generateSpecializedFallbackReply(params: {
         }
         return `नमस्ते ${session.name} जी। आपकी बात सुनकर एक वरिष्ठ दैवज्ञ के रूप में, मैं आपको पिता समान वात्सल्य और वास्तविकता का मार्गदर्शन देता हूँ।\n\nसंसार की वास्तविकता को समझें: पर्दे की हस्तियां, अभिनेत्रियां या इंटरनेट सेलिब्रिटी पूरी तरह से एक अलग व्यावसायिक जगत में अपने व्यक्तिगत जीवन, परिवार और वास्तविकताओं के साथ जीती हैं। स्क्रीन के भ्रम और दिवास्वप्नों के पीछे अपनी अनमोल युवावस्था और समय गंवाना केवल भटकाव और निराशा लाता है।\n\nवैदिक शास्त्र में दांपत्य सुख वास्तविक जीवन के संस्कारवान साथी के साथ मिलता है। यदि आप एक सुसंस्कृत और योग्य जीवनसाथी चाहते हैं, तो पहले अपने चरित्र, विद्या, करियर और समाज में सम्मान को सुदृढ़ करें। आपकी जन्म कुंडली (${lagnaName} लग्न) में आत्मबल है। अपनी ऊर्जा को वास्तविक विकास में लगाएं; ईश्वर की कृपा से आपके जीवन के सर्वथा योग्य, सदाचारी और प्रेमपूर्ण जीवनसाथी का सुख आपको अवश्य मिलेगा।`;
       }
+      if (isTe) {
+        if (isSubsequent) {
+          return `మీరు అడిగిన "${userQuestion}" విషయంపై వాస్తవికతతో చెబుతున్నాను. తెరపై కనిపించే సెలబ్రిటీల ప్రపంచం వేరు, నిజజీవితం వేరు. కల్పనల్లో సమయం వృధా చేయకుండా మీ కెరీర్ మరియు సంస్కారాన్ని పెంపొందించుకోండి; మీకు తగిన ఉత్తమ జీవిత భాగస్వామి లభిస్తుంది.`;
+        }
+        return `నమస్కారం ${session.name} గారు. వాస్తవాన్ని గ్రహించండి: సినీ తారలు లేదా ఇంటర్నెట్ వ్యక్తులు వేరే వాణిజ్య ప్రపంచంలో ఉంటారు. మీ నిజజీవితంలో శ్రమించి, మంచి సంస్కారం, గౌరవప్రదమైన జీవనం అలవరచుకోండి. అప్పుడు మీ జాతక బలం వల్ల మీకు తగిన ఉత్తమ బాంధవ్యం సిద్ధిస్తుంది.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `நீங்கள் கேட்ட "${userQuestion}" குறித்து, திரை உலகப் பிரபலங்களின் வாழ்க்கை வேறுபட்டது. கற்பனைகளில் இளமையை வீணாக்காமல் உண்மையான வாழ்க்கையில் முன்னேறுங்கள்; உங்கள் வாழ்விற்கு ஏற்ற நற்குணமுள்ள வாழ்க்கைத்துணை அமைவார்.`;
+        }
+        return `வணக்கம் ${session.name}. உலக எதார்த்தத்தைப் புரிந்து கொள்ளுங்கள். திரைப் பிரபலங்களின் வாழ்க்கை முற்றிலும் வேறானது. உங்கள் சொந்தக் காலில் நின்று, உழைத்து, நல்ல நற்பெயரை ஈட்டுங்கள். உங்கள் 7-ஆம் பாவத்தின் அருளால் சிறந்த துணை அமைவார்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `നിങ്ങൾ ചോദിച്ച "${userQuestion}" എന്നതിൽ, സിനിമാ താരങ്ങളുടെ ലോകം തികച്ചും വ്യത്യസ്തമാണ്. വെറും ദിവാസ്വപ്നങ്ങളിൽ സമയം കളയാതെ സ്വന്തം ജീവിതത്തിൽ ഉയർച്ച നേടുക; നിങ്ങൾക്ക് യോജിച്ച നല്ലൊരു ജീവിതപങ്കാളിയെ ലഭിക്കും.`;
+        }
+        return `നമസ്കാരം ${session.name}. യാഥാർത്ഥ്യം മനസ്സിലാക്കുക: സ്ക്രീനിലെ താരങ്ങൾ വേറൊരു ലോകത്താണ്. സ്വന്തം ജോലിയിലും സ്വഭാവത്തിലും ഉന്നതി കൈവരിക്കുക; ഈശ്വരാനുഗ്രഹത്താൽ ഉത്തമയായ ഒരു പങ്കാളി ജീവിതത്തിലേക്ക് വരും.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `आपण विचारलेल्या "${userQuestion}" बाबत, पडद्यावरील सेलिब्रिटींचे जग वेगळे असते. कल्पनेत वेळ न घालवता खऱ्या आयुष्यात प्रगती करा; पत्रिकेनुसार आपल्यासाठी योग्य जीवनसाथी नक्की मिळेल.`;
+        }
+        return `नमस्कार ${session.name} जी. वास्तव समजून घ्या: पडद्यावरील व्यक्तींचे आयुष्य व्यावसायिक असते. स्वतःच्या कर्तृत्वावर लक्ष केंद्रित करा आणि चारित्र्य संपन्न बना; दैवी कृपेने आपल्यासाठी योग्य जीवनसाथी अवश्य प्राप्त होईल.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ನೀವು ಕೇಳಿದ "${userQuestion}" ಎಂಬ ವಿಷಯಕ್ಕೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಕೇವಲ ಕಲ್ಪನಾ ಲೋಕದಲ್ಲಿ ಸಮಯ ಕಳೆಯುವುದರಿಂದ ಮಾನಸಿಕ ಗೊಂದಲಗಳು ಹೆಚ್ಚಾಗುತ್ತವೆ. ಪರದೆಯ ಮೇಲಿನ ಸೆಲೆಬ್ರಿಟಿಗಳು ಅಥವಾ ಇಂಟರ್ನೆಟ್ ವ್ಯಕ್ತಿಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಭಿನ್ನವಾದ ವಾಣಿಜ್ಯ ಜಗತ್ತಿನಲ್ಲಿ ತಮ್ಮದೇ ಆದ ಖಾಸಗಿ ಬದುಕು ಮತ್ತು ನೈಜತೆಯೊಂದಿಗೆ ಇರುತ್ತಾರೆ. ನಿಮ್ಮ ನೈಜ ಬದುಕಿನಲ್ಲಿ ಪರಿಶ್ರಮಿಸಿ, ಉನ್ನತ ಸಾಧನೆ ಮತ್ತು ಸಂಸ್ಕಾರವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಿ; ನಿಮ್ಮ ಬದುಕಿಗೆ ಸರಿಹೊಂದುವಂತಹ ಸದ್ಗುಣ ಸಂಪನ್ನೆಯಾದ ಬಾಳಸಂಗಾತಿಯು ಖಂಡಿತವಾಗಿಯೂ ದೊರೆಯಲಿದ್ದಾರೆ.`;
       }
@@ -1346,6 +1639,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `Hari Om ${session.name}. As a senior priest speaking to you in this sacred sanctum of Sri Kshetra Gokarna, I receive your words with calm compassion and spiritual concern.\n\nHuman birth is a sacred gift endowed with intellect and divine purpose. Chasing transient lustful illusions, adult distractions, and degrading desires pollutes the mind, drains vital vitality, and weakens your self-esteem and future destiny.\n\nTrue happiness, self-respect, and lasting peace come from purity of thought, noble conduct, and building an honorable life worthy of your family's pride. Practice self-discipline and step away from unhealthy digital habits. Reciting the sacred Gayatri Mantra or chanting Om Namah Shivaya daily will purify the mind and awaken divine clarity.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `आपने जो "${userQuestion}" पूछा है, क्षणिक वासना और अश्लील भटकाव मन को दूषित करते हैं। इंद्रिय संयम रखें और नित्य ॐ नमः शिवाय या गायत्री मंत्र का जप करें।`;
+        }
+        return `हरि ॐ ${session.name} जी। मानव जन्म अत्यंत दुर्लभ एवं पवित्र है। क्षणिक वासना और अनुचित भटकाव से मानसिक शक्ति का ह्रास होता है। मन को सात्विक विचारों में लगाएं और सदाचार अपनाएं। ॐ नमः शिवाय का जप मन को शांति देगा।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `మీరు అడిగిన "${userQuestion}" విషయంలో, క్షణిక వ్యామోహాలు మనస్సును అశాంతికి గురిచేస్తాయి. ఇంద్రియ నిగ్రహం పాటించి, నిత్యం 'ఓం నమః శివాయ' జపించండి.`;
+        }
+        return `హరి ఓం ${session.name} గారు. మానవ జన్మ పవిత్రమైనది. అశాశ్వతమైన వ్యామోహాల నుండి బయటపడి మీ భవిష్యత్తుపై దృష్టి పెట్టండి. నిత్యం గాయత్రీ మంత్రం జపించడం శ్రేయస్కరం.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `நீங்கள் கேட்ட "${userQuestion}" குறித்து, நிலையற்ற ஆசைகள் மன அமைதியைக் குலைக்கும். மனக் கட்டுப்பாடுடன் 'ஓம் நம சிவாய' மந்திரம் ஜெபிக்கவும்.`;
+        }
+        return `ஹரி ஓம் ${session.name}. மனிதப் பிறவி புனிதமானது. வீண் சபலங்களைத் தவிர்த்து நல்வழியில் நடக்கவும். தியானமும் காயத்ரி ஜெபமும் தெளிவைத் தரும்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `നിങ്ങൾ ചോദിച്ച "${userQuestion}" എന്നതിൽ, ക്ഷണികമായ പ്രലോഭനങ്ങൾ മനസ്സിനെ അശുദ്ധമാക്കും. സ്വയം നിയന്ത്രണം പാലിച്ച് 'ഓം നമഃ ശിവായ' ജപിക്കുക.`;
+        }
+        return `ഹരി ഓം ${session.name}. മനുഷ്യജന്മം ശ്രേഷ്ഠമാണ്. മോഹവലയങ്ങളിൽ കുടുങ്ങാതെ ഉത്തമ ജീവിതം നയിക്കുക. നിത്യവും പ്രാർത്ഥനയിൽ ശ്രദ്ധ കേന്ദ്രീകരിക്കുക.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `आपण विचारलेल्या "${userQuestion}" बाबत, क्षणिक वासना मनाची शांती हिरावून घेतात. आत्मसंयम ठेवा आणि नित्य ॐ नमः शिवाय चा जप करा.`;
+        }
+        return `हरि ॐ ${session.name} जी. मानवी जन्म अत्यंत मौल्यवान आहे. चुकीच्या मोहात न पडता सदाचाराने वागा. ॐ नमः शिवाय चा जप मनाला सात्त्विकता देईल.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ನೀವು ಕೇಳಿದ "${userQuestion}" ಎಂಬ ವಿಷಯಕ್ಕೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಮಾನವ ಜನ್ಮವು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠವಾದದ್ದು. ಅಸ್ಥಿರವಾದ ಕಾಮನೆಗಳು ಹಾಗೂ ಅಶ್ಲೀಲ ಕಲ್ಪನೆಗಳ ಬೆನ್ನತ್ತಿ ಹೋಗುವುದರಿಂದ ಮನಸ್ಸು ಕಲುಷಿತಗೊಳ್ಳುತ್ತದೆ. ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದ್ಗುಣವನ್ನು ರೂಢಿಸಿಕೊಂಡು, ಪ್ರತಿದಿನ ಓಂ ನಮಃ ಶಿವಾಯ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಪಠಿಸಿ.`;
       }
@@ -1358,6 +1682,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `Namaste ${session.name}. You need not harbor any fear, anxiety, or superstitious panic regarding finding an old vessel or item in the corner of your home.\n\nAccording to Vedic Vastu and Nimitta Shastra, corners of a house—particularly the North-East (Ishanya) and South-West (Nairutya)—are vital energy intersections. Metallic vessels, especially copper or brass, naturally ground electromagnetic and elemental vibrations.\n\nTo ensure positive energy and peace: clean the vessel respectfully with water and lemon. Wash the corner with water mixed with rock salt or sacred Ganga-jala to dispel any stagnant energies. Light a pure cow-ghee lamp in that direction, sprinkle Tulasi water, and offer prayers to your Kuladevata. This will invite Goddess Mahalakshmi's grace and maintain harmony in your household.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `घर के कोने में पुरानी वस्तु मिलने ("${userQuestion}") पर किसी भी प्रकार के अंधविश्वास या भय की आवश्यकता नहीं है। वस्तु को साफ करें, उस स्थान को सेंधा नमक के पानी से पोंछें और गाय के घी का दीपक जलाकर कुलदेवता की प्रार्थना करें। शुभ होगा।`;
+        }
+        return `नमस्ते ${session.name} जी। घर में पुरानी वस्तु मिलने पर भयभीत न हों। वास्तु अनुसार कोने ऊर्जा के केंद्र होते हैं। वस्तु को स्वच्छ करें, उस स्थान पर गंगाजल व सेंधा नमक का छिड़काव करें और घी का दीपक जलाएं। महालक्ष्मी की कृपा से घर में सुख-शांति रहेगी।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `ఇంటి మూలలో పాత వస్తువు దొరికిన విషయంపై ("${userQuestion}") భయపడాల్సిన పనిలేదు. ఆ వస్తువును శుభ్రపరచండి, ఆ మూలను కళ్ళుప్పు నీటితో శుద్ధి చేసి ఆవు నెయ్యితో దీపం వెలిగించండి. శుభం కలుగుతుంది.`;
+        }
+        return `నమస్కారం ${session.name} గారు. మూఢనమ్మకాలకు తావివ్వకండి. వాస్తు శాస్త్రం ప్రకారం మూలలను శుద్ధి చేసి దీపారాధన చేస్తే నకారాత్మక శక్తులు తొలగి లక్ష్మీదేవి అనుగ్రహం లభిస్తుంది.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `வீட்டின் மூலையில் பழைய பொருள் கிடைத்திருப்பது ("${userQuestion}") குறித்து பயப்பட வேண்டாம். அதைச் சுத்தம் செய்து, அந்த இடத்தில் கல் உப்பு கலந்த நீர் தெளித்து நெய் தீபம் ஏற்றுங்கள். நலம் உண்டாகும்.`;
+        }
+        return `வணக்கம் ${session.name}. எந்த பயமும் கொள்ள வேண்டாம். வீட்டின் மூலைகளை தூய்மைப்படுத்தி குலதெய்வத்தை பிரார்த்தனை செய்தால் சுப மங்களம் உண்டாகும்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `വീടിന്റെ കോണിൽ പഴയ പാത്രം കണ്ടതിൽ ("${userQuestion}") ഭയപ്പെടേണ്ടതില്ല. അത് കഴുകി വൃത്തിയാക്കുക, ആ ഭാഗത്ത് ഉപ്പുവെള്ളം തളിച്ച് നെയ്യ് വിളക്ക് തെളിയിക്കുക. ശുഭം വരും.`;
+        }
+        return `നമസ്കാരം ${session.name}. അന്ധവിശ്വാസങ്ങൾക്ക് വഴങ്ങരുത്. വാസ്തുപ്രകാരം സ്ഥലം ശുദ്ധി വരുത്തി കുലദേവതയെ പ്രാർത്ഥിക്കുക; വീട്ടിൽ ഐശ്വര്യം നിറയും.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `घराच्या कोपऱ्यात जुनी वस्तू सापडल्याने ("${userQuestion}") भीती बाळगू नका. ती वस्तू स्वच्छ करा, तिथे खडे मिठाच्या पाण्याने जागा पुसून तुपाचा दिवा लावा. शुभ होईल.`;
+        }
+        return `नमस्कार ${session.name} जी. वास्तुशास्त्रानुसार कोपरे ऊर्जा केंद्र असतात. जागा स्वच्छ करून कुलदेवतेचे स्मरण करा आणि तुपाचा दिवा लावा; सर्व दोष दूर होतील.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ಮನೆಯ ಮೂಲೆಯಲ್ಲಿ ಹಳೆಯ ಪಾತ್ರೆ ಸಿಕ್ಕಿದ ವಿಚಾರದಲ್ಲಿ ("${userQuestion}"), ಯಾವುದೇ ರೀತಿಯ ಅಂಜಿಕೆ, ಭಯ ಅಥವಾ ಮೂಢನಂಬಿಕೆಗಳಿಗೆ ಒಳಗಾಗುವ ಅಗತ್ಯವಿಲ್ಲ.\n\nವೈದಿಕ ವಾಸ್ತು ಮತ್ತು ನಿಮಿತ್ತ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಮನೆಯ ಮೂಲೆಗಳು ಪಂಚಭೂತಗಳ ಶಕ್ತಿಯ ಸಂಗಮ ಸ್ಥಾನಗಳಾಗಿವೆ. ತಾಮ್ರ ಅಥವಾ ಹಿತ್ತಾಳೆಯಂತಹ ಲೋಹದ ಪಾತ್ರೆಗಳು ನೈಸರ್ಗಿಕವಾಗಿ ಶಕ್ತಿಯನ್ನು ಹೀರಿಕೊಳ್ಳುವ ಗುಣವನ್ನು ಹೊಂದಿರುತ್ತವೆ.\n\nಇದರ ಪರಿಹಾರ ಮತ್ತು ಶುದ್ಧತೆಗಾಗಿ: ಆ ಪಾತ್ರೆಯನ್ನು ಶುದ್ಧ ನೀರಿನಿಂದ ತೊಳೆದು ಸ್ವಚ್ಛಗೊಳಿಸಿ. ಆ ಮೂಲೆಯನ್ನು ಕಲ್ಲುಪ್ಪು ಬೆರೆಸಿದ ನೀರಿನಿಂದ ಪ್ರೋಕ್ಷಿಸಿ ಸ್ವಚ್ಛಗೊಳಿಸಿ. ಆ ಜಾಗದಲ್ಲಿ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ. ಇದರಿಂದ ಮನೆಯಲ್ಲಿ ಸಕಲ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳು ತೊಲಗಿ ಶುಭವಾಗುತ್ತದೆ.`;
       }
@@ -1370,6 +1725,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `Hari Om ${session.name}! May Lord Mahabaleshwara and Lord Ganapati of Sri Kshetra Gokarna bless your upcoming journey with safety, joy, and divine protection.\n\nRegarding your travel plans tomorrow, our Vedic Panchanga recommends observing the daily Rahu Kala and avoiding starting the journey during that specific timeframe. Stepping out of your home with your right foot after a calm mental prayer ensures auspiciousness.\n\nBefore starting the vehicle or embarking on the road, break a coconut or offer sincere prayers to Lord Ganapati and your Kuladevata. Drive with disciplined patience, avoid impulsive rush, and your journey will be joyful and fruitful.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `यात्रा के संदर्भ में ("${userQuestion}"), राहुकाल को टालकर शुभ समय में प्रस्थान करें। यात्रा आरंभ करते समय श्री गणेश जी और कुलदेवता का स्मरण करें। यात्रा मंगलमय होगी।`;
+        }
+        return `हरि ॐ ${session.name} जी! आपकी आगामी यात्रा सुखद और सुरक्षित रहे। राहुकाल से बचकर शुभ समय में दाहिना पैर आगे रखकर घर से निकलें। श्री महागणपति का स्मरण करें; यात्रा सफल होगी।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `ప్రయాణం గురించి ("${userQuestion}"), రాహుకాలాన్ని నివారించి శుభ సమయంలో బయలుదేరండి. బయలుదేరే ముందు వినాయకుడిని స్మరించుకోండి. ప్రయాణం క్షేమంగా సాగుతుంది.`;
+        }
+        return `హరి ఓం ${session.name} గారు. మీ ప్రయాణం సురక్షితంగా జరగాలని ఆశీర్వదిస్తున్నాను. శుభ ముహూర్తంలో బయలుదేరి శ్రీ గణపతిని ప్రార్థించండి; సకల శుభాలు కలుగుతాయి.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `பயணம் குறித்து ("${userQuestion}"), ராகு காலத்தைத் தவிர்த்து நல்ல நேரத்தில் புறப்படுங்கள். விநாயகரை வழிபட்டு செல்லுங்கள்; பயணம் இனிதாக அமையும்.`;
+        }
+        return `ஹரி ஓம் ${session.name}. உங்கள் பயணம் இனிதாகவும் பாதுகாப்பாகவும் அமையட்டும். நல்ல நேரத்தில் வலது காலை முன்வைத்து புறப்படுங்கள். கோகர்ண கணபதி துணை நிற்பார்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `യാത്രയെക്കുറിച്ച് ("${userQuestion}"), രാഹുകാലം ഒഴിവാക്കി യാത്ര പുറപ്പെടുക. ഗണപതിയെ ഭജിച്ച് തുടങ്ങുക; യാത്ര മംഗളകരമായിരിക്കും.`;
+        }
+        return `ഹരി ഓം ${session.name}. യാത്ര സുരക്ഷിതവും സന്തോഷകരവുമായിരിക്കട്ടെ. ശുഭസമയത്ത് പുറപ്പെടുക; ഗോകർണ്ണ മഹാഗണപതിയുടെ അനുഗ്രഹം കൂടെയുണ്ടാകും.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `प्रवासाबाबत ("${userQuestion}"), राहुकाळ टाळून प्रवासाला सुरुवात करा. निघताना श्री गणेशाचे स्मरण करा; प्रवास सुखकर होईल.`;
+        }
+        return `हरि ॐ ${session.name} जी. आपला प्रवास निर्विघ्न व सुखद होवो. शुभ वेळी श्री गणेशाला नमन करून प्रस्थान करा; सर्व कार्ये सिद्धीस जातील.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ನಾಳಿನ ಪ್ರಯಾಣದ ಕುರಿತಾದ ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ನಾಳೆ ಪ್ರಯಾಣ ಪ್ರಾರಂಭಿಸುವ ಮುನ್ನ ಆ ದಿನದ ರಾಹು ಕಾಲವನ್ನು ಗಮನಿಸಿ, ರಾಹು ಕಾಲದ ಅವಧಿಯಲ್ಲಿ ಹೊಸ ಪ್ರಯಾಣವನ್ನು ಆರಂಭಿಸಬೇಡಿ. ಮನೆಯಿಂದ ಹೊರಡುವಾಗ ಶುಭ ಸಂಕಲ್ಪದೊಂದಿಗೆ ಬಲಗಾಲಿಟ್ಟು ಹೊರಡಿ.\n\nವಾಹನ ಚಲಾಯಿಸುವ ಮುನ್ನ ಶ್ರೀ ಮಹಾಗಣಪತಿಯನ್ನು ಹಾಗೂ ಕುಲದೇವತೆಯನ್ನು ಭಕ್ತಿಯಿಂದ ಸ್ಮರಿಸಿ. ರಸ್ತೆಯಲ್ಲಿ ಯಾವುದೇ ಅತಿ ಆತುರ ಅಥವಾ ಆಕ್ರೋಶಕ್ಕೆ ಒಳಗಾಗದೆ ತಾಳ್ಮೆಯಿಂದ ಸಂಚರಿಸಿ; ದೈವಾನುಗ್ರಹದಿಂದ ನಿಮ್ಮ ಪ್ರವಾಸವು ಸಕಲ ಯಶಸ್ಸು ಮತ್ತು ಸಂತೋಷವನ್ನು ತರಲಿದೆ.`;
       }
@@ -1382,6 +1768,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `Namaste ${session.name}. I understand your heart is disturbed due to this conflict. Let me offer you soothing Vedic counsel and astrological wisdom.\n\nIn astrology, sudden clashes and heated arguments are often triggered by the planetary transit of Mars (Kuja - anger) or Mercury (Budha - impulsive words). Anger is like a fire that scorches the container holding it before it reaches anyone else.\n\nDo not react impulsively or seek retaliation while emotions are raw. Allow a cooling-off period of 24 to 48 hours for the heated planetary energies to subside. Speak with dignified composure and patience when minds have cleared. Walking the noble path of Dharma and self-restraint will protect your peace and earn you lasting respect.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `विवाद एवं मनमुटाव ("${userQuestion}") के संदर्भ में, क्षणिक क्रोध मंगल और बुध के प्रभाव से आता है। आवेश में आकर कोई कठोर प्रतिक्रिया न दें। २४ से ४८ घंटे शांत रहें, स्थिति सामान्य होने पर विवेक से बात करें। शांति ही आपकी सबसे बड़ी शक्ति है।`;
+        }
+        return `नमस्ते ${session.name} जी। विवाद से मन अशांत होना स्वाभाविक है। क्रोध विवेक को नष्ट कर देता है। अभी मौन साधें और स्थिति को शांत होने दें। श्री क्षेत्र गोकर्ण महाबलेश्वर का स्मरण कर मन को शांत रखें; धर्म और शांति से ही समाधान होगा।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `గొడవలు మరియు మనస్పర్థల గురించి ("${userQuestion}"), కోపం కుజ గ్రహ ప్రభావం వల్ల వస్తుంది. ఆవేశంలో ఎటువంటి ప్రతిస్పందన ఇవ్వవద్దు. ఒకటి రెండు రోజులు మౌనం వహించండి. ప్రశాంతంగా మాట్లాడి పరిష్కరించుకోండి.`;
+        }
+        return `నమస్కారం ${session.name} గారు. వివాదాల వల్ల మనసు కలత చెందడం సహజం. కోపంలో మాటలు జారవద్దు. ఓర్పుతో వ్యవహరించండి; గోకర్ణ ఈశ్వరుని కృపతో శాంతి చేకూరుతుంది.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `மனஸ்தாபம் மற்றும் வாக்குவாதம் ("${userQuestion}") குறித்து, கோபம் புத்தியை மழுங்கடிக்கும். அவசரத்தில் எதிர்வினை ஆற்றாதீர்கள். அமைதியாக இருங்கள்; அமைதியே பிரச்சினையைத் தீர்க்கும்.`;
+        }
+        return `வணக்கம் ${session.name}. வாக்குவாதங்களால் மனம் நோவது இயல்பு. கோபத்தைக் குறைத்து அமைதி காக்கவும். சிவ நாமத்தை உச்சரியுங்கள்; நல்ல தீர்வு கிடைக்கும்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `കലഹങ്ങളെക്കുറിച്ചും പിണക്കങ്ങളെക്കുറിച്ചും ("${userQuestion}"), കോപം ചൊവ്വയുടെ സ്വാധീനത്താൽ ഉണ്ടാകുന്നതാണ്. തിടുക്കത്തിൽ പ്രതികരിക്കരുത്. ശാന്തമായി സംസാരിച്ച് പരിഹരിക്കുക.`;
+        }
+        return `നമസ്കാരം ${session.name}. വഴക്കുകൾ മനസ്സിന്റെ സമാധാനം കെടുത്തും. മൗനം പാലിക്കുക; ഈശ്വരചിന്തയോടെ മുന്നോട്ട് പോയാൽ പ്രശ്നങ്ങൾ പരിഹരിക്കപ്പെടും.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `भांडण व वादाबाबत ("${userQuestion}"), तात्पुरता राग मंगळाच्या प्रभावाने येतो. रागाच्या भरात टोकाची प्रतिक्रिया देऊ नका. शांत राहून संवाद साधा; शांती हाच खरा मार्ग आहे.`;
+        }
+        return `नमस्कार ${session.name} जी. वादविवादामुळे मन अशांत होणे स्वाभाविक आहे. रागावर नियंत्रण ठेवा आणि परिस्थिती शांत होऊ द्या; विवेकाने सर्व प्रश्न सुटतील.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ಜಗಳ ಅಥವಾ ಮನಸ್ತಾಪದ ಈ ವಿಷಯಕ್ಕೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಕ್ಷಣಿಕ ಕೋಪ ಮತ್ತು ಜಗಳಗಳು ಜಾತಕದಲ್ಲಿ ಕುಜ ಮತ್ತು ಬುಧ ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದ ಉಂಟಾಗುತ್ತವೆ. "ಕ್ರೋಧವು ಮನುಷ್ಯನ ವಿವೇಕವನ್ನು ನಾಶಮಾಡುತ್ತದೆ."\n\nಪ್ರಸ್ತುತ ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಯಾವುದೇ ಆತುರದ ಪ್ರತೀಕಾರ ಅಥವಾ ವಾಗ್ವಾದಕ್ಕೆ ಹೋಗಬೇಡಿ. ಕನಿಷ್ಠ ೨೪ ರಿಂದ ೪೮ ಗಂಟೆಗಳ ಕಾಲ ಮೌನ ಮತ್ತು ತಾಳ್ಮೆಯನ್ನು ವಹಿಸಿ, ಪರಿಸ್ಥಿತಿ ಶಾಂತವಾಗಲು ಸಮಯ ಕೊಡಿ. ಮನಸ್ಸು ತಿಳಿಯಾದ ನಂತರ ಗೌರವಯುತವಾಗಿ, ಧರ್ಮದ ಮಾರ್ಗದಲ್ಲಿ ಮಾತನಾಡಿ ಬಗೆಹರಿಸಿಕೊಳ್ಳಿ. ಶಾಂತಿಯೇ ನಿಮ್ಮ ದೊಡ್ಡ ಶಕ್ತಿ.`;
       }
@@ -1394,6 +1811,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga, you are guided by ${lagnaName} Lagna and ${moonRashi} Moon Sign, currently experiencing ${currentDashaText}.\n\nLife moves in celestial cycles of learning, perseverance, and triumph. If you are experiencing uncertainty right now, understand that this phase is meant to refine your inner strength and prepare you for a brighter chapter ahead.\n\nMaintain unwavering faith and discipline in your daily endeavors. Reciting the sacred Gayatri Mantra and offering humble prayers to Lord Mahabaleshwara will dissolve the prevailing clouds of confusion and reveal the right path forward.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `जीवन की दिशा एवं भविष्य ("${userQuestion}") के संदर्भ में, प्रत्येक कालखंड नए अनुभव और परिपक्वता देता है। वर्तमान स्थिति आपके आत्मबल की परीक्षा ले रही है और आगे चलकर शुभ फल देगी। धर्म और धैर्य बनाए रखें; गोकर्ण महाबलेश्वर के स्मरण से समस्त भ्रम दूर होंगे।`;
+        }
+        return `नमस्ते ${session.name} जी। श्री बग्गोण पंचांग अनुसार आप ${lagnaName} लग्न और ${moonRashi} राशि में जन्मे हैं तथा वर्तमान में ${currentDashaText} का प्रभाव है। जीवन में उतार-चढ़ाव आते रहते हैं। अपने कर्तव्य पथ पर अडिग रहें; ईश्वर कृपा से मार्ग प्रशस्त होगा।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `జీవిత మార్గం మరియు భవిష్యత్తు గురించి ("${userQuestion}"), ప్రతి దశ మనకు కొత్త పాఠాలను నేర్పుతుంది. ప్రస్తుత సమయం మీ సహనాన్ని పరీక్షిస్తోంది. భగవంతునిపై విశ్వాసం ఉంచండి; గోకర్ణ ఈశ్వరుని కృపతో మంచి దారి కనిపిస్తుంది.`;
+        }
+        return `నమస్కారం ${session.name} గారు. మీరు ${lagnaName} లగ్నం, ${moonRashi} రాశిలో జన్మించారు. ప్రస్తుతం ${currentDashaText} నడుస్తోంది. ధైర్యంగా ముందుకు సాగండి; సకల శుభాలు కలుగుతాయి.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `வாழ்க்கை பாதை மற்றும் எதிர்காலம் ("${userQuestion}") குறித்து, ஒவ்வொரு காலமும் ஒரு பக்குவத்தைத் தரும். பொறுமையுடன் கடமையைச் செய்யுங்கள்; மகாபலேஸ்வரர் அருள் வழிகாட்டும்.`;
+        }
+        return `வணக்கம் ${session.name}. உங்கள் ஜாதகம் ${lagnaName} லக்னம், ${moonRashi} ராசியைக் குறிக்கிறது. தற்போது ${currentDashaText} நடப்பில் உள்ளது. தன்னம்பிக்கையுடன் இருங்கள்; நல்வழிகள் திறக்கும்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `ജീവിത വഴിയെക്കുറിച്ചുള്ള ചിന്തകൾക്ക് ("${userQuestion}"), ഈ കാലഘട്ടം നിങ്ങളെ കൂടുതൽ കരുത്തനാക്കും. ഈശ്വരവിശ്വാസത്തോടെ പ്രവർത്തിക്കുക; ഗോകർണ്ണേശ്വരൻ അനുഗ്രഹിക്കും.`;
+        }
+        return `നമസ്കാരം ${session.name}. നിങ്ങളുടെ ജാതകം ${lagnaName} ലഗ്നവും ${moonRashi} രാശിയുമാണ്. നിലവിൽ ${currentDashaText} നടക്കുന്നു. ധൈര്യമായി മുന്നോട്ട് പോകുക; നല്ല കാലം വരും.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `जीवनाची दिशा व वाटचाल ("${userQuestion}") यावर, प्रत्येक काळ आपल्याला परिपक्व करतो. सध्याचा काळ संयम शिकवत आहे. कुलदेवतेचे स्मरण ठेवा; लवकरच नवीन वाट सापडेल.`;
+        }
+        return `नमस्कार ${session.name} जी. पंचांगानुसार आपले ${lagnaName} लग्न आणि ${moonRashi} रास आहे. सध्या ${currentDashaText} सुरू आहे. कर्तव्यावर निष्ठा ठेवा; ईश्वर निश्चितच मार्ग दाखवेल.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ಜೀವನದ ಹಾದಿ ಮತ್ತು ಮುನ್ನಡೆಯ ಈ ಪ್ರಶ್ನೆಗೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ಪ್ರತಿಯೊಂದು ಕಾಲಘಟ್ಟವೂ ತನ್ನದೇ ಆದ ಮಂಥನ ಮತ್ತು ಅನುಭವಗಳನ್ನು ನೀಡುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ಘಟನೆಗಳು ನಿಮ್ಮ ಧೈರ್ಯ ಮತ್ತು ಸಂಯಮವನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದ್ದು, ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಶುಭ ಫಲಗಳಿಗೆ ದಾರಿಯಾಗಲಿವೆ.\n\nದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಧರ್ಮ, ಸತತ ಪ್ರಯತ್ನ ಮತ್ತು ತಾಳ್ಮೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಧ್ಯಾನ ಮತ್ತು ದೀಪಾರಾಧನೆಯಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸಕಲ ಗೊಂದಲಗಳು ನಿವಾರಣೆಯಾಗಿ, ಸಕಲ ಶುಭವಾಗಲಿದೆ.`;
       }
@@ -1407,6 +1855,37 @@ function generateSpecializedFallbackReply(params: {
         }
         return `Hari Om ${session.name}! May Lord Mahabaleshwara and Lord Ganapati of Sri Kshetra Gokarna shower their divine grace and blessings upon you and your family.\n\nI am seated here with you in this sacred 20-minute consultation. Please feel at complete peace. You may open your heart and ask any question regarding your life, travel, family, career, or spiritual path.`;
       }
+      if (isHi) {
+        if (isSubsequent) {
+          return `हाँ, मैं आपके साथ इस पवित्र परामर्श कक्ष में उपस्थित हूँ। अपने अगले प्रश्न या दुविधा को निसंकोच बताएं।`;
+        }
+        return `हरि ॐ ${session.name} जी! श्री क्षेत्र गोकर्ण के महागणपति एवं महाबलेश्वर भगवान का पावन आशीर्वाद आप और आपके परिवार पर सदा बना रहे।\n\nइस पावन २० मिनट के सत्र में मैं आपके साथ हूँ। अपने जीवन, आजीविका, विवाह अथवा परिवार से संबंधित कोई भी प्रश्न खुलकर पूछें।`;
+      }
+      if (isTe) {
+        if (isSubsequent) {
+          return `అవును, నేను మీతోనే ఈ పవిత్ర గదిలో ఉన్నాను. మీ తదుపరి ప్రశ్నను నిస్సంకోచంగా అడగండి.`;
+        }
+        return `హరి ఓం ${session.name} గారు! శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి మరియు మహాగణపతి ఆశీస్సులు మీపై సదా ఉండుగాక.\n\nఈ 20 నిమిషాల పవిత్ర సంభాషణలో నేను మీతో ఉన్నాను. మీ జీవితం, ఉద్యోగం, వివాహం లేదా కుటుంబ విషయాలపై ఏ ప్రశ్నైనా అడగవచ్చు.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `ஆம், நான் உங்களுடன் இந்த ஆலோசனை அறையில் உள்ளேன். உங்கள் அடுத்த கேள்வியை தயங்காமல் கேளுங்கள்.`;
+        }
+        return `ஹரி ஓம் ${session.name}. ஸ்ரீ க்ஷேத்ர கோகர்ண மகாபலேஸ்வரர் மற்றும் மகாகணபதியின் ஆசிகள் உங்கள் குடும்பத்திற்கு கிடைக்கட்டும்.\n\nஇந்த 20 நிமிட ஆன்மீக உரையாடலில் நான் உங்களுடன் இருக்கிறேன். உங்கள் வாழ்க்கை, தொழில் அல்லது குடும்பம் குறித்து மனந்திறந்து பேசலாம்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `അതെ, ഞാൻ നിങ്ങളോടൊപ്പം ഈ മുറിയിലുണ്ട്. അടുത്ത ചോദ്യം ചോദിക്കാവുന്നതാണ്.`;
+        }
+        return `ഹരി ഓം ${session.name}. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വരന്റെയും ഗണപതിയുടെയും അനുഗ്രഹം നിങ്ങൾക്ക് ഉണ്ടാകട്ടെ.\n\nഈ 20 മിനിറ്റ് പവിത്ര സംഭാഷണത്തിൽ ഞാൻ നിങ്ങളോടൊപ്പമുണ്ട്. ജോലി, വിവാഹം, കുടുംബം എന്നിവയെക്കുറിച്ചുള്ള ഏത് ചോദ്യവും ചോദിക്കാം.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `होय, मी आपल्यासोबत या सत्रात उपस्थित आहे. आपली पुढची शंका किंवा प्रश्न मोकळेपणाने विचारा.`;
+        }
+        return `हरि ॐ ${session.name} जी! श्री क्षेत्र गोकर्ण महाबळेश्वर आणि महागणपतीचे आशीर्वाद आपल्या पाठीशी राहोत.\n\nया २० मिनिटांच्या पवित्र सत्रात मी आपल्यासोबत आहे. करिअर, विवाह किंवा कौटुंबिक प्रश्न आपण निसंकोच विचारू शकता.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ಹೌದು, ನಾನು ನಿಮ್ಮೊಂದಿಗೇ ಈ ಸಮಾಲೋಚನಾ ಕೊಠಡಿಯಲ್ಲಿದ್ದೇನೆ. ನಿಮ್ಮ ಮುಂದಿನ ಪ್ರಶ್ನೆ ಅಥವಾ ಗೊಂದಲವನ್ನು ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ.`;
       }

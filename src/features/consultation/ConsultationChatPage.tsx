@@ -46,6 +46,7 @@ import {
   CONSULTATION_MODAL_I18N,
   CONSULTATION_CHAT_UI_I18N,
   getLocalizedQuickFaqChips,
+  getContextualFollowupChips,
   getInitialPriestGreeting
 } from "./consultationTypes";
 import {
@@ -77,6 +78,8 @@ import { useKundliViewerStore } from "../../stores/kundliViewerStore";
 interface Props {
   sessionId?: string;
 }
+
+const LOCAL_CHAT_BACKUP_PREFIX = "bgn_consultation_chat_history_";
 
 export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   const { currentUser, role, isAuthenticated } = useAuthStore();
@@ -240,6 +243,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
   // 5-Star Rating & Feedback State
   const [showRatingModal, setShowRatingModal] = useState<boolean>(false);
+  const [showFamilyBookingModal, setShowFamilyBookingModal] = useState<boolean>(false);
   const [selectedStars, setSelectedStars] = useState<number>(5);
   const [hoverStars, setHoverStars] = useState<number>(0);
   const [ratingComment, setRatingComment] = useState<string>("");
@@ -279,7 +283,31 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     );
   }, [messages]);
 
+  const lastAstrologerMsg = useMemo(() => {
+    const astroMsgs = messages.filter((m) => m.sender === "astrologer");
+    return astroMsgs.length > 0 ? astroMsgs[astroMsgs.length - 1] : null;
+  }, [messages]);
+
   const quickFaqChips = useMemo(() => {
+    // If devotee has already asked a question and priest has responded, offer smart contextual follow-up chips
+    const userMsgCount = messages.filter((m) => m.sender === "user").length;
+    if (userMsgCount > 0 && lastAstrologerMsg?.text) {
+      const contextualChips = getContextualFollowupChips(
+        lastAstrologerMsg.intent || lastAstrologerMsg.text,
+        currentLang
+      );
+      if (contextualChips.length > 0) {
+        const filtered = contextualChips.filter((chip) => {
+          const qLower = chip.question.trim().toLowerCase();
+          for (const asked of askedQuestionsSet) {
+            if (asked.includes(qLower) || qLower.includes(asked)) return false;
+          }
+          return true;
+        });
+        if (filtered.length > 0) return filtered;
+      }
+    }
+
     return rawFaqChips.filter((chip) => {
       const qLower = chip.question.trim().toLowerCase();
       for (const asked of askedQuestionsSet) {
@@ -289,7 +317,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       }
       return true;
     });
-  }, [rawFaqChips, askedQuestionsSet]);
+  }, [rawFaqChips, askedQuestionsSet, messages, lastAstrologerMsg, currentLang, devoteeAgeYears]);
 
   // Track first occurrence of each unique dosha so that duplicate dosha cards
   // are never stacked repeatedly across consecutive user questions
@@ -373,7 +401,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       if (!activeSessionId) {
         for (const token of candidateTokens) {
           let clean = token.trim().toLowerCase().replace(/^(id|session|token)=/, "");
-          try { clean = decodeURIComponent(clean); } catch {}
+          try { clean = decodeURIComponent(clean); } catch { }
           if (/^bgn_[a-z0-9]{8,16}$/.test(clean)) {
             activeSessionId = clean;
             break;
@@ -419,7 +447,23 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           setSession(data);
           sessionRef.current = data;
           setSessionError(null);
-          setMessages(data.messages || []);
+
+          let initialMsgs = data.messages || [];
+          if (typeof window !== "undefined") {
+            try {
+              const rawLocal = localStorage.getItem(`${LOCAL_CHAT_BACKUP_PREFIX}${activeSessionId}`);
+              if (rawLocal) {
+                const parsedLocal = JSON.parse(rawLocal);
+                if (Array.isArray(parsedLocal) && parsedLocal.length > initialMsgs.length) {
+                  initialMsgs = parsedLocal;
+                }
+              }
+            } catch (err) {
+              console.warn("[ConsultationChatPage] Local chat backup read notice:", err);
+            }
+          }
+          setMessages(initialMsgs);
+
           if (data.userPhone) setContactPhone(data.userPhone);
           if (data.userEmail) setContactEmail(data.userEmail);
 
@@ -617,6 +661,18 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isGenerating]);
+
+  // Synchronize chat messages to local storage backup for offline resilience & reload persistence
+  useEffect(() => {
+    if (!resolvedId || messages.length === 0) return;
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`${LOCAL_CHAT_BACKUP_PREFIX}${resolvedId}`, JSON.stringify(messages));
+      }
+    } catch (err) {
+      console.warn("[ConsultationChatPage] Failed to save chat history to localStorage:", err);
+    }
+  }, [messages, resolvedId]);
 
   // Handle Step 1: Submit Devotee Contact (Mobile number is mandatory; Email is optional)
   const handleSaveContact = async (e: React.FormEvent) => {
@@ -1022,16 +1078,16 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         currentLang === "en"
           ? `Namaste ${session.name}. We are analyzing your horoscope and planetary Dasha periods. Please ask your question again, or directly call our head priest at Gokarna: 9972339362.`
           : currentLang === "hi"
-          ? `नमस्ते ${session.name} जी। आपकी जन्मकुंडली और वर्तमान दशा का विश्लेषण किया जा रहा है। कृपया अपना प्रश्न पुनः पूछें या सीधे श्री क्षेत्र गोकर्ण के मुख्य पुरोहित से संपर्क करें: 9972339362.`
-          : currentLang === "te"
-          ? `నమస్కారం ${session.name} గారు. మీ ಜಾತಕ లగ్నం మరియు దశా భుక్తుల పరిశీలన జరుగుతోంది. ದಯచేసి ಮళ్లీ ప్రశ్నించండి లేదా నేరుగా ಗೋಕರ್ಣ ಪಂಡಿతులను ಸಂಪ್ರದించండి: 9972339362.`
-          : currentLang === "ta"
-          ? `வணக்கம் ${session.name}. உங்கள் ஜாதக தசைகள் கணிக்கப்படுகின்றன. தயவுசெய்து மீண்டும் கேளுங்கள் அல்லது நேரடியாக கோகர்ணா பண்டிதரை தொடர்பு கொள்ளவும்: 9972339362.`
-          : currentLang === "ml"
-          ? `നമസ്കാരം ${session.name}. നിങ്ങളുടെ ജാതക ദശാ വിശകലനം നടക്കുന്നു. ദയവായി വീണ്ടും ചോദിക്കുക അല്ലെങ്കിൽ നേരിട്ട് ഗോകർണ പുരോഹിതനെ വിളിക്കുക: 9972339362.`
-          : currentLang === "mr"
-          ? `नमस्कार ${session.name} जी. आपल्या पत्रिकेचे विश्लेषण सुरू आहे. कृपया पुन्हा विचारा किंवा थेट गोकर्ण येथील पुरोहितांशी संपर्क साधा: 9972339362.`
-          : `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಶ್ನಿಸಿ ಅಥವಾ ನೇರವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪಂಡಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ: 9972339362.`;
+            ? `नमस्ते ${session.name} जी। आपकी जन्मकुंडली और वर्तमान दशा का विश्लेषण किया जा रहा है। कृपया अपना प्रश्न पुनः पूछें या सीधे श्री क्षेत्र गोकर्ण के मुख्य पुरोहित से संपर्क करें: 9972339362.`
+            : currentLang === "te"
+              ? `నమస్కారం ${session.name} గారు. మీ జాతక లగ్నం మరియు దశా భుక్తుల పరిశీలన జరుగుతోంది. దయచేసి మళ్లీ ప్రశ్నించండి లేదా నేరుగా శ్రీ క్షేత్ర గోకర్ణ పండితులను సంಪ್ರదించండి: 9972339362.`
+              : currentLang === "ta"
+                ? `வணக்கம் ${session.name}. உங்கள் ஜாதக தசைகள் கணிக்கப்படுகின்றன. தயவுசெய்து மீண்டும் கேளுங்கள் அல்லது நேரடியாக கோகர்ணா பண்டிதரை தொடர்பு கொள்ளவும்: 9972339362.`
+                : currentLang === "ml"
+                  ? `നമസ്കാരം ${session.name}. നിങ്ങളുടെ ജാതക ദശാ വിശകലനം നടക്കുന്നു. ദയവായി വീണ്ടും ചോദിക്കുക അല്ലെങ്കിൽ നേരിട്ട് ഗോകർണ പുരോഹിതനെ വിളിക്കുക: 9972339362.`
+                  : currentLang === "mr"
+                    ? `नमस्कार ${session.name} जी. आपल्या पत्रिकेचे विश्लेषण सुरू आहे. कृपया पुन्हा विचारा किंवा थेट गोकर्ण येथील पुरोहितांशी संपर्क साधा: 9972339362.`
+                    : `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಶ್ನಿಸಿ ಅಥವಾ ನೇರವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪಂಡಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ: 9972339362.`;
 
       const fallbackMsg: ConsultationChatMessage = {
         id: `astro_err_${Date.now()}`,
@@ -1360,10 +1416,10 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               {noTokenProvided
                 ? "॥ ಬಗ್ಗೋಣ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಅಗತ್ಯವಿದೆ ॥"
                 : isTampered
-                ? currentI18n.tamperedLinkTitle
-                : sessionError
-                ? "ಸಮಾಲೋಚನೆ ಸ್ಥಿತಿ (Consultation Status)"
-                : currentI18n.sessionEndedTitle}
+                  ? currentI18n.tamperedLinkTitle
+                  : sessionError
+                    ? "ಸಮಾಲೋಚನೆ ಸ್ಥಿತಿ (Consultation Status)"
+                    : currentI18n.sessionEndedTitle}
             </h2>
             <p className="text-sm text-stone-700 leading-relaxed">
               {noTokenProvided
@@ -1525,13 +1581,12 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             ) : session.status === "active" && !isExpired ? (
               <div
                 onClick={() => setShowTimerDetailsModal(true)}
-                className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-xl border text-xs font-mono font-bold cursor-pointer active:scale-95 transition shadow-2xs select-none ${
-                  remainingSeconds <= 60
-                    ? "bg-red-950 text-red-100 border-2 border-red-500 animate-pulse shadow-lg shadow-red-900/60"
-                    : remainingSeconds < 300
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-xl border text-xs font-mono font-bold cursor-pointer active:scale-95 transition shadow-2xs select-none ${remainingSeconds <= 60
+                  ? "bg-red-950 text-red-100 border-2 border-red-500 animate-pulse shadow-lg shadow-red-900/60"
+                  : remainingSeconds < 300
                     ? "bg-amber-950 text-amber-200 border-amber-500"
                     : "bg-[#2A1808] text-amber-100 border-amber-400"
-                }`}
+                  }`}
                 title={remainingSeconds <= 60 ? "🚨 Last 1 Minute Alert! Tap for Kala Chakra Details" : "Tap to see Kala Chakra 4-Pada Timeline Details"}
               >
                 {remainingSeconds <= 60 ? (
@@ -1639,7 +1694,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </button>
           </div>
         </>
-      ) : (session.status === "expired" || isExpired) ? (
+      ) : (session.status === "expired" || isExpired) && messages.length === 0 ? (
         <div className="w-full max-w-lg mx-auto flex-1 px-4 py-8 flex flex-col items-center justify-center text-center space-y-5 animate-fadeIn">
           <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-100 via-amber-200 to-amber-300 border-2 border-amber-400 text-amber-950 flex items-center justify-center text-4xl shadow-lg">
             ⏳
@@ -1676,525 +1731,554 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         </div>
       ) : (
         <>
-      {/* -------------------------------------------------------------
+          {/* -------------------------------------------------------------
           Main Chat Conversation Thread
           ------------------------------------------------------------- */}
-      <main className="w-full max-w-2xl flex-1 px-3 py-2.5 overflow-y-auto space-y-3 overscroll-contain">
-        {/* Top Collapsible Sacred Panchanga Patrika Banner (Scrolls naturally with chat messages) */}
-        {panchangaProfile && (
-          <div className="w-full pb-1">
-            <DevoteePanchangaPatrikaCard
-              profile={panchangaProfile}
-              variant="banner"
-            />
-          </div>
-        )}
-
-        {messages.map((msg) => {
-          const isUser = msg.sender === "user";
-          const msgIndex = messages.findIndex((m) => m.id === msg.id);
-          const hasPriorUserMsg = messages.slice(0, msgIndex).some((m) => m.sender === "user");
-          const isWelcomeGreeting = !isUser && !hasPriorUserMsg;
-          const paragraphs = msg.text.split("\n\n").filter((p) => p.trim().length > 0);
-          const directAnswerPara = paragraphs[0] || "";
-          const remainingParas = paragraphs.slice(1);
-
-          return (
-            <div
-              key={msg.id}
-              className={`flex flex-col ${isUser ? "items-end" : "items-start"} w-full`}
-            >
-              {/* Sender Tag */}
-              <div className="flex items-center gap-1 text-[10px] font-bold text-amber-900 mb-1 px-1">
-                <span>{isUser ? currentChatUi.devoteeSenderTag : currentChatUi.astrologerSenderTag}</span>
-                <span className="text-stone-400 font-normal">
-                  • {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
+          <main className="w-full max-w-2xl flex-1 px-3 py-2.5 overflow-y-auto space-y-3 overscroll-contain">
+            {/* Top Collapsible Sacred Panchanga Patrika Banner (Scrolls naturally with chat messages) */}
+            {panchangaProfile && (
+              <div className="w-full pb-1">
+                <DevoteePanchangaPatrikaCard
+                  profile={panchangaProfile}
+                  variant="banner"
+                />
               </div>
+            )}
 
-              {/* Message Bubble: User is right-aligned bubble, Astrologer is FULL WIDTH (w-full) Card */}
-              <div
-                className={`transition-all break-words ${
-                  isUser
-                    ? "max-w-[85%] rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white rounded-br-xs font-medium shadow-xs"
-                    : "w-full max-w-full rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm bg-white border-2 border-amber-400 text-amber-950 font-serif shadow-md space-y-3"
-                }`}
-              >
-                {/* Content: If User or Initial Welcome Greeting, show regular paragraphs.
-                    For ongoing Astrologer guidance, showcase Audio Player + Upfront Direct Answer Highlight Card */}
-                {isUser || isWelcomeGreeting ? (
-                  <>
-                    {paragraphs.map((para, idx) => (
-                      <p key={idx} className="whitespace-pre-line">
-                        {para}
-                      </p>
-                    ))}
-                    {isUser && (
-                      <div className="pt-2 border-t border-amber-500/40 flex items-center justify-end gap-1.5 mt-2">
-                        {/* Copy Question Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleCopyMessage(msg.id, msg.text)}
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-800/60 hover:bg-amber-800 text-amber-100 font-sans font-medium text-[11px] transition active:scale-95 border border-amber-400/30"
-                          title={currentChatUi.copyBtn}
-                        >
-                          <span>{copiedMessageId === msg.id ? currentChatUi.copiedToast : currentChatUi.copyBtn}</span>
-                        </button>
+            {messages.map((msg) => {
+              const isUser = msg.sender === "user";
+              const msgIndex = messages.findIndex((m) => m.id === msg.id);
+              const hasPriorUserMsg = messages.slice(0, msgIndex).some((m) => m.sender === "user");
+              const isWelcomeGreeting = !isUser && !hasPriorUserMsg;
+              const paragraphs = msg.text.split("\n\n").filter((p) => p.trim().length > 0);
 
-                        {/* Audio Listen Button for User Question */}
-                        <button
-                          type="button"
-                          onClick={() => handlePlayTTS(msg.id, msg.text)}
-                          className={`flex items-center gap-1 px-2.5 py-0.5 rounded-lg font-sans font-semibold text-[11px] transition active:scale-95 ${
-                            speakingMessageId === msg.id
-                              ? "bg-red-500 text-white border border-red-300 shadow-2xs animate-pulse"
-                              : "bg-amber-800/60 hover:bg-amber-800 text-amber-100 border border-amber-400/40"
-                          }`}
-                          title={speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}
-                        >
-                          <span>{speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}</span>
-                        </button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {/* Prominent Upfront Full-Width Audio Player Bar for Astrologer Answer */}
-                    <div className="w-full p-2.5 rounded-xl bg-gradient-to-r from-amber-50 via-amber-100/90 to-orange-50 border border-amber-300 flex items-center justify-between gap-2 shadow-2xs">
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 transition-transform ${
-                          speakingMessageId === msg.id
-                            ? "bg-red-600 text-white animate-pulse"
-                            : "bg-amber-700 text-white shadow-2xs"
-                        }`}>
-                          {speakingMessageId === msg.id ? "🔊" : "🎙️"}
-                        </div>
-                        <div className="truncate">
-                          <p className="font-bold text-xs text-amber-950 truncate font-sans">
-                            {speakingMessageId === msg.id
-                              ? (session.language === "en" ? "Listening to Sri Shreeram Pandit..." : "ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ಧ್ವನಿ ನುಡಿಯುತ್ತಿದೆ...")
-                              : (session.language === "en" ? "Listen in Divine Priest Voice" : "ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ")}
-                          </p>
-                          <p className="text-[10px] text-amber-800/80 truncate font-sans">
-                            {speakingMessageId === msg.id
-                              ? (session.language === "en" ? "Tap stop anytime" : "ನಿಲ್ಲಿಸಲು ಮತ್ತೆ ಕ್ಲಿಕ್ ಮಾಡಿ")
-                              : (session.language === "en" ? "Pure Vedic Speech Synthesis" : "ದೈವಿಕ ಜಾತಕ ನಿರ್ಣಯ ಧ್ವನಿ ಶ್ರವಣ")}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handlePlayTTS(msg.id, msg.text)}
-                        className={`px-3 py-1.5 rounded-xl font-sans font-bold text-xs transition active:scale-95 flex items-center gap-1.5 shrink-0 shadow-2xs ${
-                          speakingMessageId === msg.id
-                            ? "bg-red-600 hover:bg-red-700 text-white border border-red-400"
-                            : "bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white border border-amber-600"
-                        }`}
-                      >
-                        <span>{speakingMessageId === msg.id ? (session.language === "en" ? "⏸️ Stop" : "⏸️ ನಿಲ್ಲಿಸಿ") : (session.language === "en" ? "▶️ Listen" : "▶️ ಆಲಿಸಿ")}</span>
-                      </button>
-                    </div>
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex flex-col ${isUser ? "items-end" : "items-start"} w-full`}
+                >
+                  {/* Sender Tag */}
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-amber-900 mb-1 px-1">
+                    <span>{isUser ? currentChatUi.devoteeSenderTag : currentChatUi.astrologerSenderTag}</span>
+                    <span className="text-stone-400 font-normal">
+                      • {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
 
-                    {/* Upfront Direct Answer Highlight Card (ChatGPT / Gemini Upfront Style) */}
-                    {directAnswerPara && (
-                      <div className="bg-gradient-to-br from-amber-50 via-amber-100/70 to-orange-50 border-2 border-amber-400 rounded-xl p-3 sm:p-3.5 shadow-xs text-amber-950 font-serif space-y-1.5">
-                        <div className="flex items-center justify-between border-b border-amber-300/80 pb-1.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm">✨</span>
-                            <span className="font-bold text-amber-900 text-xs sm:text-[13px] tracking-wide">
-                              {currentChatUi.directAnswerBadge}
-                            </span>
-                          </div>
-                          <span className="bg-amber-600/15 text-amber-900 border border-amber-400/80 text-[9px] font-sans font-semibold px-2 py-0.5 rounded-full">
-                            {currentChatUi.directAnswerTag}
-                          </span>
-                        </div>
-                        <p className="font-medium text-xs sm:text-sm text-stone-900 leading-relaxed whitespace-pre-line">
-                          {directAnswerPara}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Detailed Astrological Context & Shastra Guidance */}
-                    {remainingParas.length > 0 && (
-                      <div className="pt-1 space-y-2">
-                        <div className="flex items-center gap-1 text-[11px] font-bold text-amber-800/90 font-sans uppercase tracking-wider">
-                          <span>{currentChatUi.explanationHeader}</span>
-                        </div>
-                        {remainingParas.map((para, pIdx) => (
-                          <p key={pIdx} className="whitespace-pre-line text-xs sm:text-sm text-amber-950">
+                  {/* Message Bubble: User is right-aligned bubble, Astrologer is FULL WIDTH (w-full) Card */}
+                  <div
+                    className={`transition-all break-words ${isUser
+                      ? "max-w-[85%] rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white rounded-br-xs font-medium shadow-xs"
+                      : "w-full max-w-full rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm bg-white border-2 border-amber-400 text-amber-950 font-serif shadow-md space-y-3"
+                      }`}
+                  >
+                    {/* Content: If User render devotee bubble; if Astrologer render sacred discourse card */}
+                    {isUser ? (
+                      <>
+                        {paragraphs.map((para, idx) => (
+                          <p key={idx} className="whitespace-pre-line">
                             {para}
                           </p>
                         ))}
+                        <div className="pt-2 border-t border-amber-500/40 flex items-center justify-end gap-1.5 mt-2">
+                          {/* Copy Question Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleCopyMessage(msg.id, msg.text)}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-800/60 hover:bg-amber-800 text-amber-100 font-sans font-medium text-[11px] transition active:scale-95 border border-amber-400/30"
+                            title={currentChatUi.copyBtn}
+                          >
+                            <span>{copiedMessageId === msg.id ? currentChatUi.copiedToast : currentChatUi.copyBtn}</span>
+                          </button>
+
+                          {/* Audio Listen Button for User Question */}
+                          <button
+                            type="button"
+                            onClick={() => handlePlayTTS(msg.id, msg.text)}
+                            className={`flex items-center gap-1 px-2.5 py-0.5 rounded-lg font-sans font-semibold text-[11px] transition active:scale-95 ${speakingMessageId === msg.id
+                              ? "bg-red-500 text-white border border-red-300 shadow-2xs animate-pulse"
+                              : "bg-amber-800/60 hover:bg-amber-800 text-amber-100 border border-amber-400/40"
+                              }`}
+                            title={speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}
+                          >
+                            <span>{speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}</span>
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Prominent Upfront Full-Width Audio Player Bar for Astrologer Answer */}
+                        <div className="w-full p-2.5 rounded-xl bg-gradient-to-r from-amber-50 via-amber-100/90 to-orange-50 border border-amber-300 flex items-center justify-between gap-2 shadow-2xs">
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 transition-transform ${speakingMessageId === msg.id
+                              ? "bg-red-600 text-white animate-pulse"
+                              : "bg-amber-700 text-white shadow-2xs"
+                              }`}>
+                              {speakingMessageId === msg.id ? "🔊" : "🎙️"}
+                            </div>
+                            <div className="truncate">
+                              <p className="font-bold text-xs text-amber-950 truncate font-sans">
+                                {speakingMessageId === msg.id
+                                  ? currentChatUi.audioPriestPlaying
+                                  : currentChatUi.audioPriestIdle}
+                              </p>
+                              <p className="text-[10px] text-amber-800/80 truncate font-sans">
+                                {speakingMessageId === msg.id
+                                  ? currentChatUi.audioPriestPlayingSub
+                                  : currentChatUi.audioPriestIdleSub}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handlePlayTTS(msg.id, msg.text)}
+                            className={`px-3 py-1.5 rounded-xl font-sans font-bold text-xs transition active:scale-95 flex items-center gap-1.5 shrink-0 shadow-2xs ${speakingMessageId === msg.id
+                              ? "bg-red-600 hover:bg-red-700 text-white border border-red-400"
+                              : "bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white border border-amber-600"
+                              }`}
+                          >
+                            <span>{speakingMessageId === msg.id ? currentChatUi.audioStopBtn : currentChatUi.audioPlayBtn}</span>
+                          </button>
+                        </div>
+
+                        {/* Flowing Sacred Guidance Paragraphs (Warm paternal tone, zero robotic AI boxes) */}
+                        <div className="pt-1 space-y-2.5">
+                          {paragraphs.map((para, pIdx) => (
+                            <p key={pIdx} className="whitespace-pre-line text-xs sm:text-sm text-stone-900 leading-relaxed font-serif">
+                              {para}
+                            </p>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Dedicated Luxury Gold Dosha & Karma Insight Card (Deduplicated so never repeated) */}
+                    {!isUser && msg.activeDoshaCard && isDoshaCardFirstOccurrence[msg.id] && (
+                      <div className="mt-3 mb-2 p-3.5 bg-gradient-to-br from-amber-50 via-orange-50/80 to-amber-100/90 border-2 border-amber-400/90 rounded-2xl shadow-md text-amber-950 font-serif space-y-2.5">
+                        <div className="flex items-center justify-between border-b border-amber-300 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🪐</span>
+                            <span className="font-bold text-amber-950 text-xs md:text-sm tracking-wide">
+                              {currentChatUi.doshaCardTitle}
+                            </span>
+                          </div>
+                          <span className="bg-red-700 text-white text-[10px] font-sans font-bold px-2 py-0.5 rounded-full shadow-2xs animate-pulse">
+                            {currentChatUi.specialPariharaBadge}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1.5 text-xs">
+                          <div className="flex items-start gap-2">
+                            <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">{currentChatUi.doshaAfflictionLabel}</span>
+                            <span className="text-red-900 font-bold text-[12px]">{msg.activeDoshaCard.doshaName}</span>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">{currentChatUi.planetaryCauseLabel}</span>
+                            <span className="text-amber-900 leading-relaxed text-[11px]">{msg.activeDoshaCard.technicalWhy}</span>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">{currentChatUi.currentImpactLabel}</span>
+                            <span className="text-amber-950 leading-relaxed text-[11px]">{msg.activeDoshaCard.currentLifeProblems}</span>
+                          </div>
+                          <div className="flex items-start gap-2 bg-amber-100/80 p-2 rounded-xl border border-amber-300">
+                            <span className="text-amber-900 font-bold whitespace-nowrap text-[11px]">{currentChatUi.remedySankalpaLabel}</span>
+                            <span className="text-amber-950 font-medium leading-relaxed text-[11px]">{msg.activeDoshaCard.recommendedPooja}</span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-amber-300 flex items-center justify-between gap-2 flex-wrap">
+                          <div className="text-[10px] text-amber-900 font-sans">
+                            <span>{currentChatUi.priestLabel}</span>
+                            <span className="font-bold">{msg.activeDoshaCard.priestName || DEFAULT_PRIEST_CONTACT.name}</span>
+                            <span className="block text-[9px] text-amber-800/80">{currentChatUi.gokarnaLocationLabel}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <a
+                              href={`tel:${msg.activeDoshaCard.priestPhone || DEFAULT_PRIEST_CONTACT.phone}`}
+                              className="bg-red-700 hover:bg-red-800 text-white font-sans text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1"
+                            >
+                              <span>{currentChatUi.directCallBtn}</span>
+                              <span className="text-[10px] opacity-90">({msg.activeDoshaCard.priestPhone || DEFAULT_PRIEST_CONTACT.phone})</span>
+                            </a>
+                          </div>
+                        </div>
                       </div>
                     )}
-                  </>
-                )}
 
-                {/* Dedicated Luxury Gold Dosha & Karma Insight Card (Deduplicated so never repeated) */}
-                {!isUser && msg.activeDoshaCard && isDoshaCardFirstOccurrence[msg.id] && (
-                  <div className="mt-3 mb-2 p-3.5 bg-gradient-to-br from-amber-50 via-orange-50/80 to-amber-100/90 border-2 border-amber-400/90 rounded-2xl shadow-md text-amber-950 font-serif space-y-2.5">
-                    <div className="flex items-center justify-between border-b border-amber-300 pb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🪐</span>
-                        <span className="font-bold text-amber-950 text-xs md:text-sm tracking-wide">
-                          {currentChatUi.doshaCardTitle}
-                        </span>
-                      </div>
-                      <span className="bg-red-700 text-white text-[10px] font-sans font-bold px-2 py-0.5 rounded-full shadow-2xs animate-pulse">
-                        {currentChatUi.specialPariharaBadge}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs">
-                      <div className="flex items-start gap-2">
-                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">{currentChatUi.doshaAfflictionLabel}</span>
-                        <span className="text-red-900 font-bold text-[12px]">{msg.activeDoshaCard.doshaName}</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">{currentChatUi.planetaryCauseLabel}</span>
-                        <span className="text-amber-900 leading-relaxed text-[11px]">{msg.activeDoshaCard.technicalWhy}</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">{currentChatUi.currentImpactLabel}</span>
-                        <span className="text-amber-950 leading-relaxed text-[11px]">{msg.activeDoshaCard.currentLifeProblems}</span>
-                      </div>
-                      <div className="flex items-start gap-2 bg-amber-100/80 p-2 rounded-xl border border-amber-300">
-                        <span className="text-amber-900 font-bold whitespace-nowrap text-[11px]">{currentChatUi.remedySankalpaLabel}</span>
-                        <span className="text-amber-950 font-medium leading-relaxed text-[11px]">{msg.activeDoshaCard.recommendedPooja}</span>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-amber-300 flex items-center justify-between gap-2 flex-wrap">
-                      <div className="text-[10px] text-amber-900 font-sans">
-                        <span>{currentChatUi.priestLabel}</span>
-                        <span className="font-bold">{msg.activeDoshaCard.priestName || DEFAULT_PRIEST_CONTACT.name}</span>
-                        <span className="block text-[9px] text-amber-800/80">{currentChatUi.gokarnaLocationLabel}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
+                    {/* Astrologer Dosha Chapter Badge (Fallback if no full card and first occurrence) */}
+                    {!isUser && !msg.activeDoshaCard && msg.hasDosha && isDoshaCardFirstOccurrence[msg.id] && (
+                      <div className="mt-2 mb-1 p-2.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-400 rounded-xl flex items-center justify-between text-xs text-amber-950 font-serif shadow-2xs">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">⚡</span>
+                          <div>
+                            <span className="font-bold text-amber-900 block text-[11px]">{currentChatUi.doshaBadgeFallback}</span>
+                            <span className="text-[11px] text-amber-800">{msg.doshaName || currentChatUi.specialDoshaFallback}</span>
+                          </div>
+                        </div>
                         <a
-                          href={`tel:${msg.activeDoshaCard.priestPhone || DEFAULT_PRIEST_CONTACT.phone}`}
-                          className="bg-red-700 hover:bg-red-800 text-white font-sans text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1"
+                          href={DEFAULT_PRIEST_CONTACT.callUri}
+                          className="bg-amber-700 hover:bg-amber-800 text-white font-sans text-[10px] font-bold px-2.5 py-1 rounded-md shadow-2xs transition whitespace-nowrap"
                         >
-                          <span>{currentChatUi.directCallBtn}</span>
-                          <span className="text-[10px] opacity-90">({msg.activeDoshaCard.priestPhone || DEFAULT_PRIEST_CONTACT.phone})</span>
+                          {currentChatUi.callRemedyBtn}
                         </a>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    )}
 
-                {/* Astrologer Dosha Chapter Badge (Fallback if no full card and first occurrence) */}
-                {!isUser && !msg.activeDoshaCard && msg.hasDosha && isDoshaCardFirstOccurrence[msg.id] && (
-                  <div className="mt-2 mb-1 p-2.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-400 rounded-xl flex items-center justify-between text-xs text-amber-950 font-serif shadow-2xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">⚡</span>
-                      <div>
-                        <span className="font-bold text-amber-900 block text-[11px]">{currentChatUi.doshaBadgeFallback}</span>
-                        <span className="text-[11px] text-amber-800">{msg.doshaName || currentChatUi.specialDoshaFallback}</span>
+                    {/* Astrologer Actions: Copy & Audio */}
+                    {!isUser && (
+                      <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between text-[11px] gap-2 flex-wrap">
+                        <span className="text-amber-800/80 font-sans italic truncate max-w-[200px]">
+                          {currentChatUi.astrologerFooterNote}
+                        </span>
+                        <div className="flex items-center gap-1.5 ml-auto">
+                          {/* One-Tap Copy Answer Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleCopyMessage(msg.id, msg.text)}
+                            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-sans font-bold text-xs transition active:scale-95 ${copiedMessageId === msg.id
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-400 shadow-2xs"
+                              : "bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300"
+                              }`}
+                            title={currentChatUi.copyBtn}
+                          >
+                            <span>{copiedMessageId === msg.id ? currentChatUi.copiedToast : currentChatUi.copyBtn}</span>
+                          </button>
+
+                          {/* TTS Audio Listen Button */}
+                          <button
+                            type="button"
+                            onClick={() => handlePlayTTS(msg.id, msg.text)}
+                            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-sans font-bold text-xs transition active:scale-95 ${speakingMessageId === msg.id
+                              ? "bg-red-100 text-red-700 border border-red-300 shadow-2xs"
+                              : "bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300"
+                              }`}
+                          >
+                            <span>{speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}</span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Typing / Generating Indicator */}
+            {isGenerating && (
+              <div className="flex flex-col items-start w-full animate-pulse">
+                <span className="text-[10px] font-bold text-amber-900 mb-1 px-1">
+                  {currentChatUi.typingAstrologer}
+                </span>
+                <div className="bg-white border-2 border-amber-300 rounded-2xl rounded-bl-xs p-3.5 text-xs text-amber-900 font-serif flex items-center gap-2 shadow-xs">
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-bounce" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-bounce [animation-delay:0.4s]" />
+                  <span className="font-sans ml-1 text-amber-800">
+                    {currentChatUi.synthesizingAnswer}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Post-Expiry Sacred Completion Card inside the conversation flow */}
+            {(isExpired || session.status === "expired") && (
+              <div className="w-full bg-gradient-to-br from-amber-50 via-amber-100/70 to-orange-50 border-2 border-[#D4AF37] rounded-2xl p-4 text-center space-y-3 shadow-md my-4">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-800 text-white text-2xl shadow-sm border border-amber-300">
+                  🪔
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-serif font-black text-base sm:text-lg text-amber-950">
+                    {currentI18n.sessionEndedTitle || "॥ ಸಮಾಲೋಚನೆ ಸಂಪನ್ನಗೊಂಡಿದೆ ॥"}
+                  </h3>
+                  <p className="text-xs text-amber-900 leading-relaxed max-w-md mx-auto font-sans">
+                    {currentI18n.sessionEndedMsg || "ನಿಮ್ಮ ೨೦ ನಿಮಿಷಗಳ ನಿಗದಿತ ಸಮಾಲೋಚನೆ ಸಂಪನ್ನಗೊಂಡಿದೆ. ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ಮಾರ್ಗದರ್ಶನ ಹಾಗೂ ಪರಿಹಾರಗಳನ್ನು ಮೇಲೆ ಪರಿಶೀಲಿಸಬಹುದು."}
+                  </p>
+                </div>
+                <div className="w-full bg-white/90 border border-amber-300 rounded-xl p-3 text-xs text-amber-950 font-serif">
+                  <div className="font-bold text-amber-900">॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥</div>
+                  <div className="text-stone-600">ಮುಖ್ಯ ದೈವಜ್ಞರು: {DEFAULT_PRIEST_CONTACT.name} (ಗೋಕರ್ಣ)</div>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+                  <a
+                    href={DEFAULT_PRIEST_CONTACT.callUri}
+                    className="w-full sm:w-auto bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 hover:from-amber-800 text-white font-serif font-bold text-xs py-3 px-5 rounded-xl shadow-md transition flex items-center justify-center gap-1.5"
+                  >
+                    <span>📞</span>
+                    <span>{currentI18n.callPriestBtn || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362"}</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined") window.print();
+                    }}
+                    className="w-full sm:w-auto bg-white hover:bg-stone-100 text-stone-800 font-sans font-bold text-xs py-3 px-4 rounded-xl border border-stone-300 shadow-2xs transition flex items-center justify-center gap-1.5"
+                  >
+                    <span>📄</span>
+                    <span>{currentChatUi.savePrintBtn}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowFamilyBookingModal(true)}
+                    className="w-full sm:w-auto bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white font-sans font-bold text-xs py-2.5 sm:py-3 px-4 rounded-xl border border-amber-500 shadow-md transition flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <span>🎁</span>
+                    <span>{currentChatUi.bookForFamilyBtn}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </main>
+
+          {/* -------------------------------------------------------------
+          Footer Input Bar
+          ------------------------------------------------------------- */}
+          <footer className="w-full bg-[#FAF6EE] border-t-2 border-amber-300/80 sticky bottom-0 z-20 p-2 sm:p-3 shadow-lg">
+            <div className="max-w-2xl mx-auto space-y-2">
+              {/* Quick Questions Age-Adaptive Luxury FAQ Dock (Collapsed when keyboard/input focused or voice mode active) */}
+              {!isExpired && !isInputFocused && !isVoiceRecordMode && quickFaqChips.length > 0 && (
+                <div className="pt-0.5 pb-1">
+                  <div className="flex items-center justify-between text-[11px] text-amber-900 font-serif mb-1 px-1">
+                    <span className="flex items-center gap-1 font-semibold">
+                      <span>✨</span>
+                      <span>{currentChatUi.faqDockHeader}</span>
+                    </span>
+                    <span className="text-[10px] text-amber-800/70 font-sans">
+                      {isMinorChildDevotee ? currentChatUi.minorChildBadge : `👤 ${devoteeAgeYears} ${currentChatUi.yearsAgeBadge}`}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
+                    {quickFaqChips.map((chip, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        disabled={isGenerating}
+                        onClick={() => handleSendMessage(chip.question)}
+                        className="whitespace-nowrap bg-white hover:bg-amber-100 active:scale-95 border border-amber-300 text-amber-950 px-3 py-1.5 rounded-full shadow-2xs font-medium transition flex items-center gap-1 disabled:opacity-50 min-h-[36px]"
+                      >
+                        <span>{chip.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Active Speaking Banner */}
+              {isListening && !isVoiceRecordMode && (
+                <div className="bg-red-50 border border-red-300 text-red-800 text-xs px-3 py-1.5 rounded-xl flex items-center justify-between animate-pulse">
+                  <span className="flex items-center gap-2 font-medium">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping" />
+                    {currentLangMeta.speakingIndicator}
+                  </span>
+                  <span className="font-mono font-bold text-red-950">⏱️ {speechTimerText}</span>
+                </div>
+              )}
+
+              {/* Active Question Reviewing Banner (2-3 seconds) */}
+              {isReviewingQuestion && (
+                <div className="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-300 text-amber-950 text-xs px-3 py-1.5 rounded-xl flex items-center justify-between shadow-xs animate-pulse">
+                  <span className="flex items-center gap-2 font-medium">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-ping" />
+                    <span>{currentLangMeta.aiReviewingIndicator || "✨ ಶ್ರೀರಾಮ್ ಪಂಡಿತರು ಜಾತಕ ಪರಿಶೀಲಿಸುತ್ತಿದ್ದಾರೆ..."}</span>
+                  </span>
+                  <span className="font-mono text-[11px] font-bold text-amber-900 bg-amber-200/70 px-2 py-0.5 rounded-md">
+                    ⏱️ ~2s
+                  </span>
+                </div>
+              )}
+
+              {/* Sacred Royal Gold Completion Ribbon */}
+              {isExpired ? (
+                <div className="bg-gradient-to-b from-[#FFFDF0] to-[#FDF6E2] border-2 border-[#D4AF37] rounded-2xl p-3 sm:p-4 text-center space-y-2.5 shadow-md">
+                  <p className="text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5">
+                    <span>🪔</span>
+                    <span>{currentI18n.sessionEndedTitle}</span>
+                    <span>🕉️</span>
+                  </p>
+                  <p className="text-[11px] text-amber-900 leading-relaxed font-sans max-w-lg mx-auto">
+                    {currentI18n.sessionEndedMsg}
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
                     <a
                       href={DEFAULT_PRIEST_CONTACT.callUri}
-                      className="bg-amber-700 hover:bg-amber-800 text-white font-sans text-[10px] font-bold px-2.5 py-1 rounded-md shadow-2xs transition whitespace-nowrap"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-bold text-xs py-2.5 px-5 rounded-xl shadow-md transition"
                     >
-                      {currentChatUi.callRemedyBtn}
+                      <span>📞</span>
+                      <span>{currentI18n.callPriestBtn || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362"}</span>
                     </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof window !== "undefined") window.print();
+                      }}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs py-2.5 px-4 rounded-xl border border-stone-300 shadow-2xs transition"
+                    >
+                      <span>📄</span>
+                      <span>{currentChatUi.savePrintBtn}</span>
+                    </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowFamilyBookingModal(true)}
+                    className="w-full sm:w-auto bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white font-sans font-bold text-xs py-2.5 sm:py-3 px-4 rounded-xl border border-amber-500 shadow-md transition flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <span>🎁</span>
+                    <span>{currentChatUi.bookForFamilyBtn}</span>
+                  </button>
                   </div>
-                )}
-
-                {/* Astrologer Actions: Copy & Audio */}
-                {!isUser && (
-                  <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between text-[11px] gap-2 flex-wrap">
-                    <span className="text-amber-800/80 font-sans italic truncate max-w-[200px]">
-                      {currentChatUi.astrologerFooterNote}
-                    </span>
-                    <div className="flex items-center gap-1.5 ml-auto">
-                      {/* One-Tap Copy Answer Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleCopyMessage(msg.id, msg.text)}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-sans font-bold text-xs transition active:scale-95 ${
-                          copiedMessageId === msg.id
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-400 shadow-2xs"
-                            : "bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300"
-                        }`}
-                        title={currentChatUi.copyBtn}
-                      >
-                        <span>{copiedMessageId === msg.id ? currentChatUi.copiedToast : currentChatUi.copyBtn}</span>
-                      </button>
-
-                      {/* TTS Audio Listen Button */}
-                      <button
-                        type="button"
-                        onClick={() => handlePlayTTS(msg.id, msg.text)}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-sans font-bold text-xs transition active:scale-95 ${
-                          speakingMessageId === msg.id
-                            ? "bg-red-100 text-red-700 border border-red-300 shadow-2xs"
-                            : "bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300"
-                        }`}
-                      >
-                        <span>{speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}</span>
-                      </button>
+                </div>
+              ) : isVoiceRecordMode ? (
+                /* Dedicated Voice Recording Studio: Hands-Free devotions for mobile */
+                <div className="bg-gradient-to-b from-amber-50 to-amber-100/90 border-2 border-amber-400 rounded-2xl p-3 shadow-md space-y-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  {/* Header with live timer & recording badge */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+                      </span>
+                      <span className="text-xs font-bold text-amber-950 font-serif">
+                        {currentChatUi.voiceRecordingActive}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 font-mono text-xs font-bold bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full border border-red-300">
+                      <span>⏱️</span>
+                      <span>{speechTimerText}</span>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
 
-        {/* Typing / Generating Indicator */}
-        {isGenerating && (
-          <div className="flex flex-col items-start w-full animate-pulse">
-            <span className="text-[10px] font-bold text-amber-900 mb-1 px-1">
-              {currentChatUi.typingAstrologer}
-            </span>
-            <div className="bg-white border-2 border-amber-300 rounded-2xl rounded-bl-xs p-3.5 text-xs text-amber-900 font-serif flex items-center gap-2 shadow-xs">
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-bounce" />
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-bounce [animation-delay:0.2s]" />
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-bounce [animation-delay:0.4s]" />
-              <span className="font-sans ml-1 text-amber-800">
-                {currentChatUi.synthesizingAnswer}
-              </span>
-            </div>
-          </div>
-        )}
+                  {/* Real-time recognized voice text bubble */}
+                  <div className="bg-white border border-amber-300 rounded-xl p-2.5 min-h-[52px] max-h-28 overflow-y-auto text-xs text-stone-900 shadow-inner">
+                    {inputText.trim() ? (
+                      <p className="font-serif leading-relaxed text-amber-950">
+                        "{inputText}"
+                      </p>
+                    ) : (
+                      <p className="text-stone-400 italic font-sans flex items-center gap-1.5">
+                        <span>🎙️</span>
+                        <span>
+                          {currentChatUi.voiceRecordingPlaceholder}
+                        </span>
+                      </p>
+                    )}
+                  </div>
 
-        <div ref={messagesEndRef} />
-      </main>
+                  {/* Action Buttons: Cancel or Send Recorded Question */}
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={handleCancelVoiceRecording}
+                      disabled={isReviewingQuestion}
+                      className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2.5 px-3 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                    >
+                      <span>✕</span>
+                      <span>{currentChatUi.cancelBtn}</span>
+                    </button>
 
-      {/* -------------------------------------------------------------
-          Footer Input Bar (ChatGPT / Claude Style)
-          ------------------------------------------------------------- */}
-      <footer className="w-full bg-[#FAF6EE] border-t-2 border-amber-300/80 sticky bottom-0 z-20 p-2 sm:p-3 shadow-lg">
-        <div className="max-w-2xl mx-auto space-y-2">
-          {/* Quick Questions Age-Adaptive Luxury FAQ Dock (Collapsed when keyboard/input focused or voice mode active) */}
-          {!isExpired && !isInputFocused && !isVoiceRecordMode && quickFaqChips.length > 0 && (
-            <div className="pt-0.5 pb-1">
-              <div className="flex items-center justify-between text-[11px] text-amber-900 font-serif mb-1 px-1">
-                <span className="flex items-center gap-1 font-semibold">
-                  <span>✨</span>
-                  <span>{currentChatUi.faqDockHeader}</span>
-                </span>
-                <span className="text-[10px] text-amber-800/70 font-sans">
-                  {isMinorChildDevotee ? currentChatUi.minorChildBadge : `👤 ${devoteeAgeYears} ${currentChatUi.yearsAgeBadge}`}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
-                {quickFaqChips.map((chip, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    disabled={isGenerating}
-                    onClick={() => handleSendMessage(chip.question)}
-                    className="whitespace-nowrap bg-white hover:bg-amber-100 active:scale-95 border border-amber-300 text-amber-950 px-3 py-1.5 rounded-full shadow-2xs font-medium transition flex items-center gap-1 disabled:opacity-50 min-h-[36px]"
-                  >
-                    <span>{chip.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Active Speaking Banner */}
-          {isListening && !isVoiceRecordMode && (
-            <div className="bg-red-50 border border-red-300 text-red-800 text-xs px-3 py-1.5 rounded-xl flex items-center justify-between animate-pulse">
-              <span className="flex items-center gap-2 font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping" />
-                {currentLangMeta.speakingIndicator}
-              </span>
-              <span className="font-mono font-bold text-red-950">⏱️ {speechTimerText}</span>
-            </div>
-          )}
-
-          {/* Active AI Question Reviewing Banner (2-3 seconds) */}
-          {isReviewingQuestion && (
-            <div className="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-300 text-amber-950 text-xs px-3 py-1.5 rounded-xl flex items-center justify-between shadow-xs animate-pulse">
-              <span className="flex items-center gap-2 font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-ping" />
-                <span>{currentLangMeta.aiReviewingIndicator || "✨ AI ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದೆ... (೨-೩ ಸೆಕೆಂಡುಗಳು)"}</span>
-              </span>
-              <span className="font-mono text-[11px] font-bold text-amber-900 bg-amber-200/70 px-2 py-0.5 rounded-md">
-                ⏱️ ~2s
-              </span>
-            </div>
-          )}
-
-          {/* Sacred Royal Gold Completion Ribbon */}
-          {isExpired ? (
-            <div className="bg-gradient-to-b from-[#FFFDF0] to-[#FDF6E2] border-2 border-[#D4AF37] rounded-2xl p-4 text-center space-y-2.5 shadow-md">
-              <p className="text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5">
-                <span>🪔</span>
-                <span>{currentI18n.sessionEndedTitle}</span>
-                <span>🕉️</span>
-              </p>
-              <p className="text-[11px] text-amber-900 leading-relaxed font-sans max-w-lg mx-auto">
-                {currentI18n.sessionEndedMsg}
-              </p>
-              <a
-                href={DEFAULT_PRIEST_CONTACT.callUri}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-bold text-xs py-2.5 px-5 rounded-xl shadow-md transition"
-              >
-                <span>📞</span>
-                <span>{currentI18n.callPriestBtn || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362"}</span>
-              </a>
-            </div>
-          ) : isVoiceRecordMode ? (
-            /* Dedicated Voice Recording Studio: Hands-Free devotions for mobile */
-            <div className="bg-gradient-to-b from-amber-50 to-amber-100/90 border-2 border-amber-400 rounded-2xl p-3 shadow-md space-y-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-              {/* Header with live timer & recording badge */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
-                  </span>
-                  <span className="text-xs font-bold text-amber-950 font-serif">
-                    {currentLang === "kn" ? "ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ ಜಾರಿಯಲ್ಲಿದೆ..." : "Voice Recording Active..."}
-                  </span>
+                    <button
+                      type="button"
+                      onClick={() => void handleSendRecordedVoiceQuestion()}
+                      disabled={isReviewingQuestion || isGenerating || !inputText.trim()}
+                      className="flex-[2] bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-40"
+                    >
+                      {isReviewingQuestion ? (
+                        <>
+                          <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                          <span>{currentChatUi.refiningBtn}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>➤</span>
+                          <span>{currentChatUi.sendRecordedQuestionBtn}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 font-mono text-xs font-bold bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full border border-red-300">
-                  <span>⏱️</span>
-                  <span>{speechTimerText}</span>
-                </div>
-              </div>
+              ) : (
+                <div className="flex items-end gap-2">
+                  {/* Text Input Container with Auto-Expanding Textarea & Clear (✕) Button */}
+                  <div className="flex-1 bg-white border-2 border-amber-400 rounded-2xl p-2 shadow-inner focus-within:border-amber-600 transition flex items-end gap-1.5 sm:gap-2">
+                    <textarea
+                      ref={textareaRef}
+                      rows={1}
+                      value={inputText}
+                      disabled={isReviewingQuestion}
+                      onFocus={() => {
+                        setIsInputFocused(true);
+                        setTimeout(() => {
+                          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                        }, 250);
+                      }}
+                      onBlur={() => {
+                        setIsInputFocused(false);
+                      }}
+                      onChange={(e) => {
+                        setInputText(e.target.value);
+                        adjustTextareaHeight();
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          void handleSendMessage();
+                        }
+                      }}
+                      placeholder={currentLangMeta.inputPlaceholder}
+                      className="flex-1 bg-transparent text-sm text-stone-900 focus:outline-hidden resize-none overflow-y-auto max-h-32 min-h-[38px] py-1.5 font-sans leading-relaxed disabled:opacity-60"
+                    />
 
-              {/* Real-time recognized voice text bubble */}
-              <div className="bg-white border border-amber-300 rounded-xl p-2.5 min-h-[52px] max-h-28 overflow-y-auto text-xs text-stone-900 shadow-inner">
-                {inputText.trim() ? (
-                  <p className="font-serif leading-relaxed text-amber-950">
-                    "{inputText}"
-                  </p>
-                ) : (
-                  <p className="text-stone-400 italic font-sans flex items-center gap-1.5">
-                    <span>🎙️</span>
-                    <span>
-                      {currentLang === "kn"
-                        ? "ಸ್ಪಷ್ಟವಾಗಿ ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಮಾತನಾಡಿ (೩-೪ ನಿಮಿಷ ಮಾತನಾಡಬಹುದು)..."
-                        : "Speak your question clearly (continuous 3-4 minutes support)..."}
-                    </span>
-                  </p>
-                )}
-              </div>
+                    {/* Clear Input Button (visible when text entered) */}
+                    {inputText.trim().length > 0 && (
+                      <button
+                        type="button"
+                        disabled={isReviewingQuestion}
+                        onClick={() => {
+                          setInputText("");
+                          if (textareaRef.current) {
+                            textareaRef.current.style.height = "auto";
+                          }
+                        }}
+                        className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition active:scale-90 disabled:opacity-30"
+                        title={currentChatUi.clearInputTooltip}
+                        aria-label={currentChatUi.clearInputTooltip}
+                      >
+                        <span className="text-sm font-bold leading-none">✕</span>
+                      </button>
+                    )}
 
-              {/* Action Buttons: Cancel or Send Recorded Question */}
-              <div className="flex items-center gap-2 pt-0.5">
-                <button
-                  type="button"
-                  onClick={handleCancelVoiceRecording}
-                  disabled={isReviewingQuestion}
-                  className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2.5 px-3 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
-                >
-                  <span>✕</span>
-                  <span>{currentLang === "kn" ? "ರದ್ದುಗೊಳಿಸಿ" : "Cancel"}</span>
-                </button>
+                    {/* Mic Button: Toggles dedicated Voice Recording Studio */}
+                    <button
+                      type="button"
+                      onClick={handleStartVoiceRecording}
+                      disabled={isReviewingQuestion || isGenerating}
+                      className={`p-2 rounded-xl transition ${isListening
+                        ? "bg-red-500 text-white animate-pulse shadow-md"
+                        : "text-amber-700 hover:bg-amber-100 active:scale-90 disabled:opacity-40"
+                        }`}
+                      title={currentChatUi.micTooltip}
+                    >
+                      <span className="text-lg">🎙️</span>
+                    </button>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => void handleSendRecordedVoiceQuestion()}
-                  disabled={isReviewingQuestion || isGenerating || !inputText.trim()}
-                  className="flex-[2] bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-40"
-                >
-                  {isReviewingQuestion ? (
-                    <>
-                      <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                      <span>{currentLang === "kn" ? "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : "Refining..."}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>➤</span>
-                      <span>{currentLang === "kn" ? "ಪ್ರಶ್ನೆ ಕಳುಹಿಸಿ" : "Send Question"}</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-end gap-2">
-              {/* Text Input Container with Auto-Expanding Textarea & Clear (✕) Button */}
-              <div className="flex-1 bg-white border-2 border-amber-400 rounded-2xl p-2 shadow-inner focus-within:border-amber-600 transition flex items-end gap-1.5 sm:gap-2">
-                <textarea
-                  ref={textareaRef}
-                  rows={1}
-                  value={inputText}
-                  disabled={isReviewingQuestion}
-                  onFocus={() => {
-                    setIsInputFocused(true);
-                    setTimeout(() => {
-                      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-                    }, 250);
-                  }}
-                  onBlur={() => {
-                    setIsInputFocused(false);
-                  }}
-                  onChange={(e) => {
-                    setInputText(e.target.value);
-                    adjustTextareaHeight();
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      void handleSendMessage();
-                    }
-                  }}
-                  placeholder={currentLangMeta.inputPlaceholder}
-                  className="flex-1 bg-transparent text-sm text-stone-900 focus:outline-hidden resize-none overflow-y-auto max-h-32 min-h-[38px] py-1.5 font-sans leading-relaxed disabled:opacity-60"
-                />
-
-                {/* Clear Input Button (visible when text entered) */}
-                {inputText.trim().length > 0 && (
+                  {/* Send Button */}
                   <button
                     type="button"
-                    disabled={isReviewingQuestion}
-                    onClick={() => {
-                      setInputText("");
-                      if (textareaRef.current) {
-                        textareaRef.current.style.height = "auto";
-                      }
-                    }}
-                    className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition active:scale-90 disabled:opacity-30"
-                    title={currentChatUi.clearInputTooltip}
-                    aria-label={currentChatUi.clearInputTooltip}
+                    onClick={() => handleSendMessage()}
+                    disabled={isGenerating || isReviewingQuestion || !inputText.trim()}
+                    className="bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold p-3 rounded-2xl shadow-md disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition min-w-[44px] flex items-center justify-center"
+                    title={isReviewingQuestion ? (currentLangMeta.aiReviewingIndicator || "ಶ್ರೀರಾಮ್ ಪಂಡಿತರು ಜಾತಕ ಪರಿಶೀಲಿಸುತ್ತಿದ್ದಾರೆ...") : currentChatUi.sendTooltip}
                   >
-                    <span className="text-sm font-bold leading-none">✕</span>
+                    {isReviewingQuestion ? (
+                      <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    ) : (
+                      <span className="text-base">➤</span>
+                    )}
                   </button>
-                )}
-
-                {/* Mic Button: Toggles dedicated Voice Recording Studio */}
-                <button
-                  type="button"
-                  onClick={handleStartVoiceRecording}
-                  disabled={isReviewingQuestion || isGenerating}
-                  className={`p-2 rounded-xl transition ${
-                    isListening
-                      ? "bg-red-500 text-white animate-pulse shadow-md"
-                      : "text-amber-700 hover:bg-amber-100 active:scale-90 disabled:opacity-40"
-                  }`}
-                  title={currentChatUi.micTooltip}
-                >
-                  <span className="text-lg">🎙️</span>
-                </button>
-              </div>
-
-              {/* Send Button */}
-              <button
-                type="button"
-                onClick={() => handleSendMessage()}
-                disabled={isGenerating || isReviewingQuestion || !inputText.trim()}
-                className="bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold p-3 rounded-2xl shadow-md disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition min-w-[44px] flex items-center justify-center"
-                title={isReviewingQuestion ? (currentLangMeta.aiReviewingIndicator || "AI ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದೆ...") : currentChatUi.sendTooltip}
-              >
-                {isReviewingQuestion ? (
-                  <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                ) : (
-                  <span className="text-base">➤</span>
-                )}
-              </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </footer>
+          </footer>
         </>
       )}
 
@@ -2242,7 +2326,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 <label className="flex items-center justify-between font-bold text-amber-950 mb-1">
                   <span>📱 {currentI18n.phoneLabel}</span>
                   <span className="text-[10px] text-red-700 font-sans font-bold uppercase tracking-wider bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-sm">
-                    {session.language === "en" ? "* Mandatory" : "* ಕಡ್ಡಾಯ (೧೦ ಅಂಕಿ)"}
+                    {currentChatUi.mandatoryPhoneBadge}
                   </span>
                 </label>
                 <input
@@ -2261,7 +2345,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 <label className="flex items-center justify-between font-bold text-amber-950 mb-1">
                   <span>✉️ {currentI18n.emailLabel}</span>
                   <span className="text-[10px] text-stone-600 font-sans font-medium bg-stone-100 border border-stone-300 px-1.5 py-0.5 rounded-sm">
-                    {session.language === "en" ? "Optional" : "ಐಚ್ಛಿಕ"}
+                    {currentChatUi.optionalBadge}
                   </span>
                 </label>
                 <input
@@ -2401,14 +2485,10 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-bold font-serif text-amber-950">
-                    {currentLang === "kn"
-                      ? "॥ ಕಾಲಚಕ್ರ ೪ ಪಾದಗಳ ಕಾಲಾವಧಿ ವಿವರ ॥"
-                      : "॥ Kala Chakra 4-Pada Breakdown ॥"}
+                    {currentChatUi.kalaChakraModalTitle}
                   </h3>
                   <p className="text-[10px] text-amber-800">
-                    {currentLang === "kn"
-                      ? "೨೦ ನಿಮಿಷಗಳ ನಿಖರ ದೈವಿಕ ಸಂವಾದ ಹಂತಗಳು"
-                      : "20-Minute Divine Astrological Timetable"}
+                    {currentChatUi.kalaChakraModalSubtitle}
                   </p>
                 </div>
               </div>
@@ -2444,7 +2524,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 onClick={() => setShowTimerDetailsModal(false)}
                 className="w-full bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm"
               >
-                {currentLang === "kn" ? "ಸರಿ, ಮುಚ್ಚಿ (ಸಂವಾದಕ್ಕೆ ಹಿಂತಿರುಗಿ)" : "Close & Return to Chat"}
+                {currentChatUi.kalaChakraCloseBtn}
               </button>
             </div>
           </div>
@@ -2454,6 +2534,87 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       {/* -------------------------------------------------------------
           5-Star Rating & Feedback Modal (Shown once upon session expiry or user trigger)
           ------------------------------------------------------------- */}
+
+      {/* -------------------------------------------------------------
+          Dedicated Family Member Consultation Booking Modal
+          (Strict 1-person 1-link boundary; directs family referrals to Chief Priest)
+          ------------------------------------------------------------- */}
+      {showFamilyBookingModal && session && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="max-w-lg w-full bg-[#FAF6EE] border-3 border-amber-400 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-amber-300 pb-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 text-white flex items-center justify-center text-xl shadow-xs">
+                  🎁
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold font-serif text-amber-950">
+                    {currentChatUi.bookForFamilyModalTitle}
+                  </h3>
+                  <p className="text-[11px] text-amber-800 font-sans">
+                    {session.language === "en" ? "Chief Priest Sri Shreeram Pandit (9972339362)" : "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಪ್ರಧಾನ ಅರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (೯೯೭೨೩೩೯೩೬೨)"}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFamilyBookingModal(false)}
+                className="w-8 h-8 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold flex items-center justify-center transition active:scale-95"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3.5 bg-amber-100/70 border border-amber-300 rounded-2xl text-xs text-amber-950 font-serif leading-relaxed">
+              <p>{currentChatUi.bookForFamilyModalDesc}</p>
+            </div>
+
+            <div className="bg-white border border-amber-300 rounded-2xl p-3.5 space-y-2 text-xs">
+              <p className="font-bold text-amber-950 font-sans">
+                {session.language === "en" ? "Information Required for New Dedicated Link:" : "ಹೊಸ ಪ್ರತ್ಯೇಕ ಲಿಂಕ್‌ಗಾಗಿ ಅಗತ್ಯವಿರುವ ವಿವರಗಳು:"}
+              </p>
+              <div className="space-y-1 font-mono text-[11px] text-stone-700 bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                <p>• {currentChatUi.devoteeNameLabel} _________</p>
+                <p>• {session.language === "en" ? "Date of Birth (DOB):" : "ಹುಟ್ಟಿದ ದಿನಾಂಕ (DOB):"} DD/MM/YYYY</p>
+                <p>• {session.language === "en" ? "Time of Birth (TOB):" : "ಹುಟ್ಟಿದ ಸಮಯ (TOB):"} HH:MM AM/PM</p>
+                <p>• {session.language === "en" ? "Place of Birth (POB):" : "ಹುಟ್ಟಿದ ಸ್ಥಳ (POB):"} City, State</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <a
+                href={`https://wa.me/919972339362?text=${encodeURIComponent(
+                  `॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n\nನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರೇ (9972339362),\nನನ್ನ ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಪ್ರತ್ಯೇಕ ೨೦ ನಿಮಿಷಗಳ ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಬೇಕಾಗಿದೆ.\n\nಕುಟುಂಬ ಸದಸ್ಯರ ಹೆಸರು: \nಹುಟ್ಟಿದ ದಿನಾಂಕ: \nಸಮಯ: \nಸ್ಥಳ: \n\nದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಹೊಸ ಖಾಸಗಿ ಲಿಂಕ್ ನೀಡಿ.\n(ರೆಫರೆನ್ಸ್: ${session.name} ಅವರ ಸಮಾಲೋಚನೆ)`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 px-4 rounded-xl shadow-md transition active:scale-95"
+              >
+                <span>💬</span>
+                <span>{currentChatUi.bookForFamilyWhatsAppBtn}</span>
+              </a>
+
+              <a
+                href="tel:9972339362"
+                className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition active:scale-95"
+              >
+                <span>📞</span>
+                <span>{currentChatUi.bookForFamilyCallBtn}</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setShowFamilyBookingModal(false)}
+                className="w-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2 px-4 rounded-xl text-xs transition"
+              >
+                {currentChatUi.kalaChakraCloseBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showRatingModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
           <div className="max-w-md w-full bg-[#FAF6EE] border-2 border-amber-400 rounded-3xl p-6 shadow-2xl relative space-y-4 text-center">

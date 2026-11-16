@@ -30,7 +30,7 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     sampleGreeting: "ನಮಸ್ಕಾರ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಜ್ಞ ಸಮಾಲೋಚನೆಗೆ ಸ್ವಾಗತ.",
     inputPlaceholder: "ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ ಅಥವಾ ಧ್ವನಿ ಮೂಲಕ ಮಾತನಾಡಿ...",
     speakingIndicator: "ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ ನಡೆಯುತ್ತಿದೆ... (ಮಾತನಾಡಿ)",
-    aiReviewingIndicator: "✨ AI ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದೆ... (೨-೩ ಸೆಕೆಂಡುಗಳು)"
+    aiReviewingIndicator: "✨ ಶ್ರೀರಾಮ್ ಪಂಡಿತರು ಜಾತಕ ಪರಿಶೀಲಿಸುತ್ತಿದ್ದಾರೆ..."
   },
   {
     code: "en",
@@ -40,7 +40,7 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     sampleGreeting: "Namaste, Welcome to Baggona Panchanga Vedic Astrological Consultation.",
     inputPlaceholder: "Type your question here or speak via mic...",
     speakingIndicator: "Voice recording active... (Speak now)",
-    aiReviewingIndicator: "✨ AI is reviewing your question... (2-3 seconds)"
+    aiReviewingIndicator: "✨ Sri Shreeram Pandit is reviewing your horoscope..."
   },
   {
     code: "hi",
@@ -50,7 +50,7 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     sampleGreeting: "नमस्ते, श्री बग्गोण पंचांग वैदिक ज्योतिष परामर्श में आपका स्वागत है।",
     inputPlaceholder: "अपना प्रश्न यहाँ लिखें या बोलकर पूछें...",
     speakingIndicator: "ध्वनि रिकॉर्डिंग जारी है... (बोलिए)",
-    aiReviewingIndicator: "✨ AI प्रश्न की समीक्षा कर रहा है... (2-3 सेकंड)"
+    aiReviewingIndicator: "✨ श्रीराम पंडित जी आपकी जन्मकुंडली का विश्लेषण कर रहे हैं..."
   },
   {
     code: "te",
@@ -60,7 +60,7 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     sampleGreeting: "నమస్కారం, శ్రీ బగ్గోణ పంచాంగ జ్యోతిష్య సంప్రదింపులకు స్వాగతం.",
     inputPlaceholder: "మీ ప్రశ్నను ఇక్కడ టైప్ చేయండి లేదా మాట్లాడండి...",
     speakingIndicator: "వాయిస్ రికార్డింగ్ నడుస్తోంది... (మాట్లాడండి)",
-    aiReviewingIndicator: "✨ AI మీ ప్రశ్నను సమీక్షిస్తోంది... (2-3 సెకన్లు)"
+    aiReviewingIndicator: "✨ శ్రీరామ్ పండితులు మీ జాతకాన్ని పరిశీలిస్తున్నారు..."
   },
   {
     code: "ta",
@@ -70,7 +70,7 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     sampleGreeting: "வணக்கம், ஸ்ரீ பக்கவணா பஞ்சாங்க ஜோதிட ஆலோசனையில் உங்களை வரவேற்கிறோம்.",
     inputPlaceholder: "உங்கள் கேள்வியை இங்கே தட்டச்சு செய்யவும் அல்லது பேசவும்...",
     speakingIndicator: "குரல் பதிவு செயலில் உள்ளது... (பேசவும்)",
-    aiReviewingIndicator: "✨ AI உங்கள் கேள்வியை மதிப்பாய்வு செய்கிறது... (2-3 வினாடிகள்)"
+    aiReviewingIndicator: "✨ ஸ்ரீராம் பண்டிதர் உங்கள் ஜாதகத்தை ஆராய்கிறார்..."
   },
   {
     code: "ml",
@@ -80,7 +80,7 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     sampleGreeting: "നമസ്കാരം, ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ ജ്യോതിഷ കൺസൾട്ടേഷനിലേക്ക് സ്വാഗതം.",
     inputPlaceholder: "നിങ്ങളുടെ ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക അല്ലെങ്കിൽ സംസാരിക്കുക...",
     speakingIndicator: "വോയ്‌സ് റെക്കോർഡിംഗ് സജീവമാണ്... (സംസാരിക്കുക)",
-    aiReviewingIndicator: "✨ AI ചോദ്യം അവലോകനം ചെയ്യുന്നു... (2-3 സെക്കൻഡ്)"
+    aiReviewingIndicator: "✨ ശ്രീറാം പണ്ഡിറ്റ് അങ്ങയുടെ ജാതകം പരിശോധിക്കുന്നു..."
   },
   {
     code: "mr",
@@ -90,7 +90,7 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     sampleGreeting: "नमस्कार, श्री बग्गोण पंचांग वैदिक ज्योतिष सल्लामसलतीमध्ये आपले स्वागत आहे.",
     inputPlaceholder: "आपला प्रश्न येथे टाइप करा किंवा आवाजाने विचारा...",
     speakingIndicator: "व्हॉइस रेकॉर्डिंग चालू आहे... (बोला)",
-    aiReviewingIndicator: "✨ AI प्रश्नाचे पुनरावलोकन करत आहे... (2-3 सेकंद)"
+    aiReviewingIndicator: "✨ श्रीराम पंडित जी आपल्या जन्मपत्रिकेचे विश्लेषण करत आहेत..."
   }
 ];
 
@@ -119,19 +119,19 @@ export interface ConsultationChatMessage {
 
 export interface ConsultationRulingRecord {
   domain:
-    | "ABROAD_SETTLEMENT"
-    | "MARRIAGE"
-    | "EDUCATION"
-    | "SANTHANA"
-    | "HEALTH"
-    | "PROPERTY_ASSET"
-    | "CAREER_FINANCE"
-    | "BUSINESS_VS_JOB"
-    | "DEBT_FINANCIAL_RELIEF"
-    | "LEGAL_COURT_CASE"
-    | "GOVERNMENT_JOB"
-    | "GEMSTONE_REMEDY"
-    | "GENERAL";
+  | "ABROAD_SETTLEMENT"
+  | "MARRIAGE"
+  | "EDUCATION"
+  | "SANTHANA"
+  | "HEALTH"
+  | "PROPERTY_ASSET"
+  | "CAREER_FINANCE"
+  | "BUSINESS_VS_JOB"
+  | "DEBT_FINANCIAL_RELIEF"
+  | "LEGAL_COURT_CASE"
+  | "GOVERNMENT_JOB"
+  | "GEMSTONE_REMEDY"
+  | "GENERAL";
   questionSummary: string;
   primaryVerdict: string;
   rejectedOptions: string[];
@@ -551,22 +551,22 @@ export function getInitialPriestGreeting(lang: ConsultationLanguage, devoteeName
   }
   switch (lang) {
     case "kn":
-      return `ನಮಸ್ಕಾರ ${name} ಅವರೇ, ನಾನು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮುಖ್ಯ ದೈವಜ್ಞ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ, ರಾಶಿ ಹಾಗೂ ಜಾತಕವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ವಿಶ್ಲೇಷಿಸಿದ್ದೇನೆ. ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿಮ್ಮ ಜೀವನ, ವೃತ್ತಿ, ವಿವಾಹ, ಕೌಟುಂಬಿಕ ಅಥವಾ ಯಾವುದೇ ಗೊಂದಲಗಳಿದ್ದರೂ ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ; ನಾವಿಬ್ಬರೂ ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಸಮಾಲೋಚನೆ ನಡೆಸಿ ಪರಿಹಾರ ಕಂಡುಕೊಳ್ಳೋಣ. ನಿಮ್ಮ ಮೊದಲ ಪ್ರಶ್ನೆ ಏನು?`;
+      return `ನಮಸ್ಕಾರ ${name} ಅವರೇ, ನಾನು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮುಖ್ಯ ದೈವಜ್ಞ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ, ರಾಶಿ ಹಾಗೂ ಜಾತಕದ ಗ್ರಹಸ್ಥಿತಿಗಳನ್ನು ಆಸ್ಥೆಯಿಂದ ನೋಡಿದ್ದೇನೆ. ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿಮ್ಮ ಕೆಲಸ, ಉದ್ಯೋಗ, ವಿವಾಹ, ಕುಟುಂಬ ಅಥವಾ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಯಾವುದೇ ಚಿಂತೆ-ಗೊಂದಲಗಳಿದ್ದರೂ ಮುಕ್ತವಾಗಿ ಹಂಚಿಕೊಳ್ಳಿ; ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಸಮಾಲೋಚನೆ ನಡೆಸಿ ನಿಮ್ಮ ದಾರಿಯನ್ನು ಸುಗಮಗೊಳಿಸೋಣ. ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಈಗಿರುವ ಮೊದಲ ಪ್ರಶ್ನೆ ಏನು?`;
     case "en":
-      return `Namaskara ${name} ji, I am Shreeram Pandit, Chief Astrologer of Shri Kshetra Gokarna. I have thoroughly analyzed your birth chart, Lagna, and planetary positions. In this 20-minute private consultation, please feel free to share any questions regarding your career, marriage, family, or life path. Together, let us consult Vedic scriptures for authentic guidance and remedies. What would you like to ask first?`;
+      return `Namaskara ${name} ji, I am Shreeram Pandit, Chief Astrologer of Shri Kshetra Gokarna. I have personally studied your birth chart, Lagna, and planetary positions with full care. In this 20-minute private consultation, please feel completely free to share whatever is weighing on your mind—be it your career, marriage, family, or future path. Together, let us consult Vedic scriptures and divine grace to find peace and clear answers. What is the first question on your heart?`;
     case "hi":
-      return `नमस्कार ${name} जी, मैं श्री क्षेत्र गोकर्ण का मुख्य ज्योतिषी श्रीराम पंडित। मैंने आपकी जन्म कुंडली, लग्न एवं ग्रहों का संपूर्ण विश्लेषण कर लिया है। इस २० मिनट के निजी परामर्श में आपके जीवन, करियर, विवाह या परिवार से जुड़े जो भी प्रश्न हों, निस्संदेह पूछें; हम दोनों शास्त्रोक्त मार्गदर्शन एवं उपाय प्राप्त करेंगे। आपका पहला प्रश्न क्या है?`;
+      return `नमस्कार ${name} जी, मैं श्री क्षेत्र गोकर्ण का मुख्य ज्योतिषी श्रीराम पंडित। मैंने आपकी जन्म कुंडली, लग्न एवं ग्रहों का संपूर्ण विश्लेषण आत्मीयता से कर लिया है। इस २० मिनट के निजी परामर्श में आपके जीवन, करियर, विवाह या परिवार से जुड़े जो भी संशय या चिंताएं हों, निःसंकोच पूछें; हम दोनों मिलकर शास्त्रोक्त मार्गदर्शन और शांति का मार्ग प्रशस्त करेंगे। आपका पहला प्रश्न क्या है?`;
     case "te":
-      return `నమస్కారం ${name} గారూ, నేను శ్రీ క్షేత్ర గోకర్ణ ముఖ్య దైవజ్ఞ శ్రీరామ్ పండిత్. మీ జన్మ లగ్నం, రాశి మరియు జాతకాన్ని సమగ్రంగా పరిశీలించాను. ఈ 20 నిమిషాల వ్యక్తిగత సంభాషణలో మీ కెరీర్, వివాహం, కుటుంబం లేదా ఇతర సందేహాల గురించి నిస్సందేహంగా అడగండి; శాస్త్రోక్తంగా విశ్లేషించి పరిహారాలు తెలుసుకుందాం. మీ మొదటి ప్రశ్న ఏమిటి?`;
+      return `నమస్కారం ${name} గారూ, నేను శ్రీ క్షేత్ర గోకర్ణ ముఖ్య దైవజ్ఞ శ్రీరామ్ పండిత్. మీ జన్మ లగ్నం, రాశి మరియు జాతకాన్ని ఆత్మీయంగా పరిశీలించాను. ఈ 20 నిమిషాల వ్యక్తిగత సంభాషణలో మీ కెరీర్, వివాహం, కుటుంబం లేదా ఇతర సందేహాల గురించి నిస్సందేహంగా పంచుకోండి; శాస్త్రోక్తంగా విశ్లేషించి శుభ మార్గాన్ని తెలుసుకుందాం. మీ మొదటి ప్రశ్న ఏమిటి?`;
     case "ta":
-      return `வணக்கம் ${name} அவர்களே, நான் ஸ்ரீ க்ஷேத்ர கோகர்ணத்தின் தலைமை ஜோதிடர் ஸ்ரீராம் பண்டிட். உங்கள் பிறந்த ஜாதகம், லக்னம் மற்றும் கிரக அமைப்புகளை முழுமையாக ஆராய்ந்துள்ளேன். இந்த 20 நிமிட பிரத்யேக ஆலோசனையில் உங்கள் தொழில், திருமணம், குடும்பம் குறித்த எந்த கேள்விகளையும் வெளிப்படையாகக் கேளுங்கள்; சாஸ்திர ரீதியாக ஆராய்ந்து தீர்வு காண்போம். உங்கள் முதல் கேள்வி என்ன?`;
+      return `வணக்கம் ${name} அவர்களே, நான் ஸ்ரீ க்ஷேத்ர கோகர்ணத்தின் தலைமை ஜோதிடர் ஸ்ரீராம் பண்டிட். உங்கள் பிறந்த ஜாதகம், லக்னம் மற்றும் கிரக அமைப்புகளை முழு அக்கறையுடன் ஆராய்ந்துள்ளேன். இந்த 20 நிமிட பிரத்யேக ஆலோசனையில் உங்கள் தொழில், திருமணம், குடும்பம் குறித்த எந்த கவலைகளையும் வெளிப்படையாகப் பகிருங்கள்; சாஸ்திர ரீதியாக ஆராய்ந்து நல்வழி காண்போம். உங்கள் முதல் கேள்வி என்ன?`;
     case "ml":
-      return `നമസ്കാരം ${name}, ഞാൻ ശ്രീ ക്ഷേത്ര ഗോകർണ്ണത്തിലെ പ്രധാന ജ്യോതിഷി ശ്രീറാം പണ്ഡിറ്റ്. അങ്ങയുടെ ജന്മ ലഗ്നവും ഗ്രഹനിലയും പൂർണ്ണമായി വിശകലനം ചെയ്തിട്ടുണ്ട്. ഈ 20 മിനിറ്റ് സ്വകാര്യ സംഭാഷണത്തിൽ താങ്കളുടെ ജോലി, വിവാഹം, കുടുംബം തുടങ്ങിയ ഏത് ചോദ്യങ്ങളും ചോദിക്കാം; ശാസ്ത്രീയമായി പരിഹാരം കണ്ടെത്താം. അങ്ങയുടെ ആദ്യത്തെ ചോദ്യം എന്താണ്?`;
+      return `നമസ്കാരം ${name}, ഞാൻ ശ്രീ ക്ഷേത്ര ഗോകർണ്ണത്തിലെ പ്രധാന ജ്യോതിഷി ശ്രീറാം പണ്ഡിറ്റ്. അങ്ങയുടെ ജന്മ ലഗ്നവും ഗ്രഹനിലയും സ്നേഹപൂർവ്വം പരിശോധിച്ചിട്ടുണ്ട്. ഈ 20 മിനിറ്റ് സ്വകാര്യ സംഭാഷണത്തിൽ താങ്കളുടെ ജോലി, വിവാഹം, കുടുംബം തുടങ്ങിയ ഏത് ആശങ്കകളും തുറന്നു ചോദിക്കാം; ശാസ്ത്രീയമായി പരിഹാരം കണ്ടെത്താം. അങ്ങയുടെ ആദ്യത്തെ ചോദ്യം എന്താണ്?`;
     case "mr":
-      return `नमस्कार ${name} जी, मी श्री क्षेत्र गोकर्ण येथील मुख्य ज्योतिषी श्रीराम पंडित. मी आपल्या जन्मपत्रिकेचे, लग्नाचे आणि ग्रहांचे सखोल विश्लेषण केले आहे. या २० मिनिटांच्या खाजगी संवादात आपल्या करिअर, विवाह, कुटुंब किंवा इतर कोणत्याही प्रश्नांवर मोकळेपणाने चर्चा करूया; शास्त्रोक्त मार्गदर्शन आणि उपाय शोधूया. आपला पहिला प्रश्न काय आहे?`;
+      return `नमस्कार ${name} जी, मी श्री क्षेत्र गोकर्ण येथील मुख्य ज्योतिषी श्रीराम पंडित. मी आपल्या जन्मपत्रिकेचे, लग्नाचे आणि ग्रहांचे आपुलकीने सखोल विश्लेषण केले आहे. या २० मिनिटांच्या खाजगी संवादात आपल्या करिअर, विवाह, कुटुंब किंवा इतर कोणत्याही प्रश्नांवर मोकळेपणाने चर्चा करूया; शास्त्रोक्त मार्गदर्शन आणि समाधान शोधूया. आपला पहिला प्रश्न काय आहे?`;
     default:
-      return `ನಮಸ್ಕಾರ ${name} ಅವರೇ, ನಾನು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮುಖ್ಯ ದೈವಜ್ಞ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ, ರಾಶಿ ಹಾಗೂ ಜಾತಕವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ವಿಶ್ಲೇಷಿಸಿದ್ದೇನೆ. ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿಮ್ಮ ಯಾವುದೇ ಪ್ರಶ್ನೆಗಳಿದ್ದರೂ ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ; ನಾವಿಬ್ಬರೂ ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಸಮಾಲೋಚನೆ ನಡೆಸೋಣ. ನಿಮ್ಮ ಮೊದಲ ಪ್ರಶ್ನೆ ಏನು?`;
-}
+      return `ನಮಸ್ಕಾರ ${name} ಅವರೇ, ನಾನು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮುಖ್ಯ ದೈವಜ್ಞ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ, ರಾಶಿ ಹಾಗೂ ಜಾತಕದ ಗ್ರಹಸ್ಥಿತಿಗಳನ್ನು ಆಸ್ಥೆಯಿಂದ ನೋಡಿದ್ದೇನೆ. ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿಮ್ಮ ಯಾವುದೇ ಪ್ರಶ್ನೆಗಳಿದ್ದರೂ ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ; ನಾವಿಬ್ಬರೂ ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಸಮಾಲೋಚನೆ ನಡೆಸೋಣ. ನಿಮ್ಮ ಮೊದಲ ಪ್ರಶ್ನೆ ಏನು?`;
+  }
 }
 
 /**
@@ -617,6 +617,40 @@ export interface ConsultationChatUiI18n {
   ratingLevels: [string, string, string, string, string];
   headerSubtitle: string;
   gokarnaTown: string;
+
+  // Audio player card
+  audioPriestPlaying: string;
+  audioPriestIdle: string;
+  audioPriestPlayingSub: string;
+  audioPriestIdleSub: string;
+  audioPlayBtn: string;
+  audioStopBtn: string;
+
+  // Voice recording studio
+  voiceRecordingActive: string;
+  voiceRecordingPlaceholder: string;
+  cancelBtn: string;
+  refiningBtn: string;
+  sendRecordedQuestionBtn: string;
+
+  // Print & save
+  savePrintBtn: string;
+
+  // Contact form badges
+  mandatoryPhoneBadge: string;
+  optionalBadge: string;
+
+  // Kala Chakra modal
+  kalaChakraModalTitle: string;
+  kalaChakraModalSubtitle: string;
+  kalaChakraCloseBtn: string;
+
+  // Dedicated Family Booking Referral
+  bookForFamilyBtn: string;
+  bookForFamilyModalTitle: string;
+  bookForFamilyModalDesc: string;
+  bookForFamilyWhatsAppBtn: string;
+  bookForFamilyCallBtn: string;
 }
 
 export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, ConsultationChatUiI18n> = {
@@ -642,7 +676,7 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     stopAudio: "⏹️ ನಿಲ್ಲಿಸಿ",
     listenAudio: "🔊 ಆಲಿಸಿ",
     typingAstrologer: "ದೈವಜ್ಞರು (ಮುಖ್ಯ ಜ್ಯೋತಿಷಿ, ಗೋಕರ್ಣ)",
-    synthesizingAnswer: "ಜನ್ಮಕುಂಡಲಿ & ದಶಾ-ಗೋಚಾರ ಗಣಿತ ಸಂಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
+    synthesizingAnswer: "ಶ್ರೀರಾಮ್ ಪಂಡಿತರು ಜಾತಕ ಪರಿಶೀಲಿಸಿ ಉತ್ತರಿಸುತ್ತಿದ್ದಾರೆ...",
     faqDockHeader: "ಜನಪ್ರಿಯ ಪ್ರಶ್ನಾವಳಿ (೧-ಟ್ಯಾಪ್)",
     minorChildBadge: "👶 ಬಾಲಕ/ಬಾಲಕಿ (ಪೋಷಕರ ಮಾರ್ಗದರ್ಶನ)",
     yearsAgeBadge: "ವರ್ಷ",
@@ -668,7 +702,29 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
       "⭐⭐⭐ ತೃಪ್ತಿಕರ (3/5)",
       "⭐⭐⭐⭐ ಬಹಳ ಒಳ್ಳೆಯದು (4/5)",
       "⭐⭐⭐⭐⭐ ಅತ್ಯುತ್ತಮ (5/5)"
-    ]
+    ],
+    audioPriestPlaying: "ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ಧ್ವನಿ ನುಡಿಯುತ್ತಿದೆ...",
+    audioPriestIdle: "ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ",
+    audioPriestPlayingSub: "ನಿಲ್ಲಿಸಲು ಮತ್ತೆ ಕ್ಲಿಕ್ ಮಾಡಿ",
+    audioPriestIdleSub: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಆಶೀರ್ವಚನ ಧ್ವನಿ ಶ್ರವಣ",
+    audioPlayBtn: "▶️ ಆಲಿಸಿ",
+    audioStopBtn: "⏸️ ನಿಲ್ಲಿಸಿ",
+    voiceRecordingActive: "ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ ಜಾರಿಯಲ್ಲಿದೆ...",
+    voiceRecordingPlaceholder: "ಸ್ಪಷ್ಟವಾಗಿ ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಮಾತನಾಡಿ (೩-೪ ನಿಮಿಷ ಮಾತನಾಡಬಹುದು)...",
+    cancelBtn: "✕ ರದ್ದುಗೊಳಿಸಿ",
+    refiningBtn: "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
+    sendRecordedQuestionBtn: "➤ ಪ್ರಶ್ನೆ ಕಳುಹಿಸಿ",
+    savePrintBtn: "📄 ಸಮಾಲೋಚನೆ ಉಳಿಸಿ / ಪ್ರಿಂಟ್",
+    mandatoryPhoneBadge: "* ಕಡ್ಡಾಯ (೧೦ ಅಂಕಿ)",
+    optionalBadge: "ಐಚ್ಛಿಕ",
+    kalaChakraModalTitle: "॥ ಕಾಲಚಕ್ರ ೪ ಪಾದಗಳ ಕಾಲಾವಧಿ ವಿವರ ॥",
+    kalaChakraModalSubtitle: "೨೦ ನಿಮಿಷಗಳ ನಿಖರ ದೈವಿಕ ಸಂವಾದ ಹಂತಗಳು",
+    kalaChakraCloseBtn: "ಸರಿ, ಮುಚ್ಚಿ (ಸಂವಾದಕ್ಕೆ ಹಿಂತಿರುಗಿ)",
+    bookForFamilyBtn: "🎁 ಕುಟುಂಬದವರಿಗೂ ಪ್ರತ್ಯೇಕ ಸಮಾಲೋಚನೆ ಪಡೆಯಿರಿ",
+    bookForFamilyModalTitle: "॥ ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಪ್ರತ್ಯೇಕ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ॥",
+    bookForFamilyModalDesc: "ಶಾಸ್ತ್ರೋಕ್ತ ನಿಯಮ: ಪ್ರತಿಯೊಬ್ಬ ವ್ಯಕ್ತಿಯ ಜಾತಕ, ಲಗ್ನ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿಗಳು ಸಂಪೂರ್ಣ ವಿಭಿನ್ನವಾಗಿರುತ್ತವೆ. ಆದ್ದರಿಂದ ೧೦೦% ನಿಖರತೆಗಾಗಿ ಪ್ರತಿ ವ್ಯಕ್ತಿಗೂ ಪ್ರತ್ಯೇಕ ಲಿಂಕ್ ಅಗತ್ಯವಿರುತ್ತದೆ. ನಿಮ್ಮ ಕುಟುಂಬ ಸದಸ್ಯರ ವಿವರಗಳನ್ನು ಶ್ರೀರಾಮ್ ಪಂಡಿತರಿಗೆ ಕಳುಹಿಸಿ, ಹೊಸ ಲಿಂಕ್ ಪಡೆದುಕೊಳ್ಳಿ.",
+    bookForFamilyWhatsAppBtn: "📲 ಶ್ರೀರಾಮ್ ಪಂಡಿತರಿಗೆ ವಾಟ್ಸಾಪ್ ಸಂದೇಶ ಕಳುಹಿಸಿ",
+    bookForFamilyCallBtn: "📞 ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362"
   },
   en: {
     headerSubtitle: "Vedic Astrology Live Interactive Consultation",
@@ -691,8 +747,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     astrologerFooterNote: "Baggona Panchanga Astrological Oracle Guidance",
     stopAudio: "⏹️ Stop",
     listenAudio: "🔊 Listen",
-    typingAstrologer: "Chief Astrologer (Gokarna)",
-    synthesizingAnswer: "Synthesizing birth chart, Dasha & Gochara planetary transits...",
+    typingAstrologer: "Sri Shreeram Pandit (Gokarna)",
+    synthesizingAnswer: "Sri Shreeram Pandit is reviewing your chart to guide you...",
     faqDockHeader: "Frequently Asked Questions (1-Tap)",
     minorChildBadge: "👶 Minor Child (Parent Protocol)",
     yearsAgeBadge: "yrs",
@@ -718,7 +774,29 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
       "⭐⭐⭐ Good (3/5)",
       "⭐⭐⭐⭐ Very Good (4/5)",
       "⭐⭐⭐⭐⭐ Excellent (5/5)"
-    ]
+    ],
+    audioPriestPlaying: "Listening to Sri Shreeram Pandit...",
+    audioPriestIdle: "Listen in Divine Priest Voice",
+    audioPriestPlayingSub: "Tap stop anytime",
+    audioPriestIdleSub: "Sri Kshetra Gokarna Priest Voice",
+    audioPlayBtn: "▶️ Listen",
+    audioStopBtn: "⏸️ Stop",
+    voiceRecordingActive: "Voice Recording Active...",
+    voiceRecordingPlaceholder: "Speak your question clearly (continuous 3-4 minutes support)...",
+    cancelBtn: "✕ Cancel",
+    refiningBtn: "Refining...",
+    sendRecordedQuestionBtn: "➤ Send Question",
+    savePrintBtn: "📄 Save / Print Advice",
+    mandatoryPhoneBadge: "* Mandatory (10 Digits)",
+    optionalBadge: "Optional",
+    kalaChakraModalTitle: "॥ Kala Chakra 4-Pada Breakdown ॥",
+    kalaChakraModalSubtitle: "20-Minute Divine Astrological Timetable",
+    kalaChakraCloseBtn: "Close & Return to Chat",
+    bookForFamilyBtn: "🎁 Book Dedicated Consultation for Family",
+    bookForFamilyModalTitle: "॥ Dedicated Consultation for Family Member ॥",
+    bookForFamilyModalDesc: "Vedic Rule: Every individual has a unique Lagna, planetary positions, and Dasha periods. For 100% astrological accuracy, each family member requires a dedicated consultation link. Send their details to Chief Priest Shreeram Pandit to receive a new link.",
+    bookForFamilyWhatsAppBtn: "📲 Request Dedicated Link via WhatsApp",
+    bookForFamilyCallBtn: "📞 Call Priest Shreeram Pandit: 9972339362"
   },
   hi: {
     headerSubtitle: "वैदिक ज्योतिष दैवज्ञ प्रत्यक्ष परामर्श",
@@ -741,8 +819,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     astrologerFooterNote: "श्री बग्गोण पंचांग दैवज्ञ उत्तर",
     stopAudio: "⏹️ रोकें",
     listenAudio: "🔊 सुनें",
-    typingAstrologer: "दैवज्ञ (मुख्य ज्योतिषी, गोकर्ण)",
-    synthesizingAnswer: "जन्मकुंडली, दशा एवं गोचर ग्रहों का विश्लेषण हो रहा है...",
+    typingAstrologer: "श्रीराम पंडित जी (गोकर्ण)",
+    synthesizingAnswer: "श्रीराम पंडित जी जन्मकुंडली का विश्लेषण कर उत्तर दे रहे हैं...",
     faqDockHeader: "लोकप्रिय प्रश्न (१-टैप)",
     minorChildBadge: "👶 बाल जातक (माता-पिता मार्गदर्शन)",
     yearsAgeBadge: "वर्ष",
@@ -768,7 +846,29 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
       "⭐⭐⭐ संतोषजनक (3/5)",
       "⭐⭐⭐⭐ बहुत अच्छा (4/5)",
       "⭐⭐⭐⭐⭐ उत्कृष्ट (5/5)"
-    ]
+    ],
+    audioPriestPlaying: "श्रीराम पंडित जी की पावन वाणी सुन रहे हैं...",
+    audioPriestIdle: "श्रीराम पंडित जी की वाणी में सुनें",
+    audioPriestPlayingSub: "रोकने के लिए दोबारा टैप करें",
+    audioPriestIdleSub: "श्री क्षेत्र गोकर्ण आशीर्वाद वाणी श्रवण",
+    audioPlayBtn: "▶️ सुनें",
+    audioStopBtn: "⏸️ रोकें",
+    voiceRecordingActive: "आवाज रिकॉर्डिंग जारी है...",
+    voiceRecordingPlaceholder: "स्पष्ट रूप से अपना प्रश्न बोलें (३-४ मिनट तक बोल सकते हैं)...",
+    cancelBtn: "✕ रद्द करें",
+    refiningBtn: "समीक्षा हो रही है...",
+    sendRecordedQuestionBtn: "➤ प्रश्न भेजें",
+    savePrintBtn: "📄 परामर्श सहेजें / प्रिंट करें",
+    mandatoryPhoneBadge: "* अनिवार्य (१० अंक)",
+    optionalBadge: "ऐच्छिक",
+    kalaChakraModalTitle: "॥ कालचक्र ४ पाद समयावधि विवरण ॥",
+    kalaChakraModalSubtitle: "२० मिनट के सटीक वैदिक परामर्श चरण",
+    kalaChakraCloseBtn: "बंद करें (संवाद पर वापस जाएं)",
+    bookForFamilyBtn: "🎁 परिवार के लिए अलग परामर्श लिंक प्राप्त करें",
+    bookForFamilyModalTitle: "॥ परिवार के सदस्य के लिए समर्पित परामर्श लिंक ॥",
+    bookForFamilyModalDesc: "शास्त्रोक्त नियम: प्रत्येक व्यक्ति का लग्न, ग्रह स्थिति और दशा-भुक्ति पूर्णतः भिन्न होती है। १००% सटीकता के लिए प्रत्येक सदस्य हेतु अलग लिंक आवश्यक है। अपने परिवार के सदस्य का विवरण मुख्य पुरोहित श्रीराम पंडित जी को भेजकर नया लिंक प्राप्त करें।",
+    bookForFamilyWhatsAppBtn: "📲 श्रीराम पंडित जी को व्हाट्सएप पर विवरण भेजें",
+    bookForFamilyCallBtn: "📞 श्रीराम पंडित जी को कॉल करें: 9972339362"
   },
   te: {
     headerSubtitle: "వైదిక జ్యోతిష దైవజ్ఞ ప్రత్యక్ష సంభాషణ",
@@ -791,8 +891,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     astrologerFooterNote: "శ్రీ బగ్గోణ పంచాంగ దైవజ్ఞ సమాధానం",
     stopAudio: "⏹️ ఆపండి",
     listenAudio: "🔊 వినండి",
-    typingAstrologer: "దైవజ్ఞులు (ప్రధాన జ్యోతిష్యులు, గోకర్ణ)",
-    synthesizingAnswer: "జన్మకుండలి, దశా మరియు గోచార గ్రహాల విశ్లేషణ జరుగుతోంది...",
+    typingAstrologer: "శ్రీరామ్ పండితులు (గోకర్ణ)",
+    synthesizingAnswer: "శ్రీరామ్ పండితులు జాతకాన్ని పరిశీలించి సమాధానం ఇస్తున్నారు...",
     faqDockHeader: "తరచుగా అడిగే ప్రశ్నలు (1-ట్యాప్)",
     minorChildBadge: "👶 బాల జాతకుడు (తల్లిదండ్రుల మార్గదర్శకత్వం)",
     yearsAgeBadge: "సంవత్సరాలు",
@@ -818,7 +918,29 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
       "⭐⭐⭐ సంతృప్తికరం (3/5)",
       "⭐⭐⭐⭐ చాలా బాగుంది (4/5)",
       "⭐⭐⭐⭐⭐ అద్భుతం (5/5)"
-    ]
+    ],
+    audioPriestPlaying: "శ్రీరామ్ పండితుల పవిత్ర వాణి వింటున్నారు...",
+    audioPriestIdle: "శ్రీరామ్ పండితుల వాణిలో వినండి",
+    audioPriestPlayingSub: "ఆపడానికి మళ్లీ నొక్కండి",
+    audioPriestIdleSub: "శ్రీ క్షేత్ర గోకర్ణ ఆశీర్వచన వాణి శ్రవణం",
+    audioPlayBtn: "▶️ వినండి",
+    audioStopBtn: "⏸️ ఆపండి",
+    voiceRecordingActive: "వాయిస్ రికార్డింగ్ కొనసాగుతోంది...",
+    voiceRecordingPlaceholder: "స్పష్టంగా మీ ప్రశ్నను మాట్లాడండి (3-4 నిమిషాలు మాట్లాడవచ్చు)...",
+    cancelBtn: "✕ రద్దు చేయండి",
+    refiningBtn: "సమీక్షిస్తోంది...",
+    sendRecordedQuestionBtn: "➤ ప్రశ్న పంపండి",
+    savePrintBtn: "📄 సలహా భద్రపరచండి / ప్రింట్",
+    mandatoryPhoneBadge: "* తప్పనిసరి (10 అంకెలు)",
+    optionalBadge: "ఐచ్ఛికం",
+    kalaChakraModalTitle: "॥ కాలచక్ర 4 పాదాల వ్యవధి వివరాలు ॥",
+    kalaChakraModalSubtitle: "20 నిమిషాల ఖచ్చితమైన వైదిక సంభాషణ దశలు",
+    kalaChakraCloseBtn: "మూసివేయి (సంభాషణకు తిరిగి వెళ్లండి)",
+    bookForFamilyBtn: "🎁 కుటుంబ సభ్యులకు ప్రత్యేక సంప్రదింపు లింక్ పొందండి",
+    bookForFamilyModalTitle: "॥ కుటుంబ సభ్యునికి ప్రత్యేక సంప్రదింపు లింక్ ॥",
+    bookForFamilyModalDesc: "శాస్త్రోక్త నియమం: ప్రతి వ్యక్తి జాతకం, లగ్నం మరియు దశా భుక్తులు భిన్నంగా ఉంటాయి. 100% ఖచ్చితత్వం కోసం ప్రతి కుటుంబ సభ్యునికి ప్రత్యేక లింక్ అవసరం. మీ కుటుంబ సభ్యుల వివరాలను శ్రీరామ్ పండితులకు పంపి కొత్త లింక్ పొందండి.",
+    bookForFamilyWhatsAppBtn: "📲 శ్రీరామ్ పండితులకు వాట్సాప్‌లో వివరాలు పంపండి",
+    bookForFamilyCallBtn: "📞 శ్రీరామ్ పండితుల వారిని సంప్రదించండి: 9972339362"
   },
   ta: {
     headerSubtitle: "வேத ஜோதிட நேரடி ஆலோசனை அரங்கம்",
@@ -841,8 +963,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     astrologerFooterNote: "ஸ்ரீ பக்கவணா பஞ்சாங்க ஜோதிட பதில்",
     stopAudio: "⏹️ நிறுத்து",
     listenAudio: "🔊 கேளுங்கள்",
-    typingAstrologer: "ஜோதிடர் (தலைமை ஜோதிடர், கோகர்ணம்)",
-    synthesizingAnswer: "ஜாதகம், தசா மற்றும் கோச்சார கிரகங்களின் கணிப்பு நடைபெறுகிறது...",
+    typingAstrologer: "ஸ்ரீராம் பண்டிதர் (கோகர்ணம்)",
+    synthesizingAnswer: "ஸ்ரீராம் பண்டிதர் ஜாதகத்தை ஆராய்ந்து பதிலளிக்கிறார்...",
     faqDockHeader: "அடிக்கடி கேட்கப்படும் கேள்விகள் (1-தட்டல்)",
     minorChildBadge: "👶 குழந்தை ஜாதகம் (பெற்றோர் வழிகாட்டல்)",
     yearsAgeBadge: "வயது",
@@ -868,7 +990,29 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
       "⭐⭐⭐ திருப்திகரம் (3/5)",
       "⭐⭐⭐⭐ மிக நன்று (4/5)",
       "⭐⭐⭐⭐⭐ மிகச்சிறந்தது (5/5)"
-    ]
+    ],
+    audioPriestPlaying: "ஸ்ரீராம் பண்டிதரின் குரல் ஒலிக்கிறது...",
+    audioPriestIdle: "ஸ்ரீராம் பண்டிதரின் குரலில் கேளுங்கள்",
+    audioPriestPlayingSub: "நிறுத்த மீண்டும் தட்டவும்",
+    audioPriestIdleSub: "ஸ்ரீ க்ஷேத்ர கோகர்ணம் ஆசிர்வாத குரல்",
+    audioPlayBtn: "▶️ கேளுங்கள்",
+    audioStopBtn: "⏸️ நிறுத்து",
+    voiceRecordingActive: "குரல் பதிவு செய்யப்படுகிறது...",
+    voiceRecordingPlaceholder: "உங்கள் கேள்வியை தெளிவாகப் பேசுங்கள் (3-4 நிமிடங்கள் பேசலாம்)...",
+    cancelBtn: "✕ ரத்து செய்",
+    refiningBtn: "சரிபார்க்கப்படுகிறது...",
+    sendRecordedQuestionBtn: "➤ கேள்வி அனுப்பவும்",
+    savePrintBtn: "📄 ஆலோசனையை சேமி / அச்சிடுக",
+    mandatoryPhoneBadge: "* கட்டாயம் (10 இலக்கங்கள்)",
+    optionalBadge: "விருப்பமானது",
+    kalaChakraModalTitle: "॥ காலசக்கர 4 பாத கால அட்டவணை ॥",
+    kalaChakraModalSubtitle: "20 நிமிட துல்லிய வேத ஆலோசனை படிகள்",
+    kalaChakraCloseBtn: "மூடு (உரையாடலுக்குத் திரும்பு)",
+    bookForFamilyBtn: "🎁 குடும்பத்தினருக்கு தனிப்பட்ட ஆலோசனை பெறுக",
+    bookForFamilyModalTitle: "॥ குடும்ப உறுப்பினருக்கான பிரத்யேக ஆலோசனை லிங்க் ॥",
+    bookForFamilyModalDesc: "சாஸ்திர விதி: ஒவ்வொரு நபரின் ஜாதகம், லக்னம் மற்றும் தசா-புக்திகள் முற்றிலும் மாறுபட்டவை. 100% துல்லியத்திற்காக ஒவ்வொரு குடும்ப உறுப்பினருக்கும் தனி லிங்க் தேவை. விவரங்களை ஸ்ரீராம் பண்டிதருக்கு அனுப்பி புதிய லிங்க் பெறவும்.",
+    bookForFamilyWhatsAppBtn: "📲 ஸ்ரீராம் பண்டிதருக்கு வாட்ஸ்அப்பில் விவரம் அனுப்புக",
+    bookForFamilyCallBtn: "📞 ஸ்ரீராம் பண்டிதரை அழைக்கவும்: 9972339362"
   },
   ml: {
     headerSubtitle: "വൈദിക ജ്യോതിഷ ലൈവ് മുഖാമുഖം കൺസൾട്ടേഷൻ",
@@ -891,8 +1035,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     astrologerFooterNote: "ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ ജ്യോതിഷ മറുപടി",
     stopAudio: "⏹️ നിർത്തുക",
     listenAudio: "🔊 കേൾക്കുക",
-    typingAstrologer: "ജ്യോതിഷി (പ്രധാന ജ്യോതിഷി, ഗോകർണ്ണം)",
-    synthesizingAnswer: "ജാതകവും ദശാ-ഗോചാര ഗ്രഹനിലയും വിശകലനം ചെയ്യുന്നു...",
+    typingAstrologer: "ശ്രീറാം പണ്ഡിറ്റ് (ഗോകർണ്ണം)",
+    synthesizingAnswer: "ശ്രീറാം പണ്ഡിറ്റ് ജാതകം പരിശോധിച്ച് മറുപടി നൽകുന്നു...",
     faqDockHeader: "സാധാരണ ചോദ്യങ്ങൾ (1-ടാപ്പ്)",
     minorChildBadge: "👶 കുട്ടി ജാതകം (രക്ഷിതാക്കളുടെ മാർഗ്ഗനിർദ്ദേശം)",
     yearsAgeBadge: "വയസ്സ്",
@@ -918,7 +1062,29 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
       "⭐⭐⭐ തൃപ്തികരം (3/5)",
       "⭐⭐⭐⭐ വളരെ നല്ലത് (4/5)",
       "⭐⭐⭐⭐⭐ ഉത്തമം (5/5)"
-    ]
+    ],
+    audioPriestPlaying: "ശ്രീറാം പണ്ഡിറ്റിന്റെ ശബ്ദം കേൾക്കുന്നു...",
+    audioPriestIdle: "ശ്രീറാം പണ്ഡിറ്റിന്റെ ശബ്ദത്തിൽ കേൾക്കുക",
+    audioPriestPlayingSub: "നിർത്താൻ വീണ്ടും ടാപ്പ് ചെയ്യുക",
+    audioPriestIdleSub: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം അനുഗ്രഹ ശബ്ദം",
+    audioPlayBtn: "▶️ കേൾക്കുക",
+    audioStopBtn: "⏸️ നിർത്തുക",
+    voiceRecordingActive: "വോയ്സ് റെക്കോർഡിംഗ് സജീവമാണ്...",
+    voiceRecordingPlaceholder: "നിങ്ങളുടെ ചോദ്യം വ്യക്തമായി സംസാരിക്കുക (3-4 മിനിറ്റ് സംസാരിക്കാം)...",
+    cancelBtn: "✕ റദ്ദാക്കുക",
+    refiningBtn: "പരിശോധിക്കുന്നു...",
+    sendRecordedQuestionBtn: "➤ ചോദ്യം അയക്കുക",
+    savePrintBtn: "📄 ഉപദേശം സംരക്ഷിക്കുക / പ്രിന്റ്",
+    mandatoryPhoneBadge: "* നിർബന്ധം (10 അക്കങ്ങൾ)",
+    optionalBadge: "ഐച്ഛികം",
+    kalaChakraModalTitle: "॥ കാലചക്ര 4 പാദ സമയക്രമം ॥",
+    kalaChakraModalSubtitle: "20 മിനിറ്റ് കൃത്യമായ വൈദിക സംഭാഷണ ഘട്ടങ്ങൾ",
+    kalaChakraCloseBtn: "അടയ്ക്കുക (ചാറ്റിലേക്ക് മടങ്ങുക)",
+    bookForFamilyBtn: "🎁 കുടുംബാംഗങ്ങൾക്ക് പ്രത്യേക കൺസൾട്ടേഷൻ നേടുക",
+    bookForFamilyModalTitle: "॥ കുടുംബാംഗങ്ങൾക്ക് പ്രത്യേക കൺസൾട്ടേഷൻ ലിങ്ക് ॥",
+    bookForFamilyModalDesc: "ശാസ്ത്രീയ നിയമം: ഓരോ വ്യക്തിയുടെയും ലഗ്നവും ഗ്രഹനിലയും ദശാ-ഭുക്തികളും വ്യത്യസ്തമാണ്. 100% കൃത്യതയ്ക്കായി ഓരോ അംഗത്തിനും പ്രത്യേക ലിങ്ക് ആവശ്യമാണ്. വിശദാംശങ്ങൾ ശ്രീറാം പണ്ഡിറ്റിന് അയച്ച് പുതിയ ലിങ്ക് നേടുക.",
+    bookForFamilyWhatsAppBtn: "📲 ശ്രീറാം പണ്ഡിറ്റിന് വാട്സാപ്പിൽ വിവരങ്ങൾ അയക്കുക",
+    bookForFamilyCallBtn: "📞 ശ്രീറാം പണ്ഡിറ്റിനെ വിളിക്കുക: 9972339362"
   },
   mr: {
     headerSubtitle: "वैदिक ज्योतिष दैवज्ञ थेट संवाद व मार्गदर्शन",
@@ -941,8 +1107,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     astrologerFooterNote: "श्री बग्गोण पंचांग दैवज्ञ उत्तर",
     stopAudio: "⏹️ थांबवा",
     listenAudio: "🔊 ऐका",
-    typingAstrologer: "दैवज्ञ (मुख्य ज्योतिषी, गोकर्ण)",
-    synthesizingAnswer: "जन्मपत्रिका, दशा व गोचर ग्रहांचे विश्लेषण सुरू आहे...",
+    typingAstrologer: "श्रीराम पंडित जी (गोकर्ण)",
+    synthesizingAnswer: "श्रीराम पंडित जी जन्मपत्रिका तपासून मार्गदर्शन करत आहेत...",
     faqDockHeader: "वारंवार विचारले जाणारे प्रश्न (१-टॅप)",
     minorChildBadge: "👶 बाल जातक (पालक मार्गदर्शन)",
     yearsAgeBadge: "वर्षे",
@@ -968,7 +1134,29 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
       "⭐⭐⭐ समाधानकारक (3/5)",
       "⭐⭐⭐⭐ खूप छान (4/5)",
       "⭐⭐⭐⭐⭐ सर्वोत्कृष्ट (5/5)"
-    ]
+    ],
+    audioPriestPlaying: "श्रीराम पंडित यांचा पावन आवाज ऐकत आहात...",
+    audioPriestIdle: "श्रीराम पंडित यांच्या आवाजात ऐका",
+    audioPriestPlayingSub: "थांबवण्यासाठी पुन्हा टॅप करा",
+    audioPriestIdleSub: "श्री क्षेत्र गोकर्ण आशीर्वाद वाणी श्रवण",
+    audioPlayBtn: "▶️ ऐका",
+    audioStopBtn: "⏸️ थांबवा",
+    voiceRecordingActive: "व्हॉइस रेकॉर्डिंग सुरू आहे...",
+    voiceRecordingPlaceholder: "आपला प्रश्न स्पष्टपणे बोला (३-४ मिनिटे बोलू शकता)...",
+    cancelBtn: "✕ रद्द करा",
+    refiningBtn: "तपासणी सुरू आहे...",
+    sendRecordedQuestionBtn: "➤ प्रश्न पाठवा",
+    savePrintBtn: "📄 सल्ला जतन करा / प्रिंट करा",
+    mandatoryPhoneBadge: "* अनिवार्य (१० अंक)",
+    optionalBadge: "ऐच्छिक",
+    kalaChakraModalTitle: "॥ कालचक्र ४ पाद कालावधी तपशील ॥",
+    kalaChakraModalSubtitle: "२० मिनिटांचे अचूक वैदिक सल्लामसलत टप्पे",
+    kalaChakraCloseBtn: "बंद करा (संवादाकडे परत जा)",
+    bookForFamilyBtn: "🎁 कुटुंबातील सदस्यांसाठी स्वतंत्र सल्लामसलत लिंक मिळवा",
+    bookForFamilyModalTitle: "॥ कुटुंबातील सदस्यांसाठी स्वतंत्र सल्लामसलत लिंक ॥",
+    bookForFamilyModalDesc: "शास्त्रोक्त नियम: प्रत्येक व्यक्तीची पत्रिका, लग्न आणि दशा-भुक्ती भिन्न असते. १००% अचूकतेसाठी प्रत्येक सदस्यासाठी स्वतंत्र लिंक आवश्यक आहे. आपल्या कुटुंबातील सदस्यांची माहिती मुख्य पुरोहित श्रीराम पंडित यांना पाठवून नवीन लिंक मिळवा.",
+    bookForFamilyWhatsAppBtn: "📲 श्रीराम पंडित यांना व्हॉट्सअॅपवर माहिती पाठवा",
+    bookForFamilyCallBtn: "📞 श्रीराम पंडित यांना कॉल करा: 9972339362"
   }
 };
 
@@ -1091,7 +1279,7 @@ function getAgeSpecificChips(
         return [
           { label: "💍 ಕಂಕಣ ಭಾಗ್ಯ & ವಿವಾಹ", question: "ನನ್ನ ವಿವಾಹ ಕಾಲ ಯಾವಾಗ? ಲವ್ ಮ್ಯಾರೇಜ್ ಆಗುತ್ತದೆಯೇ ಅಥವಾ ಅರೇಂಜ್ಡ್?" },
           { label: "💼 ವೃತ್ತಿ & ಧನಾಗಮನ", question: "ನನ್ನ ವೃತ್ತಿಜೀವನದ ಮುಂಬರುವ ಬೆಳವಣಿಗೆ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?" },
-          { label: "⚡ ಲೈಂಗಿಕ ಸಾಮರ್ಥ್ಯ & ಅಂತರಂಗ", question: "ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ, ಲೈಂಗಿಕ ಚೈತನ್ಯ ಹಾಗೂ ರಹಸ್ಯ ಆತಂಕಗಳಿಗೆ ಆಯುರ್ವೇದ-ವೈದಿಕ ಪರಿಹಾರವೇನು?" },
+          { label: "⚡ ತೇಜಸ್ಸು, ಚೈತನ್ಯ & ಆತ್ಮವಿಶ್ವಾಸ", question: "ದೈಹಿಕ ಚೈತನ್ಯ, ತೇಜಸ್ಸು, ಆತ್ಮವಿಶ್ವಾಸ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿಗೆ ವೈದಿಕ-ಆಯುರ್ವೇದ ಪರಿಹಾರವೇನು?" },
           { label: "🕉️ ಗೋಕರ್ಣ ದೋಷ ಪರಿಹಾರ", question: "ನನ್ನ ಜಾತಕದಲ್ಲಿ ಯಾವುದಾದರೂ ದೋಷವಿದೆಯೇ? ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಪೂಜೆ ಶ್ರೇಷ್ಠ?" }
         ];
     }
@@ -1251,5 +1439,212 @@ export function getLocalizedQuickFaqChips(
 
   const universal = universalMap[lang] || universalMap.kn;
   return [...base, ...universal];
+}
+
+/**
+ * Smart Contextual Follow-up Chips based on the devotee's most recently discussed topic.
+ * Allows seamless 1-tap conversational progression without devotee cognitive fatigue.
+ */
+export function getContextualFollowupChips(
+  lastTopicCategory: string | undefined,
+  lang: ConsultationLanguage
+): QuickFaqChip[] {
+  if (!lastTopicCategory) return [];
+
+  const cat = lastTopicCategory.toUpperCase();
+  const text = lastTopicCategory.toLowerCase();
+
+  const isCareer =
+    cat.includes("CAREER") ||
+    cat.includes("JOB") ||
+    cat.includes("BUSINESS") ||
+    cat.includes("GOVERNMENT_JOB") ||
+    text.includes("ಉದ್ಯೋಗ") ||
+    text.includes("ಕೆಲಸ") ||
+    text.includes("ವ್ಯಾಪಾರ") ||
+    text.includes("ನೌಕರಿ") ||
+    text.includes("नौकरी") ||
+    text.includes("व्यापार") ||
+    text.includes("ఉద్యోగం") ||
+    text.includes("வேலை") ||
+    text.includes("ജോലി") ||
+    text.includes("नोकरी");
+
+  const isMarriage =
+    cat.includes("MARRIAGE") ||
+    cat.includes("RELATIONSHIP") ||
+    cat.includes("SANTHANA") ||
+    cat.includes("CELEBRITY") ||
+    text.includes("ವಿವಾಹ") ||
+    text.includes("ಮದುವೆ") ||
+    text.includes("ಸಪ್ತಮ") ||
+    text.includes("ದಾಂಪತ್ಯ") ||
+    text.includes("विवाह") ||
+    text.includes("शादी") ||
+    text.includes("వివాహం") ||
+    text.includes("திருமணம்") ||
+    text.includes("വിവാഹം") ||
+    text.includes("विवाह");
+
+  const isHealth =
+    cat.includes("HEALTH") ||
+    cat.includes("EMOTIONAL") ||
+    cat.includes("DEBT") ||
+    text.includes("ಆರೋಗ್ಯ") ||
+    text.includes("ಶಾಂತಿ") ||
+    text.includes("ನೆಮ್ಮದಿ") ||
+    text.includes("ಪರಿಹಾರ") ||
+    text.includes("स्वास्थ्य") ||
+    text.includes("शांति") ||
+    text.includes("ఆరోగ్యం") ||
+    text.includes("ஆரோக்கியம்") ||
+    text.includes("ആരോഗ്യം") ||
+    text.includes("आरोग्य");
+
+  if (isCareer) {
+    switch (lang) {
+      case "en":
+        return [
+          { label: "💼 When will I get a new job?", question: "When will I get a new job or favorable career promotion?" },
+          { label: "🧘 Remedy for workplace peace", question: "What is the Vedic remedy and prayer for workplace peace and progress?" },
+          { label: "💍 How is my marriage timing?", question: "Tell me about my marriage timing and partner compatibility according to my chart." }
+        ];
+      case "hi":
+        return [
+          { label: "💼 नई नौकरी कब मिलेगी?", question: "मुझे नई नौकरी या प्रमोशन कब तक मिलेगा?" },
+          { label: "🧘 कार्यक्षेत्र में शांति के उपाय", question: "कार्यक्षेत्र में मानसिक शांति और तरक्की के लिए क्या उपाय करें?" },
+          { label: "💍 विवाह का समय कब है?", question: "मेरी जन्मकुंडली के अनुसार विवाह का शुभ समय कब बन रहा है?" }
+        ];
+      case "te":
+        return [
+          { label: "💼 కొత్త ఉద్యోగం ఎప్పుడు వస్తుంది?", question: "నాకు కొత్త ఉద్యోగం లేదా ప్రమోషన్ ఎప్పుడు లభిస్తుంది?" },
+          { label: "🧘 ఉద్యోగంలో శాంతికి పరిహారం", question: "ఉద్యోగంలో ప్రశాంతత మరియు పురోగతికి నేను ఏ నిత్య ప్రార్థన చేయాలి?" },
+          { label: "💍 నా వివాహ యోగం ఎలా ఉంది?", question: "నా జాతకం ప్రకారం వివాహం ఎప్పుడు కుదురుతుంది?" }
+        ];
+      case "ta":
+        return [
+          { label: "💼 புதிய வேலை எப்போது கிடைக்கும்?", question: "எனக்கு புதிய வேலை அல்லது பதவி உயர்வு எப்போது கிடைக்கும்?" },
+          { label: "🧘 பணி இடத்தில் அமைதிக்கான பரிகாரம்", question: "வேலை செய்யும் இடத்தில் மன அமைதி மற்றும் முன்னேற்றத்திற்கு என்ன பரிகாரம் செய்ய வேண்டும்?" },
+          { label: "💍 திருமண யோகம் எப்படி உள்ளது?", question: "என் ஜாதகப்படி திருமணத்திற்கான சுப காலம் எப்போது கூடிவரும்?" }
+        ];
+      case "ml":
+        return [
+          { label: "💼 പുതിയ ജോലി എപ്പോൾ ലഭിക്കും?", question: "എനിക്ക് പുതിയ ജോലിയോ പ്രമോഷനോ എപ്പോൾ ലഭിക്കും?" },
+          { label: "🧘 ജോലിയിൽ സമാധാനത്തിനുള്ള പരിഹാരം", question: "തൊഴിൽ രംഗത്ത് സമാധാനത്തിനും പുരോഗതിക്കും ഏത് പ്രാർത്ഥനയാണ് നല്ലത്?" },
+          { label: "💍 വിവാഹ യോഗം എപ്പോഴാണ്?", question: "എന്റെ ജാതകപ്രകാരം വിവാഹത്തിനുള്ള ശുഭസമയം എപ്പോഴാണ്?" }
+        ];
+      case "mr":
+        return [
+          { label: "💼 नवीन नोकरी केव्हा मिळेल?", question: "मला नवीन नोकरी किंवा पदोन्नती केव्हा मिळेल?" },
+          { label: "🧘 कामाच्या ठिकाणी शांतीसाठी उपाय", question: "नोकरीत प्रगती आणि मनःशांतीसाठी कोणता नित्य उपाय करावा?" },
+          { label: "💍 विवाहाचा योग केव्हा आहे?", question: "माझ्या पत्रिकेनुसार विवाहाची शुभ वेळ केव्हा येईल?" }
+        ];
+      case "kn":
+      default:
+        return [
+          { label: "💼 ಹೊಸ ಕೆಲಸ ಯಾವಾಗ ಸಿಗಬಹುದು?", question: "ನನಗೆ ಹೊಸ ಉದ್ಯೋಗ ಅಥವಾ ಬಡ್ತಿ ಯಾವಾಗ ಸಿಗಬಹುದು?" },
+          { label: "🧘 ಕೆಲಸದ ನೆಮ್ಮದಿಗೆ ಪರಿಹಾರ", question: "ಉದ್ಯೋಗ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೆಮ್ಮದಿ ಮತ್ತು ಪ್ರಗತಿಗೆ ನಾನು ಯಾವ ನಿತ್ಯ ಪ್ರಾರ್ಥನೆ ಮಾಡಬೇಕು?" },
+          { label: "💍 ನನ್ನ ವಿವಾಹ ಯೋಗ ಹೇಗಿದೆ?", question: "ನನ್ನ ಜಾತಕದ ಪ್ರಕಾರ ವಿವಾಹದ ಶುಭ ಕಾಲ ಯಾವಾಗ ಕೂಡಿಬರಲಿದೆ?" }
+        ];
+    }
+  }
+
+  if (isMarriage) {
+    switch (lang) {
+      case "en":
+        return [
+          { label: "💍 Favorable marriage window?", question: "What is the most auspicious timeline and direction for finding my life partner?" },
+          { label: "🏡 Life after marriage", question: "How will my married life and domestic peace be according to my 7th house?" },
+          { label: "💼 How is my career future?", question: "How will my career and financial stability progress in the coming period?" }
+        ];
+      case "hi":
+        return [
+          { label: "💍 विवाह का शुभ मुहूर्त कब?", question: "विवाह के लिए सबसे शुभ काल और दिशा कौन सी है?" },
+          { label: "🏡 वैवाहिक जीवन कैसा रहेगा?", question: "मेरी कुंडली के सप्तम भाव के अनुसार दांपत्य जीवन कैसा रहेगा?" },
+          { label: "💼 करियर की स्थिति बताएं", question: "आने वाले समय में मेरी नौकरी और आर्थिक स्थिति कैसी रहेगी?" }
+        ];
+      case "te":
+        return [
+          { label: "💍 వివాహానికి అనుకూల సమయం?", question: "వివాహానికి అత్యంత శుభ సమయం మరియు అనుకూల దిశ ఏది?" },
+          { label: "🏡 వివాహం తర్వాత జీవితం ఎలా ఉంటుంది?", question: "నా జాతకంలోని 7వ భావం ప్రకారం దాంపత్య జీవితం ఎలా ఉంటుంది?" },
+          { label: "💼 నా కెరీర్ భవిష్యత్తు ఎలా ఉంది?", question: "రాబోయే రోజుల్లో నా ఉద్యోగం మరియు ఆర్థిక పరిస్థితి ఎలా ఉంటుంది?" }
+        ];
+      case "ta":
+        return [
+          { label: "💍 திருமணத்திற்கு உகந்த காலம் எப்போது?", question: "திருமணத்திற்கு மிகவும் உகந்த காலம் மற்றும் திசை எது?" },
+          { label: "🏡 திருமணத்திற்குப் பின் வாழ்க்கை எப்படி இருக்கும்?", question: "என் ஜாதகத்தின் 7-ஆம் வீட்டின்படி தாம்பத்திய வாழ்க்கை எப்படி இருக்கும்?" },
+          { label: "💼 எதிர்கால தொழில் எப்படி இருக்கும்?", question: "வரும் காலத்தில் எனது வேலை மற்றும் பொருளாதார நிலை எப்படி இருக்கும்?" }
+        ];
+      case "ml":
+        return [
+          { label: "💍 വിവാഹത്തിന് അനുകൂല സമയം എപ്പോൾ?", question: "വിവാഹത്തിന് ഏറ്റവും അനുയോജ്യമായ സമയവും ദിശയും ഏതാണ്?" },
+          { label: "🏡 വിവാഹശേഷമുള്ള ജീവിതം എങ്ങനെയായിരിക്കും?", question: "എന്റെ ജാതകത്തിലെ ഏഴാം ഭാവപ്രകാരം ദാമ്പത്യജീവിതം എങ്ങനെയായിരിക്കും?" },
+          { label: "💼 കരിയർ ഭാവി എങ്ങനെയാണ്?", question: "വരും കാലങ്ങളിൽ എന്റെ ജോലിയും സാമ്പത്തിക ഭദ്രതയും എങ്ങനെയായിരിക്കും?" }
+        ];
+      case "mr":
+        return [
+          { label: "💍 विवाहासाठी शुभ काळ कोणता?", question: "विवाहासाठी सर्वात शुभ काळ आणि दिशा कोणती आहे?" },
+          { label: "🏡 विवाहानंतरचे जीवन कसे राहील?", question: "माझ्या पत्रिकेतील ७ व्या भावानुसार वैवाहिक जीवन कसे राहील?" },
+          { label: "💼 करिअरची स्थिती कशी राहील?", question: "पुढील काळात माझी नोकरी आणि आर्थिक प्रगती कशी राहील?" }
+        ];
+      case "kn":
+      default:
+        return [
+          { label: "💍 ವಿವಾಹಕ್ಕೆ ಶುಭ ಕಾಲ ಯಾವಾಗ?", question: "ವಿವಾಹಕ್ಕೆ ಅತ್ಯಂತ ಶುಭ ಕಾಲ ಹಾಗೂ ಸಪ್ತಮ ಭಾವದ ಅನುಗ್ರಹ ಯಾವಾಗ ಕೂಡಿಬರುತ್ತದೆ?" },
+          { label: "🏡 ವಿವಾಹದ ನಂತರ ಜೀವನ ಹೇಗಿರಲಿದೆ?", question: "ನನ್ನ ಜಾತಕದ ೭ನೇ ಮನೆಯ ಪ್ರಕಾರ ದಾಂಪತ್ಯ ಜೀವನ ಮತ್ತು ಹೊಂದಾಣಿಕೆ ಹೇಗಿರಲಿದೆ?" },
+          { label: "💼 ವೃತ್ತಿ ಮತ್ತು ಆರ್ಥಿಕತೆ ಹೇಗಿದೆ?", question: "ಮುಂದಿನ ದಿನಗಳಲ್ಲಿ ನನ್ನ ಉದ್ಯೋಗ ಮತ್ತು ಆರ್ಥಿಕ ಪ್ರಗತಿ ಹೇಗಿರಲಿದೆ?" }
+        ];
+    }
+  }
+
+  if (isHealth) {
+    switch (lang) {
+      case "en":
+        return [
+          { label: "🌿 Remedy for health & peace", question: "What sacred mantra and remedy can bring vitality and emotional peace?" },
+          { label: "☀️ Daily spiritual prayer", question: "Which Ishta Devata prayer should I recite daily for inner strength?" },
+          { label: "💼 Career & financial outlook", question: "When will financial hurdles ease and stable income return?" }
+        ];
+      case "hi":
+        return [
+          { label: "🌿 स्वास्थ्य व मानसिक शांति के उपाय", question: "शारीरिक ऊर्जा और मानसिक शांति के लिए कौन सा वैदिक मंत्र व उपाय उत्तम है?" },
+          { label: "☀️ नित्य आध्यात्मिक प्रार्थना", question: "आत्मिक बल के लिए प्रतिदिन किस इष्ट देवता की प्रार्थना करनी चाहिए?" },
+          { label: "💼 आर्थिक संकट कब दूर होगा?", question: "आर्थिक परेशानियां कब दूर होंगी और स्थिर धन लाभ कब होगा?" }
+        ];
+      case "te":
+        return [
+          { label: "🌿 ఆరోగ్యం & ప్రశాంతతకు పరిహారం", question: "శారీరక శక్తి మరియు మానసిక ప్రశాంతత కోసం ఏ వైదిక పరిహారం ఉత్తమం?" },
+          { label: "☀️ నిత్య ప్రార్థన ఏది?", question: "ఆత్మవిశ్వాసం కోసం నేను నిత్యం ఏ ఇష్టదేవతను ప్రార్థించాలి?" },
+          { label: "💼 ఆర్థిక సమస్యలు ఎప్పుడు తీరుతాయి?", question: "ఆర్థిక ఇబ్బందులు తొలగి స్థిరమైన ఆదాయం ఎప్పుడు సమకూరుతుంది?" }
+        ];
+      case "ta":
+        return [
+          { label: "🌿 ஆரோக்கியம் & மன அமைதிக்கான பரிகாரம்", question: "உடல் ஆரோக்கியம் மற்றும் மன அமைதிக்கு எந்த பரிகாரம் செய்ய வேண்டும்?" },
+          { label: "☀️ தினசரி வழிபட வேண்டிய தெய்வம்", question: "மன வலிமைக்கு தினமும் எந்த இஷ்ட தெய்வத்தை வழிபட வேண்டும்?" },
+          { label: "💼 பொருளாதார சிக்கல் எப்போது தீரும்?", question: "பணப் பிரச்சனைகள் தீர்ந்து நிலையான வருமானம் எப்போது கிடைக்கும்?" }
+        ];
+      case "ml":
+        return [
+          { label: "🌿 ആരോഗ്യത്തിനും സമാധാനത്തിനുമുള്ള പരിഹാരം", question: "ശാരീരിക ഉന്മേഷത്തിനും മാനസിക സമാധാനത്തിനും ഏത് പരിഹാരമാണ് നല്ലത്?" },
+          { label: "☀️ ദിവസേനയുള്ള പ്രാർത്ഥന ഏത്?", question: "ആത്മധൈര്യത്തിന് ദിവസവും ഏത് ഇഷ്ടദേവതയെയാണ് പ്രാർത്ഥിക്കേണ്ടത്?" },
+          { label: "💼 സാമ്പത്തിക പ്രതിസന്ധി എപ്പോൾ മാറും?", question: "സാമ്പത്തിക ബുദ്ധിമുട്ടുകൾ മാറി സ്ഥിരവരുമാനം എപ്പോൾ സാധ്യമാകും?" }
+        ];
+      case "mr":
+        return [
+          { label: "🌿 आरोग्य व मनःशांतीसाठी उपाय", question: "शारीरिक ऊर्जा आणि मानसिक शांतीसाठी कोणता वैदिक मंत्र व उपाय योग्य आहे?" },
+          { label: "☀️ नित्य आध्यात्मिक प्रार्थना", question: "आत्मविश्वासासाठी दररोज कोणत्या इष्ट देवतेची प्रार्थना करावी?" },
+          { label: "💼 आर्थिक अडचण केव्हा दूर होईल?", question: "आर्थिक अडचणी दूर होऊन स्थिर आवक केव्हा सुरू होईल?" }
+        ];
+      case "kn":
+      default:
+        return [
+          { label: "🌿 ಆರೋಗ್ಯ ಸುಧಾರಣೆಗೆ ಪರಿಹಾರ", question: "ಆರೋಗ್ಯ ಚೇತರಿಕೆ ಮತ್ತು ಮಾನಸಿಕ ಶಾಂತಿಗೆ ಯಾವ ದೈವಿಕ ಪರಿಹಾರ ಉತ್ತಮ?" },
+          { label: "☀️ ದೈನಂದಿನ ಪ್ರಾರ್ಥನೆ ಏನು?", question: "ಮನಸ್ಸಿನ ಧೈರ್ಯಕ್ಕೆ ನಾನು ನಿತ್ಯ ಯಾವ ಮಂತ್ರ ಜಪಿಸಬೇಕು?" },
+          { label: "💼 ಆರ್ಥಿಕ ಚೇತರಿಕೆ ಯಾವಾಗ?", question: "ಆರ್ಥಿಕ ಸಂಕಷ್ಟಗಳು ಕರಗಿ ಸಮೃದ್ಧಿ ಯಾವಾಗ ಮರಳಲಿದೆ?" }
+        ];
+    }
+  }
+
+  return [];
 }
 

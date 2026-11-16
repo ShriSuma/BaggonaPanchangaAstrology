@@ -30,6 +30,12 @@ import {
 } from "./fiveYearLocale";
 import { resolveDevoteeDisplayName } from "../../utils/transliterator";
 
+export function getEnglishOrdinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 export interface AnnualSeasonBreakdown {
   quarterIndex?: number; // 0..3
   seasonKey?: string;
@@ -128,6 +134,9 @@ export interface FiveYearSingleYear {
   munthaRashi?: string;
   munthaTheme?: string;
   doubleTransitHighlight?: string | null;
+  isBandhanaRisk?: boolean;
+  isArishtaRisk?: boolean;
+  isRajaYogaPeak?: boolean;
   moorthyNirnaya?: { saturnMoorthy: string; jupiterMoorthy: string };
   savPoints?: number | { saturnHousePoints: number; jupiterHousePoints: number };
   paragraphs?: string[];
@@ -1010,6 +1019,30 @@ export function detectDoubleTransit(
           : lang === "te" ? `${formatNumber6L(houseFromLagna, lang)}వ ఇంట్లో గురు-శని వేధ: అపార ధన లాభం మరియు పాత బాకీల వసూలు.`
             : lang === "ta" ? `${formatNumber6L(houseFromLagna, lang)}ம் வீட்டில் குரு-சனி வேதை: பெரும் தனலாபம் & பழைய பாக்கிகள் வசூலாதல்.`
               : `Double Transit on House ${houseFromLagna} unlocks exponential liquidity and debt resolution.`;
+  }
+  if (houseFromLagna === 12) {
+    return lang === "kn" ? "೧೨ನೇ ಮನೆಯಲ್ಲಿ ಗುರು-ಶನಿ ದ್ವಿಗ್ರಹ ದೃಷ್ಟಿ: ವಿದೇಶ ಪ್ರಯಾಣ, ಆಧ್ಯಾತ್ಮಿಕ ಏಕಾಂತ ಅಥವಾ ಕಾನೂನು-ಆಸ್ಪತ್ರೆ ವೆಚ್ಚಗಳ ನಿಯಂತ್ರಣ."
+      : lang === "mr" ? "१२व्या भावात गुरू-शनि दृष्टी: परदेश प्रवास, आध्यात्मिक एकांत अथवा कायदेशीर/वैद्यकीय खर्चांवर नियंत्रण."
+        : lang === "hi" ? "१२वें भाव में गुरु-शनि दृष्टि: विदेश यात्रा, आध्यात्मिक एकांत अथवा वैधानिक/चिकित्सीय व्यय पर नियंत्रण।"
+          : lang === "te" ? "12వ ఇంట్లో గురు-శని దృష్టి: విదేశీ ప్రయాణం, ఆధ్యాత్మిక ఏకాంతం లేదా చట్టపరమైన/వైద్య ఖర్చుల నియంత్రణ."
+            : lang === "ta" ? "12ம் வீட்டில் குரு-சனி பார்வை: வெளிநாட்டு பயணம், ஆன்மீக தனிமை அல்லது மருத்துவ/சட்ட செலவுகள் கட்டுப்பாடு."
+              : "Double Transit on 12th House activates overseas exploration, spiritual seclusion, and legal/hospital expenditure control.";
+  }
+  if (houseFromLagna === 6) {
+    return lang === "kn" ? "೬ನೇ ಮನೆಯಲ್ಲಿ ಗುರು-ಶನಿ ದ್ವಿಗ್ರಹ ದೃಷ್ಟಿ: ಶತ್ರು ಸಂಹಾರ, ದೀರ್ಘಕಾಲೀನ ವಿವಾದಗಳ ಸಂಧಾನ ಹಾಗೂ ಸಾಲ ಮುಕ್ತಿ."
+      : lang === "mr" ? "६व्या भावात गुरू-शनि दृष्टी: शत्रू निवारण, दीर्घकालीन वादांचे निवारण व कर्जमुक्ती."
+        : lang === "hi" ? "६वें भाव में गुरु-शनि दृष्टि: शत्रु दमन, दीर्घकालीन विवादों का समाधान एवं ऋण मुक्ति।"
+          : lang === "te" ? "6వ ఇంట్లో గురు-శని దృష్టి: శత్రు నివారణ, దీర్ఘకాల వివాదాల పరిష్కారం & రుణ విముక్తి."
+            : lang === "ta" ? "6ம் வீட்டில் குரு-சனி பார்வை: எதிரிகள் முறியடிப்பு, நீண்ட நாள் வழக்குகள் தீர்வு & கடன் நிவர்த்தி."
+              : "Double Transit on 6th House ensures defeat of detractors, settlement of longstanding disputes, and debt liquidation.";
+  }
+  if (houseFromLagna === 8) {
+    return lang === "kn" ? "೮ನೇ ಮನೆಯಲ್ಲಿ ಗುರು-ಶನಿ ದ್ವಿಗ್ರಹ ದೃಷ್ಟಿ: ಆಯುರ್-ಆರೋಗ್ಯ ರಕ್ಷಣೆ, ನಿಗೂಢ ಜ್ಞಾನ ಸಾಧನೆ ಹಾಗೂ ಆಕಸ್ಮಿಕ ಗಂಡಾಂತರ ನಿವಾರಣೆ."
+      : lang === "mr" ? "८व्या भावात गुरू-शनि दृष्टी: दीर्घायुष्य, गूढ विद्या संपादन व आकस्मिक संकटांपासून संरक्षण."
+        : lang === "hi" ? "८वें भाव में गुरु-शनि दृष्टि: आयु-आरोग्य रक्षा, गूढ़ विद्या अर्जन एवं आकस्मिक संकट निवारण।"
+          : lang === "te" ? "8వ ఇంట్లో గురు-శని దృష్టి: ఆయురారోగ్య రక్షణ, గూఢ విద్యల సాధన & ఆకస్మిక గండాల నివారణ."
+            : lang === "ta" ? "8ம் வீட்டில் குரு-சனி பார்வை: ஆயுள் ஆரோக்கிய பாதுகாப்பு, ஆன்மீக ஞானம் & விபத்துகளில் இருந்து பாதுகாப்பு."
+              : "Double Transit on 8th House fortifies longevity, occult mastery, and pacification of sudden crises.";
   }
   return lang === "kn" ? `${formatNumber6L(houseFromLagna, lang)}ನೇ ಮನೆಯಲ್ಲಿ ಗುರು-ಶನಿ ದ್ವಿಗ್ರಹ ದೃಷ್ಟಿ: ಧರ್ಮ ಕಾರ್ಯ ಹಾಗೂ ದೈವಿಕ ಸಂಕಲ್ಪ ಸಿದ್ಧಿ.`
     : lang === "mr" ? `${formatNumber6L(houseFromLagna, lang)}व्या भावात गुरू-शनि दृष्टी: धर्मकार्ये व महत्त्वाचे संकल्प सिद्धीस जाणे.`
@@ -3514,7 +3547,60 @@ export function compute5YearMasterPrediction(
     // Evaluate Jupiter (Guru Bala)
     const isGuruBala = [2, 5, 7, 9, 11].includes(guruHouse);
 
-    // Calculate Vitality / Energy Score (0 - 100) refined with Sarvashtakavarga (SAV)
+    // Tajika Muntha Calculation (advances 1 sign per completed year: Tajika Neelakanthi rule)
+    const birthYear = parseInt(birthDateYmd.split("-")[0], 10) || (baseYear - Math.floor(currentAgeYears));
+    const completedVarshaYears = startY - birthYear;
+    const munthaSign = (lagnaIdx + (completedVarshaYears >= 0 ? completedVarshaYears : Math.floor(currentAgeYears) + i)) % 12;
+    const munthaHouse = ((munthaSign - lagnaIdx + 12) % 12) + 1;
+    const munthaRashi = RASHI_6L[munthaSign]?.[targetLang] || "";
+    const munthaTheme = getMunthaTheme(munthaHouse, targetLang);
+
+    // Planetary Key Aspect Analysis for Saturn
+    const sunPlanet = kundli.planets.find(p => p.name === PlanetName.Sun);
+    const natalSunSign = sunPlanet ? sunPlanet.rashi.index : 0;
+    const isSaturnConjunctSun = shaniSign === natalSunSign;
+    const isSaturnAspectingSun = [
+      shaniSign,
+      (shaniSign + 2) % 12,
+      (shaniSign + 6) % 12,
+      (shaniSign + 9) % 12
+    ].includes(natalSunSign);
+
+    const isSaturnAspectingLagna = [
+      shaniSign,
+      (shaniSign + 2) % 12,
+      (shaniSign + 6) % 12,
+      (shaniSign + 9) % 12
+    ].includes(lagnaIdx);
+
+    const isSaturnAspectingMoon = [
+      shaniSign,
+      (shaniSign + 2) % 12,
+      (shaniSign + 6) % 12,
+      (shaniSign + 9) % 12
+    ].includes(moonIdx);
+
+    // Classical Bandhana Yoga (Confinement / Judicial Scrutiny / Restriction of Liberty - 12th House Vyaya/Bandhana)
+    const isBandhanaRisk = munthaHouse === 12 &&
+      (isSaturnConjunctSun || isSaturnAspectingSun || isSaturnAspectingLagna || isSaturnAspectingMoon || isSadeSati);
+
+    // Classical Shatru Vijaya Yoga (Victory over competitors / adversaries in 6th house when Guru Bala or Subha Shani is present)
+    const isShatruVijaya = munthaHouse === 6 && (isGuruBala || isSubhaShani);
+
+    // Sarvashtakavarga (SAV) Refinement
+    const jupSav = savTable[guruSign] ?? 28;
+    const satSav = savTable[shaniSign] ?? 28;
+
+    // Classical Arishta / Health / Trauma Risk (Randhra Muntha OR Maraka Muntha afflicted by Saturn OR Ashtama Shani with low SAV)
+    const isMarakaMuntha = [2, 7].includes(munthaHouse);
+    const isSaturnInMuntha = munthaSign === shaniSign;
+    const isArishtaRisk = munthaHouse === 8 || (isMarakaMuntha && isSaturnInMuntha) || (isAshtama && (satSav < 26 || munthaHouse === 6));
+
+    // Classical Raja Yoga / Sovereign Peak
+    const isRajaYogaPeak = (munthaHouse === 11 || munthaHouse === 10) &&
+      (isGuruBala || isSubhaShani) && satSav >= 28 && !isBandhanaRisk && !isArishtaRisk;
+
+    // Calculate Vitality / Energy Score (0 - 100) refined with Tajika Muntha & Sarvashtakavarga (SAV)
     let score = 65;
     if (isGuruBala) score += 16;
     else score -= 8;
@@ -3524,9 +3610,6 @@ export function compute5YearMasterPrediction(
     else if (isAshtama) score -= 16;
     else if (isKantaka) score -= 8;
 
-    // Sarvashtakavarga (SAV) Refinement
-    const jupSav = savTable[guruSign] ?? 28;
-    const satSav = savTable[shaniSign] ?? 28;
     if (jupSav >= 30) score += 6;
     else if (jupSav < 25) score -= 4;
 
@@ -3537,7 +3620,28 @@ export function compute5YearMasterPrediction(
     if (mahaLord === lagnaLordKey) score += 8;
     if (bhuktiLord === lagnaLordKey) score += 5;
 
-    score = Math.max(35, Math.min(96, score));
+    // Tajika Muntha House Impact (Tajika Neelakanthi Shastra):
+    if (munthaHouse === 11) score += 14;      // Labha / Apex Gains / Triumph
+    else if (munthaHouse === 10) score += 12; // Karma / Executive Power
+    else if (munthaHouse === 9) score += 10;  // Bhagya / Fortune / Pilgrimage
+    else if (munthaHouse === 5) score += 8;   // Intellect / Creative Acclaim
+    else if (munthaHouse === 1 || munthaHouse === 3) score += 6; // Tanu / Parakrama
+    else if (munthaHouse === 2) score += 4;   // Dhana / Family
+    else if (munthaHouse === 4) score -= 8;   // Klesha / Domestic unrest
+    else if (munthaHouse === 7) score -= 8;   // Maraka / Partnership friction
+    else if (munthaHouse === 6) {
+      if (isShatruVijaya) score += 12; // Shatru Vijaya / Electoral / Competitive Victory
+      else score -= 14;  // Shatru / Vivada / Litigation friction
+    }
+    else if (munthaHouse === 8) score -= 16;  // Randhra / Acute Vulnerability / Sudden Fall
+    else if (munthaHouse === 12) score -= 18; // Vyaya / Bandhana / Detention / Loss of Liberty
+
+    // Specific Yoga Penalties / Bonuses:
+    if (isBandhanaRisk) score -= 16;
+    if (isArishtaRisk) score -= 14;
+    if (isRajaYogaPeak) score += 10;
+
+    score = Math.max(30, Math.min(98, score));
 
     if (score > peakScore) {
       peakScore = score;
@@ -3552,14 +3656,6 @@ export function compute5YearMasterPrediction(
 
     const vitalityCategory: "exceptional" | "balanced" | "caution" =
       score >= 76 ? "exceptional" : score >= 55 ? "balanced" : "caution";
-
-    // Tajika Muntha Calculation (advances 1 sign per completed year: Tajika Neelakanthi rule)
-    const birthYear = parseInt(birthDateYmd.split("-")[0], 10) || (baseYear - Math.floor(currentAgeYears));
-    const completedVarshaYears = startY - birthYear;
-    const munthaSign = (lagnaIdx + (completedVarshaYears >= 0 ? completedVarshaYears : Math.floor(currentAgeYears) + i)) % 12;
-    const munthaHouse = ((munthaSign - lagnaIdx + 12) % 12) + 1;
-    const munthaRashi = RASHI_6L[munthaSign]?.[targetLang] || "";
-    const munthaTheme = getMunthaTheme(munthaHouse, targetLang);
 
     // Moorthy Nirnaya (Swarna/Rajata/Tamra/Loha)
     // Approximate transit Moon sign
@@ -3592,14 +3688,14 @@ export function compute5YearMasterPrediction(
           : targetLang === "mr" ? `${formatNumber6L(shaniHouse, targetLang)}व्या स्थानी शुभ शनी गोचर: शत्रूंवर मात, कार्यसिद्धी व स्थिर आर्थिक लाभ.`
             : targetLang === "te" ? `${formatNumber6L(shaniHouse, targetLang)}వ ఇంట శుభ శని గోచారం: శత్రు జయం, కార్యసిద్ధి, స్థిర ఆదాయం.`
               : targetLang === "ta" ? `${formatNumber6L(shaniHouse, targetLang)}ம் வீட்டில் சுப சனி கோச்சாரம்: காரிய சித்தி, வெற்றி மற்றும் நிலையான வருமானம்.`
-                : `Benefic Saturn transit (${shaniHouse}th house): guarantees triumph over competition and steady gains.`;
+                : `Benefic Saturn transit (${getEnglishOrdinal(shaniHouse)} house): guarantees triumph over competition and steady gains.`;
     } else {
       shaniText = targetLang === "kn" ? `${formatNumber6L(shaniHouse, targetLang)}ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಗೋಚಾರ: ನಿಯಮಿತ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ನ್ಯಾಯಯುತ ಫಲ.`
         : targetLang === "hi" ? `${formatNumber6L(shaniHouse, targetLang)}वें भाव में शनि गोचर: नियमित परिश्रम का उत्तम फल।`
           : targetLang === "mr" ? `${formatNumber6L(shaniHouse, targetLang)}व्या स्थानी शनी गोचर: नियमित प्रयत्नांना योग्य फळ मिळेल.`
             : targetLang === "te" ? `${formatNumber6L(shaniHouse, targetLang)}వ ఇంట సాధారణ శని గోచారం: క్రమబద్ధమైన కృషికి తగిన ఫలితం.`
               : targetLang === "ta" ? `${formatNumber6L(shaniHouse, targetLang)}ம் வீட்டில் சனி கோச்சாரம்: உழைப்புக்கேற்ற பலன் கிட்டும்.`
-                : `Moderate Saturn transit (${shaniHouse}th house): rewards systematic discipline.`;
+                : `Moderate Saturn transit (${getEnglishOrdinal(shaniHouse)} house): rewards systematic discipline.`;
     }
 
     // Guru narrative
@@ -3610,14 +3706,14 @@ export function compute5YearMasterPrediction(
           : targetLang === "mr" ? `${formatNumber6L(guruHouse, targetLang)}व्या स्थानी संपूर्ण गुरुबळ: भाग्योदय, शुभकार्ये व धनवृद्धी.`
             : targetLang === "te" ? `${formatNumber6L(guruHouse, targetLang)}వ ఇంట సంపూర్ణ గురు బలం: భాగ్యోదయం, శుభకార్యాలు, ధనలాభం.`
               : targetLang === "ta" ? `${formatNumber6L(guruHouse, targetLang)}ம் வீட்டில் முழு குரு பலன்: பாக்கியோதயம், சுப காரியங்கள், தனலாபம்.`
-                : `Auspicious Guru Bala (${guruHouse}th house): divine grace, auspicious celebrations, and financial expansion.`;
+                : `Auspicious Guru Bala (${getEnglishOrdinal(guruHouse)} house): divine grace, auspicious celebrations, and financial expansion.`;
     } else {
       guruText = targetLang === "kn" ? `${formatNumber6L(guruHouse, targetLang)}ನೇ ಮನೆಯಲ್ಲಿ ಆಂತರಿಕ ಗುರು ಗೋಚಾರ: ಜ್ಞಾನ ವೃದ್ಧಿ, ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ವಿವೇಕ.`
         : targetLang === "hi" ? `${formatNumber6L(guruHouse, targetLang)}वें भाव में अंतर्मुखी गुरु गोचर: ज्ञान वृद्धि एवं कर्तव्य निष्ठा।`
           : targetLang === "mr" ? `${formatNumber6L(guruHouse, targetLang)}व्या स्थानी अंतर्मुख गुरु गोचर: ज्ञान संपादन व कर्तव्य पालनात प्रगती.`
             : targetLang === "te" ? `${formatNumber6L(guruHouse, targetLang)}వ ఇంట అంతర్ముఖ గురు గోచారం: జ్ఞానవృద్ధి, కర్తవ్య నిష్ఠ.`
               : targetLang === "ta" ? `${formatNumber6L(guruHouse, targetLang)}ம் வீட்டில் அகநிலை குரு கோச்சாரம்: ஞான வளர்ச்சி, கடமை உணர்வு.`
-                : `Internal Guru transit (${guruHouse}th house): fosters spiritual introspection and skill acquisition.`;
+                : `Internal Guru transit (${getEnglishOrdinal(guruHouse)} house): fosters spiritual introspection and skill acquisition.`;
     }
 
     const rahuKetuText = targetLang === "kn" ? `ರಾಹು-ಕೇತು ${formatNumber6L(rahuHouse, targetLang)}/${formatNumber6L(ketuHouse, targetLang)} ಅಕ್ಷ: ಆಕಸ್ಮಿಕ ಶುಭ ಬದಲಾವಣೆಗಳು.`
@@ -3697,6 +3793,507 @@ export function compute5YearMasterPrediction(
             : targetLang === "te" ? `వాతావరణ మార్పుల సమయంలో జలుబు, అజీర్ణం పట్ల తల్లిదండ్రులు శ్రద్ధ వహించాలి.`
               : targetLang === "ta" ? `பருவநிலை மாற்றத்தின் போது சளி, இருமல் வராமல் பார்த்துக் கொள்ளவும்.`
                 : `Maintain pediatric nutrition and hygiene during seasonal changes.`;
+
+    } else if (isBandhanaRisk) {
+      headline = targetLang === "kn" ? `${gregorianRange}: ಕಾನೂನು ಪರಿಶೀಲನೆ, ಬಂಧನ ಭೀತಿ ಹಾಗೂ ಅತ್ಯುನ್ನತ ಜಾಗರೂಕತೆಯ ಪರೀಕ್ಷಾ ವರ್ಷ`
+        : targetLang === "hi" ? `${gregorianRange}: विधिक समीक्षा, बंधन भय एवं सर्वोच्च संयम व अनुशासन का वर्ष`
+          : targetLang === "mr" ? `${gregorianRange}: कायदेशीर बंधने, स्थानबद्धतेची जोखीम व अत्यंत संयमाचे परीक्षा वर्ष`
+            : targetLang === "te" ? `${gregorianRange}: న్యాయపరమైన పరిశీలన, నిర్బంధ ప్రమాదం & అత్యున్నత అప్రమత్తత సంవత్సరం`
+              : targetLang === "ta" ? `${gregorianRange}: சட்ட சோதனைகள், சிறை/கட்டுப்பாடு அபாயம் & உச்சக்கட்ட விழிப்புணர்வு ஆண்டு`
+                : `${gregorianRange}: Judicial Scrutiny, Confinement Peril & Paramount Restraint Year`;
+
+      whatToExpect = [
+        targetLang === "kn" ? `ನ್ಯಾಯಾಲಯ, ಆರೋಪ ಅಥವಾ ಕಾನೂನು ನಿರ್ಬಂಧಗಳ ಭೀತಿ; ವಿವಾದಿತ ಸಹವಾಸಗಳಿಂದ ದೂರವಿರುವುದು ಅನಿವಾರ್ಯ.`
+          : targetLang === "hi" ? `न्यायालय, अभियोग अथवा विधिक प्रतिबंधों की संभावना; विवादास्पद संपर्कों से तत्काल दूरी अनिवार्य।`
+            : targetLang === "mr" ? `न्यायालयीन खटले, आरोप किंवा कायदेशीर अडचणींची शक्यता; वादग्रस्त व्यक्तींच्या सहवासापासून दूर राहावे.`
+              : targetLang === "te" ? `కోర్టు కేసులు, నిందలు లేదా చట్టపరమైన ఆంక్షల ప్రమాదం; వివాదాస్పద వ్యక్తులకు దూరంగా ఉండటం తప్పనిసరి.`
+                : targetLang === "ta" ? `நீதிமன்ற வழக்குகள், குற்றச்சாட்டுகள் அல்லது சட்டரீதியான கட்டுப்பாடுகள்; சர்ச்சைக்குரிய நபர்களைத் தவிர்க்கவும்.`
+                  : `Heightened legal vulnerability, judicial summons, or restrictions on personal movement.`,
+        targetLang === "kn" ? `ಪ್ರಭಾವಿ ವ್ಯಕ್ತಿಗಳ ಜತೆಗಿನ ಭಿನ್ನಾಭಿಪ್ರಾಯ, ವಂಚನೆ ಅಥವಾ ಗೌಪ್ಯ ವಿರೋಧಿಗಳ ಕುತಂತ್ರಗಳ ವಿರುದ್ಧ ಕಟ್ಟೆಚ್ಚರ.`
+          : targetLang === "hi" ? `प्रभावशाली व्यक्तियों से मतभेद, विश्वासघात अथवा गुप्त विरोधियों के षड्यंत्र से सतर्क रहें।`
+            : targetLang === "mr" ? `वजनदार व्यक्तींशी मतभेद, विश्वासघात किंवा गुप्त विरोधकांच्या कारवायांविरुद्ध मोठी दक्षता बाळगा.`
+              : targetLang === "te" ? `ప్రభావవంతమైన వ్యక్తులతో విభేదాలు, మోసాలు లేదా రహస్య శత్రువుల పట్ల తీవ్ర అప్రమత్తత.`
+                : targetLang === "ta" ? `செல்வாக்குமிக்க நபர்களுடன் கருத்து வேறுபாடு, துரோகம் அல்லது மறைமுக எதிர்ப்புகள் குறித்து எச்சரிக்கை.`
+                  : `Adversary pressures from authority figures, betrayal risk, or confidential investigations.`,
+        targetLang === "kn" ? `ಅಧಿಕೃತ ದಾಖಲೆಗಳ ಶುದ್ಧತೆ ಕಾಪಾಡಿ; ದೇವತಾರಾಧನೆ ಹಾಗೂ ನವಗ್ರಹ ಶಾಂತಿಯಿಂದ ಸಂಕಷ್ಟ ನಿವಾರಣೆ.`
+          : targetLang === "hi" ? `वैधानिक प्रपत्रों की शुचिता बनाए रखें; ईश्वरीय आराधना एवं नवग्रह शांति से संकट निवारण संभव।`
+            : targetLang === "mr" ? `कागदपत्रांची अचूकता राखा; कुलदेवतेची उपासना व नवग्रह शांतीने संकटावर मात करता येईल.`
+              : targetLang === "te" ? `అధికారిక పత్రాలను సరిచూసుకోండి; దైవారాధన మరియు నవగ్రహ శాంతితో ఆపదలు తొలగుతాయి.`
+                : targetLang === "ta" ? `சட்ட ஆவணங்களை சரியாக வைத்திருக்கவும்; இறை வழிபாடு மற்றும் கிரக சாந்தியால் இடர்கள் விலகும்.`
+                  : `Strict compliance with statutory filings; remedial prayers mitigate acute severity.`
+      ];
+
+      turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಶ್ರಾವಣ-ಭಾದ್ರಪದ ಮಾಸಗಳು (ಕಾನೂನು ಪ್ರಕ್ರಿಯೆಗಳಲ್ಲಿ ನಿರ್ಣಾಯಕ ಜಾಗರೂಕತೆಯ ಕಾಲ).`
+        : targetLang === "hi" ? `वर्ष के श्रावण-भाद्रपद मास (विधिक मामलों में अत्यधिक सतर्कता का समय)।`
+          : targetLang === "mr" ? `वर्षातील श्रावण-भाद्रपद मास (कायदेशीर बाबींमध्ये सर्वोच्च दक्षतेचा काळ).`
+            : targetLang === "te" ? `శ్రావణ-భాద్రపద మాసాలు (చట్టపరమైన వ్యవహారాలలో అత్యంత అప్రమత్తత అవసరమైన సమయం).`
+              : targetLang === "ta" ? `ஆவணி-புரட்டாசி மாதங்கள் (சட்ட விவகாரங்களில் மிகுந்த கவனத்துடன் செயல்பட வேண்டிய காலம்).`
+                : `Mid-year monsoon transit (demanding absolute compliance with legal advisories).`;
+
+      goldenWindow = targetLang === "kn" ? `ಏಕಾಂತ ಚಿಂತನೆ, ಆಧ್ಯಾತ್ಮಿಕ ಜಪ ಹಾಗೂ ನೈತಿಕ ಶುದ್ಧೀಕರಣಕ್ಕೆ ಮೀಸಲಾದ ಕಾಲ.`
+        : targetLang === "hi" ? `एकांत चिंतन, आध्यात्मिक जप एवं आत्मसंयम हेतु उपयुक्त समय।`
+          : targetLang === "mr" ? `एकांत, नामस्मरण व आध्यात्मिक आत्मपरीक्षणासाठी अनुकूल काळ.`
+            : targetLang === "te" ? `ఏకాంత చింతన, ఆధ్యాత్మిక జపం మరియు ఆత్మపరిశీలనకు అనువైన సమయం.`
+              : targetLang === "ta" ? `தனிமை, தியானம் மற்றும் ஆன்மீக பயிற்சிகளுக்கு உகந்த காலம்.`
+                : `Strategic period for secluded reflection, meditation, and quiet ethical settlement.`;
+
+      caution = targetLang === "kn" ? `ವಿವಾದಿತ ಸಹವಾಸಗಳನ್ನು ತಕ್ಷಣ ತ್ಯಜಿಸಿ; ಕಾನೂನು ನಿಯಮಗಳನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಪಾಲಿಸಿ, ಯಾವುದೇ ಉಲ್ಲಂಘನೆ ಬೇಡ.`
+        : targetLang === "hi" ? `विवादास्पद संपर्कों से तत्काल नाता तोड़ें; विधिक मर्यादाओं का शत-प्रतिशत पालन सुनिश्चित करें।`
+          : targetLang === "mr" ? `वादग्रस्त संगती ताबडतोब सोडा; कोणत्याही परिस्थितीत कायद्याचे काटेकोर पालन करा.`
+            : targetLang === "te" ? `వివాదాస్పద స్నేహాలను వెంటనే విడనాడండి; చట్ట నిబంధనలను కచ్చితంగా పాటించండి.`
+              : targetLang === "ta" ? `சர்ச்சைக்குரிய தொடர்புகளை உடனடியாக துண்டிக்கவும்; சட்டவிதிகளை முழுமையாக பின்பற்றவும்.`
+                : `Sever ties with controversial associations; strict adherence to judicial regulations is non-negotiable.`;
+
+    } else if (isArishtaRisk) {
+      headline = targetLang === "kn" ? `${gregorianRange}: ಆರೋಗ್ಯ ಗಂಡಾಂತರ, ಅಪಘಾತ ಎಚ್ಚರಿಕೆ ಹಾಗೂ ಚಿಕಿತ್ಸಾ ಉಪಶಮನದ ವರ್ಷ`
+        : targetLang === "hi" ? `${gregorianRange}: स्वास्थ्य संकट, दुर्घटना भय एवं शल्यक्रिया/उपचार संयम का वर्ष`
+          : targetLang === "mr" ? `${gregorianRange}: आरोग्य संकट, अपघात भीती व शस्त्रक्रिया/उपचाराचे सतर्कता वर्ष`
+            : targetLang === "te" ? `${gregorianRange}: ఆరోగ్య సంక్షోభం, ప్రమాద హెచ్చరిక & చికిత్సా ఉపశమన సంవత్సరం`
+              : targetLang === "ta" ? `${gregorianRange}: தீவிர உடல்நலக் கோளாறு, விபத்து எச்சரிக்கை & சிகிச்சை ஓய்வு ஆண்டு`
+                : `${gregorianRange}: Health Crisis, Physical Vulnerability & Surgical Convalescence Year`;
+
+      whatToExpect = [
+        targetLang === "kn" ? `ವಾಹನ ಚಾಲನೆ, ಪ್ರಯಾಣ ಹಾಗೂ ಸಾಹಸ ಕ್ರೀಡೆಗಳಲ್ಲಿ ಗರಿಷ್ಠ ಮುನ್ನೆಚ್ಚರಿಕೆ ಅಗತ್ಯ.`
+          : targetLang === "hi" ? `वाहन चालन, यात्रा एवं जोखिम भरे कार्यों में अत्यधिक सावधानी अपेक्षित।`
+            : targetLang === "mr" ? `वाहन चालवताना, प्रवासात व धाडसी कृती करताना सर्वोच्च काळजी घेणे आवश्यक.`
+              : targetLang === "te" ? `వాహనం నడిపేటప్పుడు, ప్రయాణాలు మరియు సాహస క్రీడలలో అత్యంత జాగ్రత్త అవసరం.`
+                : targetLang === "ta" ? `வாகனம் ஓட்டும் போதும், பயணங்களின் போதும் அதிகபட்ச பாதுகாப்பு தேவை.`
+                  : `Paramount caution mandated in vehicular transit, high-velocity travel, and physical exertion.`,
+        targetLang === "kn" ? `ಹಠಾತ್ ಅನಾರೋಗ್ಯ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಅಥವಾ ದೀರ್ಘಕಾಲೀನ ಚಿಕಿತ್ಸೆಗೆ ಒಳಗಾಗುವ ಸಾಧ್ಯತೆ.`
+          : targetLang === "hi" ? `आकस्मिक स्वास्थ्य विकार, शल्यक्रिया अथवा दीर्घकालिक चिकित्सा की संभावना।`
+            : targetLang === "mr" ? `अचानक उद्भवणारे आजारपण, शस्त्रक्रिया अथवा प्रदीर्घ उपचारांची आवश्यकता भासू शकते.`
+              : targetLang === "te" ? `ఆకస్మిక అనారోగ్యం, శస్త్రచికిత్స లేదా దీర్ఘకాలిక చికిత్స పొందే అవకాశాలు.`
+                : targetLang === "ta" ? `திடீர் உடல்நலக்குறைவு, அறுவை சிகிச்சை அல்லது தொடர் மருத்துவ பரிசோதனைகள் ஏற்படலாம்.`
+                  : `Heightened probability of sudden physical trauma, surgical interventions, or bed rest.`,
+        targetLang === "kn" ? `ಮಹಾ ಮೃತ್ಯುಂಜಯ ಜಪ ಹಾಗೂ ಆಯುಷ್ಯ ಹೋಮಗಳಿಂದ ಗಂಡಾಂತರ ನಿವಾರಣೆ ಮತ್ತು ಪುನರುಜ್ಜೀವನ.`
+          : targetLang === "hi" ? `महामृत्युंजय अनुष्ठान एवं धन्वंतरि कृपा से संकटों का शमन एवं आरोग्य लाभ।`
+            : targetLang === "mr" ? `महामृत्युंजय जप व धन्वंतरी कृपेने अरिष्ट निवारण व आरोग्यात हळूहळू सुधारणा.`
+              : targetLang === "te" ? `మహామృత్యుంజయ జపం మరియు ఆయుష్య హోమాలతో గండాలు తొలగి సంపూర్ణ ఆరోగ్య రక్షణ.`
+                : targetLang === "ta" ? `மகா மிருத்யுஞ்சய ஜெபம் மற்றும் ஆயுஷ் ஹோமங்களால் கண்டங்கள் நீங்கி ஆரோக்கியம் கூடும்.`
+                  : `Maha Mrityunjaya japa and medical discipline ensure complete eventual rehabilitation.`
+      ];
+
+      turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಕಾರ್ತಿಕ ಅಥವಾ ಮಾರ್ಗಶಿರ ಮಾಸ (ಆರೋಗ್ಯ ಸುಧಾರಣೆಯ ಸಕಾರಾತ್ಮಕ ತಿರುವು).`
+        : targetLang === "hi" ? `वर्ष के कार्तिक अथवा मार्गशीर्ष मास (स्वास्थ्य लाभ एवं सुधार का समय)।`
+          : targetLang === "mr" ? `वर्षातील कार्तिक अथवा मार्गशीर्ष मास (आरोग्यात लक्षणीय सुधारणेचा काळ).`
+            : targetLang === "te" ? `కార్తిక లేదా మార్గశిర మాసం (ఆరోగ్యం కుదుటపడే కీలక సమయం).`
+              : targetLang === "ta" ? `கார்த்திகை அல்லது மார்கழி மாதம் (உடல்நலம் தேறி வரும் சாதகமான காலம்).`
+                : `Late autumn convalescence period (marking decisive physical healing and medical recovery).`;
+
+      goldenWindow = targetLang === "kn" ? `ವೈದ್ಯಕೀಯ ತಪಾಸಣೆ, ಪಥ್ಯ ಪಾಲನೆ ಹಾಗೂ ದೈವಿಕ ಪ್ರಾರ್ಥನೆಗಳಿಗೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತ ಸಮಯ.`
+        : targetLang === "hi" ? `नियमित स्वास्थ्य परीक्षण, सात्विक आहार एवं ईश्वरीय अनुष्ठान हेतु श्रेष्ठ काल।`
+          : targetLang === "mr" ? `आरोग्य तपासणी, पथ्यपालन व धन्वंतरी पूजेसाठी उत्तम काळ.`
+            : targetLang === "te" ? `వైద్య పరీక్షలు, ఆహార నియమాలు మరియు దైవ ప్రార్థనలకు అనువైన సమయం.`
+              : targetLang === "ta" ? `மருத்துவ பரிசோதனை, உணவு கட்டுப்பாடு மற்றும் இறை வழிபாட்டிற்கு உகந்த காலம்.`
+                : `Dedicated recovery window for regenerative therapies, disciplined diet, and medical guidance.`;
+
+      caution = targetLang === "kn" ? `ಅತಿವೇಗದ ಚಾಲನೆ ಹಾಗೂ ರಾತ್ರಿ ಪ್ರಯಾಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ತಪ್ಪಿಸಿ; ಸಣ್ಣ ಆರೋಗ್ಯ ಲಕ್ಷಣವನ್ನೂ ಕಡೆಗಣಿಸಬೇಡಿ.`
+        : targetLang === "hi" ? `तीव्र गति से वाहन चालन एवं रात्रि यात्रा से बचें; स्वास्थ्य के प्रति तनिक भी लापरवाही न बरतें।`
+          : targetLang === "mr" ? `वेगावर नियंत्रण ठेवा व रात्रीचा प्रवास टाळा; आरोग्याच्या किरकोळ तक्रारींकडेही दुर्लक्ष करू नका.`
+            : targetLang === "te" ? `అతివేగంగా వాహనం నడపడం, రాత్రి ప్రయాణాలు మానండి; చిన్న అనారోగ్యాన్ని కూడా నిర్లక్ష్యం చేయవద్దు.`
+              : targetLang === "ta" ? `அதிவேக பயணம் மற்றும் இரவு பயணங்களை தவிர்க்கவும்; சிறிய உடல் உபாதைகளையும் அலட்சியம் செய்யாதீர்கள்.`
+                : `Strictly avoid nocturnal driving and excessive speeds; treat initial medical symptoms immediately.`;
+
+    } else if (isRajaYogaPeak) {
+      headline = targetLang === "kn" ? `${gregorianRange}: ರಾಜಯೋಗೋದಯ, ಸಾರ್ವಭೌಮ ಅಧಿಕಾರ ಹಾಗೂ ಕೀರ್ತಿ ಶಿಖರದ ಸುವರ್ಣ ವರ್ಷ`
+        : targetLang === "hi" ? `${gregorianRange}: राजयोगोदय, सर्वोच्च अधिकार एवं कीर्ति के शिखर का स्वर्णिम वर्ष`
+          : targetLang === "mr" ? `${gregorianRange}: राजयोग, सर्वोच्च सत्ता व कीर्तिशिखराचे ऐतिहासिक सुवर्ण वर्ष`
+            : targetLang === "te" ? `${gregorianRange}: రాజయోగోదయం, సార్వభౌమ అధికారం & కీర్తి శిఖర స్వర్ణ సంవత్సరం`
+              : targetLang === "ta" ? `${gregorianRange}: ராஜயோக காலம், உச்சக்கட்ட அதிகாரம் & பெரும் புகழின் பொற்காலம்`
+                : `${gregorianRange}: Sovereign Raja Yoga, Apex Authority & Career Pinnacle Golden Year`;
+
+      whatToExpect = [
+        targetLang === "kn" ? `ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಸಾರ್ವಭೌಮ ಮುನ್ನಡೆ, ಉನ್ನತ ನಾಯಕತ್ವ ಅಥವಾ ಐತಿಹಾಸಿಕ ವೃತ್ತಿಪರ ಯಶಸ್ಸು.`
+          : targetLang === "hi" ? `करियर में ऐतिहासिक शिखर, सर्वोच्च नेतृत्व की प्राप्ति एवं जनमानस में अभूतपूर्व ख्याति।`
+            : targetLang === "mr" ? `करिअरमध्ये ऐतिहासिक यश, सर्वोच्च नेतृत्वाची धुरा व जनमानसात प्रचंड लोकप्रियता.`
+              : targetLang === "te" ? `కెరీర్‌లో చారిత్రాత్మక శిఖరం, అత్యున్నత నాయకత్వం మరియు ప్రజాదరణ.`
+                : targetLang === "ta" ? `தொழில் வாழ்க்கையில் வரலாற்றுச் சிறப்புமிக்க வெற்றி, உச்சக்கட்ட தலைமை மற்றும் பெரும் புகழ்.`
+                  : `Ascension to paramount vocational leadership, global accolades, and watershed professional triumphs.`,
+        targetLang === "kn" ? `ಅಪಾರ ಧನಾಗಮನ, ಪ್ರಮುಖ ಹೂಡಿಕೆಗಳ ಸಾಫಲ್ಯ ಹಾಗೂ ನೂತನ ಆಸ್ತಿಗಳ ಸಂಪಾದನೆ.`
+          : targetLang === "hi" ? `विशाल धन-समृद्धि, दीर्घकालीन निवेशों में असाधारण लाभ एवं कीमती संपत्तियों का अर्जन।`
+            : targetLang === "mr" ? `अफाट धनसंपत्ती, महत्त्वाच्या गुंतवणुकीतून भरघोस नफा व नवीन मालमत्तेची निर्मिती.`
+              : targetLang === "te" ? `అపార ధన ప్రవాహం, కీలక పెట్టుబడుల సాఫల్యం మరియు విలువైన ఆస్తుల సమకూర్పు.`
+                : targetLang === "ta" ? `அபரிமிதமான தனலாபம், முதலீடுகளில் பெரும் லாபம் மற்றும் புதிய சொத்துக்கள் சேர்க்கை.`
+                  : `Exponential wealth accumulation, high-yield asset acquisitions, and commercial expansion.`,
+        targetLang === "kn" ? `ಸಮಾಜದಲ್ಲಿ ಗೌರವ, ಪ್ರಶಸ್ತಿ-ಪುರಸ್ಕಾರಗಳು ಹಾಗೂ ಸಾರ್ವಜನಿಕವಾಗಿ ಅತ್ಯುನ್ನತ ಮನ್ನಣೆ.`
+          : targetLang === "hi" ? `समाज में सर्वोच्च मान-सम्मान, प्रतिष्ठित पुरस्कार एवं राज्य स्तर पर प्रतिष्ठा।`
+            : targetLang === "mr" ? `समाजात मोठा सन्मान, मानाचे राष्ट्रीय/आंतरराष्ट्रीय पुरस्कार व सर्वत्र कौतुक.`
+              : targetLang === "te" ? `సమాజంలో విశేష గౌరవం, ప్రతిష్టాత్మక పురస్కారాలు మరియు ఉన్నత ప్రజా గుర్తింపు.`
+                : targetLang === "ta" ? `சமூகத்தில் உச்சகட்ட கௌரவம், தேசிய/சர்வதேச விருதுகள் மற்றும் நன்மதிப்பு.`
+                  : `Universal public acclaim, apex industry honors, and lasting historical legacy.`
+      ];
+
+      turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಚೈತ್ರ-ವೈಶಾಖ ಮಾಸಗಳು (ರಾಜಯೋಗದ ಪೂರ್ಣ ಫಲ ಜಾಗೃತವಾಗುವ ಸುವರ್ಣ ಕಾಲ).`
+        : targetLang === "hi" ? `वर्ष के चैत्र-वैशाख मास (राजयोग के पूर्ण फलित होने का स्वर्णिम काल)।`
+          : targetLang === "mr" ? `वर्षातील चैत्र-वैशाख मास (राजयोग फळास येण्याचा सर्वोच्च सुवर्ण काळ).`
+            : targetLang === "te" ? `చైత్ర-వైశాఖ మాసాలు (రాజయోగ సంపూర్ణ ఫలాలు అందించే స్వర్ణ సమయం).`
+              : targetLang === "ta" ? `சித்திரை-வைகாசி மாதங்கள் (ராஜயோகம் முழுமையாக மலரும் பொற்காலம்).`
+                : `Spring equinox cycle (activating full sovereign authority, coronation, or apex title).`;
+
+      goldenWindow = targetLang === "kn" ? `ಹೊಸ ಬೃಹತ್ ಯೋಜನೆಗಳ ಚಾಲನೆ, ಚುನಾವಣಾ ಗೆಲುವು ಅಥವಾ ಮಹತ್ವದ ಒಪ್ಪಂದಗಳಿಗೆ ಪ್ರಶಸ್ತ ಕಾಲ.`
+        : targetLang === "hi" ? `नवीन वृहद् परियोजनाओं का शुभारंभ, चुनाव विजय अथवा ऐतिहासिक अनुबंधों हेतु सर्वोत्तम समय।`
+          : targetLang === "mr" ? `नवीन भव्य प्रकल्पांची सुरुवात, निवडणूक विजय अथवा ऐतिहासिक करारांसाठी सर्वोत्तम काळ.`
+            : targetLang === "te" ? `నూతన భారీ ప్రాజెక్టులు, ఎన్నికల విజయం లేదా కీలక ఒప్పందాలకు అత్యంత శుభ సమయం.`
+              : targetLang === "ta" ? `புதிய பிரம்மாண்ட திட்டங்கள் துவக்கம், தேர்தல் வெற்றி அல்லது வரலாற்று ஒப்பந்தங்களுக்கு உகந்தது.`
+                : `Supreme launchpad for monumental enterprises, major titles, or executing apex commercial contracts.`;
+
+      caution = targetLang === "kn" ? `ಯಶಸ್ಸಿನ ಅಲೆಯಲ್ಲಿ ಧರ್ಮ ಮತ್ತು ನೀತಿಯನ್ನು ಮರೆಯಬೇಡಿ; ಆಪ್ತ ಸಮಾಲೋಚಕರ ವಿವೇಕಯುತ ಮಾರ್ಗದರ್ಶನ ಪಾಲಿಸಿ.`
+        : targetLang === "hi" ? `सफलता के चरम पर भी अहंकार से बचें; गुरुजनों एवं अनुभवी सलाहकारों का मार्गदर्शन अनिवार्य रखें।`
+          : targetLang === "mr" ? `यशाच्या शिखरावर नम्रता व धर्म जपा; ज्येष्ठ मार्गदर्शकांचा आदर कायम ठेवा.`
+            : targetLang === "te" ? `విజయ గర్వాన్ని దరిచేరనీయకండి; అనుభవజ్ఞులైన పెద్దల సలహాలను పాటించండి.`
+              : targetLang === "ta" ? `வெற்றியின் உச்சத்தில் பணிவை கடைபிடிக்கவும்; அனுபவசாலிகளின் ஆலோசனைகளை கேட்கவும்.`
+                : `Temper soaring success with statesmanlike humility; honor the counsel of trusted advisors.`;
+
+    } else if (munthaHouse === 11) {
+      headline = targetLang === "kn" ? `${gregorianRange}: ಸರ್ವತೋಮುಖ ಧನಲಾಭ, ಮಹತ್ವಾಕಾಂಕ್ಷೆಗಳ ಸಿದ್ಧಿ ಹಾಗೂ ವಿಜಯೋತ್ಸವದ ವರ್ಷ`
+        : targetLang === "hi" ? `${gregorianRange}: सर्वतोन्मुख धनलाभ, महात्वाकांक्षाओं की सिद्धि एवं विजयोत्सव का वर्ष`
+          : targetLang === "mr" ? `${gregorianRange}: सर्वतोपरी धनलाभ, महत्त्वाकांक्षांची पूर्तता व विजयाचे सुवर्ण वर्ष`
+            : targetLang === "te" ? `${gregorianRange}: సర్వతోముఖ ధనలాభం, ఆశయాల సిద్ధి & విజయ విహార సంవత్సరం`
+              : targetLang === "ta" ? `${gregorianRange}: அனைத்து வழிகளிலும் தனலாபம், இலட்சிய வெற்றி & சாதனை ஆண்டு`
+                : `${gregorianRange}: Exponential Wealth Inflow, Milestone Fulfillment & Grand Triumph Year`;
+
+      whatToExpect = [
+        targetLang === "kn" ? `ವೃತ್ತಿ ಮತ್ತು ವ್ಯಾಪಾರದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಧನಾಗಮನ, ಬೋನಸ್ ಅಥವಾ ಬೃಹತ್ ಆದಾಯ ವೃದ್ಧಿ.`
+          : targetLang === "hi" ? `व्यापार अथवा नौकरी में अप्रत्याशित आर्थिक लाभ, इंसेंटिव एवं आय में तीव्र उछाल।`
+            : targetLang === "mr" ? `नोकरी व व्यवसायात अचानक मोठा धनलाभ, मोठी मिळकत व उत्पन्नात प्रचंड वाढ.`
+              : targetLang === "te" ? `వ్యాపారం లేదా ఉద్యోగంలో ఊహించని ధన లాభం మరియు భారీ ఆదాయ వృద్ధి.`
+                : targetLang === "ta" ? `தொழில் மற்றும் வர்த்தகத்தில் எதிர்பாராத தனலாபம், பெரிய அளவிலான வருமான உயர்வு.`
+                  : `Windfall capital inflow, liquidation of dormant assets, and robust cash reserves.`,
+        targetLang === "kn" ? `ದೀರ್ಘಕಾಲೀನ ಮಹತ್ವಾಕಾಂಕ್ಷೆಯ ಪ್ರಾಜೆಕ್ಟ್ ಸಾಕಾರ ಹಾಗೂ ಹಿರಿಯ ಹಿತೈಷಿಗಳಿಂದ ಬೆಂಬಲ.`
+          : targetLang === "hi" ? `दीर्घकालिक महत्वाकांक्षी योजनाओं का सफल क्रियान्वयन एवं वरिष्ठों का पूर्ण सहयोग।`
+            : targetLang === "mr" ? `दीर्घकालीन महत्त्वाकांक्षी प्रकल्पांची यशस्वी पूर्तता व वरिष्ठांचे संपूर्ण सहकार्य.`
+              : targetLang === "te" ? `దీర్ఘకాలిక ప్రాజెక్టుల సాకారం మరియు పెద్దల, ఉన్నతాధికారుల సంపూర్ణ సహకారం.`
+                : targetLang === "ta" ? `நீண்ட நாள் திட்டங்கள் வெற்றி பெறுதல் மற்றும் பெரியவர்களின் ஆதரவு.`
+                  : `Fulfillment of long-harbored enterprise goals with backing from elder patrons.`,
+        targetLang === "kn" ? `ಸಾಮಾಜಿಕ ವಲಯದಲ್ಲಿ ಹೊಸ ಪ್ರಭಾವಿ ಸಂಪರ್ಕಗಳು ಹಾಗೂ ಸಾರ್ವಜನಿಕವಾಗಿ ವಿಜಯೋತ್ಸವ.`
+          : targetLang === "hi" ? `सामाजिक वृत्त में नवीन प्रभावशाली संपर्क एवं सार्वजनिक रूप से सफलता का उत्सव।`
+            : targetLang === "mr" ? `सामाजिक वर्तुळात नवीन प्रभावी व्यक्तींशी संबंध व सर्वत्र यशाचा जल्लोष.`
+              : targetLang === "te" ? `సమాజంలో కొత్త ప్రముఖుల పరిచయాలు మరియు ప్రజా సన్మానాలు.`
+                : targetLang === "ta" ? `சமூகத்தில் புதிய செல்வாக்குமிக்க தொடர்புகள் மற்றும் பொதுவெளியில் பாராட்டு.`
+                  : `Expansion of high-influence social networks and triumphant public milestones.`
+      ];
+
+      turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಶ್ರಾವಣ ಅಥವಾ ಭಾದ್ರಪದ ಮಾಸ (ಆರ್ಥಿಕ ಮತ್ತು ಸಾಮಾಜಿಕ ಲಾಭದ ಉತ್ತುಂಗ).`
+        : targetLang === "hi" ? `वर्ष के श्रावण अथवा भाद्रपद मास (आर्थिक एवं सामाजिक लाभ का चरमोत्कर्ष)।`
+          : targetLang === "mr" ? `वर्षातील श्रावण किंवा भाद्रपद मास (आर्थिक व सामाजिक लाभाचा सर्वोत्तम काळ).`
+            : targetLang === "te" ? `శ్రావణ లేదా భాద్రపద మాసం (ఆర్థిక మరియు సామాజిక లాభాల ఉచ్ఛస్థితి).`
+              : targetLang === "ta" ? `ஆவணி அல்லது புரட்டாசி மாதம் (பொருளாதார மற்றும் சமூக லாபங்களின் உச்சக்கட்டம்).`
+                : `Late summer / early autumn cycle (unlocking peak liquidity and victory milestones).`;
+
+      goldenWindow = targetLang === "kn" ? `ದೊಡ್ಡ ಹೂಡಿಕೆ, ಷೇರು ಮಾರುಕಟ್ಟೆ ಅಥವಾ ವಿಸ್ತೃತ ವ್ಯಾಪಾರ ಒಪ್ಪಂದಗಳಿಗೆ ಸುವರ್ಣ ಕಾಲ.`
+        : targetLang === "hi" ? `वृहद् निवेश, शेयर बाजार अथवा नवीन व्यापारिक अनुबंधों हेतु स्वर्णिम काल।`
+          : targetLang === "mr" ? `मोठी गुंतवणूक, शेअर बाजार अथवा नवीन व्यापारी करारांसाठी अत्यंत शुभ काळ.`
+            : targetLang === "te" ? `భారీ పెట్టుబడులు, షేర్ మార్కెట్ లేదా కొత్త వ్యాపార ఒప్పందాలకు స్వర్ణ సమయం.`
+              : targetLang === "ta" ? `பெரும் முதலீடுகள், பங்குச் சந்தை அல்லது புதிய வர்த்தக ஒப்பந்தங்களுக்கு பொற்காலம்.`
+                : `Optimal window for major asset diversification and entering high-yield partnerships.`;
+
+      caution = targetLang === "kn" ? `ಹಣಕಾಸಿನ ಹರಿವು ಹೆಚ್ಚಾದಂತೆ ದುಂದುವೆಚ್ಚಕ್ಕೆ ಕಡಿವಾಣ ಹಾಕಿ; ಸ್ಥಿರ ಉಳಿತಾಯಕ್ಕೆ ಆದ್ಯತೆ ನೀಡಿ.`
+        : targetLang === "hi" ? `धन प्रवाह बढ़ने पर अपव्यय से बचें; सुरक्षित एवं स्थायी बचत को प्राथमिकता दें।`
+          : targetLang === "mr" ? `उत्पन्न वाढल्यावर अनावश्यक खर्च टाळा; सुरक्षित व दीर्घकालीन बचतीला प्राधान्य द्या.`
+            : targetLang === "te" ? `ధన ప్రవాహం పెరిగే కొద్దీ వృథా ఖర్చులను నియంత్రించండి; పొదుపుకు ప్రాధాన్యత ఇవ్వండి.`
+              : targetLang === "ta" ? `பணவரவு அதிகரிக்கும் போது வீண் செலவுகளை கட்டுப்படுத்தவும்; சேமிப்பிற்கு முன்னுரிமை அளிக்கவும்.`
+                : `Counter windfall inflows with disciplined fiscal reserves; avoid unchecked luxury expenditures.`;
+
+    } else if (munthaHouse === 10) {
+      headline = targetLang === "kn" ? `${gregorianRange}: ಉನ್ನತ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿ, ವೃತ್ತಿ ನಾಯಕತ್ವ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆ`
+        : targetLang === "hi" ? `${gregorianRange}: उच्च पद प्राप्ति, कार्यक्षेत्र में नेतृत्व एवं समाज में विशिष्ट सम्मान`
+          : targetLang === "mr" ? `${gregorianRange}: उच्च पद, व्यावसायिक नेतृत्व व समाजात सर्वोच्च मान-सन्मान`
+            : targetLang === "te" ? `${gregorianRange}: ఉన్నత పదవీ ప్రాప్తి, వృత్తి నాయకత్వం & సమాజంలో విశేష గుర్తింపు`
+              : targetLang === "ta" ? `${gregorianRange}: உயர் பதவி, தொழில் தலைமை & சமூகத்தில் தனித்துவ மரியாதை`
+                : `${gregorianRange}: Executive Authority, Vocational Eminence & Public Renown Year`;
+
+      whatToExpect = [
+        targetLang === "kn" ? `ಉದ್ಯೋಗದಲ್ಲಿ ಉನ್ನತ ಪ್ರಮೋಷನ್, ನಿರ್ದೇಶಕ ಅಥವಾ ನಾಯಕತ್ವದ ಹುದ್ದೆ ಅಲಂಕರಿಸುವ ಯೋಗ.`
+          : targetLang === "hi" ? `कार्यक्षेत्र में उच्च पदोन्नति, प्रबंधकीय अथवा नेतृत्व की बागडोर मिलने का योग।`
+            : targetLang === "mr" ? `नोकरीत मोठी पदोन्नती, व्यवस्थापकीय अथवा नेतृत्वपदाची धुरा सांभाळण्याचा योग.`
+              : targetLang === "te" ? `ఉద్యోగంలో ఉన్నత ప్రమోషన్, డైరెక్టర్ లేదా నాయకత్వ బాధ్యతలు చేపట్టే యోగం.`
+                : targetLang === "ta" ? `வேலையில் உயர் பதவி உயர்வு, நிர்வாக அல்லது தலைமை பொறுப்புகளை ஏற்கும் யோகம்.`
+                  : `Elevated executive promotions, board appointments, or assuming principal command.`,
+        targetLang === "kn" ? `ಸರ್ಕಾರ, ಆಡಳಿತ ಅಥವಾ ಉನ್ನತ ಅಧಿಕಾರಿಗಳಿಂದ ಮನ್ನಣೆ ಮತ್ತು ವಿಶೇಷ ಪ್ರೋತ್ಸಾಹ.`
+          : targetLang === "hi" ? `शासन, प्रशासन अथवा उच्चाधिकारियों से सम्मान एवं विशिष्ट प्रोत्साहन की प्राप्ति।`
+            : targetLang === "mr" ? `शासन, प्रशासन अथवा वरिष्ठ अधिकाऱ्यांकडून मोठा गौरव व विशेष प्रोत्साहन.`
+              : targetLang === "te" ? `ప్రభుత్వం, పాలనా యంత్రాంగం లేదా ఉన్నతాధికారుల నుండి ప్రత్యేక గుర్తింపు.`
+                : targetLang === "ta" ? `அரசு, நிர்வாகம் அல்லது உயர் அதிகாரிகளிடமிருந்து நன்மதிப்பு மற்றும் ஆதரவு.`
+                  : `Formal commendations from governing bodies and regulatory authorities.`,
+        targetLang === "kn" ? `ವೃತ್ತಿಪರ ನಿರ್ಧಾರಗಳು ಸಾರ್ವಜನಿಕವಾಗಿ ಪ್ರಶಂಸಿಸಲ್ಪಟ್ಟು ದೀರ್ಘಕಾಲೀನ ಕೀರ್ತಿ ಸ್ಥಾಪನೆ.`
+          : targetLang === "hi" ? `व्यावसायिक निर्णयों की सर्वत्र प्रशंसा एवं दीर्घकालिक ख्याति की सुदृढ़ स्थापना।`
+            : targetLang === "mr" ? `व्यावसायिक निर्णयांचे सर्वत्र कौतुक व चिरंतन कीर्तीची सुदृढ स्थापना.`
+              : targetLang === "te" ? `వృత్తిపరమైన నిర్ణయాలకు సర్వత్రా ప్రశంసలు మరియు దీర్ఘకాలిక కీర్తి ప్రతిష్టలు.`
+                : targetLang === "ta" ? `தொழில்ரீதியான முடிவுகளுக்கு பாராட்டு மற்றும் நீண்ட கால நற்பெயர் நிலைபெறுதல்.`
+                  : `Strategic leadership initiatives yield lasting industry eminence and reputational glory.`
+      ];
+
+      turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಮಾರ್ಗಶಿರ ಅಥವಾ ಪುಷ್ಯ ಮಾಸ (ಅಧಿಕಾರ ಸ್ವೀಕಾರ ಹಾಗೂ ವೃತ್ತಿ ತಿರುವು).`
+        : targetLang === "hi" ? `वर्ष के मार्गशीर्ष अथवा पौष मास (पदभार ग्रहण एवं करियर के महत्वपूर्ण मोड़ का समय)।`
+          : targetLang === "mr" ? `वर्षातील मार्गशीर्ष किंवा पौष मास (पदग्रहण व करिअरमधील निर्णायक वळण).`
+            : targetLang === "te" ? `మార్గశిర లేదా పుష్య మాసం (పదవీ స్వీకారం & వృత్తిపరమైన మలుపు).`
+              : targetLang === "ta" ? `மார்கழி அல்லது தை மாதம் (பொறுப்பேற்பு மற்றும் தொழில் திருப்பம்).`
+                : `Winter solstice period (marking assumption of key administrative responsibilities).`;
+
+      goldenWindow = targetLang === "kn" ? `ಸರ್ಕಾರಿ ಅನುಮೋದನೆಗಳು, ಮಹತ್ವದ ಕಡತಗಳ ವಿಲೇವಾರಿ ಹಾಗೂ ಹೊಸ ಉದ್ಯಮ ಆರಂಭಕ್ಕೆ ಸೂಕ್ತ ಕಾಲ.`
+        : targetLang === "hi" ? `शासकीय स्वीकृति, महत्वपूर्ण अनुबंधों एवं नवीन उपक्रम के शुभारंभ हेतु श्रेष्ठ समय।`
+          : targetLang === "mr" ? `शासकीय मंजुरी, महत्त्वाचे करार व नवीन उपक्रम सुरू करण्यासाठी अतिशय अनुकूल काळ.`
+            : targetLang === "te" ? `ప్రభుత్వ అనుమతులు, కీలక ఒప్పందాలు మరియు నూతన వ్యాపార ఆరంభానికి అనుకూలం.`
+              : targetLang === "ta" ? `அரசு அனுமதிகள், முக்கிய ஒப்பந்தங்கள் மற்றும் புதிய தொழில் துவங்க உகந்த காலம்.`
+                : `Prime window for governmental filings, administrative approvals, and flagship launches.`;
+
+      caution = targetLang === "kn" ? `ಅಧಿಕಾರದ ಮದದಿಂದ ಸಹೋದ್ಯೋಗಿಗಳನ್ನು ಕಡೆಗಣಿಸಬೇಡಿ; ಸಾರ್ವಜನಿಕ ನಡವಳಿಕೆಯಲ್ಲಿ ಸೌಮ್ಯತೆ ಇರಲಿ.`
+        : targetLang === "hi" ? `अधिकार के मद में सहयोगियों की उपेक्षा न करें; सार्वजनिक व्यवहार में विनम्रता बनाए रखें।`
+          : targetLang === "mr" ? `अधिकाराच्या प्रभावात सहकाऱ्यांशी उद्धट वागू नका; सार्वजनिक जीवनात नम्रता ठेवा.`
+            : targetLang === "te" ? `అధికార మదంతో తోటివారిని చిన్నచూపు చూడకండి; వ్యవహారంలో వినయం పాటించండి.`
+              : targetLang === "ta" ? `அதிகார கர்வத்தால் உடன் பணிபுரிபவர்களை புறக்கணிக்க வேண்டாம்; பணிவுடன் பழகவும்.`
+                : `Resist bureaucratic hubris; temper administrative power with inclusive empathy.`;
+
+    } else if (munthaHouse === 9) {
+      headline = targetLang === "kn" ? `${gregorianRange}: ಭಾಗ್ಯೋದಯ, ದೈವಾನುಗ್ರಹ, ತೀರ್ಥಯಾತ್ರೆ ಹಾಗೂ ಧರ್ಮಕಾರ್ಯಗಳ ಸಾಫಲ್ಯದ ವರ್ಷ`
+        : targetLang === "hi" ? `${gregorianRange}: भाग्योदय, ईश्वरीय कृपा, तीर्थाटन एवं धर्मकार्यों की सफलता का वर्ष`
+          : targetLang === "mr" ? `${gregorianRange}: भाग्योदय, देवकृपा, तीर्थयात्रा व धार्मिक कार्यांत मोठे यश`
+            : targetLang === "te" ? `${gregorianRange}: భాగ్యోదయం, దైవానుగ్రహం, తీర్థయాత్రలు & ధర్మకార్యాల సాఫల్య సంవత్సరం`
+              : targetLang === "ta" ? `${gregorianRange}: பாக்கியோதயம், இறையருள், புனித யாத்திரை & சுப காரியங்களின் ஆண்டு`
+                : `${gregorianRange}: Fortune Alignment, Spiritual Pilgrimage & Auspicious Grace Year`;
+
+      whatToExpect = [
+        targetLang === "kn" ? `ದೈವಾನುಗ್ರಹದಿಂದ ಅಸಾಧ್ಯ ಕಾರ್ಯಗಳೂ ಸುಲಭವಾಗಿ ಈಡೇರುವ ಭಾಗ್ಯೋದಯದ ಕಾಲ.`
+          : targetLang === "hi" ? `ईश्वरीय कृपा से असंभव कार्य भी सरलता से सिद्ध होंगे; भाग्य का पूर्ण साथ मिलेगा।`
+            : targetLang === "mr" ? `ईश्वरी कृपेने अशक्य वाटणारी कामेही सहजतेने पूर्ण होतील; भाग्याची उत्तम साथ लाभेल.`
+              : targetLang === "te" ? `దైవానుగ్రహంతో అసాధ్యమైన పనులు కూడా సులభంగా నెరవేరుతాయి; అదృష్టం వరిస్తుంది.`
+                : targetLang === "ta" ? `இறையருளால் கடினமான காரியங்களும் எளிதில் நிறைவேறும்; பாக்கிய பலன் கூடும்.`
+                  : `Unforeseen strokes of fortune dissolve obstacles, transforming arduous pursuits into effortless victories.`,
+        targetLang === "kn" ? `ಪವಿತ್ರ ಪುಣ್ಯಕ್ಷೇತ್ರಗಳ ಸಂದರ್ಶನ, ಗುರುದರ್ಶನ ಹಾಗೂ ಧಾರ್ಮಿಕ ವ್ರತ-ಅನುಷ್ಠಾನಗಳ ಸಿದ್ಧಿ.`
+          : targetLang === "hi" ? `पवित्र तीर्थस्थलों की यात्रा, गुरु दर्शन एवं आध्यात्मिक अनुष्ठानों की सफल पूर्णता।`
+            : targetLang === "mr" ? `पवित्र तीर्थक्षेत्रांची यात्रा, सद्गुरूंचे दर्शन व धार्मिक अनुष्ठानांचे सुफळ आयोजन.`
+              : targetLang === "te" ? `పుణ్యక్షేత్రాల దర్శనం, గురు దర్శనం మరియు ధార్మిక అనుష్ఠానాల సాఫల్యం.`
+                : targetLang === "ta" ? `புனித தலங்கள் தரிசனம், குருவின் ஆசி மற்றும் ஆன்மீக வழிபாடுகள் நிறைவேறுதல்.`
+                  : `Sacred pilgrimages to revered sanctuaries, receiving mentor blessings and spiritual initiation.`,
+        targetLang === "kn" ? `ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ, ಪ್ರಕಾಶನ, ಧರ್ಮ ಪ್ರಚಾರ ಅಥವಾ ಸಮಾಜ ಕಲ್ಯಾಣದಲ್ಲಿ ಸಕ್ರಿಯ ಪಾಲ್ಗೊಳ್ಳುವಿಕೆ.`
+          : targetLang === "hi" ? `उच्च शिक्षा, प्रकाशन, धर्म प्रचार अथवा समाज कल्याण में सक्रिय एवं यशस्वी सहभागिता।`
+            : targetLang === "mr" ? `उच्च शिक्षण, ग्रंथरचना, धर्मप्रसार अथवा समाजोपयोगी कार्यांत यश आणि सन्मान.`
+              : targetLang === "te" ? `ఉన్నత విద్య, ప్రచురణలు, ధర్మ ప్రచారం లేదా ప్రజా సేవలో విశేష పురోగతి.`
+                : targetLang === "ta" ? `உயர் கல்வி, ஆன்மீக நூல்கள் வெளியீடு அல்லது சமூக சேவையில் வெற்றி.`
+                  : `Scholarly publishing, higher learning, and benevolent community stewardship.`
+      ];
+
+      turningPoint = targetLang === "kn" ? `ವರ್ಷದ ವೈಶಾಖ ಅಥವಾ ಜ್ಯೇಷ್ಠ ಮಾಸ (ದೈವಿಕ ಆಶೀರ್ವಾದ ಹಾಗೂ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳ ತಿರುವು).`
+        : targetLang === "hi" ? `वर्ष के वैशाख अथवा ज्येष्ठ मास (दैवीय कृपा एवं महत्वपूर्ण निर्णयों का समय)।`
+          : targetLang === "mr" ? `वर्षातील वैशाख किंवा ज्येष्ठ मास (ईश्वरी कृपा व महत्त्वाच्या निर्णयांचे वळण).`
+            : targetLang === "te" ? `వైశాఖ లేదా జ్యేష్ఠ మాసం (దైవాశీస్సులు & కీలక నిర్ణయాల మలుపు).`
+              : targetLang === "ta" ? `வைகாசி அல்லது ஆனி மாதம் (தெய்வீக ஆசி மற்றும் முக்கிய முடிவுகள் எடுக்கும் காலம்).`
+                : `Late spring epoch (delivering auspicious mentor counsel and landmark decisions).`;
+
+      goldenWindow = targetLang === "kn" ? `ದೇವತಾ ಪ್ರತಿಷ್ಠಾಪನೆ, ಹೋಮ-ಹವನ, ಗುರು ಮಂತ್ರೋಪದೇಶ ಹಾಗೂ ಧಾರ್ಮಿಕ ಯಾತ್ರೆಗೆ ಅತ್ಯುನ್ನತ ಕಾಲ.`
+        : targetLang === "hi" ? `देव प्रतिष्ठा, यज्ञ-अनुष्ठान, गुरु दीक्षा एवं धार्मिक यात्रा हेतु सर्वोत्तम काल।`
+          : targetLang === "mr" ? `देवपूजा, होम-हवन, गुरुदीक्षा व तीर्थयात्रेसाठी अतिशय पावन काळ.`
+            : targetLang === "te" ? `దైవ ప్రతిష్ఠాపనలు, హోమ-హవనాలు, గురు దీక్ష మరియు తీర్థయాత్రలకు అత్యంత అనుకూలం.`
+              : targetLang === "ta" ? `கோயில் திருப்பணி, ஹோமம், குரு உபதேசம் மற்றும் புனித யாத்திரைகளுக்கு உகந்தது.`
+                : `Supreme window for temple visits, sacred rituals, spiritual initiations, and long-range travel.`;
+
+      caution = targetLang === "kn" ? `ಅತಿಯಾದ ಅದೃಷ್ಟದ ಭರವಸೆಯಲ್ಲಿ ಶ್ರಮವನ್ನು ಕಡೆಗಣಿಸಬೇಡಿ; ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಕಾಪಾಡಿ.`
+        : targetLang === "hi" ? `केवल भाग्य के भरोसे बैठकर कर्म की उपेक्षा न करें; कर्तव्य के प्रति निष्ठावान रहें।`
+          : targetLang === "mr" ? `केवळ नशिबावर विसंबून न राहता प्रामाणिक प्रयत्न सुरू ठेवा; कर्तव्यात कसूर करू नका.`
+            : targetLang === "te" ? `అదృష్టాన్ని మాత్రమే నమ్ముకుని శ్రమను విస్మరించకండి; కర్తవ్య నిష్ఠను కొనసాగించండి.`
+              : targetLang === "ta" ? `விதியை மட்டுமே நம்பி உழைப்பை கைவிடாதீர்கள்; கடமையை தவறாமல் ஆற்றவும்.`
+                : `Never substitute blind fatalism for diligent execution; ground fortune in disciplined work.`;
+
+    } else if (munthaHouse === 6) {
+      if (isShatruVijaya) {
+        headline = targetLang === "kn" ? `${gregorianRange}: ಶತ್ರು ಜಯ, ಚುನಾವಣಾ ವಿಜಯ ಹಾಗೂ ಕಠಿಣ ಸ್ಪರ್ಧೆಯಲ್ಲಿ ಸಾರ್ವಭೌಮ ಗೆಲುವು`
+          : targetLang === "hi" ? `${gregorianRange}: शत्रु विजय, ऐतिहासिक विजय एवं प्रतिस्पर्धा में सर्वोच्च विजय का वर्ष`
+            : targetLang === "mr" ? `${gregorianRange}: शत्रूंवर मात, ऐतिहासिक विजय व राजकीय/व्यावसायिक उत्कर्षाचे वर्ष`
+              : targetLang === "te" ? `${gregorianRange}: శత్రు జయం, ఎన్నికల విజయం & తీవ్ర పోటీలో చారిత్రాత్మక విజయ సంవత్సరం`
+                : targetLang === "ta" ? `${gregorianRange}: எதிரிகள் மீது வெற்றி, தேர்தலில் மகத்தான வெற்றி & சாதனை ஆண்டு`
+                  : `${gregorianRange}: Decisive Electoral / Rivalry Victory, Adversary Conquest & Sovereign Breakthrough Year`;
+
+        whatToExpect = [
+          targetLang === "kn" ? `ಚುನಾವಣೆ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ ಅಥವಾ ವೃತ್ತಿಪರ ಪೈಪೋಟಿಯಲ್ಲಿ ಶತ್ರುಗಳನ್ನು ಧೂಳೀಪಟ ಮಾಡಿ ಭರ್ಜರಿ ಜಯ ಸಾಧನೆ.`
+            : targetLang === "hi" ? `चुनाव, प्रतियोगी परीक्षा अथवा व्यावसायिक प्रतिस्पर्धा में विरोधियों को परास्त कर ऐतिहासिक विजय।`
+              : targetLang === "mr" ? `निवडणूक, स्पर्धा परीक्षा किंवा व्यावसायिक स्पर्धेत विरोधकांना नामोहरम करून ऐतिहासिक विजय.`
+                : targetLang === "te" ? `ఎన్నికలు, పోటీ పరీక్షలు లేదా వృత్తిపరమైన పోరులో ప్రత్యర్థులపై అఖండ చారిత్రాత్మక విజయం.`
+                  : targetLang === "ta" ? `தேர்தல், போட்டித் தேர்வுகள் அல்லது தொழிலில் எதிரிகளை முறியடித்து மகத்தான சாதனை வெற்றி.`
+                    : `Resounding triumph over adversaries in elections, litigation, or apex competitive tournaments.`,
+          targetLang === "kn" ? `ವಿರೋಧಿಗಳ ಷಡ್ಯಂತ್ರಗಳು ಧೂಳೀಪಟವಾಗಿ ನಿಮ್ಮ ಅಧಿಕಾರ ಮತ್ತು ಜನಪ್ರಿಯತೆ ಉತ್ತುಂಗಕ್ಕೆ ಏರುವುದು.`
+            : targetLang === "hi" ? `विरोधियों के षड्यंत्र विफल होंगे और आपके प्रभाव, मान-सम्मान एवं नेतृत्व में अभूतपूर्व वृद्धि होगी।`
+              : targetLang === "mr" ? `विरोधकांचे डावपेच निष्प्रभ होऊन तुमची सत्ता, प्रतिष्ठा व लोकप्रियता शिखरावर पोहोचेल.`
+                : targetLang === "te" ? `ప్రత్యర్థుల కుట్రలు భగ్నమై మీ అధికారం, కీర్తి మరియు ప్రజాదరణ ఉన్నత స్థాయికి చేరుకుంటాయి.`
+                  : targetLang === "ta" ? `எதிர்ப்பாளர்களின் சதிகள் முறியடிக்கப்பட்டு உங்கள் அதிகாரமும் செல்வாக்கும் உச்சத்தை எட்டும்.`
+                    : `Neutralization of rival machinations, elevating your vocational stature and authority to the pinnacle.`,
+          targetLang === "kn" ? `ದೀರ್ಘಕಾಲದ ವಿವಾದಗಳು ಇತ್ಯರ್ಥ, ಸಾಲಬಾಧೆಯಿಂದ ಮುಕ್ತಿ ಹಾಗೂ ಹೊಸ ಗೌರವದೊಂದಿಗೆ ಸಾರ್ವಭೌಮ ಮುನ್ನಡೆ.`
+            : targetLang === "hi" ? `दीर्घकालीन विवादों का स्थायी समाधान, ऋणमुक्ति एवं समाज में गौरवशाली नेतृत्व की स्थापना।`
+              : targetLang === "mr" ? `दीर्घकालीन वादांचा निपटारा, कर्जमुक्ती व समाजात सर्वोच्च प्रतिष्ठा संपादन.`
+                : targetLang === "te" ? `దీర్ఘకాలిక వివాదాల పరిష్కారం, రుణ విముక్తి మరియు నూతన అధికారంతో ముందుకు సాగడం.`
+                  : targetLang === "ta" ? `நீண்ட நாள் வழக்குகள் தீர்வு, கடன் சுமை குறைவு மற்றும் சமூகத்தில் புதிய கௌரவம்.`
+                    : `Total vindication in contentious disputes, debt liquidation, and ascension to commanding leadership.`
+        ];
+
+        turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಶ್ರಾವಣ-ಕಾರ್ತಿಕ ಮಾಸಗಳು (ಚುನಾವಣೆ ಅಥವಾ ಸ್ಪರ್ಧೆಯಲ್ಲಿ ಐತಿಹಾಸಿಕ ವಿಜಯದ ಘಟ್ಟ).`
+          : targetLang === "hi" ? `वर्ष के श्रावण-कार्तिक मास (चुनाव अथवा प्रतिस्पर्धा में ऐतिहासिक विजय का समय)।`
+            : targetLang === "mr" ? `वर्षातील श्रावण ते कार्तिक मास (निवडणूक किंवा स्पर्धेत ऐतिहासिक विजयाचा काळ).`
+              : targetLang === "te" ? `శ్రావణ-కార్తిక మాసాలు (ఎన్నికలు లేదా పోటీలో చారిత్రాత్మక విజయ సమయం).`
+                : targetLang === "ta" ? `ஆவணி-கார்த்திகை மாதங்கள் (தேர்தல் அல்லது போட்டியில் வரலாற்றுச் சிறப்புமிக்க வெற்றி).`
+                  : `Autumn period (delivering the decisive breakthrough in elections, rival contests, or major campaigns).`;
+
+        goldenWindow = targetLang === "kn" ? `ಸಾರ್ವಜನಿಕ ಸಮಾವೇಶ, ಪ್ರಚಾರ, ಸ್ಪರ್ಧಾತ್ಮಕ ಹೋರಾಟ ಹಾಗೂ ಅಧಿಕಾರ ಸ್ವೀಕಾರಕ್ಕೆ ಅತ್ಯಂತ ಶುಭ ಕಾಲ.`
+          : targetLang === "hi" ? `जनसभा, चुनाव अभियान, प्रतियोगी परीक्षा एवं पदभार ग्रहण हेतु सर्वोत्तम समय।`
+            : targetLang === "mr" ? `जनसंपर्क, निवडणूक प्रचार, स्पर्धा व अधिकारपद स्वीकारण्यासाठी अत्यंत शुभ काळ.`
+              : targetLang === "te" ? `ప్రజా సంపర్కం, ఎన్నికల ప్రచారం, పోటీలు మరియు పదవీ స్వీకారానికి అత్యంత శుభ సమయం.`
+                : targetLang === "ta" ? `மக்கள் சந்திப்பு, தேர்தல் பிரச்சாரம் மற்றும் புதிய பொறுப்புகளை ஏற்க மிகச் சிறந்த காலம்.`
+                  : `Supreme window for public campaigns, decisive electoral confrontations, and assuming authority.`;
+
+        caution = targetLang === "kn" ? `ಗೆಲುವಿನ ನಂತರ ಅಹಂಕಾರ ತಾಳಬೇಡಿ; ಸಾರ್ವಜನಿಕ ಹಿತಾಸಕ್ತಿ ಮತ್ತು ಕೃತಜ್ಞತಾ ಮನೋಭಾವ ಕಾಪಾಡಿಕೊಳ್ಳಿ.`
+          : targetLang === "hi" ? `विजय के उपरांत अहंकार से बचें; जनता से विनम्रता एवं कृतज्ञता का भाव बनाए रखें।`
+            : targetLang === "mr" ? `विजयानंतर अहंकार बाळगू नका; जनतेशी नम्रता व कृतज्ञतेचा भाव जपा.`
+              : targetLang === "te" ? `విజయం తర్వాత అహంకారాన్ని దరిచేరనీయకండి; ప్రజల పట్ల వినయం, కృతజ్ఞత కలిగి ఉండండి.`
+                : targetLang === "ta" ? `வெற்றிக்குப் பின் ஆணவம் கொள்ளாமல், மக்கள் மீது பணிவும் நன்றியுணர்வும் கொண்டிருங்கள்.`
+                  : `Guard against post-victory hubris; maintain humility and stewardship with supporters and the public.`;
+      } else {
+        headline = targetLang === "kn" ? `${gregorianRange}: ಕಠಿಣ ಸ್ಪರ್ಧೆ, ಶತ್ರು ಜಯ ಹಾಗೂ ದೃಢ ಸಂಕಲ್ಪದ ಪರೀಕ್ಷಾ ವರ್ಷ`
+          : targetLang === "hi" ? `${gregorianRange}: तीव्र प्रतिस्पर्धा, शत्रु विजय एवं दृढ़ संकल्प का निर्णायक वर्ष`
+            : targetLang === "mr" ? `${gregorianRange}: तीव्र स्पर्धा, शत्रूंवर मात व दृढ संकल्पाचे परीक्षा वर्ष`
+              : targetLang === "te" ? `${gregorianRange}: తీవ్ర పోటీ, శత్రు జయం & దృఢ సంకల్ప పరీక్షా సంవత్సరం`
+                : targetLang === "ta" ? `${gregorianRange}: கடுமையான போட்டி, எதிரிகள் மீது வெற்றி & உறுதிப்பாட்டின் ஆண்டு`
+                  : `${gregorianRange}: Competitive Warfare, Rivalry Resolution & Hard-Won Triumph Year`;
+
+        whatToExpect = [
+          targetLang === "kn" ? `ವೃತ್ತಿಯಲ್ಲಿ ತೀವ್ರ ಸ್ಪರ್ಧೆ, ವಿರೋಧಿಗಳ ಪೈಪೋಟಿ ಹಾಗೂ ಕಾರ್ಯಸಾಧನೆಗೆ ಶ್ರಮ ಅನಿವಾರ್ಯ.`
+            : targetLang === "hi" ? `कार्यक्षेत्र में कड़ी प्रतिस्पर्धा, विरोधियों का दबाव एवं कार्यसिद्धि हेतु निरंतर संघर्ष।`
+              : targetLang === "mr" ? `कामाच्या ठिकाणी तीव्र स्पर्धा, विरोधकांचा दबाव व यशासाठी सतत प्रयत्न.`
+                : targetLang === "te" ? `వృత్తిలో తీవ్ర పోటీ, ప్రత్యర్థుల ఒత్తిడి మరియు విజయానికి విశేష శ్రమ.`
+                  : targetLang === "ta" ? `தொழிலில் கடுமையான போட்டி, எதிர்ப்புகளை சமாளித்து உழைக்க வேண்டிய நிலை.`
+                    : `Intense vocational competition, pressure from rivals, and relentless dedication to duty.`,
+          targetLang === "kn" ? `ಹಳೆಯ ವಿವಾದಗಳು, ಸಾಲ ಅಥವಾ ಕಾನೂನು ಕಿರಿಕಿರಿಗಳನ್ನು ಮುಕ್ತಾಯಗೊಳಿಸುವ ಸದವಕಾಶ.`
+            : targetLang === "hi" ? `पुराने विवादों, ऋणों अथवा कानूनी समस्याओं के समाधान के अनुकूल अवसर।`
+              : targetLang === "mr" ? `जुने वाद, कर्ज किंवा कायदेशीर अडथळे संपवण्यासाठी अनुकूल परिस्थिती.`
+                : targetLang === "te" ? `పాత వివాదాలు, అప్పులు లేదా చట్టపరమైన సమస్యలను పరిష్కరించుకునే అవకాశం.`
+                  : targetLang === "ta" ? `பழைய தகராறுகள், கடன்கள் அல்லது வழக்குகளை முடிவுக்குக் கொண்டுவரும் வாய்ப்பு.`
+                    : `Strategic opportunity to resolve longstanding disputes, debts, and competitive litigation.`,
+          targetLang === "kn" ? `ಶ್ರದ್ಧಾಭಕ್ತಿಯಿಂದ ಶತ್ರು ನಿಗ್ರಹ ಹಾಗೂ ವರ್ಷದ ಕೊನೆಯಲ್ಲಿ ದೃಢವಾದ ಆತ್ಮವಿಶ್ವಾಸ ವೃದ್ಧಿ.`
+            : targetLang === "hi" ? `धैर्यपूर्वक शत्रुओं का पराभव एवं वर्ष के अंत में आत्मबल में वृद्धि।`
+              : targetLang === "mr" ? `संयमाने शत्रूंवर विजय व वर्षाच्या शेवटी मोठा आत्मविश्वास संपादन.`
+                : targetLang === "te" ? `ఓర్పుతో శత్రువులపై విజయం మరియు సంవత్సరాంతంలో ఆత్మవిశ్వాసం పెరుగుదల.`
+                  : targetLang === "ta" ? `பொறுமையால் எதிரிகளை வீழ்த்தி, ஆண்டின் இறுதியில் தன்னம்பிக்கை உயர்தல்.`
+                    : `Subjugation of detractors through patient perseverance, crowning with fortified self-confidence.`
+        ];
+
+        turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಶ್ರಾವಣ-ಕಾರ್ತಿಕ ಮಾಸಗಳು (ಸ್ಪರ್ಧೆಗಳಲ್ಲಿ ನಿರ್ಣಾಯಕ ಮುನ್ನಡೆ).`
+          : targetLang === "hi" ? `वर्ष के श्रावण-कार्तिक मास (प्रतिस्पर्धा में निर्णायक बढ़त का समय)।`
+            : targetLang === "mr" ? `वर्षातील श्रावण ते कार्तिक मास (स्पर्धेत निर्णायक आघाडी घेण्याचा काळ).`
+              : targetLang === "te" ? `శ్రావణ-కార్తిక మాసాలు (పోటీలలో ముందంజ వేసే కీలక సమయం).`
+                : targetLang === "ta" ? `ஆவணி-கார்த்திகை மாதங்கள் (போட்டிகளில் முன்னணி பெறும் காலம்).`
+                  : `Autumn period (turning the tide in critical disputes and securing decisive leverage).`;
+
+        goldenWindow = targetLang === "kn" ? `ಶತ್ರು ನಿಗ್ರಹ ಪೂಜೆಗಳು, ಹಳೆಯ ಸಾಲ ತೀರಿಸುವಿಕೆ ಹಾಗೂ ಕೌಶಲ ವೃದ್ಧಿಗೆ ಸೂಕ್ತ ಕಾಲ.`
+          : targetLang === "hi" ? `शत्रु शांति अनुष्ठान, ऋण मुक्ति एवं कौशल संवर्धन हेतु श्रेष्ठ समय।`
+            : targetLang === "mr" ? `शत्रू शांती, कर्जमुक्ती व नवीन कौशल्ये शिकण्यासाठी उत्तम काळ.`
+              : targetLang === "te" ? `శత్రు బాధా నివారణ, అప్పుల విముక్తి & నైపుణ్య సాధనకు అనుకూల సమయం.`
+                : targetLang === "ta" ? `எதிரிகள் தொல்லை நீங்கவும் கடன் அடைக்கவும் உகந்த காலம்.`
+                  : `Strategic window for debt liquidation, skill fortification, and legal negotiations.`;
+
+        caution = targetLang === "kn" ? `ಭಾವೋದ್ವೇಗಕ್ಕೆ ಒಳಗಾಗಿ ಅನಗತ್ಯ ವಾಗ್ವಾದಗಳಲ್ಲಿ ತೊಡಗಬೇಡಿ; ಆಪ್ತರ ಜತೆ ಸೌಹಾರ್ದತೆ ಕಾಪಾಡಿ.`
+          : targetLang === "hi" ? `भावुक होकर व्यर्थ के वाद-विवाद से बचें; सहकर्मियों से सामंजस्य रखें।`
+            : targetLang === "mr" ? `भावनिक होऊन वादात पडू नका; सहकाऱ्यांशी सलोखा राखावा.`
+              : targetLang === "te" ? `ఆవేశంలో అనవసర వాదనలకు దిగవద్దు; సహోద్యోగులతో సఖ్యత పాటించండి.`
+                : targetLang === "ta" ? `கோபத்தில் வீண் வாக்குவாதங்களில் ஈடுபட வேண்டாம்; சுமுகமாக பழகவும்.`
+                  : `Restrain impulsiveness in arguments; maintain tactical diplomacy with associates.`;
+      }
+
+    } else if (munthaHouse === 4) {
+      headline = targetLang === "kn" ? `${gregorianRange}: ಗೃಹ ನಿರ್ಮಾಣ, ಸ್ಥಳ ಬದಲಾವಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸ್ಥಿರತೆಯ ವರ್ಷ`
+        : targetLang === "hi" ? `${gregorianRange}: गृह निर्माण, स्थान परिवर्तन एवं पारिवारिक स्थिरता का वर्ष`
+          : targetLang === "mr" ? `${gregorianRange}: गृहनिर्माण, स्थानबदल व कौटुंबिक स्थैर्याचे वर्ष`
+            : targetLang === "te" ? `${gregorianRange}: గృహ నిర్మాణం, స్థాన చలనం & కుటుంబ స్థిరత్వ సంవత్సరం`
+              : targetLang === "ta" ? `${gregorianRange}: புதிய வீடு, இடமாற்றம் & குடும்ப அமைதிக்கான ஆண்டு`
+                : `${gregorianRange}: Real Estate Acquisition, Relocation & Domestic Stability Year`;
+
+      whatToExpect = [
+        targetLang === "kn" ? `ಸ್ವಂತ ಮನೆ, ಫ್ಲಾಟ್ ಅಥವಾ ಭೂಮಿ ಖರೀದಿಗೆ ಬಲವಾದ ದೈವಿಕ ಬೆಂಬಲ.`
+          : targetLang === "hi" ? `नवीन भवन, फ्लैट अथवा भूमि क्रय हेतु दैवीय अनुकूलता।`
+            : targetLang === "mr" ? `स्वतःचे घर, फ्लॅट किंवा जमीन खरेदीसाठी अत्यंत अनुकूल काळ.`
+              : targetLang === "te" ? `సొంత ఇల్లు, స్థలం లేదా భూమి కొనుగోలుకు బలమైన దైవిక సహకారం.`
+                : targetLang === "ta" ? `சொந்த வீடு, மனை அல்லது நிலம் வாங்குவதற்கு தெய்வ அனுகூலம்.`
+                  : `Strong cosmic backing for residential property acquisition, home construction, or land purchase.`,
+        targetLang === "kn" ? `ಸ್ಥಳ ಬದಲಾವಣೆ, ವಿದೇಶದಿಂದ ತವರಿಗೆ ಮರಳುವಿಕೆ ಅಥವಾ ಹೊಸ ಪರಿಸರಕ್ಕೆ ಹೊಂದಾಣಿಕೆ.`
+          : targetLang === "hi" ? `स्थान परिवर्तन, विदेश से स्वदेश वापसी अथवा नवीन परिवेश में समायोजन।`
+            : targetLang === "mr" ? `स्थानबदल, परदेशातून स्वदेशी परतणे किंवा नवीन वातावरणात स्थिरावणे.`
+              : targetLang === "te" ? `స్థాన చలనం, విదేశాల నుండి స్వదేశానికి రావడం లేదా కొత్త వాతావరణంలో స్థిరపడటం.`
+                : targetLang === "ta" ? `இடமாற்றம், வெளிநாட்டிலிருந்து திரும்புதல் அல்லது புதிய சூழலுக்கு மாறுதல்.`
+                  : `Geographical relocation, domestic homecoming, or seamless acclimation to a refreshed environment.`,
+        targetLang === "kn" ? `ತಾಯಿಯವರ ಆರೋಗ್ಯ ರಕ್ಷಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸೌಖ್ಯದಲ್ಲಿ ಗಮನಾರ್ಹ ವೃದ್ಧಿ.`
+          : targetLang === "hi" ? `माताजी के स्वास्थ्य का संरक्षण एवं पारिवारिक सुख-शांति में वृद्धि।`
+            : targetLang === "mr" ? `मातोश्रींच्या आरोग्याची काळजी व कौटुंबिक सौख्यामध्ये मोठी वाढ.`
+              : targetLang === "te" ? `తల్లిగారి ఆరోగ్య సంరక్షణ మరియు కుటుంబంలో శాంతి సౌఖ్యాలు.`
+                : targetLang === "ta" ? `தாயாரின் உடல்நலப் பாதுகாப்பு மற்றும் குடும்பத்தில் அமைதி நிலவுதல்.`
+                  : `Fortification of maternal health and elevated domestic harmony.`
+      ];
+
+      turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಮಾರ್ಗಶಿರ ಅಥವಾ ಪುಷ್ಯ ಮಾಸ (ಗೃಹಪ್ರವೇಶ ಅಥವಾ ಸ್ಥಳ ಬದಲಾವಣೆ).`
+        : targetLang === "hi" ? `वर्ष के मार्गशीर्ष अथवा पौष मास (गृह प्रवेश अथवा स्थान परिवर्तन का समय)।`
+          : targetLang === "mr" ? `वर्षातील मार्गशीर्ष किंवा पौष मास (गृहप्रवेश अथवा स्थानबदलाचा काळ).`
+            : targetLang === "te" ? `మార్గశిర లేదా పుష్య మాసం (గృహప్రవేశం లేదా స్థాన మార్పు).`
+              : targetLang === "ta" ? `மார்கழி அல்லது தை மாதம் (கிரகப்பிரவேசம் அல்லது இடமாற்றம்).`
+                : `Mid-winter cycle (favorable for housewarming celebrations or relocation).`;
+
+      goldenWindow = targetLang === "kn" ? `ವಾಹನ ಖರೀದಿ, ಒಳಾಂಗಣ ನವೀಕರಣ ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ ನೋಂದಣಿಗೆ ಶುಭ ಕಾಲ.`
+        : targetLang === "hi" ? `वाहन क्रय, गृह सज्जा एवं संपत्ति पंजीकरण हेतु श्रेष्ठ काल।`
+          : targetLang === "mr" ? `नवीन वाहन खरेदी, घराचे नूतनीकरण व दस्तनोंदणीसाठी सर्वोत्तम काळ.`
+            : targetLang === "te" ? `వాహన కొనుగోలు, ఇంటి ఆధునికీకరణ మరియు ఆస్తి రిజిస్ట్రేషన్‌కు శుభ సమయం.`
+              : targetLang === "ta" ? `வாகன சேர்க்கை, வீடு புதுப்பித்தல் மற்றும் பத்திரப் பதிவுக்கு உகந்த காலம்.`
+                : `Auspicious window for vehicle acquisitions, interior refurbishments, and title registrations.`;
+
+      caution = targetLang === "kn" ? `ಆಸ್ತಿ ದಾಖಲೆಗಳನ್ನು ನುರಿತ ಕಾನೂನು ತಜ್ಞರಿಂದ ಪರಿಶೀಲಿಸಿಯೇ ಮುಂದುವರಿಯಿರಿ.`
+        : targetLang === "hi" ? `संपत्ति के विधिक प्रपत्रों की सूक्ष्म जांच पश्चात ही अग्रसर हों।`
+          : targetLang === "mr" ? `जागेच्या कागदपत्रांची कायदेशीर तपासणी तज्ज्ञांकडून करूनच व्यवहार करा.`
+            : targetLang === "te" ? `ఆస్తి పత్రాలను అనుభవజ్ఞులైన న్యాయవాదులచే పరిశీలించిన తర్వాతే నిర్ణయం తీసుకోండి.`
+              : targetLang === "ta" ? `சொத்து ஆவணங்களை சட்ட நிபுணர்கள் மூலம் சரிபார்த்த பின்னரே இறுதி செய்யவும்.`
+                : `Perform thorough legal due diligence on title deeds before finalizing real estate transactions.`;
+
+    } else if (munthaHouse === 12) {
+      headline = targetLang === "kn" ? `${gregorianRange}: ವಿದೇಶ ಯಾನ, ಆಧ್ಯಾತ್ಮಿಕ ಏಕಾಂತ, ಧರ್ಮ ದಾನ ಹಾಗೂ ಖರ್ಚು ನಿಯಂತ್ರಣದ ವರ್ಷ`
+        : targetLang === "hi" ? `${gregorianRange}: विदेश यात्रा, आध्यात्मिक एकांत, परोपकार एवं व्यय नियंत्रण का वर्ष`
+          : targetLang === "mr" ? `${gregorianRange}: परदेश गमन, आध्यात्मिक एकांत, दानाचे पुण्य व खर्च नियोजनाचे वर्ष`
+            : targetLang === "te" ? `${gregorianRange}: విదేశీ ప్రయాణం, ఆధ్యాత్మిక ఏకాంతం & ఖర్చుల నియంత్రణ సంవత్సరం`
+              : targetLang === "ta" ? `${gregorianRange}: வெளிநாட்டு பயணம், ஆன்மீக அமைதி & செலவு கட்டுப்பாட்டின் ஆண்டு`
+                : `${gregorianRange}: Foreign Horizons, Spiritual Introspection & Expenditure Prudence Year`;
+
+      whatToExpect = [
+        targetLang === "kn" ? `ದೂರದ ವಿದೇಶ ಪ್ರಯಾಣ, ವೀಸಾ ಪ್ರಾಪ್ತಿ ಅಥವಾ ಜಾಗತಿಕ ಸಂಪರ್ಕಗಳ ವಿಸ್ತರಣೆ.`
+          : targetLang === "hi" ? `दूरस्थ विदेश यात्रा, वीजा प्राप्ति अथवा वैश्विक संपर्कों का विस्तार।`
+            : targetLang === "mr" ? `दूरवरचा परदेश प्रवास, व्हिसा प्राप्ती व आंतरराष्ट्रीय संपर्कांचा विस्तार.`
+              : targetLang === "te" ? `విదేశీ ప్రయాణాలు, వీసా లభించడం లేదా అంతర్జాతీయ పరిచయాల విస్తరణ.`
+                : targetLang === "ta" ? `வெளிநாட்டு பயணம், விசா கிடைத்தல் மற்றும் சர்வதேச தொடர்புகள்.`
+                  : `Overseas travel, long-haul migrations, visa approvals, and expanding international outreach.`,
+        targetLang === "kn" ? `ಧಾರ್ಮಿಕ ದಾನ, ಸಮಾಜ ಸೇವೆ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗೆ ಹಣ ಮತ್ತು ಸಮಯ ವಿನಿಯೋಗ.`
+          : targetLang === "hi" ? `धार्मिक दान, परोपकार एवं आध्यात्मिक साधना में धन व समय का सदुपयोग।`
+            : targetLang === "mr" ? `धार्मिक कार्य, सत्कारणी खर्च व आध्यात्मिक साधनेत मन रमणे.`
+              : targetLang === "te" ? `దానధర్మాలు, సమాజ సేవ మరియు ఆధ్యాత్మిక సాధనలో సమయం, ధనం సద్వినియోగం.`
+                : targetLang === "ta" ? `தான தர்மங்கள், ஆன்மீகப் பணிகள் மற்றும் நற்காரியங்களுக்கு செலவிடுதல்.`
+                  : `Benevolent philanthropy, charitable endowments, and devoted time dedicated to spiritual retreat.`,
+        targetLang === "kn" ? `ಆಸ್ಪತ್ರೆ, ಪ್ರಯಾಣ ಅಥವಾ ಅನಿರೀಕ್ಷಿತ ವೆಚ್ಚಗಳ ನಿಯಂತ್ರಣಕ್ಕೆ ಕಟ್ಟುನಿಟ್ಟಿನ ಆಯವ್ಯಯ ಅಗತ್ಯ.`
+          : targetLang === "hi" ? `चिकित्सा, यात्रा अथवा अप्रत्याशित व्यय पर नियंत्रण हेतु कठोर बजट आवश्यक।`
+            : targetLang === "mr" ? `वैद्यकीय खर्च, प्रवास अथवा अचानक उद्भवणाऱ्या खर्चांवर नियंत्रणासाठी योग्य नियोजन.`
+              : targetLang === "te" ? `వైద్య ఖర్చులు, ప్రయాణాలు లేదా ఊహించని ఖర్చులను నియంత్రించడానికి బడ్జెట్ అవసరం.`
+                : targetLang === "ta" ? `மருத்துவம், பயணம் அல்லது எதிர்பாராத செலவுகளை கட்டுப்படுத்த திட்டமிடல் தேவை.`
+                  : `Judicious budgetary governance required to curtail hospital, travel, or unforeseen outlays.`
+      ];
+
+      turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಮಾಘ ಅಥವಾ ಫಾಲ್ಗುಣ ಮಾಸ (ಆಧ್ಯಾತ್ಮಿಕ ಸಿದ್ಧಿ ಹಾಗೂ ವಿದೇಶ ಯೋಗ).`
+        : targetLang === "hi" ? `वर्ष के माघ अथवा फाल्गुन मास (आध्यात्मिक जागृति एवं विदेश गमन का समय)।`
+          : targetLang === "mr" ? `वर्षातील माघ किंवा फाल्गुन मास (आध्यात्मिक समाधान व परदेश प्रवासाचा काळ).`
+            : targetLang === "te" ? `మాఘ లేదా ఫాల్గుణ మాసం (ఆధ్యాత్మిక సిద్ధి & విదేశీ ప్రయాణం).`
+              : targetLang === "ta" ? `மாசி அல்லது பங்குனி மாதம் (ஆன்மீக விழிப்புணர்வு & வெளிநாட்டு பயணம்).`
+                : `Late winter period (auspicious for international departures and meditative awakenings).`;
+
+      goldenWindow = targetLang === "kn" ? `ಧ್ಯಾನ, ಯೋಗ, ಸತ್ಸಂಗ ಹಾಗೂ ತೀರ್ಥಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಏಕಾಂತ ವಾಸಕ್ಕೆ ಅತ್ಯುತ್ತಮ ಸಮಯ.`
+        : targetLang === "hi" ? `ध्यान, योग, सत्संग एवं तीर्थों में एकांत साधना हेतु श्रेष्ठतम काल।`
+          : targetLang === "mr" ? `ध्यान, योग, आत्मचिंतन व तीर्थक्षेत्री एकांतासाठी सर्वोत्तम काळ.`
+            : targetLang === "te" ? `ధ్యానం, యోగా, సత్సంగం మరియు తీర్థ క్షేత్రాలలో ఏకాంత సాధనకు అనువైన సమయం.`
+              : targetLang === "ta" ? `தியானம், யோகா மற்றும் புனித தலங்களில் ஆன்மீக அமைதிக்கு மிகச் சிறந்த காலம்.`
+                : `Dedicated window for yoga retreats, solitary meditation, and sacred ashram residencies.`;
+
+      caution = targetLang === "kn" ? `ಅನಗತ್ಯ ಸಾಲ ಮಾಡಬೇಡಿ; ಅಪರಿಚಿತ ಆನ್‌ಲೈನ್ ಹೂಡಿಕೆ ಅಥವಾ ದುಂದುವೆಚ್ಚವನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧಿಸಿ.`
+        : targetLang === "hi" ? `अनावश्यक ऋण लेने से बचें; अज्ञात ऑनलाइन योजनाओं अथवा फिजूलखर्ची पर पूर्ण रोक लगाएं।`
+          : targetLang === "mr" ? `अनावश्यक कर्ज काढू नका; अनोळखी ऑनलाइन योजना अथवा उधळपट्टीवर पूर्ण लगाम लावा.`
+            : targetLang === "te" ? `అనవసర అప్పులు చేయవద్దు; అపరిచిత ఆన్‌లైన్ పెట్టుబడులు లేదా వృథా ఖర్చులకు దూరంగా ఉండండి.`
+              : targetLang === "ta" ? `தேவையில்லாமல் கடன் வாங்க வேண்டாம்; தேவையற்ற ஆன்லைன் திட்டங்கள் அல்லது வீண் செலவுகளை தவிர்க்கவும்.`
+                : `Strictly avoid speculative online investments and unvetted loans; enforce rigorous fiscal restraint.`;
 
     } else if (ageCategory === "youth") {
       headline = targetLang === "kn" ? `${gregorianRange}: ಉನ್ನತ ವ್ಯಾಸಂಗ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ ಹಾಗೂ ವೃತ್ತಿ ಪ್ರವೇಶದ ಹಂತ`
@@ -3947,7 +4544,7 @@ export function compute5YearMasterPrediction(
       hi: `${greeting}, ${samvatsaraNative} संवत्सर के इस पावन कालखंड में (${gregorianRange}), आपकी जन्म कुंडली का ग्रहमंडल आपके जीवन में एक महत्वपूर्ण नवचेतना का संचार करने जा रहा है। इस समयावधि में ${GRAHA_6L[mahaLord]?.[targetLang] || mahaLord} महादशा एवं ${GRAHA_6L[bhuktiLord]?.[targetLang] || bhuktiLord} भुक्ति का संयुक्त प्रभाव आपके कार्यक्षेत्र, निर्णय क्षमता एवं दैनिक आजीविका को नई गति प्रदान करेगा। ताजिक पद्धति का वार्षिक मुंथा बिंदु आपके जन्म लग्न से ${formatNumber6L(munthaHouse, targetLang)}वें भाव में स्थित होकर, ${munthaTheme} को इस वर्ष के केंद्रीय लक्ष्य के रूप में स्थापित करेगा। ${shaniDeepNarration} इन सभी दिव्य ग्रह प्रभावों के समन्वय से, जब आप धैर्य एवं ईश्वर निष्ठा के साथ आगे बढ़ेंगे, तब समस्त विघ्न स्वतः शांत होकर स्थायी सफलता का मार्ग प्रशस्त होगा।`,
       te: `${greeting}, ${samvatsaraNative} సంవత్సరం (${gregorianRange}) లో, మీ జన్మ జాతకంలోని గ్రహగతులు మీ జీవితంలో సరికొత్త నూతనోత్సాహాన్ని నింపనున్నాయి. ఈ కాలంలో ${GRAHA_6L[mahaLord]?.[targetLang] || mahaLord} మహాదశ మరియు ${GRAHA_6L[bhuktiLord]?.[targetLang] || bhuktiLord} భుక్తి యొక్క ప్రభావం మీ వృత్తి, జీవన శైలి మరియు భవిష్యత్ నిర్ణయాలను నడిపిస్తుంది. తాజిక పద్ధతి ప్రకారం వార్షిక ముంథా మీ జన్మ లగ్నం నుండి ${formatNumber6L(munthaHouse, targetLang)}వ స్థానంలో సంచరిస్తూ, ${munthaTheme} మీ ముఖ్యమైన లక్ష్యంగా మార్చుతుంది. ${shaniDeepNarration} ఈ సమగ్ర గ్రహ ప్రభావాలతో మీరు దైవ విశ్వాసం మరియు దృఢ సంకల్పంతో ముందడుగు వేస్తే సకల అవరోధాలు తొలగి సంపూర్ణ విజయం లభిస్తుంది.`,
       ta: `${greeting}, ${samvatsaraNative} ஆண்டின் இந்த மங்களகரமான காலகட்டத்தில் (${gregorianRange}), உங்கள் ஜாதகத்தில் உள்ள கிரக அமைப்புகள் வாழ்க்கையில் ஒரு புதிய மாற்றத்தையும் எழுச்சியையும் ஏற்படுத்த உள்ளன. இந்த வருடத்தில் ${GRAHA_6L[mahaLord]?.[targetLang] || mahaLord} மகா தசா மற்றும் ${GRAHA_6L[bhuktiLord]?.[targetLang] || bhuktiLord} புக்தியின் தாக்கம் உங்கள் தொழில், குடும்பம் மற்றும் அன்றாட கடமைகளை வழிநடத்தும். தாஜிக முறைப்படி முந்தா உங்கள் லக்னத்திலிருந்து ${formatNumber6L(munthaHouse, targetLang)}ம் வீட்டில் சஞ்சரித்து, ${munthaTheme} உங்கள் முதன்மை நோக்கமாக அமையும். ${shaniDeepNarration} இந்த கிரக சேர்க்கைகளின் பலனால், நீங்கள் இறை நம்பிக்கையுடனும் தன்னம்பிக்கையுடனும் செயல்பட்டால் தடைகள் யாவும் விலகி நிலையான வெற்றி கிட்டும்.`,
-      en: `${greeting}, during the auspicious ${samvatsaraMeta.samvatsaraEn} Samvatsara epoch (${gregorianRange}), the celestial movements in your birth chart activate a transformative chapter in your life. Throughout this annual cycle, the overarching stewardship of the ${mahaLord} Mahadasha harmonized with the ${bhuktiLord} Bhukti governs your professional pursuits, personal vitality, and key decisions. The Tajika annual Muntha point traverses House ${munthaHouse} from your natal Lagna, establishing ${munthaTheme} as the prime energetic focus of the year. ${shaniDeepNarration} Grounded in steady devotion and focused resolve, you will convert every friction into a stepping stone for enduring success.`
+      en: `${greeting}, during the auspicious ${samvatsaraMeta.samvatsaraEn} Samvatsara epoch (${gregorianRange}), the celestial movements in your birth chart activate a transformative chapter in your life. Throughout this annual cycle, the overarching stewardship of the ${mahaLord} Mahadasha harmonized with the ${bhuktiLord} Bhukti governs your professional pursuits, personal vitality, and key decisions. The Tajika annual Muntha point traverses the ${getEnglishOrdinal(munthaHouse)} House from your natal Lagna, establishing ${munthaTheme} as the prime energetic focus of the year. ${shaniDeepNarration} Grounded in steady devotion and focused resolve, you will convert every friction into a stepping stone for enduring success.`
     }, targetLang);
 
     const yP2 = pick6({
@@ -4012,7 +4609,10 @@ export function compute5YearMasterPrediction(
       questionInquest,
       taraBala,
       vedhaAnalysis,
-      charaKarakaInfluence
+      charaKarakaInfluence,
+      isBandhanaRisk,
+      isArishtaRisk,
+      isRajaYogaPeak
     });
   }
 
