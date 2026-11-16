@@ -10,10 +10,14 @@ import {
   getHotelGPayUri,
   getHotelPaytmUri,
   verifyHotelPaymentUtr,
+  verifyHotelPaymentInstant,
+  checkHotelPaymentWebhookStatus,
+  generateHotelOrderId,
   HOTEL_PDF_PRICE_INR,
   PRIEST_UPI_ID,
   PRIEST_NAME,
   PRIEST_PHONE,
+  DEFAULT_HOTEL_FULL_NAME,
   type AntarangaLang,
   type AntarangaSecretResult,
   ANTARANGA_LANGUAGES
@@ -135,6 +139,10 @@ const ANTARANGA_UI_STRINGS: Record<
     paytmBtn: string;
     copyUpiBtn: string;
     copiedUpiBtn: string;
+    instantUnlockTitle: string;
+    instantUnlockDesc: string;
+    instantUnlockBtn: string;
+    manualUtrToggleText: string;
     utrLabel: string;
     utrPlaceholder: string;
     verifyUtrBtn: string;
@@ -153,7 +161,7 @@ const ANTARANGA_UI_STRINGS: Record<
 > = {
   kn: {
     topMantra: "॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಪ್ರಸನ್ನ ॥",
-    defaultSanctuaryTitle: "ಬಗ್ಗೋಣ ದೈವಜ್ಞ ಸನ್ನಿಧಾನ",
+    defaultSanctuaryTitle: "Pandit Palette (ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್)",
     tableLabel: "ಟೇಬಲ್",
     freeBannerBadge: "✨ ಊಟ ಮಾಡುವ ಮುನ್ನ ನಿಮ್ಮ ಮನಸ್ಸಿನ ಸತ್ಯ ತಿಳಿಯಿರಿ • ೧೦೦% ಉಚಿತ",
     heroTitle: "ಅಂತರಂಗದ ಸತ್ಯ (Dark Secret)",
@@ -196,12 +204,16 @@ const ANTARANGA_UI_STRINGS: Record<
     offerPriceText: "ಕೇವಲ ₹೩೫೦ (INR 350 Only)",
     payUnlockCta: "💳 ₹೩೫೦ ಪಾವತಿಸಿ ಸಂಪೂರ್ಣ ೫-ವರ್ಷಗಳ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
     upiSectionTitle: "📱 ₹೩೫೦ UPI ಪಾವತಿ & PDF ಅನ್‌ಲಾಕ್",
-    paymentInstructions: "ನಿಮ್ಮ ಮೊಬೈಲ್‌ನಲ್ಲಿ ನೇರವಾಗಿ ಪಾವತಿಸಲು ಕೆಳಗಿನ ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ, ಅಥವಾ ಮೇಲಿನ QR ಕೋಡ್ ಅನ್ನು PhonePe / Google Pay / Paytm ನಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
+    paymentInstructions: "ನಿಮ್ಮ ಮೊಬೈಲ್‌ನಲ್ಲಿ ನೇರವಾಗಿ ಪಾವತಿಸಲು PhonePe / GPay / Paytm ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ, ಅಥವಾ ಮೇಲಿನ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
     phonePeBtn: "PhonePe ಮೂಲಕ ₹೩೫೦ ಪಾವತಿಸಿ",
     gpayBtn: "Google Pay ಮೂಲಕ ₹೩೫೦ ಪಾವತಿಸಿ",
     paytmBtn: "Paytm / ಇತರೆ UPI ಮೂಲಕ ಪಾವತಿಸಿ",
     copyUpiBtn: "ಕಾಪಿ ಮಾಡಿ",
     copiedUpiBtn: "✓ ಕಾಪಿ ಆಯಿತು",
+    instantUnlockTitle: "⚡ PhonePe ನಲ್ಲಿ ಪಾವತಿ ಪೂರ್ಣಗೊಂಡಿದೆಯೇ?",
+    instantUnlockDesc: "೧೨-ಅಂಕಿಯ ನಂಬರ್ ಟೈಪ್ ಮಾಡುವ ಅಗತ್ಯವಿಲ್ಲ! ಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿ ತಕ್ಷಣ ನಿಮ್ಮ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.",
+    instantUnlockBtn: "✓ ಪಾವತಿಸಿದ್ದೇನೆ • ತಕ್ಷಣ ೫-ವರ್ಷಗಳ PDF ಪಡೆಯಿರಿ (1-Tap Auto Unlock)",
+    manualUtrToggleText: "ಅಥವಾ ೧೨-ಅಂಕಿಯ UTR ಸಂಖ್ಯೆ ನಮೂದಿಸಬೇಕೆ? (Manual UTR Entry)",
     utrLabel: "ಪಾವತಿ ಮಾಡಿದ ನಂತರ PhonePe / GPay ರಶೀದಿಯಲ್ಲಿರುವ ೧೨-ಅಂಕಿಯ UTR / Reference ನಂಬರ್ ಇಲ್ಲಿ ನಮೂದಿಸಿ:",
     utrPlaceholder: "ಉದಾಹರಣೆ: 432109876543 (12 Digits)",
     verifyUtrBtn: "ಖಚಿತಪಡಿಸಿ & PDF ಪಡೆಯಿರಿ",
@@ -219,7 +231,7 @@ const ANTARANGA_UI_STRINGS: Record<
   },
   en: {
     topMantra: "॥ Sri Kshetra Gokarna Mahabaleshwara Prasanna ॥",
-    defaultSanctuaryTitle: "Baggona Vedic Astrological Sanctuary",
+    defaultSanctuaryTitle: "Pandit Palette",
     tableLabel: "Table",
     freeBannerBadge: "✨ Reveal the secret truth of your soul before dining • 100% Free",
     heroTitle: "Antarangada Satya (Dark Secret of the Soul)",
@@ -262,12 +274,16 @@ const ANTARANGA_UI_STRINGS: Record<
     offerPriceText: "Only ₹350 (INR 350 Only)",
     payUnlockCta: "💳 Pay ₹350 & Unlock 5-Year Master Destiny PDF",
     upiSectionTitle: "📱 ₹350 Instant UPI Payment & PDF Unlock",
-    paymentInstructions: "Tap an app button below to pay directly on your mobile, or scan the QR code above using PhonePe / Google Pay / Paytm.",
+    paymentInstructions: "Tap PhonePe / GPay / Paytm below to pay directly on your mobile, or scan the QR code.",
     phonePeBtn: "Pay ₹350 via PhonePe",
     gpayBtn: "Pay ₹350 via Google Pay",
     paytmBtn: "Pay ₹350 via Paytm / UPI",
     copyUpiBtn: "Copy UPI ID",
     copiedUpiBtn: "✓ Copied",
+    instantUnlockTitle: "⚡ Completed payment on PhonePe / GPay?",
+    instantUnlockDesc: "No need to copy or type 12-digit UTR numbers! Tap below to instantly unlock & download your PDF.",
+    instantUnlockBtn: "✓ I Have Paid • Download 5-Year PDF (1-Tap Instant Unlock)",
+    manualUtrToggleText: "Or enter 12-digit UPI reference number manually (Optional)",
     utrLabel: "After payment, enter the 12-digit UTR / UPI Reference Number from your PhonePe / GPay receipt:",
     utrPlaceholder: "e.g., 432109876543 (12 Digits)",
     verifyUtrBtn: "Verify & Unlock PDF",
@@ -285,7 +301,7 @@ const ANTARANGA_UI_STRINGS: Record<
   },
   hi: {
     topMantra: "॥ श्री गोकर्ण महाबलेश्वर स्वामी प्रसन्न ॥",
-    defaultSanctuaryTitle: "बग्गोण दैवज्ञ सन्निधान",
+    defaultSanctuaryTitle: "पंडित पैलेट (Pandit Palette)",
     tableLabel: "टेबल",
     freeBannerBadge: "✨ भोजन से पूर्व अपने अंतर्मन का सत्य जानें • 100% निःशुल्क",
     heroTitle: "अंतरंग का सत्य (Dark Secret)",
@@ -328,12 +344,16 @@ const ANTARANGA_UI_STRINGS: Record<
     offerPriceText: "केवल ₹350 (INR 350 Only)",
     payUnlockCta: "💳 ₹350 भुगतान कर संपूर्ण 5-वर्षीय PDF डाउनलोड करें",
     upiSectionTitle: "📱 ₹350 UPI भुगतान एवं PDF अनलॉक",
-    paymentInstructions: "अपने मोबाइल से सीधे भुगतान के लिए नीचे दिए बटन पर क्लिक करें, या ऊपर दिए QR कोड को PhonePe / Google Pay / Paytm से स्कैन करें।",
+    paymentInstructions: "PhonePe / GPay / Paytm बटन पर टैप करें या ऊपर दिए QR कोड को स्कैन करें।",
     phonePeBtn: "PhonePe द्वारा ₹350 का भुगतान करें",
     gpayBtn: "Google Pay द्वारा ₹350 का भुगतान करें",
     paytmBtn: "Paytm / अन्य UPI से भुगतान करें",
     copyUpiBtn: "कॉपी करें",
     copiedUpiBtn: "✓ कॉपी हो गया",
+    instantUnlockTitle: "⚡ PhonePe पर भुगतान पूर्ण हो गया?",
+    instantUnlockDesc: "12-अंकीय UTR नंबर टाइप करने की आवश्यकता नहीं! नीचे क्लिक कर तुरंत PDF डाउनलोड करें।",
+    instantUnlockBtn: "✓ भुगतान हो गया • 5-वर्षीय PDF डाउनलोड करें (1-Tap Auto Unlock)",
+    manualUtrToggleText: "अथवा 12-अंकीय UTR संदर्भ संख्या स्वयं दर्ज करें (वैकल्पिक)",
     utrLabel: "भुगतान के उपरांत PhonePe / GPay रसीद से 12-अंकीय UTR / UPI संदर्भ संख्या यहां दर्ज करें:",
     utrPlaceholder: "उदा: 432109876543 (12 Digits)",
     verifyUtrBtn: "सत्यापित करें व PDF प्राप्त करें",
@@ -351,7 +371,7 @@ const ANTARANGA_UI_STRINGS: Record<
   },
   te: {
     topMantra: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ప్రసన్న ॥",
-    defaultSanctuaryTitle: "బగ్గోణ దైవజ్ఞ సన్నిధానం",
+    defaultSanctuaryTitle: "పండిట్ ప్యాలెట్ (Pandit Palette)",
     tableLabel: "టేబుల్",
     freeBannerBadge: "✨ భోజనానికి ముందు మీ మనస్సులోని అంతరంగ సత్యం తెలుసుకోండి • 100% ఉచితం",
     heroTitle: "అంతరంగ సత్యం (Dark Secret)",
@@ -394,12 +414,16 @@ const ANTARANGA_UI_STRINGS: Record<
     offerPriceText: "కేవలం ₹350 (INR 350 Only)",
     payUnlockCta: "💳 ₹350 చెల్లించి సంపూర్ణ 5-ఏళ్ళ PDF డౌన్‌లోడ్ చేసుకోండి",
     upiSectionTitle: "📱 ₹350 UPI చెల్లింపు & PDF అన్‌లాక్",
-    paymentInstructions: "మీ మొబైల్‌లో నేరుగా చెల్లించడానికి క్రింది బటన్ నొక్కండి, లేదా పై QR కోడ్‌ను PhonePe / GPay / Paytm ద్వారా స్కాన్ చేయండి.",
+    paymentInstructions: "PhonePe / GPay / Paytm బటన్ నొక్కండి లేదా పై QR కోడ్‌ను స్కాన్ చేయండి.",
     phonePeBtn: "PhonePe ద్వారా ₹350 చెల్లించండి",
     gpayBtn: "Google Pay ద్వారా ₹350 చెల్లించండి",
     paytmBtn: "Paytm / ఇతర UPI ద్వారా చెల్లించండి",
     copyUpiBtn: "కాపీ చేయండి",
     copiedUpiBtn: "✓ కాపీ అయింది",
+    instantUnlockTitle: "⚡ PhonePe లో చెల్లింపు పూర్తయిందా?",
+    instantUnlockDesc: "12-అంకెల సంఖ్యను టైప్ చేయాల్సిన అవసరం లేదు! క్రింద క్లిక్ చేసి వెంటనే PDF డౌన్‌లోడ్ చేసుకోండి.",
+    instantUnlockBtn: "✓ చెల్లించాను • వెంటనే 5-ఏళ్ళ PDF పొందండి (1-Tap Auto Unlock)",
+    manualUtrToggleText: "లేదా 12-అంకెల UTR నంబరును నమోదు చేయండి (ఐచ్ఛికం)",
     utrLabel: "చెల్లింపు పూర్తయిన తర్వాత PhonePe / GPay రశీదులోని 12-అంకెల UTR నంబరును ఇక్కడ నమోదు చేయండి:",
     utrPlaceholder: "ఉదా: 432109876543 (12 Digits)",
     verifyUtrBtn: "ధృవీకరించి PDF పొందండి",
@@ -417,7 +441,7 @@ const ANTARANGA_UI_STRINGS: Record<
   },
   ta: {
     topMantra: "॥ ஸ்ரீ கோகர்ணம் மகாபலேஸ்வர சுவாமி பிரசன்னம் ॥",
-    defaultSanctuaryTitle: "பக்கவணா ஜோதிட சன்னிதானம்",
+    defaultSanctuaryTitle: "பண்டிட் பேலட் (Pandit Palette)",
     tableLabel: "மேஜை",
     freeBannerBadge: "✨ உணவருந்தும் முன் உங்கள் ஆழ்மனதின் ரகசியத்தை அறியுங்கள் • 100% இலவசம்",
     heroTitle: "ஆழ்மன ரகசியம் (Dark Secret)",
@@ -460,12 +484,16 @@ const ANTARANGA_UI_STRINGS: Record<
     offerPriceText: "வெறும் ₹350 (INR 350 Only)",
     payUnlockCta: "💳 ₹350 செலுத்தி 5 ஆண்டு முழுமையான PDF-ஐ பதிவிறக்கவும்",
     upiSectionTitle: "📱 ₹350 UPI கட்டணம் & PDF திறப்பு",
-    paymentInstructions: "உங்கள் மொபைலில் நேரடியாக செலுத்த கீழே உள்ள பட்டனை அழுத்தவும், அல்லது மேலே உள்ள QR குறியீட்டை PhonePe / GPay / Paytm மூலம் ஸ்கேன் செய்யவும்.",
+    paymentInstructions: "PhonePe / GPay / Paytm பட்டனை அழுத்தவும் அல்லது மேலே உள்ள QR குறியீட்டை ஸ்கேன் செய்யவும்.",
     phonePeBtn: "PhonePe மூலம் ₹350 செலுத்தவும்",
     gpayBtn: "Google Pay மூலம் ₹350 செலுத்தவும்",
     paytmBtn: "Paytm / பிற UPI மூலம் செலுத்தவும்",
     copyUpiBtn: "நகலெடுக்க",
     copiedUpiBtn: "✓ நகலெடுக்கப்பட்டது",
+    instantUnlockTitle: "⚡ PhonePe இல் கட்டணம் செலுத்தப்பட்டதா?",
+    instantUnlockDesc: "12-இலக்க UTR எண்ணை தட்டச்சு செய்ய தேவையில்லை! உடனே PDF பதிவிறக்க கீழே கிளிக் செய்யவும்.",
+    instantUnlockBtn: "✓ செலுத்திவிட்டேன் • உடனே 5 ஆண்டு PDF பெறுக (1-Tap Auto Unlock)",
+    manualUtrToggleText: "அல்லது 12-இலக்க UTR எண்ணை உள்ளிடவும் (விருப்பத்தேர்வு)",
     utrLabel: "பணம் செலுத்திய பின் PhonePe / GPay ரசீதில் உள்ள 12-இலக்க UTR எண்ணை இங்கே உள்ளிடவும்:",
     utrPlaceholder: "உதா: 432109876543 (12 Digits)",
     verifyUtrBtn: "சரிபார்த்து PDF-ஐ பெறுக",
@@ -483,7 +511,7 @@ const ANTARANGA_UI_STRINGS: Record<
   },
   ml: {
     topMantra: "॥ ശ്രീ ഗോകർണം മഹാബലേശ്വര സ്വാമി പ്രസന്നം ॥",
-    defaultSanctuaryTitle: "ബഗ്ഗോണ ജ്യോതിഷ സന്നിധാനം",
+    defaultSanctuaryTitle: "പണ്ഡിറ്റ് പാലറ്റ് (Pandit Palette)",
     tableLabel: "മേശ",
     freeBannerBadge: "✨ ഭക്ഷണത്തിന് മുൻപ് മനസ്സിന്റെ രഹസ്യങ്ങൾ അറിയൂ • 100% സൗജന്യം",
     heroTitle: "അന്തരംഗ രഹസ്യം (Dark Secret)",
@@ -526,12 +554,16 @@ const ANTARANGA_UI_STRINGS: Record<
     offerPriceText: "വെറും ₹350 (INR 350 Only)",
     payUnlockCta: "💳 ₹350 നൽകി 5 വർഷത്തെ സമ്പൂർണ്ണ PDF ഡൗൺലോഡ് ചെയ്യൂ",
     upiSectionTitle: "📱 ₹350 UPI പേയ്‌മെന്റും PDF അൺലോക്കും",
-    paymentInstructions: "മൊബൈലിൽ നിന്ന് നേരിട്ട് പണം നൽകാൻ താഴെയുള്ള ബട്ടൺ ക്ലിക്ക് ചെയ്യുക, അല്ലെങ്കിൽ മുകളിലെ QR കോഡ് PhonePe / GPay / Paytm വഴി സ്കാൻ ചെയ്യുക.",
+    paymentInstructions: "PhonePe / GPay / Paytm ബട്ടൺ ക്ലിക്ക് ചെയ്യുക അല്ലെങ്കിൽ മുകളിലെ QR കോഡ് സ്കാൻ ചെയ്യുക.",
     phonePeBtn: "PhonePe വഴി ₹350 നൽകുക",
     gpayBtn: "Google Pay വഴി ₹350 നൽകുക",
     paytmBtn: "Paytm / മറ്റ് UPI വഴി നൽകുക",
     copyUpiBtn: "കോപ്പി ചെയ്യുക",
     copiedUpiBtn: "✓ കോപ്പി ചെയ്തു",
+    instantUnlockTitle: "⚡ PhonePe-ൽ പേയ്‌മെന്റ് പൂർത്തിയായി കഴിഞ്ഞോ?",
+    instantUnlockDesc: "12 അക്ക നമ്പർ ടൈപ്പ് ചെയ്യേണ്ട ആവശ്യമില്ല! ഉടൻ PDF ഡൗൺലോഡ് ചെയ്യാൻ താഴെ ക്ലിക്ക് ചെയ്യുക.",
+    instantUnlockBtn: "✓ പണം നൽകി • ഉടൻ 5 വർഷത്തെ PDF നേടൂ (1-Tap Auto Unlock)",
+    manualUtrToggleText: "അല്ലെങ്കിൽ 12 അക്ക UTR നമ്പർ നൽകുക (ഐച്ഛികം)",
     utrLabel: "പണം നൽകിയ ശേഷം PhonePe / GPay രസീതിലുള്ള 12 അക്ക UTR നമ്പർ ഇവിടെ നൽകുക:",
     utrPlaceholder: "ഉദാ: 432109876543 (12 Digits)",
     verifyUtrBtn: "സ്ഥിരീകരിച്ച് PDF നേടൂ",
@@ -549,7 +581,7 @@ const ANTARANGA_UI_STRINGS: Record<
   },
   mr: {
     topMantra: "॥ श्री गोकर्ण महाबळेश्वर स्वामी प्रसन्न ॥",
-    defaultSanctuaryTitle: "बग्गोण दैवज्ञ सन्निधान",
+    defaultSanctuaryTitle: "पंडित पॅलेट (Pandit Palette)",
     tableLabel: "टेबल",
     freeBannerBadge: "✨ जेवणापूर्वी आपल्या अंतर्मनातील गूढ सत्य जाणून घ्या • १००% मोफत",
     heroTitle: "अंतर्मनातील गूढ सत्य (Dark Secret)",
@@ -592,12 +624,16 @@ const ANTARANGA_UI_STRINGS: Record<
     offerPriceText: "फक्त ₹३५० (INR 350 Only)",
     payUnlockCta: "💳 ₹३५० भरून संपूर्ण ५-वर्षांची PDF डाउनलोड करा",
     upiSectionTitle: "📱 ₹३५० UPI पेमेंट आणि PDF अनलॉक",
-    paymentInstructions: "आपल्या मोबाईलवरून थेट पेमेंट करण्यासाठी खालील बटण दाबा, किंवा वरील QR कोड PhonePe / Google Pay / Paytm द्वारे स्कॅन करा.",
+    paymentInstructions: "PhonePe / GPay / Paytm बटण दाबा किंवा वरील QR कोड स्कॅन करा.",
     phonePeBtn: "PhonePe द्वारे ₹३५० भरा",
     gpayBtn: "Google Pay द्वारे ₹३५० भरा",
     paytmBtn: "Paytm / इतर UPI द्वारे भरा",
     copyUpiBtn: "कॉपी करा",
     copiedUpiBtn: "✓ कॉपी झाले",
+    instantUnlockTitle: "⚡ PhonePe वर पेमेंट पूर्ण झाले का?",
+    instantUnlockDesc: "१२-अंकी नंबर टाईप करण्याची गरज नाही! खाली क्लिक करून त्वरित PDF डाउनलोड करा.",
+    instantUnlockBtn: "✓ पेमेंट केले • ५-वर्षांची PDF डाउनलोड करा (1-Tap Auto Unlock)",
+    manualUtrToggleText: "किंवा १२-अंकी UTR संदर्भ क्रमांक स्वतः टाका (पर्यायी)",
     utrLabel: "पेमेंट केल्यानंतर PhonePe / GPay पावतीवरील १२-अंकी UTR / संदर्भ क्रमांक येथे टाका:",
     utrPlaceholder: "उदा: 432109876543 (12 Digits)",
     verifyUtrBtn: "पडताळणी करा आणि PDF मिळवा",
@@ -607,7 +643,7 @@ const ANTARANGA_UI_STRINGS: Record<
     downloadIPhoneBtn: "📥 iPhone / मोबाईलवर PDF डाउनलोड करा (Save to Files)",
     viewPdfBtn: "👁️ PDF पहा (Open in New Tab)",
     iphoneSafariTip: "iPhone Safari वापरकर्ते: वरील बटण दाबताच PDF उघडेल. खालील Share चिन्हावर टॅप करून 'Save to Files' किंवा 'Books' मध्ये सेव्ह करू शकता.",
-    footerSanctum: "॥ श्री क्षेत्र गोकर्ण महाबळेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष ॥",
+    footerSanctum: "॥ श्री क्षेत्र गोकर्ण महाबळेश्वर सन्निधान · बग्गोಣ पंचांग ज्योतिष ॥",
     footerContact: `मदत किंवा पूजा संकल्पासाठी संपर्क साधा: ${PRIEST_NAME} (${PRIEST_PHONE})`,
     nameRequiredError: "कृपया आपले पूर्ण नाव प्रविष्ट करा.",
     cityNotFoundError: "ठिकाण सापडले नाही. कृपया जवळचे शहर किंवा पिनकोड प्रविष्ट करा.",
@@ -666,12 +702,21 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const [tableNumber, setTableNumber] = useState<string>("");
   const [hotelName, setHotelName] = useState<string>("");
 
+  // Unique Order Session ID for Instant 1-Tap & Webhook verification
+  const [activeOrderId, setActiveOrderId] = useState<string>(() => generateHotelOrderId("1"));
+  const [hasClickedPaymentApp, setHasClickedPaymentApp] = useState<boolean>(false);
+  const [returnedFromPaymentApp, setReturnedFromPaymentApp] = useState<boolean>(false);
+  const [showManualUtrInput, setShowManualUtrInput] = useState<boolean>(false);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const t = params.get("table") || params.get("t") || "";
       const h = params.get("hotel") || params.get("h") || "";
-      if (t) setTableNumber(t);
+      if (t) {
+        setTableNumber(t);
+        setActiveOrderId(generateHotelOrderId(t));
+      }
       if (h) setHotelName(h);
     }
   }, []);
@@ -715,9 +760,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const [lastGeneratedPdfUrl, setLastGeneratedPdfUrl] = useState<string | null>(null);
   const fiveYearPdfRef = useRef<HTMLDivElement>(null);
 
-  // Generate UPI QR Code on Mount
+  // Generate UPI QR Code with active order session
   useEffect(() => {
-    const upiUri = getHotelPaymentUpiUri(HOTEL_PDF_PRICE_INR);
+    const upiUri = getHotelPaymentUpiUri(HOTEL_PDF_PRICE_INR, activeOrderId);
     QRCode.toDataURL(upiUri, {
       width: 280,
       margin: 1,
@@ -725,7 +770,52 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     })
       .then((url) => setPaymentQrDataUrl(url))
       .catch((err) => console.warn("Payment QR error:", err));
-  }, []);
+  }, [activeOrderId]);
+
+  // App-Switch detection: Listen for user returning from PhonePe / GPay / Paytm
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && hasClickedPaymentApp && !isPaymentVerified) {
+        setReturnedFromPaymentApp(true);
+      }
+    };
+    const handleWindowFocus = () => {
+      if (hasClickedPaymentApp && !isPaymentVerified) {
+        setReturnedFromPaymentApp(true);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleWindowFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleWindowFocus);
+    };
+  }, [hasClickedPaymentApp, isPaymentVerified]);
+
+  // Automated Webhook Polling: If PhonePe webhook notifies server, auto-unlock without any user click!
+  useEffect(() => {
+    if (!showPaymentSection || isPaymentVerified || !activeOrderId) return;
+
+    const intervalId = setInterval(async () => {
+      try {
+        const isPaid = await checkHotelPaymentWebhookStatus(activeOrderId);
+        if (isPaid) {
+          clearInterval(intervalId);
+          setIsPaymentVerified(true);
+          setVerifiedTxnId(`TXN_WEBHOOK_${activeOrderId}`);
+          setTimeout(() => {
+            void handleDownloadPremiumPdf();
+          }, 300);
+        }
+      } catch {
+        // Silently continue polling
+      }
+    }, 2500);
+
+    return () => clearInterval(intervalId);
+  }, [showPaymentSection, isPaymentVerified, activeOrderId]);
 
   // Quick City Selection
   const handleSelectQuickCity = (city: { name: string; lat: number; lng: number }) => {
@@ -855,8 +945,40 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   }, [selectedLang]);
 
-  // Payment Verification Handler
-  const handleVerifyPayment = async () => {
+  // Frictionless 1-Tap Auto-Verification (No UTR typing needed!)
+  const handleInstant1TapVerification = async () => {
+    setIsVerifyingPayment(true);
+    setPaymentError(null);
+
+    try {
+      const res = await verifyHotelPaymentInstant(
+        activeOrderId,
+        devoteeName || "Hotel Devotee",
+        HOTEL_PDF_PRICE_INR,
+        selectedLang
+      );
+
+      if (!res.success) {
+        setPaymentError(res.message);
+        return;
+      }
+
+      setIsPaymentVerified(true);
+      setVerifiedTxnId(res.transactionId || `TXN_${activeOrderId}`);
+
+      // Auto-trigger PDF generation immediately
+      setTimeout(() => {
+        void handleDownloadPremiumPdf();
+      }, 300);
+    } catch (err: any) {
+      setPaymentError(err?.message || "Payment verification failed.");
+    } finally {
+      setIsVerifyingPayment(false);
+    }
+  };
+
+  // Optional Manual UTR Payment Verification Handler
+  const handleVerifyManualPayment = async () => {
     if (!enteredUtr.trim()) {
       setPaymentError(
         selectedLang === "kn"
@@ -1289,7 +1411,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               </div>
             </div>
 
-            {/* ── STEP 4: UPI Payment & 12-Digit UTR Verification Section ── */}
+            {/* ── STEP 4: UPI Payment & Instant Frictionless Verification Section ── */}
             {showPaymentSection && (
               <div
                 id="hotel-payment-box"
@@ -1335,22 +1457,25 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     {/* Mobile 1-Tap Deep Link Buttons (iPhone / Android) */}
                     <div className="space-y-2">
                       <a
-                        href={getHotelPhonePeUri(HOTEL_PDF_PRICE_INR)}
-                        className="w-full py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center justify-center gap-2 shadow"
+                        href={getHotelPhonePeUri(HOTEL_PDF_PRICE_INR, activeOrderId)}
+                        onClick={() => setHasClickedPaymentApp(true)}
+                        className="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center justify-center gap-2 shadow"
                       >
                         <span>🟣</span>
                         <span>{ui.phonePeBtn}</span>
                       </a>
                       <a
-                        href={getHotelGPayUri(HOTEL_PDF_PRICE_INR)}
-                        className="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center justify-center gap-2 shadow"
+                        href={getHotelGPayUri(HOTEL_PDF_PRICE_INR, activeOrderId)}
+                        onClick={() => setHasClickedPaymentApp(true)}
+                        className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center justify-center gap-2 shadow"
                       >
                         <span>🔵</span>
                         <span>{ui.gpayBtn}</span>
                       </a>
                       <a
-                        href={getHotelPaytmUri(HOTEL_PDF_PRICE_INR)}
-                        className="w-full py-2 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold flex items-center justify-center gap-2 shadow"
+                        href={getHotelPaytmUri(HOTEL_PDF_PRICE_INR, activeOrderId)}
+                        onClick={() => setHasClickedPaymentApp(true)}
+                        className="w-full py-2.5 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold flex items-center justify-center gap-2 shadow"
                       >
                         <span>💠</span>
                         <span>{ui.paytmBtn}</span>
@@ -1375,63 +1500,111 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   </div>
                 </div>
 
-                {/* ── UTR Verification Input ── */}
-                <div className="pt-2 border-t border-amber-500/20 space-y-2">
-                  <label className="block text-xs font-bold text-amber-300">
-                    {ui.utrLabel}
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="text"
-                      maxLength={22}
-                      value={enteredUtr}
-                      onChange={(e) => {
-                        setEnteredUtr(e.target.value);
-                        setPaymentError(null);
-                      }}
-                      placeholder={ui.utrPlaceholder}
-                      className="flex-1 bg-slate-950 border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder-slate-600 font-mono tracking-wider focus:outline-none focus:border-amber-400"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => void handleVerifyPayment()}
-                      disabled={isVerifyingPayment || isPaymentVerified}
-                      className="py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow flex items-center justify-center gap-1.5 transition disabled:opacity-50"
-                    >
-                      {isVerifyingPayment ? (
-                        <span>{ui.verifyingUtrBtn}</span>
-                      ) : isPaymentVerified ? (
-                        <span>{ui.verifiedUtrBtn}</span>
-                      ) : (
-                        <span>{ui.verifyUtrBtn}</span>
-                      )}
-                    </button>
+                {/* ── 1-TAP FRICTIONLESS AUTO-VERIFICATION (No UTR typing needed!) ── */}
+                <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 border-2 border-amber-400 space-y-2 text-center shadow-lg">
+                  <div className="text-amber-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                    <span>⚡</span>
+                    <span>{ui.instantUnlockTitle}</span>
                   </div>
-
-                  {/* Payment Error */}
-                  {paymentError && (
-                    <div className="p-2.5 rounded-xl bg-red-950/60 border border-red-500/50 text-red-300 text-xs">
-                      {paymentError}
-                    </div>
-                  )}
-
-                  {/* Payment Success Confirmation */}
-                  {isPaymentVerified && (
-                    <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs space-y-1">
-                      <div className="font-bold flex items-center gap-1.5">
+                  <p className="text-[11px] sm:text-xs text-slate-300 max-w-md mx-auto">
+                    {ui.instantUnlockDesc}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void handleInstant1TapVerification()}
+                    disabled={isVerifyingPayment || isPaymentVerified}
+                    className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.99] transition flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isVerifyingPayment ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        <span>{ui.verifyingUtrBtn}</span>
+                      </>
+                    ) : isPaymentVerified ? (
+                      <span>{ui.verifiedUtrBtn}</span>
+                    ) : (
+                      <>
                         <span>✓</span>
-                        <span>
-                          {selectedLang === "kn"
-                            ? `₹೩೫೦ ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! (Txn ID: ${verifiedTxnId})`
-                            : `₹350 Payment verified successfully! (Txn ID: ${verifiedTxnId})`}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-emerald-200/90">
-                        {PDF_STAGES[selectedLang]?.s1 || PDF_STAGES.en.s1}
-                      </p>
-                    </div>
-                  )}
+                        <span>{ui.instantUnlockBtn}</span>
+                      </>
+                    )}
+                  </button>
                 </div>
+
+                {/* Optional Toggle for Manual UTR Entry */}
+                <div className="pt-1 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowManualUtrInput(!showManualUtrInput)}
+                    className="text-[11px] text-amber-400/80 hover:text-amber-300 hover:underline flex items-center justify-center gap-1 mx-auto"
+                  >
+                    <span>{showManualUtrInput ? "▲" : "▼"}</span>
+                    <span>{ui.manualUtrToggleText}</span>
+                  </button>
+                </div>
+
+                {/* ── Optional Manual UTR Input ── */}
+                {showManualUtrInput && (
+                  <div className="pt-2 border-t border-amber-500/20 space-y-2 animate-in fade-in">
+                    <label className="block text-xs font-bold text-amber-300">
+                      {ui.utrLabel}
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        maxLength={22}
+                        value={enteredUtr}
+                        onChange={(e) => {
+                          setEnteredUtr(e.target.value);
+                          setPaymentError(null);
+                        }}
+                        placeholder={ui.utrPlaceholder}
+                        className="flex-1 bg-slate-950 border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder-slate-600 font-mono tracking-wider focus:outline-none focus:border-amber-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void handleVerifyManualPayment()}
+                        disabled={isVerifyingPayment || isPaymentVerified}
+                        className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-black text-xs sm:text-sm tracking-wide shadow flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                      >
+                        {isVerifyingPayment ? (
+                          <span>{ui.verifyingUtrBtn}</span>
+                        ) : isPaymentVerified ? (
+                          <span>{ui.verifiedUtrBtn}</span>
+                        ) : (
+                          <span>{ui.verifyUtrBtn}</span>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Payment Error */}
+                {paymentError && (
+                  <div className="p-2.5 rounded-xl bg-red-950/60 border border-red-500/50 text-red-300 text-xs">
+                    {paymentError}
+                  </div>
+                )}
+
+                {/* Payment Success Confirmation */}
+                {isPaymentVerified && (
+                  <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs space-y-1">
+                    <div className="font-bold flex items-center gap-1.5">
+                      <span>✓</span>
+                      <span>
+                        {selectedLang === "kn"
+                          ? `₹೩೫೦ ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! (Txn ID: ${verifiedTxnId})`
+                          : `₹350 Payment verified successfully! (Txn ID: ${verifiedTxnId})`}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-emerald-200/90">
+                      {PDF_STAGES[selectedLang]?.s1 || PDF_STAGES.en.s1}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

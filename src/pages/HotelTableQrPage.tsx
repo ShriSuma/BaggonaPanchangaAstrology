@@ -16,8 +16,8 @@ export default function HotelTableQrPage(): JSX.Element {
   const setAppPage = useAppStore((s) => s.setPage);
 
   // Configuration State
-  const [hotelName, setHotelName] = useState("ಶ್ರೀ ಕೃಷ್ಣ ಭವನ (Hotel Sri Krishna)");
-  const [hotelTagline, setHotelTagline] = useState("ಶುದ್ಧ ಸಸ್ಯಾಹಾರಿ ಉಪಹಾರ & ಭೋಜನ ಗೃಹ");
+  const [hotelName, setHotelName] = useState("Pandit Palette (ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್)");
+  const [hotelTagline, setHotelTagline] = useState("ಅತ್ಯುತ್ತಮ ಉಪಹಾರ & ಸಸ್ಯಾಹಾರಿ ಭೋಜನ ಮಂದಿರ (Fine Dining Restaurant)");
   const [generationMode, setGenerationMode] = useState<"single" | "batch">("batch");
   const [singleTableNumber, setSingleTableNumber] = useState<string>("1");
   const [batchStart, setBatchStart] = useState<number>(1);

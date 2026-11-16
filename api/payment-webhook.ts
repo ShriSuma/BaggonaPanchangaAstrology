@@ -35,8 +35,23 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  // Allow GET for webhook healthcheck
+  // Allow GET for webhook healthcheck or checking order status
   if (req.method === "GET") {
+    try {
+      const url = new URL(req.url || "", "http://localhost");
+      const orderId = url.searchParams.get("orderId") || url.searchParams.get("order_id");
+      if (orderId && webhookProcessedTxs.has(orderId.trim().toUpperCase())) {
+        return sendResponse(res, 200, {
+          status: "PAID",
+          orderId,
+          verified: true,
+          engine: "Baggona Panchanga Instant Payment Webhook Engine",
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch {
+      // Fall through to healthcheck
+    }
     return sendResponse(res, 200, {
       status: "active",
       engine: "Baggona Panchanga Instant Payment Webhook Engine",
@@ -117,6 +132,9 @@ export default async function handler(req: any, res: any) {
     }
 
     const cleanUtr = (utr || txId || `TX_${Date.now()}`).trim().replace(/[^a-zA-Z0-9]/g, "");
+    if (body.orderId) {
+      webhookProcessedTxs.add(String(body.orderId).trim().toUpperCase());
+    }
     if (webhookProcessedTxs.has(cleanUtr.toUpperCase())) {
       console.log(`[API /api/payment-webhook] Webhook UTR duplicate (${cleanUtr}), skipping.`);
       return sendResponse(res, 200, { received: true, alreadyProcessed: true });
