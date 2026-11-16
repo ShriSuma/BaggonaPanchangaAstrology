@@ -7,7 +7,9 @@ import {
   computeDevoteeKundli,
   generateConsultationAnswer,
   buildDeterministicAbroadSettlementReading,
-  detectAndResolveUltaPaltaProbe
+  detectAndResolveUltaPaltaProbe,
+  detectFamilyMemberSeparateBirthDataRequest,
+  getDeterministicSeparatePersonNoticeReply
 } from "../features/consultation/consultationAIEngine";
 import {
   CONSULTATION_CHAT_UI_I18N,
@@ -250,6 +252,73 @@ describe("Consultation Multilingual Purity and 1-Person 1-Link Isolation Audit",
           expect(/[\u0C80-\u0CFF]/.test(ui.savePrintBtn)).toBe(false);
         }
       }
+    });
+
+    it("should accurately detect separate person birth details while passing normal family questions", () => {
+      // Questions providing separate person's birth details must trigger
+      expect(detectFamilyMemberSeparateBirthDataRequest("My husband DOB is 15-08-1988, please check his career")).toBe(true);
+      expect(detectFamilyMemberSeparateBirthDataRequest("Please check my son's horoscope born on 12/04/2012 at 10:30 AM")).toBe(true);
+      expect(detectFamilyMemberSeparateBirthDataRequest("Check horoscope for daughter born in 2015")).toBe(true);
+      expect(detectFamilyMemberSeparateBirthDataRequest("ಗಂಡನ ಹುಟ್ಟಿದ ದಿನಾಂಕ 15-08-1988, ಜಾತಕ ನೋಡಿ")).toBe(true);
+      expect(detectFamilyMemberSeparateBirthDataRequest("ಮಗನ ಜಾತಕ ನೋಡಿ: 2010")).toBe(true);
+
+      // Normal questions about family from the devotee's perspective MUST NOT trigger
+      expect(detectFamilyMemberSeparateBirthDataRequest("When will my son get married?")).toBe(false);
+      expect(detectFamilyMemberSeparateBirthDataRequest("Will my husband get a job promotion?")).toBe(false);
+      expect(detectFamilyMemberSeparateBirthDataRequest("How is my family peace and prosperity?")).toBe(false);
+      expect(detectFamilyMemberSeparateBirthDataRequest("Do I have Santhana yoga for children?")).toBe(false);
+    });
+
+    it("should return pure script and Chief Priest contact across all 7 languages for separate person notice reply", () => {
+      for (const lang of ALL_LANGUAGES) {
+        const session: ConsultationSession = {
+          ...mockSessionBase,
+          language: lang,
+          name: "Ramesh Sharma"
+        };
+        const reply = getDeterministicSeparatePersonNoticeReply(session);
+        expect(reply).toBeTruthy();
+        expect(reply).toContain("9972339362");
+        expect(reply).toContain("Ramesh Sharma");
+
+        if (lang !== "kn") {
+          const hasKannada = /[\u0C80-\u0CFF]/.test(reply);
+          expect(hasKannada, `Found Kannada leakage in ${lang} separate person notice: ${reply}`).toBe(false);
+        }
+
+        if (lang === "hi" || lang === "mr") {
+          expect(/[\u0900-\u097F]/.test(reply)).toBe(true);
+        } else if (lang === "te") {
+          expect(/[\u0C00-\u0C7F]/.test(reply)).toBe(true);
+        } else if (lang === "ta") {
+          expect(/[\u0B80-\u0BFF]/.test(reply)).toBe(true);
+        } else if (lang === "ml") {
+          expect(/[\u0D00-\u0D7F]/.test(reply)).toBe(true);
+        }
+      }
+    });
+
+    it("should verify ConsultationChatPage source code has ZERO menu options or app navigation links", async () => {
+      const fs = await import("fs");
+      const path = await import("path");
+      const chatPageSource = fs.readFileSync(
+        path.resolve(__dirname, "../features/consultation/ConsultationChatPage.tsx"),
+        "utf-8"
+      );
+
+      // Verify no navigation handlers exist
+      expect(chatPageSource).not.toContain("handleGoToKundli");
+      expect(chatPageSource).not.toContain("handleGoToGenerator");
+      expect(chatPageSource).not.toContain("handleGoHome");
+      expect(chatPageSource).not.toContain("setPage");
+
+      // Verify no super admin top navigation headers exist
+      expect(chatPageSource).not.toContain("w-full bg-slate-950 border-b border-amber-500/30");
+
+      // Verify no general exit buttons exist
+      expect(chatPageSource).not.toContain("Back to Kundali");
+      expect(chatPageSource).not.toContain("Go to Home");
+      expect(chatPageSource).not.toContain("ಮುಖಪುಟಕ್ಕೆ");
     });
   });
 });

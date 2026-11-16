@@ -920,6 +920,7 @@ export type QuestionComplexity = "QUICK_SPECIFIC" | "FOCUSED_MODERATE" | "COMPRE
 
 export type SpecificDomain =
   | "SECURITY_PROBE_BLOCKED"
+  | "FAMILY_MEMBER_SEPARATE_LINK"
   | "ABROAD_SETTLEMENT"
   | "PROPERTY_ASSET"
   | "GOVERNMENT_JOB"
@@ -975,6 +976,18 @@ export function analyzeQuestionComplexity(
       minParagraphs: 1,
       maxParagraphs: 1,
       promptDirective: "SECURITY_PROBE_BLOCKED"
+    };
+  }
+
+  // 0a. Separate Family Member Birth Data Request Interception
+  if (detectFamilyMemberSeparateBirthDataRequest(q)) {
+    return {
+      complexity: "FOCUSED_MODERATE",
+      domain: "FAMILY_MEMBER_SEPARATE_LINK",
+      targetParagraphs: 2,
+      minParagraphs: 2,
+      maxParagraphs: 2,
+      promptDirective: "FAMILY_MEMBER_SEPARATE_LINK"
     };
   }
 
@@ -1617,6 +1630,77 @@ export function getDeterministicSecurityBlockedReply(lang: ConsultationLanguage 
     default:
       return deduplicateResponseText(
         `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಮಕ್ಕಳೇ, ಇದು ಬಗ್ಗೋಣ ಪವಿತ್ರ ದೈವಜ್ಞ ಸನ್ನಿಧಿ ಹಾಗೂ ಆಚಾರ್ಯರ ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ ವೇದಿಕೆಯಾಗಿದೆ. ಇಲ್ಲಿ ಕೇವಲ ಭಕ್ತರ ಶುದ್ಧ ಜಾತಕ, ಗ್ರಹಗತಿ, ಧಾರ್ಮಿಕ ಪರಿಹಾರಗಳು ಹಾಗೂ ಸಂಸ್ಕಾರಗಳ ಕುರಿತು ಮಾತ್ರ ಧರ್ಮಬದ್ಧವಾಗಿ ಚರ್ಚಿಸಲಾಗುತ್ತದೆ. ಯಾವುದೇ ತಾಂತ್ರಿಕ ಆಂತರಿಕ ಸಂಕೇತಗಳು, ದತ್ತಾಂಶಗಳು, ರಹಸ್ಯ ವಿವರಗಳು ಅಥವಾ ಭದ್ರತಾ ನಿಯಮಗಳ ಉಲ್ಲಂಘನೆಗೆ ಇಲ್ಲಿ ಶಾಸ್ತ್ರೀಯವಾಗಿ ಆಸ್ಪದವಿಲ್ಲ. ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜೀವನ, ಉದ್ಯೋಗ, ವಿವಾಹ ಅಥವಾ ಧಾರ್ಮಿಕ ಶುಭ ಕಾರ್ಯಗಳ ಕುರಿತು ಪವಿತ್ರ ಜಾತಕ ಪ್ರಶ್ನೆಗಳಿದ್ದರೆ ಸಂತೋಷದಿಂದ ಕೇಳಿ, ಮಹಾಗಣಪತಿಯು ಸಕಲ ಸನ್ಮಂಗಳವನ್ನು ಅನುಗ್ರಹಿಸಲಿ.`
+      );
+  }
+}
+
+/**
+ * Detects if a devotee is attempting to submit new birth data (DOB, TOB, POB) to compute
+ * a separate horoscope for another family member or person within this single session.
+ * 
+ * Strict 1-Person 1-Link Boundary Guard:
+ * Protects project revenue and Shastric accuracy by requiring family members to obtain
+ * their own dedicated link from the Chief Priest.
+ */
+export function detectFamilyMemberSeparateBirthDataRequest(question: string): boolean {
+  if (!question) return false;
+  const q = question.toLowerCase();
+
+  // 1. Check for family member / another person keywords
+  const hasOtherPersonKeyword =
+    /\b(husband|wife|son|daughter|child|children|baby|brother|sister|mother|father|mom|dad|spouse|relative|friend|partner|another person|someone else)\b|ಗಂಡ|ಪತಿ|ಹೆಂಡತಿ|ಪತ್ನಿ|ಮಗ|ಮಗಳು|ಮಗು|ಅಣ್ಣ|ತಮ್ಮ|ಅಕ್ಕ|ತಂಗಿ|ತಾಯಿ|ಅಮ್ಮ|ತಂದೆ|ಅಪ್ಪ|ಸ್ನೇಹಿತ|ಬೇರೆಯವರ|ಮತ್ತೊಬ್ಬರ|ಇವರ ಜಾತಕ|ಅವರ ಜಾತಕ|ಹೊಸ ಜಾತಕ|ಇನ್ನೊಂದು ಜಾತಕ|ಇನ್ನೊಬ್ಬರ|ಮತ್ತೊಂದು|ಬೇರೆ ಜಾತಕ|ಪ್ರತ್ಯೇಕ ಜಾತಕ|पति|पत्नी|बेटा|बेटी|बच्चा|भाई|बहन|माता|पिता|दोस्त|दुसरे|భర్త|భార్య|కుమారుడు|కూతురు|అన్న|తమ్ముడు|అక్క|చెల్లి|కణవర్|மனைவி|மகன்|மகள்|சகோதரன்|ഭർത്താവ്|ഭാര്യ|മകൻ|മകൾ|पती|पत्नी|मुलगा|मुलगी/i.test(
+      q
+    );
+
+  // 2. Check for explicit birth details (DOB / date patterns / time patterns / chart calculation)
+  const hasBirthDetailPattern =
+    /\b(dob|d\.o\.b|date of birth|birth date|born on|born in|time of birth|birth time|place of birth|pob|chart for|horoscope for|check his|check her|tell about him|tell about her)\b|ಹುಟ್ಟಿದ ದಿನಾಂಕ|ಹುಟ್ಟಿದ ತಾರೀಕು|ಹುಟ್ಟಿದ ಸಮಯ|ಹುಟ್ಟಿದ ಸ್ಥಳ|ಜನ್ಮ ದಿನಾಂಕ|ಜಾತಕ ನೋಡಿ|ಇವರ ಜಾತಕ|ಅವರ ಜಾತಕ|ಹೊಸ ಜಾತಕ|ಇನ್ನೊಂದು ಜಾತಕ|ಬೇರೆ ಜಾತಕ|ಪ್ರತ್ಯೇಕ ಜಾತಕ|ಹಿನ್ನೆಲೆ|जन्म तारीख|जन्म तिथि|जन्म समय|जन्म स्थान|कुंडली देखें|పుట్టిన తేదీ|పుట్టిన సమయం|జాతకం చూడండి|பிறந்த தேதி|பிறந்த நேரம்|ജാതകം നോക്കുക|जन्मतारीख|जन्म वेळ|पत्रिका पहा/i.test(
+      q
+    );
+
+  const hasDateNumbers = /\b\d{1,2}[-/.]\d{1,2}[-/.](\d{4}|\d{2})\b|\b(19\d{2}|20\d{2})\b/.test(q);
+
+  return hasOtherPersonKeyword && (hasBirthDetailPattern || hasDateNumbers);
+}
+
+/**
+ * Returns a compassionate, authoritative priestly response across all 7 languages
+ * explaining that each family member requires their own dedicated 20-minute link
+ * and directing them to contact Chief Priest Sri Shreeram Pandit (9972339362).
+ */
+export function getDeterministicSeparatePersonNoticeReply(session: ConsultationSession): string {
+  const devoteeName = session.name || "Devotee";
+  const birthDate = session.dob || "";
+
+  switch (session.language) {
+    case "en":
+      return deduplicateResponseText(
+        `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear devotee, according to canonical Vedic astrology, every individual possesses a distinct Lagna (Ascendant), planetary configuration, and unique Dasha-Bhukti timeline. This 20-minute sacred sanctuary is mathematically aligned exclusively with ${devoteeName}'s birth chart${birthDate ? " (" + birthDate + ")" : ""} for 100% authentic precision.\n\nTo examine the horoscope of a family member (spouse, child, sibling, or parent), an independent astronomical computation and a dedicated private consultation link are required. Please share their Date of Birth, Time, and Place of Birth directly with Chief Priest Sri Shreeram Pandit (+91 9972339362) via WhatsApp or Call to obtain their dedicated 20-minute private link. (You may also tap the '🎁 Book for Family' button on your screen).`
+      );
+    case "hi":
+      return deduplicateResponseText(
+        `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्त, वैदिक ज्योतिष शास्त्र के सिद्धांत अनुसार प्रत्येक व्यक्ति का लग्न, जन्म कुंडली तथा दशा-भुक्ति चक्र पूर्णतः भिन्न होता है। यह २० मिनट का पावन परामर्श कक्ष केवल ${devoteeName} जी की जन्म कुंडली${birthDate ? " (" + birthDate + ")" : ""} के १००% शुद्ध व सटीक फलादेश हेतु आबद्ध है।\n\nपरिवार के अन्य सदस्यों (पति/पत्नी/बच्चे/भाई-बहन) की कुंडली विश्लेषण हेतु स्वतंत्र ग्रह गणना तथा एक नवीन समर्पित लिंक आवश्यक है। कृपया उनके जन्म विवरण (जन्मतिथि, समय व स्थान) हमारे मुख्य पुरोहित श्रीराम पंडित जी (9972339362) को व्हाट्सएप अथवा कॉल द्वारा प्रेषित कर नया निजी लिंक प्राप्त करें। (आप स्क्रीन पर दिए गए '🎁 परिवार हेतु परामर्श' बटन का भी उपयोग कर सकते हैं)।`
+      );
+    case "te":
+      return deduplicateResponseText(
+        `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nప్రియ భక్తురాలా/భక్తుడా, వైదిక జ్యోతిష్య శాస్త్ర నియమాల ప్రకారం ప్రతి వ్యక్తి యొక్క లగ్నం, జన్మ కుండలి మరియు దశా-భుక్తులు సంపూర్ణంగా వేరుగా ఉంటాయి. ఈ 20 నిమిషాల పవిత్ర సంప్రదింపుల గది కేవలం ${devoteeName} గారి జన్మ జాతకానికి${birthDate ? " (" + birthDate + ")" : ""} మాత్రమే 100% ఖచ్చితమైన ఫలితాలను అందించడానికి అంకితం చేయబడింది.\n\nమీ కుటుంబ సభ్యుల (భర్త/భార్య/పిల్లలు) జాతక పరిశీలన కొరకు ప్రత్యేక గ్రహ గణన మరియు సరికొత్త వ్యక్తిగత లింక్ అవసరం. దయచేసి వారి పుట్టిన తేదీ, సమయం మరియు స్థలం వివరాలను మా ప్రధాన అర్చకులు శ్రీరామ్ పండిట్ గారికి (9972339362) వాట్సాప్ ద్వారా పంపి కొత్త ప్రైవేట్ లింక్ పొందగలరు.`
+      );
+    case "ta":
+      return deduplicateResponseText(
+        `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்பு பக்தரே, வேத ஜோதிட சாஸ்திர விதிகளின்படி ஒவ்வொரு தனிநபரின் லக்னம், ஜாதகம் மற்றும் தசா-புக்திகள் முற்றிலும் மாறுபட்டவை. இந்த 20 நிமிட புனித ஆலோசனை தளம் ${devoteeName} அவர்களின் ஜாதகத்திற்கு${birthDate ? " (" + birthDate + ")" : ""} மட்டுமே 100% துல்லியமான பலன்களை வழங்க அர்ப்பணிக்கப்பட்டுள்ளது.\n\nஉங்கள் குடும்ப உறுப்பினர்களின் (கணவர்/மனைவி/பிள்ளைகள்) ஜாதகத்தைக் கணிக்க தனித்துவமான கிரகக் கணிப்பும் பிரத்யேக புதிய லிங்க்கும் தேவை. தயவுசெய்து அவர்களின் பிறந்த தேதி, நேரம் மற்றும் இட விவரங்களை தலைமை அர்ச்சகர் ஸ்ரீராம் பண்டிதருக்கு (9972339362) வாட்ஸ்அப் மூலம் அனுப்பி புதிய பிரத்யேக லிங்க் பெற்றுக்கொள்ளவும்.`
+      );
+    case "ml":
+      return deduplicateResponseText(
+        `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nപ്രിയ ഭക്തരേ, വേദ ജ്യോതിഷ ശാസ്ത്ര നിയമപ്രകാരം ഓരോ വ്യക്തിയുടെയും ലഗ്നവും ഗ്രഹനിലയും ദശാ-ഭുക്തികളും തികച്ചും വ്യത്യസ്തമാണ്. ഈ 20 മിനിറ്റ് വിശുദ്ധ കൺസൾട്ടേഷൻ ${devoteeName} എന്ന വ്യക്തിയുടെ ജാതകത്തിന്${birthDate ? " (" + birthDate + ")" : ""} മാത്രമായി 100% കൃത്യതയോടെ നിശ്ചയിച്ചിട്ടുള്ളതാണ്.\n\nകുടുംബാംഗങ്ങളുടെ (ഭർത്താവ്/ഭാര്യ/മക്കൾ) ജാതകം പരിശോധിക്കുന്നതിന് പ്രത്യേക ഗ്രഹഗണനയും പുതിയ സമർപ്പിത ലിങ്കും ആവശ്യമാണ്. ദയവായി അവരുടെ ജനന തീയതി, സമയം, സ്ഥലം എന്നിവ പ്രധാന പൂജാരി ശ്രീറാം പണ്ഡിറ്റിന് (9972339362) വാട്സാപ്പ് വഴി അയച്ച് പുതിയ സ്വകാര്യ ലിങ്ക് നേടുക.`
+      );
+    case "mr":
+      return deduplicateResponseText(
+        `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्त, वैदिक ज्योतिष शास्त्राच्या सिद्धांतानुसार प्रत्येक व्यक्तीचे लग्न, जन्मकुंडली आणि दशा-भुक्ती चक्र पूर्णपणे भिन्न असते. हा २० मिनिटांचा पवित्र सल्लामसलत कक्ष केवळ ${devoteeName} यांच्या जन्मपत्रिकेसाठी${birthDate ? " (" + birthDate + ")" : ""} १००% अचूक मार्गदर्शनासाठी समर्पित आहे.\n\nकुटुंबातील इतर सदस्यांच्या (पती/पत्नी/मुले/भावंडे) पत्रिका विश्लेषणासाठी स्वतंत्र ग्रह गणना आणि नवीन समर्पित लिंक आवश्यक आहे. कृपया त्यांचे जन्म तपशील (जन्मतारीख, वेळ व जन्मस्थान) मुख्य पुरोहित श्रीराम पंडित यांना (9972339362) व्हॉट्सअॅपवर पाठवून नवीन खाजगी लिंक मिळवा.`
+      );
+    case "kn":
+    default:
+      return deduplicateResponseText(
+        `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಪೂಜ್ಯ ಭಕ್ತರೇ, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಗಣಿತ ನಿಯಮದಂತೆ ಪ್ರತಿಯೊಬ್ಬ ವ್ಯಕ್ತಿಯ ಲಗ್ನ, ಜನ್ಮ ಕುಂಡಲಿ, ದಶಾ-ಭುಕ್ತಿಗಳು ಹಾಗೂ ಗ್ರಹಗತಿಗಳು ಸಂಪೂರ್ಣ ವಿಭಿನ್ನವಾಗಿರುತ್ತವೆ. ಈ ೨೦ ನಿಮಿಷಗಳ ಪವಿತ್ರ ಸಮಾಲೋಚನೆ ಕೊಠಡಿಯು ಕೇವಲ ${devoteeName} ಅವರ ಜಾತಕಕ್ಕೆ${birthDate ? " (" + birthDate + ")" : ""} ಮಾತ್ರ ೧೦೦% ಬದ್ಧವಾಗಿ ನಿಖರ ಫಲಿತಾಂಶ ನೀಡಲು ರಚಿಸಲ್ಪಟ್ಟಿದೆ.\n\nನಿಮ್ಮ ಕುಟುಂಬದ ಇತರ ಸದಸ್ಯರ (ಪತಿ/ಪತ್ನಿ/ಮಕ್ಕಳು/ಸಹೋದರರು) ಜಾತಕ ಪರಿಶೀಲನೆಗಾಗಿ ಪ್ರತ್ಯೇಕ ಲಗ್ನ ಗಣನೆ ಹಾಗೂ ಹೊಸ ಮೀಸಲಾದ ಲಿಂಕ್ ಅಗತ್ಯವಿದೆ. ದಯವಿಟ್ಟು ಅವರ ಜನನ ದಿನಾಂಕ, ಸಮಯ ಹಾಗೂ ಸ್ಥಳ ವಿವರಗಳನ್ನು ನಮ್ಮ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ (9972339362) ವಾಟ್ಸಾಪ್ ಮೂಲಕ ಕಳುಹಿಸಿ ಹೊಸ ಖಾಸಗಿ ಲಿಂಕ್ ಪಡೆದುಕೊಳ್ಳಿ. (ನೀವು ಪರದೆಯ ಮೇಲಿರುವ '🎁 ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಸಮಾಲೋಚನೆ' ಬಟನ್ ಕೂಡ ಬಳಸಬಹುದು).`
       );
   }
 }
@@ -4686,6 +4770,23 @@ export async function generateConsultationAnswer(params: {
     };
   }
 
+  // 0a. Separate Family Member Birth Details Request Interception (Strict 1-link 1-person policy)
+  if (detectFamilyMemberSeparateBirthDataRequest(userQuestion)) {
+    const familyNoticeText = getDeterministicSeparatePersonNoticeReply(session);
+    return {
+      fullText: familyNoticeText,
+      paragraphs: [familyNoticeText],
+      astrologicalHighlights: {
+        lagna: "ಮೇಷ",
+        moonSign: "ವೃಷಭ",
+        nakshatra: "ರೋಹಿಣಿ",
+        currentDasha: "ಶುಭ ದಶಾ ಕಾಲ",
+        keyInfluences: ["ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಪ್ರತ್ಯೇಕ ಲಗ್ನ ಗಣನೆ", "ಪ್ರತ್ಯೇಕ ೨೦ ನಿಮಿಷಗಳ ಲಿಂಕ್"]
+      },
+      hasDosha: false
+    };
+  }
+
   // 1. Astronomical computations
   const astroData = await computeDevoteeKundli(session);
   const {
@@ -5875,6 +5976,11 @@ function generateDeterministicFallbackReading(
   // 0. Security & System Integrity Probe Interception
   if (detectSecurityOrSystemProbe(question)) {
     return getDeterministicSecurityBlockedReply(session.language);
+  }
+
+  // 0a. Separate Family Member Birth Details Request Interception (Strict 1-link 1-person policy)
+  if (detectFamilyMemberSeparateBirthDataRequest(question)) {
+    return getDeterministicSeparatePersonNoticeReply(session);
   }
 
   const complexityAnalysis = analyzeQuestionComplexity(

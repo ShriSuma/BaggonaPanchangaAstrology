@@ -39,6 +39,8 @@ import {
   SYSTEM_SECURITY_CONFIDENTIALITY_DIRECTIVE,
   detectSecurityOrSystemProbe,
   getDeterministicSecurityBlockedReply,
+  detectFamilyMemberSeparateBirthDataRequest,
+  getDeterministicSeparatePersonNoticeReply,
   formatRulingsLedgerForPrompt,
   buildConsultationRulingsLedger,
   detectAndResolveUltaPaltaProbe,
@@ -125,6 +127,7 @@ function localizeAstroParam(
 
 export type ConsultationQuestionCategory =
   | "SECURITY_SYSTEM_PROBE_BLOCKED"
+  | "FAMILY_MEMBER_SEPARATE_LINK_REDIRECT"
   | "ABROAD_VS_INDIA_SETTLEMENT"
   | "PROPERTY_ASSET_ACQUISITION"
   | "GOVERNMENT_JOB_AUTHORITY"
@@ -198,6 +201,19 @@ export function senseAndCategorizeQuestion(
       categoryLabel: "ಪವಿತ್ರ ದೈವಜ್ಞ ಭದ್ರತಾ ಮಿತಿ (Sanctuary Security & Dharmic Boundary)",
       detectedTopicSnippet: "System / Security Probe Intercepted",
       priestPersonaTone: "divine_oracle"
+    };
+  }
+
+  // 1.55. Separate Family Member Birth Details / Additional Chart Request Interception
+  if (detectFamilyMemberSeparateBirthDataRequest(q)) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "FAMILY_MEMBER_SEPARATE_LINK_REDIRECT",
+      categoryLabel: "ಕುಟುಂಬ ಸದಸ್ಯರ ಪ್ರತ್ಯೇಕ ಜಾತಕ ಲಿಂಕ್ ನಿರ್ದೇಶನ (Dedicated Family Member Consultation Link)",
+      detectedTopicSnippet: "Separate Family Member Birth Data Request",
+      priestPersonaTone: "compassionate_grounding"
     };
   }
 
@@ -724,6 +740,24 @@ export async function presentConsultationReply(params: {
         nakshatra: "ರೋಹಿಣಿ",
         currentDasha: "ಶುಭ ದಶಾ ಕಾಲ",
         keyInfluences: []
+      },
+      hasDosha: false,
+      sensedContext: sensed
+    };
+  }
+
+  // Step 1.55: Separate Family Member Birth Details Immediate Redirect
+  if (sensed.category === "FAMILY_MEMBER_SEPARATE_LINK_REDIRECT") {
+    const familyNoticeText = getDeterministicSeparatePersonNoticeReply(session);
+    return {
+      fullText: familyNoticeText,
+      paragraphs: [familyNoticeText],
+      astrologicalHighlights: {
+        lagna: "ಮೇಷ",
+        moonSign: "ವೃಷಭ",
+        nakshatra: "ರೋಹಿಣಿ",
+        currentDasha: "ಶುಭ ದಶಾ ಕಾಲ",
+        keyInfluences: ["ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಪ್ರತ್ಯೇಕ ಲಗ್ನ ಗಣನೆ", "ಪ್ರತ್ಯೇಕ ೨೦ ನಿಮಿಷಗಳ ಲಿಂಕ್"]
       },
       hasDosha: false,
       sensedContext: sensed

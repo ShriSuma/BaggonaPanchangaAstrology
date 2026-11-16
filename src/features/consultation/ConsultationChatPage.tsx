@@ -19,8 +19,6 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { firestore } from "../../services/firebase";
 import {
   getConsultationSession,
-  createConsultationSession,
-  encodeSecureConsultationToken,
   startConsultationTimer,
   updateDevoteeContact,
   claimBonusMinute,
@@ -51,7 +49,8 @@ import {
 } from "./consultationTypes";
 import {
   generateConsultationAnswer,
-  computeDevoteeKundli
+  computeDevoteeKundli,
+  detectFamilyMemberSeparateBirthDataRequest
 } from "./consultationAIEngine";
 import { presentConsultationReply } from "./consultationPresenterEngine";
 import {
@@ -71,9 +70,6 @@ import {
   stopClonedAudio
 } from "../audio/aiVoiceCloneEngine";
 import { useAppStore } from "../../stores/appStore";
-import { useAuthStore } from "../auth/authStore";
-import { useWalletStore } from "../wallet/walletStore";
-import { useKundliViewerStore } from "../../stores/kundliViewerStore";
 
 interface Props {
   sessionId?: string;
@@ -82,72 +78,7 @@ interface Props {
 const LOCAL_CHAT_BACKUP_PREFIX = "bgn_consultation_chat_history_";
 
 export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
-  const { currentUser, role, isAuthenticated } = useAuthStore();
-  const isMasterOrSuperAdmin =
-    isAuthenticated &&
-    (role === "superadmin" ||
-      currentUser?.toLowerCase() === "baggona" ||
-      currentUser?.toLowerCase() === "shrisuma" ||
-      currentUser === "$hriSuma" ||
-      currentUser?.toLowerCase() === "superadmin");
-  const wallet = useWalletStore((s) => s.wallet);
-  const activeKundliSession = useKundliViewerStore((s) => s.session);
-  const [isLaunchingKundliLive, setIsLaunchingKundliLive] = useState(false);
   const [noTokenProvided, setNoTokenProvided] = useState(false);
-
-  // Direct 1-Click Launch with Generated Kundli Session
-  const handleLaunchKundliLiveSession = async () => {
-    if (!activeKundliSession?.input) return;
-    setIsLaunchingKundliLive(true);
-    try {
-      const inp = activeKundliSession.input;
-      const devoteeName = inp.name || "Devotee";
-      const s = await createConsultationSession({
-        name: devoteeName,
-        dob: activeKundliSession.birthDateYmd || inp.birthDate || "1995-05-15",
-        tob: activeKundliSession.birthTimeHm || inp.birthTime || "10:30",
-        place: activeKundliSession.homePlaceName || activeKundliSession.placeLabel || "Gokarna",
-        lat: typeof inp.latitude === "number" && inp.latitude !== 0 ? inp.latitude : 14.5479,
-        lng: typeof inp.longitude === "number" && inp.longitude !== 0 ? inp.longitude : 74.3188,
-        timezone: 5.5,
-        language: "kn"
-      });
-      const token = encodeSecureConsultationToken(s.id);
-      window.location.replace(`/consultation?token=${encodeURIComponent(token)}`);
-    } catch (err) {
-      console.error("Failed to launch kundli live session:", err);
-      handleGoToGenerator();
-    } finally {
-      setIsLaunchingKundliLive(false);
-    }
-  };
-
-  // Navigation handlers
-  const setPage = useAppStore((s) => s.setPage);
-  const handleGoToKundli = () => {
-    setPage("public_kundli");
-    if (typeof window !== "undefined") {
-      window.location.href = "/";
-    }
-  };
-  const handleGoToGenerator = () => {
-    setPage("consultation_generator");
-    if (typeof window !== "undefined") {
-      window.location.href = "/consultation-generator";
-    }
-  };
-  const handleGoToSuperAdmin = () => {
-    setPage("superadmindashboard");
-    if (typeof window !== "undefined") {
-      window.location.href = "/";
-    }
-  };
-  const handleGoHome = () => {
-    setPage("home");
-    if (typeof window !== "undefined") {
-      window.location.href = "/";
-    }
-  };
 
   const [session, setSession] = useState<ConsultationSession | null>(null);
   const [resolvedId, setResolvedId] = useState<string | null>(null);
@@ -1054,6 +985,13 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       setMessages((prev) => [...prev, astrologerMsg]);
       void addConsultationMessage(session.id, astrologerMsg, session.rulingsLedger);
 
+      // If devotee submitted another family member's birth details, automatically surface the booking modal for Chief Priest referral
+      if (detectFamilyMemberSeparateBirthDataRequest(question)) {
+        setTimeout(() => {
+          setShowFamilyBookingModal(true);
+        }, 800);
+      }
+
       // Record question in dedicated Firestore collection "consultation_questions"
       const questionRecord: ConsultationQuestionRecord = {
         id: `cq_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -1227,40 +1165,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   if (isTampered) {
     return (
       <div className="min-h-screen bg-[#FAF6EE] text-amber-950 flex flex-col justify-between font-sans selection:bg-amber-200">
-        {/* Super Admin Top Navigation Bar */}
-        {isMasterOrSuperAdmin && (
-          <header className="w-full bg-slate-950 border-b border-amber-500/30 px-3 py-2.5 flex items-center justify-between text-white shadow-md z-40 sticky top-0">
-            <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-sm sm:text-base text-amber-300">
-                ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <button
-                type="button"
-                onClick={handleGoToKundli}
-                className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-xs transition flex items-center gap-1"
-              >
-                <span>📊</span> <span className="hidden sm:inline">ಜಾತಕ</span> (Kundli)
-              </button>
-              <button
-                type="button"
-                onClick={handleGoToGenerator}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded-lg text-xs transition flex items-center gap-1"
-              >
-                <span>🔗</span> <span className="hidden sm:inline">ಲಿಂಕ್ ರಚನೆ</span> (Generator)
-              </button>
-              <button
-                type="button"
-                onClick={handleGoHome}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-2 py-1 rounded-lg text-xs transition"
-              >
-                🏠 Home
-              </button>
-            </div>
-          </header>
-        )}
-
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="max-w-md w-full bg-white border-2 border-red-400 rounded-3xl p-6 shadow-xl text-center space-y-4">
             <div className="w-16 h-16 mx-auto rounded-2xl bg-red-100 border border-red-300 text-red-700 flex items-center justify-center text-3xl">
@@ -1272,53 +1176,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             <p className="text-sm text-stone-700 leading-relaxed">
               {currentI18n.tamperedLinkMsg}
             </p>
-
-            {/* Super Admin Control Options */}
-            {isMasterOrSuperAdmin && (
-              <div className="bg-amber-50 border-2 border-amber-400/80 rounded-2xl p-3.5 space-y-2 text-left">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                    <span>👑</span> ಸೂಪರ್ ಅಡ್ಮಿನ್ ನಿಯಂತ್ರಣ (Super Admin Controls):
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleGoToGenerator}
-                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-2 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs"
-                  >
-                    <span>🔗</span> ಲಿಂಕ್ ಜನರೇಟರ್
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleGoToKundli}
-                    className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2 px-2 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs"
-                  >
-                    <span>📊</span> ಕುಂಡಲಿ ಪುಟ
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* General Navigation Buttons (Only visible to verified Super Admin, never end-users) */}
-            {isMasterOrSuperAdmin && (
-              <div className="flex flex-col gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={handleGoToKundli}
-                  className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs text-xs transition flex items-center justify-center gap-1.5"
-                >
-                  <span>📊</span> ಜಾತಕಕ್ಕೆ ಹಿಂತಿರುಗಿ (Back to Kundali)
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGoHome}
-                  className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5"
-                >
-                  <span>🏠</span> ಮುಖಪುಟಕ್ಕೆ ತೆರಳಿ (Go to Home)
-                </button>
-              </div>
-            )}
 
             <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900">
               <p className="font-bold">ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ</p>
@@ -1340,24 +1197,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   if (loadingSession) {
     return (
       <div className="min-h-screen bg-[#FAF6EE] text-amber-950 flex flex-col justify-between font-sans">
-        {isMasterOrSuperAdmin && (
-          <header className="w-full bg-slate-950 border-b border-amber-500/30 px-3 py-2.5 flex items-center justify-between text-white shadow-md z-40 sticky top-0">
-            <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-sm sm:text-base text-amber-300">
-                ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={handleGoToKundli}
-                className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-xs transition"
-              >
-                📊 Kundli
-              </button>
-            </div>
-          </header>
-        )}
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="w-16 h-16 rounded-2xl border-4 border-amber-500 border-t-transparent animate-spin mb-4" />
           <h2 className="font-serif text-lg font-bold text-amber-900">
@@ -1373,40 +1212,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   if (sessionError || !session || noTokenProvided) {
     return (
       <div className="min-h-screen bg-[#FAF6EE] text-amber-950 flex flex-col justify-between font-sans selection:bg-amber-200">
-        {/* Super Admin Top Navigation Bar */}
-        {isMasterOrSuperAdmin && (
-          <header className="w-full bg-slate-950 border-b border-amber-500/30 px-3 py-2.5 flex items-center justify-between text-white shadow-md z-40 sticky top-0">
-            <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-sm sm:text-base text-amber-300">
-                ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <button
-                type="button"
-                onClick={handleGoToKundli}
-                className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-xs transition flex items-center gap-1"
-              >
-                <span>📊</span> <span className="hidden sm:inline">ಜಾತಕ</span> (Kundli)
-              </button>
-              <button
-                type="button"
-                onClick={handleGoToGenerator}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded-lg text-xs transition flex items-center gap-1"
-              >
-                <span>🔗</span> <span className="hidden sm:inline">ಲಿಂಕ್ ರಚನೆ</span> (Generator)
-              </button>
-              <button
-                type="button"
-                onClick={handleGoHome}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-2 py-1 rounded-lg text-xs transition"
-              >
-                🏠 Home
-              </button>
-            </div>
-          </header>
-        )}
-
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="max-w-md w-full bg-white border-2 border-amber-300 rounded-3xl p-6 shadow-xl text-center space-y-4">
             <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-3xl border border-amber-300">
@@ -1423,72 +1228,10 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </h2>
             <p className="text-sm text-stone-700 leading-relaxed">
               {noTokenProvided
-                ? "೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಗೆ ಪ್ರವೇಶಿಸಲು ಸೂಪರ್ ಅಡ್ಮಿನ್ ನೀಡಿದ ಅಧಿಕೃತ ಲಿಂಕ್ ಬಳಸಿ. ನೀವು ಸೂಪರ್ ಅಡ್ಮಿನ್ ಆಗಿದ್ದರೆ, ಕೆಳಗಿನ ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ ಹೊಸ ಲಿಂಕ್ ರಚಿಸಬಹುದು."
+                ? "೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಗೆ ಪ್ರವೇಶಿಸಲು ಮುಖ್ಯ ಅರ್ಚಕರು ನೀಡಿದ ಅಧಿಕೃತ ಲಿಂಕ್ ಬಳಸಿ."
                 : sessionError || currentI18n.sessionEndedMsg}
             </p>
 
-            {/* Active Kundli 1-Click Launch Card (Restricted strictly to authenticated Super Admin to prevent data leakage) */}
-            {noTokenProvided && isMasterOrSuperAdmin && activeKundliSession?.input && (
-              <div className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 rounded-2xl p-4 text-left space-y-2.5 shadow-md">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">✨</span>
-                  <h3 className="text-xs sm:text-sm font-bold text-amber-950 font-serif">
-                    ಸಕ್ರಿಯ ಜನನ ಕುಂಡಲಿ ಲಭ್ಯವಿದೆ (Active Kundali Available)
-                  </h3>
-                </div>
-                <p className="text-xs text-amber-900 leading-snug">
-                  ಭಕ್ತರ ಹೆಸರು: <strong>{activeKundliSession.input.name || "Devotee"}</strong><br />
-                  ಜನನ ವಿವರ: {activeKundliSession.birthDateYmd || activeKundliSession.input.birthDate} {activeKundliSession.birthTimeHm || activeKundliSession.input.birthTime} ({activeKundliSession.homePlaceName || activeKundliSession.placeLabel || "Gokarna"})
-                </p>
-                <button
-                  type="button"
-                  disabled={isLaunchingKundliLive}
-                  onClick={handleLaunchKundliLiveSession}
-                  className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2"
-                >
-                  {isLaunchingKundliLive ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>💬</span>
-                      <span>ಈ ಜಾತಕದೊಂದಿಗೆ ನೇರ ಸಮಾಲೋಚನೆ ಆರಂಭಿಸಿ (Start 20-Min Live Chat)</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-
-            {/* Super Admin Control Options */}
-            {isMasterOrSuperAdmin && (
-              <div className="bg-amber-50 border-2 border-amber-400/80 rounded-2xl p-3.5 space-y-2 text-left">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                    <span>👑</span> ಸೂಪರ್ ಅಡ್ಮಿನ್ ನಿಯಂತ್ರಣ (Super Admin Controls):
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleGoToGenerator}
-                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-2 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs"
-                  >
-                    <span>🔗</span> ಲಿಂಕ್ ಜನರೇಟರ್
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleGoToKundli}
-                    className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2 px-2 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs"
-                  >
-                    <span>📊</span> ಕುಂಡಲಿ ಪುಟ
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* General Navigation Buttons (Only visible to verified Super Admin, never end-users) */}
             <div className="flex flex-col gap-2 pt-1">
               {!noTokenProvided && (
                 <button
@@ -1498,24 +1241,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 >
                   🔄 ಮರುಪ್ರಯತ್ನಿಸಿ (Retry Loading)
                 </button>
-              )}
-              {isMasterOrSuperAdmin && (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleGoToKundli}
-                    className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs text-xs transition flex items-center justify-center gap-1.5"
-                  >
-                    <span>📊</span> ಜಾತಕಕ್ಕೆ ಹಿಂತಿರುಗಿ (Back to Kundali)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleGoHome}
-                    className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5"
-                  >
-                    <span>🏠</span> ಮುಖಪುಟಕ್ಕೆ ತೆರಳಿ (Go to Home)
-                  </button>
-                </>
               )}
             </div>
 
@@ -1720,13 +1445,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               <span>📞</span>
               <span>{currentI18n.callPriestBtn}</span>
             </a>
-            <button
-              type="button"
-              onClick={handleGoHome}
-              className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5"
-            >
-              <span>🏠</span> ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ (Go to Home)
-            </button>
           </div>
         </div>
       ) : (
