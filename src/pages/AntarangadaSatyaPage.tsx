@@ -2856,43 +2856,23 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   {/* Gemstone */}
-                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-2.5 space-y-0.5 shadow-sm">
+                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3 space-y-0.5 shadow-sm">
                     <span className="text-[10px] text-stone-600 block font-medium">
                       💍 {ui.luckyGemstoneLabel}
                     </span>
-                    <span className="font-bold text-amber-950 text-xs block truncate">
+                    <span className="font-bold text-amber-950 text-xs sm:text-sm block truncate">
                       {secretResult.luckyElements.gemstone}
                     </span>
                   </div>
 
-                  {/* Lucky Day */}
-                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-2.5 space-y-0.5 shadow-sm">
-                    <span className="text-[10px] text-stone-600 block font-medium">
-                      🗓️ {ui.luckyDayLabel}
-                    </span>
-                    <span className="font-bold text-amber-950 text-xs block">
-                      {secretResult.luckyElements.luckyDay}
-                    </span>
-                  </div>
-
-                  {/* Lucky Number */}
-                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-2.5 space-y-0.5 shadow-sm">
-                    <span className="text-[10px] text-stone-600 block font-medium">
-                      🔢 {ui.luckyNumberLabel}
-                    </span>
-                    <span className="font-bold text-amber-950 text-xs block">
-                      {secretResult.luckyElements.luckyNumber}
-                    </span>
-                  </div>
-
                   {/* Auspicious Direction & Color */}
-                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-2.5 space-y-0.5 shadow-sm">
+                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3 space-y-0.5 shadow-sm">
                     <span className="text-[10px] text-stone-600 block font-medium">
                       🧭 {ui.luckyDirectionColorLabel}
                     </span>
-                    <span className="font-bold text-amber-950 text-xs block truncate">
+                    <span className="font-bold text-amber-950 text-xs sm:text-sm block truncate">
                       {secretResult.luckyElements.luckyDirection} • {secretResult.luckyElements.luckyColor}
                     </span>
                   </div>

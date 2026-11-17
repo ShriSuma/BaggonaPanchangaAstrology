@@ -1053,4 +1053,100 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
       expect(remedyDiagnosis.chiefPriestBlessing.sanskritAshirvada).toBeTruthy();
     });
   });
+
+  describe("12. 4-Person Dining Table Antarangada Satya Dynamic Differentiation & Zero-Clone Audit", () => {
+    it("guarantees 4 different guests at the same hotel table receive completely distinct paragraphs 1 & 2", () => {
+      // 4 guests with distinct birth timestamps, elements, and dashas
+      const guest1Kundli = calculateKundli({
+        birthDate: "1988-04-14",
+        birthTime: "06:30",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        name: "ರಮೇಶ್ ಕುಮಾರ್",
+        gender: "Male"
+      });
+      const guest2Kundli = calculateKundli({
+        birthDate: "1993-09-22",
+        birthTime: "14:15",
+        latitude: 12.9716,
+        longitude: 77.5946,
+        name: "ಪ್ರಿಯಾಂಕಾ ಹೆಗ್ಡೆ",
+        gender: "Female"
+      });
+      const guest3Kundli = calculateKundli({
+        birthDate: "1997-12-05",
+        birthTime: "21:45",
+        latitude: 15.3647,
+        longitude: 75.1240,
+        name: "ಸುರೇಶ್ ಭಟ್",
+        gender: "Male"
+      });
+      const guest4Kundli = calculateKundli({
+        birthDate: "2001-07-18",
+        birthTime: "11:10",
+        latitude: 13.3409,
+        longitude: 74.7421,
+        name: "ಅನಿತಾ ರಾವ್",
+        gender: "Female"
+      });
+
+      const res1 = generateAntarangaSatya(guest1Kundli, "kn", "ರಮೇಶ್ ಕುಮಾರ್", "male", "1988-04-14", "06:30", 14.5479, 74.3188);
+      const res2 = generateAntarangaSatya(guest2Kundli, "kn", "ಪ್ರಿಯಾಂಕಾ ಹೆಗ್ಡೆ", "female", "1993-09-22", "14:15", 12.9716, 77.5946);
+      const res3 = generateAntarangaSatya(guest3Kundli, "kn", "ಸುರೇಶ್ ಭಟ್", "male", "1997-12-05", "21:45", 15.3647, 75.1240);
+      const res4 = generateAntarangaSatya(guest4Kundli, "kn", "ಅನಿತಾ ರಾವ್", "female", "2001-07-18", "11:10", 13.3409, 74.7421);
+
+      // Paragraph 1 Pairwise Distinction: None of the 4 guests have identical openings or crisis narratives
+      expect(res1.paragraph1).not.toBe(res2.paragraph1);
+      expect(res1.paragraph1).not.toBe(res3.paragraph1);
+      expect(res1.paragraph1).not.toBe(res4.paragraph1);
+      expect(res2.paragraph1).not.toBe(res3.paragraph1);
+      expect(res2.paragraph1).not.toBe(res4.paragraph1);
+      expect(res3.paragraph1).not.toBe(res4.paragraph1);
+
+      // Paragraph 2 Pairwise Distinction: Subconscious soul secrets are completely personalized
+      expect(res1.paragraph2).not.toBe(res2.paragraph2);
+      expect(res1.paragraph2).not.toBe(res3.paragraph2);
+      expect(res1.paragraph2).not.toBe(res4.paragraph2);
+      expect(res2.paragraph2).not.toBe(res3.paragraph2);
+      expect(res2.paragraph2).not.toBe(res4.paragraph2);
+      expect(res3.paragraph2).not.toBe(res4.paragraph2);
+
+      // Each guest has rich narrative length (> 200 characters)
+      [res1, res2, res3, res4].forEach((res) => {
+        expect(res.paragraph1.length).toBeGreaterThan(150);
+        expect(res.paragraph2.length).toBeGreaterThan(150);
+        expect(res.kshetraBlessing).toContain("ಗೋಕರ್ಣ");
+      });
+    });
+
+    it("verifies multi-language differentiation parity across all 7 supported languages", () => {
+      const allLangs: AntarangaLang[] = ["kn", "en", "hi", "mr", "te", "ta", "ml"];
+      const testKundliA = calculateKundli({
+        birthDate: "1985-03-21",
+        birthTime: "07:00",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        name: "Guest A",
+        gender: "Male"
+      });
+      const testKundliB = calculateKundli({
+        birthDate: "1994-11-12",
+        birthTime: "18:30",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        name: "Guest B",
+        gender: "Female"
+      });
+
+      for (const l of allLangs) {
+        const outA = generateAntarangaSatya(testKundliA, l, "Guest A", "male", "1985-03-21", "07:00", 14.5479, 74.3188);
+        const outB = generateAntarangaSatya(testKundliB, l, "Guest B", "female", "1994-11-12", "18:30", 14.5479, 74.3188);
+
+        expect(outA.paragraph1).not.toBe(outB.paragraph1);
+        expect(outA.paragraph2).not.toBe(outB.paragraph2);
+        expect(outA.paragraph1.length).toBeGreaterThan(100);
+        expect(outB.paragraph1.length).toBeGreaterThan(100);
+      }
+    });
+  });
 });
