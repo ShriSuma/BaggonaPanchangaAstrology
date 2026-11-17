@@ -197,6 +197,8 @@ const ANTARANGA_UI_STRINGS: Record<
     downloadKundliPdfBtn: string;
     downloadRemedyPdfBtn: string;
     downloadAllPdfsBtn: string;
+    downloadedBtn: string;
+    downloadAllCompletedBtn: string;
     viewPdfBtn: string;
     iphoneSafariTip: string;
     unpaidWarning: string;
@@ -283,6 +285,8 @@ const ANTARANGA_UI_STRINGS: Record<
     downloadKundliPdfBtn: "📜 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ PDF",
     downloadRemedyPdfBtn: "🪔 ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ ವರದಿ PDF",
     downloadAllPdfsBtn: "📦 ಎಲ್ಲ PDF ಒಟ್ಟಿಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (Combined)",
+    downloadedBtn: "✓ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ (Downloaded)",
+    downloadAllCompletedBtn: "✓ ಎಲ್ಲ PDF ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ (Completed)",
     viewPdfBtn: "👁️ PDF ವೀಕ್ಷಿಸಿ (Open in New Tab)",
     iphoneSafariTip: "iPhone Safari ಬಳಕೆದಾರರು: ಮೇಲಿನ ಬಟನ್ ಒತ್ತಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ, ಅಥವಾ ಹೊಸ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ತೆರೆದು 'Save to Files' ಗೆ ಸೇವ್ ಮಾಡಬಹುದು.",
     unpaidWarning: "ಪಾವತಿ ಪೂರ್ಣಗೊಂಡ ನಂತರವೇ ಅಧಿಕೃತ PDF ಡೌನ್‌ಲೋಡ್ ಸಕ್ರಿಯವಾಗುತ್ತದೆ.",
@@ -368,6 +372,8 @@ const ANTARANGA_UI_STRINGS: Record<
     downloadKundliPdfBtn: "📜 Baggona Panchanga Janma Kundali PDF",
     downloadRemedyPdfBtn: "🪔 Sacred Gokarna Remedy & Mantra Dossier PDF",
     downloadAllPdfsBtn: "📦 Download All PDFs (Complete Package)",
+    downloadedBtn: "✓ Downloaded",
+    downloadAllCompletedBtn: "✓ All PDFs Downloaded (Completed)",
     viewPdfBtn: "👁️ View PDF (Open in New Tab)",
     iphoneSafariTip: "iPhone Safari Users: Tap above to download. You can also view in a new tab, tap the Safari Share icon, and select 'Save to Files' or 'Books'.",
     unpaidWarning: "Payment verification required. Complete payment to download official PDFs.",
@@ -453,6 +459,8 @@ const ANTARANGA_UI_STRINGS: Record<
     downloadKundliPdfBtn: "📜 बग्गोण पंचांग जन्म कुंडली PDF",
     downloadRemedyPdfBtn: "🪔 गोकर्ण दैविक उपाय व मंत्र साधना PDF",
     downloadAllPdfsBtn: "📦 सभी PDF एक साथ डाउनलोड करें (Full Package)",
+    downloadedBtn: "✓ डाउनलोड हो गया (Downloaded)",
+    downloadAllCompletedBtn: "✓ सभी PDF डाउनलोड हो गए (Completed)",
     viewPdfBtn: "👁️ PDF देखें (Open in New Tab)",
     iphoneSafariTip: "iPhone Safari उपयोगकर्ता: ऊपर क्लिक कर PDF डाउनलोड करें या Safari Share आइकन से 'Save to Files' में सुरक्षित करें।",
     unpaidWarning: "भुगतान सत्यापन आवश्यक है। आधिकारिक PDF डाउनलोड करने के लिए भुगतान पूरा करें।",
@@ -538,6 +546,8 @@ const ANTARANGA_UI_STRINGS: Record<
     downloadKundliPdfBtn: "📜 బగ్గోణ పంచాంగ జన్మ కుండలి PDF",
     downloadRemedyPdfBtn: "🪔 గోకర్ణ దైవిక పరిహారాలు & మంత్ర సాధన PDF",
     downloadAllPdfsBtn: "📦 అన్ని PDFలు కలిపి డౌన్‌లోడ్ చేసుకోండి (Full Package)",
+    downloadedBtn: "✓ డౌన్‌లోడ్ పూర్తయింది (Downloaded)",
+    downloadAllCompletedBtn: "✓ అన్ని PDFలు డౌన్‌లోడ్ అయ్యాయి (Completed)",
     viewPdfBtn: "👁️ PDF చూడండి (Open in New Tab)",
     iphoneSafariTip: "iPhone Safari వినియోగదారులు: పైన క్లిక్ చేస్తే PDF ఓపెన్ అవుతుంది. Share చిహ్నం నొక్కి 'Save to Files' లో సేవ్ చేయవచ్చు.",
     unpaidWarning: "చెల్లింపు ధృవీకరణ అవసరం. అధికారిక PDFలను డౌన్‌లోడ్ చేయడానికి చెల్లింపును పూర్తి చేయండి.",
@@ -623,6 +633,8 @@ const ANTARANGA_UI_STRINGS: Record<
     downloadKundliPdfBtn: "📜 பக்கோண பஞ்சாங்க ஜென்ம குண்டலி PDF",
     downloadRemedyPdfBtn: "🪔 கோகர்ணம் பரிகார & மந்திர சாதனை PDF",
     downloadAllPdfsBtn: "📦 அனைத்து PDFகளையும் ஒன்றாக பதிவிறக்குக (Full Package)",
+    downloadedBtn: "✓ பதிவிறக்கம் செய்யப்பட்டது (Downloaded)",
+    downloadAllCompletedBtn: "✓ அனைத்து PDFகளும் பதிவிறக்கம் செய்யப்பட்டன (Completed)",
     viewPdfBtn: "👁️ PDF பார்க்க (Open in New Tab)",
     iphoneSafariTip: "iPhone Safari பயனர்கள்: மேலே கிளிக் செய்தால் PDF திறக்கும். கீழே உள்ள Share குறியீட்டை அழுத்தி 'Save to Files' அல்லது 'Books' இல் சேமிக்கலாம்.",
     unpaidWarning: "கட்டண சரிபார்ப்பு தேவை. அதிகாரப்பூர்வ PDF பதிவிறக்க கட்டணத்தை முடிக்கவும்.",
@@ -708,6 +720,8 @@ const ANTARANGA_UI_STRINGS: Record<
     downloadKundliPdfBtn: "📜 ബഗ്ഗോണ പഞ്ചാംഗ ജന്മ കുണ്ഡലി PDF",
     downloadRemedyPdfBtn: "🪔 ഗോകർണം ദിവ്യ പരിഹാര റിപ്പോർട്ട് PDF",
     downloadAllPdfsBtn: "📦 എല്ലാ PDFകളും ഒരുമിച്ച് ഡൗൺലോഡ് ചെയ്യുക (Full Package)",
+    downloadedBtn: "✓ ഡൗൺലോഡ് ചെയ്തു (Downloaded)",
+    downloadAllCompletedBtn: "✓ എല്ലാ PDFകളും ഡൗൺലോഡ് ചെയ്തു (Completed)",
     viewPdfBtn: "👁️ PDF കാണുക (Open in New Tab)",
     iphoneSafariTip: "iPhone Safari ഉപയോക്താക്കൾ: മുകളിൽ ക്ലിക്ക് ചെയ്താൽ PDF തുറക്കും. താഴെയുള്ള Share ചിഹ്നം അമർത്തി 'Save to Files' അല്ലെങ്കിൽ 'Books'-ലേക്ക് സേവ് ചെയ്യാം.",
     unpaidWarning: "പേയ്‌മെന്റ് സ്ഥിരീകരണം ആവശ്യമാണ്. ഔദ്യോഗിക PDF ഡൗൺലോഡ് ചെയ്യാൻ പേയ്‌മെന്റ് പൂർത്തിയാക്കുക.",
@@ -793,6 +807,8 @@ const ANTARANGA_UI_STRINGS: Record<
     downloadKundliPdfBtn: "📜 बग्गोण पंचांग जन्म पत्रिका PDF",
     downloadRemedyPdfBtn: "🪔 गोकर्ण सिद्ध उपाय व मंत्र साधना PDF",
     downloadAllPdfsBtn: "📦 सर्व PDF एकत्रित डाउनलोड करा (Full Package)",
+    downloadedBtn: "✓ डाउनलोड झाले (Downloaded)",
+    downloadAllCompletedBtn: "✓ सर्व PDF डाउनलोड झाले (Completed)",
     viewPdfBtn: "👁️ PDF पहा (Open in New Tab)",
     iphoneSafariTip: "iPhone Safari वापरकर्ते: वरील बटण दाबताच PDF उघडेल. खालील Share चिन्हावर टॅप करून 'Save to Files' किंवा 'Books' मध्ये सेव्ह करू शकता.",
     unpaidWarning: "पेमेंट पडताळणी आवश्यक आहे. अधिकृत PDF डाउनलोड करण्यासाठी कृपया पेमेंट पूर्ण करा.",
@@ -993,6 +1009,33 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const [isPaymentVerified, setIsPaymentVerified] = useState(false);
   const [verifiedTxnId, setVerifiedTxnId] = useState<string>("");
 
+  // Single-use Download Guard: track downloaded status to disable button once downloaded
+  const [downloadedPdfs, setDownloadedPdfs] = useState<{
+    fiveYear?: boolean;
+    kundli?: boolean;
+    remedy?: boolean;
+    all?: boolean;
+  }>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const saved = sessionStorage.getItem(`baggona_hotel_downloads_${activeOrderId}`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Re-sync downloaded state if activeOrderId changes
+  useEffect(() => {
+    if (!activeOrderId || typeof window === "undefined") return;
+    try {
+      const saved = sessionStorage.getItem(`baggona_hotel_downloads_${activeOrderId}`);
+      if (saved) {
+        setDownloadedPdfs(JSON.parse(saved));
+      }
+    } catch {}
+  }, [activeOrderId]);
+
   // 8. PDF Generation State & Refs
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfProgress, setPdfProgress] = useState(0);
@@ -1111,9 +1154,6 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           clearInterval(intervalId);
           setIsPaymentVerified(true);
           setVerifiedTxnId(`TXN_WEBHOOK_${activeOrderId}`);
-          setTimeout(() => {
-            void handleDownloadAllPdfs();
-          }, 300);
         }
       } catch {
         // Silently continue polling
@@ -1312,56 +1352,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   }, [selectedLang]);
 
-  // Frictionless 1-Tap Auto-Verification with Firebase Firestore Consistency
-  const handleInstant1TapVerification = async () => {
-    setIsVerifyingPayment(true);
-    setPaymentError(null);
-    triggerScreenLoader("payment_verify", undefined, { progress: 25 });
-
-    try {
-      await new Promise((r) => setTimeout(r, 500));
-      setScreenLoaderProgress(55);
-
-      const res = await verifyHotelPaymentInstant(
-        activeOrderId,
-        devoteeName || "Hotel Devotee",
-        packagePrice,
-        selectedLang,
-        selectedPackage
-      );
-
-      if (!res.success) {
-        setPaymentError(res.message);
-        return;
-      }
-
-      setScreenLoaderProgress(85);
-      // Check Firestore to guarantee 100% human financial consistency
-      const fsCheck = await verifyHotelOrderPayment(activeOrderId, packagePrice);
-      if (!fsCheck.verified) {
-        setPaymentError(fsCheck.reason || "Payment record verification pending in database.");
-        return;
-      }
-
-      setScreenLoaderProgress(100);
-      await new Promise((r) => setTimeout(r, 350));
-
-      setIsPaymentVerified(true);
-      setVerifiedTxnId(res.transactionId || `TXN_${activeOrderId}`);
-
-      // Auto-trigger full PDF generation immediately
-      setTimeout(() => {
-        void handleDownloadAllPdfs();
-      }, 350);
-    } catch (err: any) {
-      setPaymentError(err?.message || "Payment verification failed.");
-    } finally {
-      setIsVerifyingPayment(false);
-      closeScreenLoader();
-    }
-  };
-
-  // Optional Manual UTR Payment Verification Handler
+  // Mandatory 12-Digit UPI UTR Payment Verification Handler with Firestore Consistency
   const handleVerifyManualPayment = async () => {
     if (!enteredUtr.trim()) {
       setPaymentError(
@@ -1408,10 +1399,13 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       setIsPaymentVerified(true);
       setVerifiedTxnId(res.transactionId || `TXN_${enteredUtr.trim()}`);
 
-      // Auto-trigger full PDF generation immediately
+      // Smooth scroll to Download Center so user sees download buttons
       setTimeout(() => {
-        void handleDownloadAllPdfs();
-      }, 400);
+        const downloadCenterEl = document.getElementById("hotel-download-center");
+        if (downloadCenterEl) {
+          downloadCenterEl.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 300);
     } catch (err: any) {
       setPaymentError(err?.message || "Payment verification failed.");
     } finally {
@@ -1435,15 +1429,24 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     const check = await verifyHotelOrderPayment(activeOrderId, packagePrice);
     if (!check.verified) {
       setPaymentError(check.reason || ui.unpaidWarning);
+      setIsPaymentVerified(false);
       setShowPaymentSection(true);
       return false;
     }
     return true;
   };
 
-  // 1. Download 5-Year Master Destiny PDF
+  // 1. Download 5-Year Master Destiny PDF (Single-use disabled once downloaded)
   const handleDownload5YearPdf = async (isPartOfBatch = false) => {
     if (!(await ensurePaymentVerified())) return;
+    if (downloadedPdfs.fiveYear || downloadedPdfs.all) {
+      alert(
+        selectedLang === "kn"
+          ? "ಈ ಫೈಲ್ ಅನ್ನು ಈಗಾಗಲೇ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ. ಪ್ರತಿ ಫೈಲ್‌ಗೆ ಒಂದು ಬಾರಿ ಮಾತ್ರ ಡೌನ್‌ಲೋಡ್ ಅನುಮತಿ ನೀಡಲಾಗಿದೆ."
+          : "This PDF has already been downloaded. Single-use download per file is enforced."
+      );
+      return;
+    }
     if (!fiveYearPdfRef.current) {
       alert("PDF template loading. Please retry in 2 seconds.");
       return;
@@ -1487,6 +1490,15 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       setPdfProgress(100);
       if (!isPartOfBatch) setScreenLoaderProgress(100);
       setPdfStageText(stages.done);
+
+      // Single-use disable: mark 5-Year PDF as successfully downloaded
+      setDownloadedPdfs((prev) => {
+        const next = { ...prev, fiveYear: true };
+        try {
+          sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     } catch (pdfErr: any) {
       console.error("5-Year PDF Generation error:", pdfErr);
       alert(`PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -1498,9 +1510,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 2. Download Baggona Panchanga Janma Kundali Multi-Page PDF
+  // 2. Download Baggona Panchanga Janma Kundali Multi-Page PDF (Single-use disabled once downloaded)
   const handleDownloadKundliPdf = async (isPartOfBatch = false) => {
     if (!(await ensurePaymentVerified())) return;
+    if (downloadedPdfs.kundli || downloadedPdfs.all) {
+      alert(
+        selectedLang === "kn"
+          ? "ಈ ಫೈಲ್ ಅನ್ನು ಈಗಾಗಲೇ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ. ಪ್ರತಿ ಫೈಲ್‌ಗೆ ಒಂದು ಬಾರಿ ಮಾತ್ರ ಡೌನ್‌ಲೋಡ್ ಅನುಮತಿ ನೀಡಲಾಗಿದೆ."
+          : "This PDF has already been downloaded. Single-use download per file is enforced."
+      );
+      return;
+    }
 
     setIsGeneratingPdf(true);
     setPdfProgress(30);
@@ -1527,6 +1547,15 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       setPdfProgress(100);
       if (!isPartOfBatch) setScreenLoaderProgress(100);
       setPdfStageText(PDF_STAGES[selectedLang]?.done || PDF_STAGES.en.done);
+
+      // Single-use disable: mark Kundli PDF as successfully downloaded
+      setDownloadedPdfs((prev) => {
+        const next = { ...prev, kundli: true };
+        try {
+          sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     } catch (pdfErr: any) {
       console.error("Kundli PDF Generation error:", pdfErr);
       alert(`Kundli PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -1538,9 +1567,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 3. Download Sacred Gokarna Remedy & Parihara PDF (Available in ₹450 Package)
+  // 3. Download Sacred Gokarna Remedy & Parihara PDF (Available in ₹450 Package, single-use disabled once downloaded)
   const handleDownloadRemedyPdf = async (isPartOfBatch = false) => {
     if (!(await ensurePaymentVerified())) return;
+    if (downloadedPdfs.remedy || downloadedPdfs.all) {
+      alert(
+        selectedLang === "kn"
+          ? "ಈ ಫೈಲ್ ಅನ್ನು ಈಗಾಗಲೇ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ. ಪ್ರತಿ ಫೈಲ್‌ಗೆ ಒಂದು ಬಾರಿ ಮಾತ್ರ ಡೌನ್‌ಲೋಡ್ ಅನುಮತಿ ನೀಡಲಾಗಿದೆ."
+          : "This PDF has already been downloaded. Single-use download per file is enforced."
+      );
+      return;
+    }
 
     setIsGeneratingPdf(true);
     setPdfProgress(40);
@@ -1567,6 +1604,15 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       setPdfProgress(100);
       if (!isPartOfBatch) setScreenLoaderProgress(100);
       setPdfStageText(PDF_STAGES[selectedLang]?.done || PDF_STAGES.en.done);
+
+      // Single-use disable: mark Remedy PDF as successfully downloaded
+      setDownloadedPdfs((prev) => {
+        const next = { ...prev, remedy: true };
+        try {
+          sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     } catch (pdfErr: any) {
       console.error("Remedy PDF Generation error:", pdfErr);
       alert(`Remedy PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -1578,20 +1624,37 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 4. Download Complete Package (All PDFs sequentially)
+  // 4. Download Complete Package (All remaining PDFs sequentially, disabled once completed)
   const handleDownloadAllPdfs = async () => {
     if (!(await ensurePaymentVerified())) return;
+    const isAllDone =
+      Boolean(downloadedPdfs.all) ||
+      (Boolean(downloadedPdfs.fiveYear) &&
+        Boolean(downloadedPdfs.kundli) &&
+        (selectedPackage !== "remedy_450" || Boolean(downloadedPdfs.remedy)));
+    if (isAllDone) {
+      alert(
+        selectedLang === "kn"
+          ? "ಎಲ್ಲಾ PDF ಗಳನ್ನು ಈಗಾಗಲೇ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ. ಮರು-ಡೌನ್‌ಲೋಡ್ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ."
+          : "All PDFs have already been downloaded. Re-downloading is disabled."
+      );
+      return;
+    }
 
     triggerScreenLoader("pdf_download_all", undefined, { progress: 10 });
     try {
-      await handleDownload5YearPdf(true);
+      if (!downloadedPdfs.fiveYear) {
+        await handleDownload5YearPdf(true);
+      }
       setScreenLoaderProgress(45);
       await new Promise((r) => setTimeout(r, 600));
 
-      await handleDownloadKundliPdf(true);
+      if (!downloadedPdfs.kundli) {
+        await handleDownloadKundliPdf(true);
+      }
       setScreenLoaderProgress(75);
 
-      if (selectedPackage === "remedy_450") {
+      if (selectedPackage === "remedy_450" && !downloadedPdfs.remedy) {
         await new Promise((r) => setTimeout(r, 600));
         await handleDownloadRemedyPdf(true);
         setScreenLoaderProgress(95);
@@ -1599,6 +1662,18 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
       setScreenLoaderProgress(100);
       await new Promise((r) => setTimeout(r, 400));
+
+      // Single-use disable: mark all as downloaded
+      setDownloadedPdfs((prev) => {
+        const next = { ...prev, fiveYear: true, kundli: true, remedy: true, all: true };
+        try {
+          sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    } catch (batchErr: any) {
+      console.error("Batch download error:", batchErr);
+      alert(`Download error: ${batchErr?.message || "Please retry downloading individually."}`);
     } finally {
       closeScreenLoader();
     }
@@ -2649,87 +2724,54 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   </div>
                 </div>
 
-                {/* ── 1-TAP FRICTIONLESS AUTO-VERIFICATION WITH FIREBASE CONSISTENCY ── */}
-                <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-500 space-y-2 text-center shadow-md">
-                  <div className="text-emerald-900 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
-                    <span>⚡</span>
-                    <span>{ui.instantUnlockTitle}</span>
+                {/* ── MANDATORY 12-DIGIT UTR PAYMENT VERIFICATION SECTION ── */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-[#FFFDF7] to-amber-50 border-2 border-amber-400 space-y-3 shadow-md">
+                  <div className="text-amber-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                    <span>🛡️</span>
+                    <span>
+                      {selectedLang === "kn"
+                        ? "ಪಾವತಿ ದೃಢೀಕರಣ (12-Digit UPI UTR Verification)"
+                        : "Payment Verification via 12-Digit UTR"}
+                    </span>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-stone-700 max-w-md mx-auto">
-                    {ui.instantUnlockDesc}
+                  <p className="text-[11px] sm:text-xs text-stone-700 max-w-md mx-auto text-center leading-relaxed">
+                    {ui.utrLabel}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => void handleInstant1TapVerification()}
-                    disabled={isVerifyingPayment || isPaymentVerified}
-                    className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.99] transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                  >
-                    {isVerifyingPayment ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        <span>{ui.verifyingUtrBtn}</span>
-                      </>
-                    ) : isPaymentVerified ? (
-                      <span>{ui.verifiedUtrBtn}</span>
-                    ) : (
-                      <>
-                        <span>✓</span>
-                        <span>{ui.instantUnlockBtn}</span>
-                      </>
-                    )}
-                  </button>
-                </div>
 
-                {/* Optional Toggle for Manual UTR Entry */}
-                <div className="pt-1 text-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowManualUtrInput(!showManualUtrInput)}
-                    className="text-[11px] text-amber-900 font-bold hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer"
-                  >
-                    <span>{showManualUtrInput ? "▲" : "▼"}</span>
-                    <span>{ui.manualUtrToggleText}</span>
-                  </button>
-                </div>
-
-                {/* Manual UTR Input */}
-                {showManualUtrInput && (
-                  <div className="pt-2 border-t border-amber-200 space-y-2 animate-in fade-in">
-                    <label className="block text-xs font-bold text-amber-950">
-                      {ui.utrLabel}
-                    </label>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="text"
-                        maxLength={22}
-                        value={enteredUtr}
-                        onChange={(e) => {
-                          setEnteredUtr(e.target.value);
-                          setPaymentError(null);
-                        }}
-                        placeholder={ui.utrPlaceholder}
-                        className="flex-1 bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-sm text-stone-900 placeholder-stone-400 font-mono tracking-wider focus:outline-none focus:border-amber-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => void handleVerifyManualPayment()}
-                        disabled={isVerifyingPayment || isPaymentVerified}
-                        className="py-2.5 px-4 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-400 font-black text-xs sm:text-sm tracking-wide shadow flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
-                      >
-                        {isVerifyingPayment ? (
+                  <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+                    <input
+                      type="text"
+                      maxLength={22}
+                      value={enteredUtr}
+                      onChange={(e) => {
+                        setEnteredUtr(e.target.value);
+                        setPaymentError(null);
+                      }}
+                      placeholder={ui.utrPlaceholder}
+                      className="flex-1 bg-white border-2 border-amber-300 rounded-xl px-3 py-2.5 text-sm text-stone-900 placeholder-stone-400 font-mono tracking-wider focus:outline-none focus:border-amber-500 shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void handleVerifyManualPayment()}
+                      disabled={isVerifyingPayment || isPaymentVerified}
+                      className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-black text-xs sm:text-sm tracking-wide shadow flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer shrink-0"
+                    >
+                      {isVerifyingPayment ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4 text-stone-950" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
                           <span>{ui.verifyingUtrBtn}</span>
-                        ) : isPaymentVerified ? (
-                          <span>{ui.verifiedUtrBtn}</span>
-                        ) : (
-                          <span>{ui.verifyUtrBtn}</span>
-                        )}
-                      </button>
-                    </div>
+                        </>
+                      ) : isPaymentVerified ? (
+                        <span>{ui.verifiedUtrBtn}</span>
+                      ) : (
+                        <span>{ui.verifyUtrBtn}</span>
+                      )}
+                    </button>
                   </div>
-                )}
+                </div>
 
                 {/* Payment Error */}
                 {paymentError && (
@@ -2773,11 +2815,21 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               </div>
             )}
 
-            {/* ── STEP 6: DEVOTEE MULTI-PDF DOWNLOAD CENTER ── */}
+            {/* ── STEP 6: DEVOTEE MULTI-PDF DOWNLOAD CENTER (Single-use download per file) ── */}
             {isPaymentVerified && (
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-[#FFFDF7] to-emerald-50 border-2 border-emerald-500 space-y-4 text-center shadow-xl animate-in fade-in">
-                <div className="text-emerald-900 text-sm sm:text-base font-bold flex items-center justify-center gap-2">
-                  <span>{ui.pdfReadyHeader}</span>
+              <div
+                id="hotel-download-center"
+                className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-50 via-[#FFFDF7] to-emerald-50 border-2 border-emerald-500 space-y-4 text-center shadow-xl animate-in fade-in"
+              >
+                <div className="space-y-1">
+                  <div className="text-emerald-900 text-sm sm:text-base font-bold flex items-center justify-center gap-2">
+                    <span>{ui.pdfReadyHeader}</span>
+                  </div>
+                  <p className="text-[11px] text-stone-600 max-w-md mx-auto">
+                    {selectedLang === "kn"
+                      ? "ಗಮನಿಸಿ: ಭದ್ರತಾ ನಿಯಮಗಳ ಪ್ರಕಾರ, ಪ್ರತಿ ಫೈಲ್ ಅನ್ನು ಒಂದು ಬಾರಿ ಮಾತ್ರ ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು."
+                      : "Notice: Under security protocol, each PDF file can only be downloaded once."}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-lg mx-auto">
@@ -2785,20 +2837,36 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   <button
                     type="button"
                     onClick={() => void handleDownload5YearPdf()}
-                    disabled={isGeneratingPdf}
-                    className="py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.99] transition disabled:opacity-50 cursor-pointer"
+                    disabled={isGeneratingPdf || Boolean(downloadedPdfs.fiveYear) || Boolean(downloadedPdfs.all)}
+                    className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                      downloadedPdfs.fiveYear || downloadedPdfs.all
+                        ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
+                        : "bg-amber-500 hover:bg-amber-400 text-stone-950 active:scale-[0.99] cursor-pointer"
+                    }`}
                   >
-                    <span>{ui.downloadFiveYearPdfBtn}</span>
+                    <span>
+                      {downloadedPdfs.fiveYear || downloadedPdfs.all
+                        ? ui.downloadedBtn
+                        : ui.downloadFiveYearPdfBtn}
+                    </span>
                   </button>
 
                   {/* Button 2: Baggona Panchanga Janma Kundali PDF */}
                   <button
                     type="button"
                     onClick={() => void handleDownloadKundliPdf()}
-                    disabled={isGeneratingPdf}
-                    className="py-3 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.99] transition disabled:opacity-50 cursor-pointer"
+                    disabled={isGeneratingPdf || Boolean(downloadedPdfs.kundli) || Boolean(downloadedPdfs.all)}
+                    className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                      downloadedPdfs.kundli || downloadedPdfs.all
+                        ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
+                        : "bg-yellow-500 hover:bg-yellow-400 text-stone-950 active:scale-[0.99] cursor-pointer"
+                    }`}
                   >
-                    <span>{ui.downloadKundliPdfBtn}</span>
+                    <span>
+                      {downloadedPdfs.kundli || downloadedPdfs.all
+                        ? ui.downloadedBtn
+                        : ui.downloadKundliPdfBtn}
+                    </span>
                   </button>
 
                   {/* Button 3: Sacred Gokarna Remedy PDF (Only if ₹450 package chosen) */}
@@ -2806,22 +2874,43 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     <button
                       type="button"
                       onClick={() => void handleDownloadRemedyPdf()}
-                      disabled={isGeneratingPdf}
-                      className="py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.99] transition sm:col-span-2 disabled:opacity-50 cursor-pointer"
+                      disabled={isGeneratingPdf || Boolean(downloadedPdfs.remedy) || Boolean(downloadedPdfs.all)}
+                      className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition sm:col-span-2 ${
+                        downloadedPdfs.remedy || downloadedPdfs.all
+                          ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
+                          : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white active:scale-[0.99] cursor-pointer"
+                      }`}
                     >
-                      <span>{ui.downloadRemedyPdfBtn}</span>
+                      <span>
+                        {downloadedPdfs.remedy || downloadedPdfs.all
+                          ? ui.downloadedBtn
+                          : ui.downloadRemedyPdfBtn}
+                      </span>
                     </button>
                   )}
 
                   {/* Button 4: Download Complete All-in-One Package */}
-                  <button
-                    type="button"
-                    onClick={() => void handleDownloadAllPdfs()}
-                    disabled={isGeneratingPdf}
-                    className="py-3 px-4 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 border-2 border-amber-400 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md sm:col-span-2 disabled:opacity-50 cursor-pointer"
-                  >
-                    <span>{ui.downloadAllPdfsBtn}</span>
-                  </button>
+                  {(() => {
+                    const isAllDone =
+                      Boolean(downloadedPdfs.all) ||
+                      (Boolean(downloadedPdfs.fiveYear) &&
+                        Boolean(downloadedPdfs.kundli) &&
+                        (selectedPackage !== "remedy_450" || Boolean(downloadedPdfs.remedy)));
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => void handleDownloadAllPdfs()}
+                        disabled={isGeneratingPdf || isAllDone}
+                        className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md sm:col-span-2 transition ${
+                          isAllDone
+                            ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-2 border-amber-400 cursor-pointer"
+                        }`}
+                      >
+                        <span>{isAllDone ? ui.downloadAllCompletedBtn : ui.downloadAllPdfsBtn}</span>
+                      </button>
+                    );
+                  })()}
                 </div>
 
                 {/* iPhone Safari Tip */}

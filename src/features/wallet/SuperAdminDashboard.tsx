@@ -106,9 +106,10 @@ import { generateSmartUserIdSuggestions } from "../../utils/userIdSuggestionEngi
 import { ServicePricingManager } from "../../components/wallet/ServicePricingManager";
 import { BaggonaBookPublisherDashboard } from "../admin/BaggonaBookPublisherDashboard";
 import { ConsultationGeneratorPage } from "../consultation/ConsultationGeneratorPage";
+import HotelTableQrPage from "../../pages/HotelTableQrPage";
 import { getIndianStandardDateStr } from "../../core/placeTime";
 
-export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "book_publisher" | "consultation_generator" | "voice_db" | "pricing";
+export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "book_publisher" | "consultation_generator" | "hotel_table_qr" | "voice_db" | "pricing";
 
 /* -------------------------------------------------------------------------- */
 /* 360° COMPLETE CIRCULAR PROGRESS RING COMPONENT (Visual Telemetry Gauge)    */
@@ -1999,6 +2000,22 @@ export const SuperAdminDashboard: React.FC = () => {
             <span>೨೦-ನಿಮಿಷ ಚಾಟ್ ಲಿಂಕ್ (20-Min Link)</span>
             <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-950 border border-emerald-300">
               Live Q&A
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("hotel_table_qr")}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "hotel_table_qr"
+                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 text-stone-950 shadow-md scale-100 ring-2 ring-amber-400"
+                : "text-amber-950 hover:bg-amber-100"
+            }`}
+          >
+            <span>🍽️</span>
+            <span>ಹೋಟೆಲ್ QR (Pandit Palette)</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-200 text-amber-950 border border-amber-400">
+              Admin Stand
             </span>
           </button>
 
@@ -4955,6 +4972,13 @@ export const SuperAdminDashboard: React.FC = () => {
       {activeTab === "consultation_generator" && (
         <div className="bg-white border-2 border-amber-300 rounded-3xl p-2 sm:p-4 shadow-sm">
           <ConsultationGeneratorPage />
+        </div>
+      )}
+
+      {/* TAB: HOTEL TABLE QR STAND GENERATOR (Pandit Palette) */}
+      {activeTab === "hotel_table_qr" && (
+        <div className="bg-white border-2 border-[#D4AF37] rounded-3xl p-2 sm:p-4 shadow-xl">
+          <HotelTableQrPage />
         </div>
       )}
 

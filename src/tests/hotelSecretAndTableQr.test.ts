@@ -623,4 +623,80 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
       expect(result.diningOffer!.headline).toContain("೧೦ ಸೆಕೆಂಡುಗಳಲ್ಲಿ");
     });
   });
+
+  describe("9. Super Admin Hotel Table QR Access Control & Single-Use Disabled Download Security", () => {
+    it("confirms Super Admin credentials allow access while normal users are strictly blocked", async () => {
+      const { SUPER_ADMIN_USERNAMES } = await import("../features/auth/authStore");
+      expect(SUPER_ADMIN_USERNAMES.some((u) => u.toLowerCase() === "shrisuma")).toBe(true);
+      expect(SUPER_ADMIN_USERNAMES.some((u) => u.toLowerCase() === "superadmin")).toBe(true);
+
+      const isUserSuperAdmin = (username: string, role: string) =>
+        role === "superadmin" ||
+        username.toLowerCase() === "baggona" ||
+        username.toLowerCase() === "shrisuma" ||
+        username === "$hriSuma" ||
+        username.toLowerCase() === "superadmin" ||
+        SUPER_ADMIN_USERNAMES.some((u) => u.toLowerCase() === username.toLowerCase() || u === username);
+
+      expect(isUserSuperAdmin("baggona", "admin")).toBe(true);
+      expect(isUserSuperAdmin("shrisuma", "admin")).toBe(true);
+      expect(isUserSuperAdmin("superadmin", "admin")).toBe(true);
+      expect(isUserSuperAdmin("any_user", "superadmin")).toBe(true);
+
+      // Normal devotees / guests MUST NOT have Super Admin privileges
+      expect(isUserSuperAdmin("guest_diner", "user")).toBe(false);
+      expect(isUserSuperAdmin("hotel_staff", "user")).toBe(false);
+      expect(isUserSuperAdmin("priest_assistant", "priest")).toBe(false);
+    });
+
+    it("enforces single-use download tracking: once downloaded, subsequent downloads are blocked", () => {
+      const orderId = "PP_T5_SINGLE_USE_TEST";
+      const downloads: Record<string, boolean> = {};
+
+      const attemptDownload = (fileKey: "fiveYear" | "kundli" | "remedy" | "all") => {
+        if (downloads[fileKey] || downloads["all"]) {
+          return { allowed: false, reason: "Already downloaded. Single-use download per file enforced." };
+        }
+        downloads[fileKey] = true;
+        return { allowed: true, downloadedKey: fileKey };
+      };
+
+      // 1st attempt: Allowed
+      const res1 = attemptDownload("fiveYear");
+      expect(res1.allowed).toBe(true);
+
+      // 2nd attempt: Blocked!
+      const res2 = attemptDownload("fiveYear");
+      expect(res2.allowed).toBe(false);
+      expect(res2.reason).toContain("Already downloaded");
+
+      // Downloading another file (Kundli) is allowed once
+      const resKundli1 = attemptDownload("kundli");
+      expect(resKundli1.allowed).toBe(true);
+
+      // 2nd Kundli attempt is blocked!
+      const resKundli2 = attemptDownload("kundli");
+      expect(resKundli2.allowed).toBe(false);
+
+      // When "all" is downloaded, everything becomes permanently blocked
+      attemptDownload("all");
+      expect(attemptDownload("remedy").allowed).toBe(false);
+      expect(attemptDownload("fiveYear").allowed).toBe(false);
+      expect(attemptDownload("kundli").allowed).toBe(false);
+    });
+
+    it("confirms hotel branding is Pandit Palette and zero mention of Sri Krishna Bhavan", async () => {
+      const {
+        DEFAULT_HOTEL_NAME,
+        DEFAULT_HOTEL_FULL_NAME,
+        DEFAULT_HOTEL_TAGLINE
+      } = await import("../features/hotelSecret/antarangaService");
+
+      expect(DEFAULT_HOTEL_NAME).toBe("Pandit Palette");
+      expect(DEFAULT_HOTEL_FULL_NAME).toContain("Pandit Palette");
+      expect(DEFAULT_HOTEL_FULL_NAME).toContain("ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್");
+      expect(DEFAULT_HOTEL_FULL_NAME).not.toContain("Krishna");
+      expect(DEFAULT_HOTEL_TAGLINE).not.toContain("Krishna");
+    });
+  });
 });

@@ -3,6 +3,7 @@ import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useAppStore } from "../stores/appStore";
+import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../features/auth/authStore";
 import {
   AntarangaAstrologicalScreenLoader,
   type AntarangaLoaderStage
@@ -22,6 +23,47 @@ interface TableCardData {
 
 export default function HotelTableQrPage(): JSX.Element {
   const setAppPage = useAppStore((s) => s.setPage);
+
+  // STRICT SUPER ADMIN SECURITY GUARD
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const role = useAuthStore((s) => s.role);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const login = useAuthStore((s) => s.login);
+
+  const isSuperAdmin =
+    isAuthenticated &&
+    (role === "superadmin" ||
+      currentUser?.toLowerCase() === "baggona" ||
+      currentUser?.toLowerCase() === "shrisuma" ||
+      currentUser === "$hriSuma" ||
+      currentUser?.toLowerCase() === "superadmin" ||
+      Boolean(currentUser && SUPER_ADMIN_USERNAMES.some((u) => u.toLowerCase() === currentUser.toLowerCase() || u === currentUser)));
+
+  // In-page Super Admin authentication form state
+  const [adminUsername, setAdminUsername] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminAuthError, setAdminAuthError] = useState<string | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const handleSuperAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminUsername.trim() || !adminPassword.trim()) {
+      setAdminAuthError("ದಯವಿಟ್ಟು ಸೂಪರ್ ಅಡ್ಮಿನ್ ಬಳಕೆದಾರ ಹೆಸರು ಮತ್ತು ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ.");
+      return;
+    }
+    setIsLoggingIn(true);
+    setAdminAuthError(null);
+    try {
+      const res = await login(adminUsername.trim(), adminPassword.trim());
+      if (!res.success) {
+        setAdminAuthError(res.error || "ಸೂಪರ್ ಅಡ್ಮಿನ್ ದೃಢೀಕರಣ ವಿಫಲವಾಗಿದೆ.");
+      }
+    } catch (err: any) {
+      setAdminAuthError(err?.message || "ದೃಢೀಕರಣದಲ್ಲಿ ದೋಷ ಸಂಭವಿಸಿದೆ.");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   // Configuration State
   const [hotelName, setHotelName] = useState("Pandit Palette (ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್)");
@@ -174,6 +216,108 @@ export default function HotelTableQrPage(): JSX.Element {
     }
   };
 
+  if (!isSuperAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#FFFDF7] via-[#FFF9EC] to-[#FFF3DE] text-stone-900 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        <AmbientRotatingMandalaWatermark />
+
+        <div className="max-w-md w-full bg-white/95 border-2 border-[#D4AF37] rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-5 relative z-10 backdrop-blur-sm">
+          <div className="flex justify-center">
+            <RotatingSuryaKalachakra size={64} />
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-[11px] font-bold text-amber-800 uppercase tracking-widest font-serif">
+              ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಸೂಪರ್ ಅಡ್ಮಿನ್ ನಿಯಂತ್ರಣ ಪೀಠ ॥
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black font-serif text-amber-950">
+              ಸೂಪರ್ ಅಡ್ಮಿನ್ ಪ್ರವೇಶ ರಕ್ಷೆ (Super Admin Access Only)
+            </h2>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 text-xs text-stone-800 leading-relaxed text-left space-y-1.5 shadow-sm font-sans">
+            <div className="font-bold text-amber-950 flex items-center gap-1.5">
+              <span>🛡️</span>
+              <span>ಅಧಿಕೃತ ನಿರ್ಬಂಧ (Restricted Section):</span>
+            </div>
+            <p>
+              ಹೋಟೆಲ್ ಹೆಸರು ಕಾನ್ಫಿಗರೇಶನ್ (Pandit Palette), ಟೇಬಲ್ QR ಕೋಡ್ ಜನರೇಟ್ ಮಾಡುವುದು, ಪ್ರಿಂಟ್ ಮಾಡುವುದು ಹಾಗೂ ಟೇಬಲ್ ಟೆಂಟ್ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡುವ ಅಧಿಕಾರವು ಕೇವಲ <strong>ಸೂಪರ್ ಅಡ್ಮಿನ್‌ಗೆ (Super Admin)</strong> ಮಾತ್ರ ಲಭ್ಯವಿದೆ.
+            </p>
+          </div>
+
+          {/* If authenticated as non-superadmin */}
+          {isAuthenticated ? (
+            <div className="space-y-3 pt-2">
+              <div className="p-3 bg-red-50 border border-red-300 rounded-xl text-xs text-red-900 font-medium">
+                ನೀವು <strong>{currentUser}</strong> ({role}) ಆಗಿ ಸೈನ್-ಇನ್ ಆಗಿದ್ದೀರಿ. ಈ ಬಳಕೆದಾರರಿಗೆ ಸೂಪರ್ ಅಡ್ಮಿನ್ ಅನುಮತಿಯಿಲ್ಲ.
+              </div>
+              <button
+                type="button"
+                onClick={() => setAppPage("home")}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 font-bold text-xs sm:text-sm shadow-md hover:brightness-105 active:scale-95 transition cursor-pointer"
+              >
+                ಮುಖಪುಟಕ್ಕೆ ಮರಳಿ (Go Home)
+              </button>
+            </div>
+          ) : (
+            /* Super Admin Quick Login Form */
+            <form onSubmit={handleSuperAdminLogin} className="space-y-3 pt-1 text-left">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1">
+                  ಸೂಪರ್ ಅಡ್ಮಿನ್ ಬಳಕೆದಾರ ಹೆಸರು (Username)
+                </label>
+                <input
+                  type="text"
+                  value={adminUsername}
+                  onChange={(e) => setAdminUsername(e.target.value)}
+                  placeholder="ShriSuma / superadmin / baggona"
+                  className="w-full bg-[#FFFDF7] border-2 border-amber-300 rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-500 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1">
+                  ಪಾಸ್‌ವರ್ಡ್ (Password)
+                </label>
+                <input
+                  type="password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-[#FFFDF7] border-2 border-amber-300 rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-500 font-medium"
+                />
+              </div>
+
+              {adminAuthError && (
+                <div className="p-2.5 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs">
+                  {adminAuthError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoggingIn}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-stone-950 font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-500/20 hover:brightness-105 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isLoggingIn ? "ದೃಢೀಕರಿಸಲಾಗುತ್ತಿದೆ..." : "🔐 ಸೂಪರ್ ಅಡ್ಮಿನ್ ಆಗಿ ಲಾಗಿನ್ ಆಗಿ (Login as Super Admin)"}
+              </button>
+
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => setAppPage("home")}
+                  className="text-xs text-stone-600 hover:text-amber-950 hover:underline cursor-pointer"
+                >
+                  ← ಮುಖಪುಟಕ್ಕೆ ಮರಳಿ (Go to Homepage)
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FFFDF7] via-[#FFF9EC] to-[#FFF3DE] text-stone-900 font-sans selection:bg-amber-500 selection:text-stone-950 pb-16 relative overflow-x-hidden">
       {/* Ambient Celestial Rotating Mandalas */}
@@ -274,7 +418,7 @@ export default function HotelTableQrPage(): JSX.Element {
                 type="text"
                 value={hotelName}
                 onChange={(e) => setHotelName(e.target.value)}
-                placeholder="ಉದಾ: ಶ್ರೀ ಕೃಷ್ಣ ಭವನ"
+                placeholder="ಉದಾ: Pandit Palette (ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್)"
                 className="w-full bg-[#FFFDF7] border-2 border-amber-300 rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-500 font-medium"
               />
             </div>
@@ -288,7 +432,7 @@ export default function HotelTableQrPage(): JSX.Element {
                 type="text"
                 value={hotelTagline}
                 onChange={(e) => setHotelTagline(e.target.value)}
-                placeholder="ಉದಾ: ಶುದ್ಧ ಸಸ್ಯಾಹಾರಿ ಉಪಹಾರ & ಭೋಜನ"
+                placeholder="ಉದಾ: ಅತ್ಯುತ್ತಮ ಉಪಹಾರ & ಸಸ್ಯಾಹಾರಿ ಭೋಜನ ಮಂದಿರ (Fine Dining Restaurant)"
                 className="w-full bg-[#FFFDF7] border-2 border-amber-300 rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-500 font-medium"
               />
             </div>

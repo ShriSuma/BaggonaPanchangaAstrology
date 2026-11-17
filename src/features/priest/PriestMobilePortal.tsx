@@ -61,6 +61,7 @@ import { HindinaJanmaPage } from "../../pages/HindinaJanmaPage";
 import PublicKundliPage from "../../pages/PublicKundliPage";
 import GuidedPoojaPage from "../../pages/GuidedPoojaPage";
 import { ConsultationGeneratorPage } from "../consultation/ConsultationGeneratorPage";
+import HotelTableQrPage from "../../pages/HotelTableQrPage";
 import { FloatingCoinDeductionBadge } from "../../components/wallet/FloatingCoinDeductionBadge";
 import { KundliChakraLoader } from "../../components/loaders/KundliChakraLoader";
 import { BhavishyaMasterLoader } from "../../components/loaders/BhavishyaMasterLoader";
@@ -194,6 +195,7 @@ export type PriestTab =
   | "vahana_muhurtha"
   | "guided_pooja"
   | "consultation_generator"
+  | "hotel_table_qr"
   | "wallet";
 
 const PRIEST_KUNDLI_STORAGE_KEY = "baggona_priest_kundli_active_session";
@@ -293,6 +295,7 @@ export const PriestMobilePortal: React.FC = () => {
     // 20-Minute Consultation Link Generator Desk (Strictly Super Admin Only)
     if (isSuperAdmin) {
       tabs.push({ id: "consultation_generator", label: "೨೦-ನಿಮಿಷ ಚಾಟ್", icon: "🔗" });
+      tabs.push({ id: "hotel_table_qr", label: "ಹೋಟೆಲ್ QR", icon: "🍽️" });
     }
     // Always include Wallet tab
     tabs.push({ id: "wallet", label: "ವಾಲೆಟ್", icon: "🪙" });
@@ -2627,6 +2630,13 @@ export const PriestMobilePortal: React.FC = () => {
       {activeTab === "consultation_generator" && (
         <div className="px-1 mt-2">
           <ConsultationGeneratorPage />
+        </div>
+      )}
+
+      {/* Hotel Table QR Studio Desk (Strictly Super Admin Only) */}
+      {activeTab === "hotel_table_qr" && isSuperAdmin && (
+        <div className="px-1 mt-2">
+          <HotelTableQrPage />
         </div>
       )}
 

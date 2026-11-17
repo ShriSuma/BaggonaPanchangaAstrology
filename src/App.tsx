@@ -481,7 +481,6 @@ export default function App(): JSX.Element {
       if (allowed.includes("purva_janma")) allowedPages.push("hindinajanma");
       if (allowed.includes("vahana_muhurtha")) allowedPages.push("vahanamuhurtha", "muhurtha");
       allowedPages.push("settings");
-      allowedPages.push("hotel_qr");
       allowedPages.push("antaranga");
 
       // Auto-redirect unauthorized pages back to their designated allowed module
@@ -577,6 +576,9 @@ export default function App(): JSX.Element {
   }
 
   if (isHotelQrRoute) {
+    if (!isAuthenticated || !isMasterOrSuperAdmin) {
+      return <LoginPage />;
+    }
     return (
       <ErrorBoundary>
         <HotelTableQrPage />
@@ -830,7 +832,9 @@ export default function App(): JSX.Element {
         {currentPage === "poster" && (
           isMasterOrSuperAdmin ? <BaggonaPosterPage /> : <LoginPage />
         )}
-        {currentPage === "hotel_qr" && <HotelTableQrPage />}
+        {currentPage === "hotel_qr" && (
+          isMasterOrSuperAdmin ? <HotelTableQrPage /> : <LoginPage />
+        )}
         {currentPage === "antaranga" && <AntarangadaSatyaPage />}
       </Layout>
     </ErrorBoundary>
