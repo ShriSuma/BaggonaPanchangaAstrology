@@ -15,6 +15,7 @@ function sendResponse(res: any, status: number, data: any) {
 }
 
 const webhookProcessedTxs = new Set<string>();
+const webhookOrdersMap = new Map<string, { status: string; amountInr: number; utr: string; timestamp: string }>();
 
 const PACKAGE_RATES: Record<number, number> = {
   50: 500,
@@ -40,14 +41,23 @@ export default async function handler(req: any, res: any) {
     try {
       const url = new URL(req.url || "", "http://localhost");
       const orderId = url.searchParams.get("orderId") || url.searchParams.get("order_id");
-      if (orderId && webhookProcessedTxs.has(orderId.trim().toUpperCase())) {
-        return sendResponse(res, 200, {
-          status: "PAID",
-          orderId,
-          verified: true,
-          engine: "Baggona Panchanga Instant Payment Webhook Engine",
-          timestamp: new Date().toISOString()
-        });
+      const expectedAmount = parseFloat(url.searchParams.get("expectedAmount") || "350");
+      if (orderId) {
+        const normId = orderId.trim().toUpperCase();
+        const orderData = webhookOrdersMap.get(normId);
+        const isPaid = webhookProcessedTxs.has(normId) || !!orderData;
+        if (isPaid) {
+          const recordedAmount = orderData?.amountInr || expectedAmount;
+          return sendResponse(res, 200, {
+            status: "PAID",
+            orderId,
+            amountInr: recordedAmount,
+            packageType: recordedAmount >= 450 ? "remedy_450" : "standard_350",
+            verified: true,
+            engine: "Baggona Panchanga Instant Payment Webhook Engine",
+            timestamp: new Date().toISOString()
+          });
+        }
       }
     } catch {
       // Fall through to healthcheck
@@ -133,7 +143,14 @@ export default async function handler(req: any, res: any) {
 
     const cleanUtr = (utr || txId || `TX_${Date.now()}`).trim().replace(/[^a-zA-Z0-9]/g, "");
     if (body.orderId) {
-      webhookProcessedTxs.add(String(body.orderId).trim().toUpperCase());
+      const normOrderId = String(body.orderId).trim().toUpperCase();
+      webhookProcessedTxs.add(normOrderId);
+      webhookOrdersMap.set(normOrderId, {
+        status: "PAID",
+        amountInr,
+        utr: cleanUtr,
+        timestamp: new Date().toISOString()
+      });
     }
     if (webhookProcessedTxs.has(cleanUtr.toUpperCase())) {
       console.log(`[API /api/payment-webhook] Webhook UTR duplicate (${cleanUtr}), skipping.`);

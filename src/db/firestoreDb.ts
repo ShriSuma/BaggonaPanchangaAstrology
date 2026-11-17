@@ -3738,3 +3738,155 @@ export function subscribePurohitaDailySummaries(
     return () => {};
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// HOTEL TABLE QR ORDERS COLLECTION & STRICT PAYMENT AUDIT TRAIL
+// ═══════════════════════════════════════════════════════════════════════
+
+export const HOTEL_TABLE_ORDERS_COL = "hotel_table_orders";
+
+export interface HotelTableOrderDoc {
+  id: string; // matches orderId
+  orderId: string;
+  tableNumber: string;
+  hotelName: string;
+  devoteeName: string;
+  amountInr: number; // 350 or 450
+  packageType: "standard_350" | "remedy_450";
+  status: "INITIATED" | "PAID" | "VERIFIED";
+  selectedLang: string;
+  utr?: string;
+  transactionId?: string;
+  paymentMethod?: string;
+  birthDate?: string;
+  birthTime?: string;
+  placeName?: string;
+  latitude?: number;
+  longitude?: number;
+  gender?: string;
+  createdAt: string;
+  verifiedAt?: string;
+}
+
+const memoryHotelOrders = new Map<string, HotelTableOrderDoc>();
+
+export async function saveHotelOrderInitiated(order: HotelTableOrderDoc): Promise<void> {
+  const normId = order.orderId.toUpperCase();
+  memoryHotelOrders.set(normId, order);
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(`hotel_order_${order.orderId}`, JSON.stringify(order));
+    }
+  } catch {}
+
+  try {
+    const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, order.orderId);
+    await setDoc(docRef, order, { merge: true });
+  } catch (err) {
+    console.warn("[Firestore] saveHotelOrderInitiated offline fallback:", err);
+  }
+}
+
+export async function updateHotelOrderVerified(
+  orderId: string,
+  utrOrTxn: string,
+  amountInr: number,
+  paymentMethod: string = "UPI"
+): Promise<HotelTableOrderDoc | null> {
+  const normId = orderId.toUpperCase();
+  const existing = memoryHotelOrders.get(normId) || {
+    id: orderId,
+    orderId,
+    tableNumber: "1",
+    hotelName: "Pandit Palette",
+    devoteeName: "Hotel Devotee",
+    amountInr,
+    packageType: amountInr >= 450 ? "remedy_450" : "standard_350",
+    status: "VERIFIED",
+    selectedLang: "kn",
+    createdAt: new Date().toISOString()
+  } as HotelTableOrderDoc;
+
+  const updated: HotelTableOrderDoc = {
+    ...existing,
+    status: "VERIFIED",
+    utr: utrOrTxn,
+    transactionId: utrOrTxn,
+    amountInr,
+    packageType: amountInr >= 450 ? "remedy_450" : "standard_350",
+    paymentMethod,
+    verifiedAt: new Date().toISOString()
+  };
+
+  memoryHotelOrders.set(normId, updated);
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(`hotel_order_${orderId}`, JSON.stringify(updated));
+    }
+  } catch {}
+
+  try {
+    const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, orderId);
+    await setDoc(docRef, updated, { merge: true });
+  } catch (err) {
+    console.warn("[Firestore] updateHotelOrderVerified offline fallback:", err);
+  }
+
+  return updated;
+}
+
+export async function getHotelOrder(orderId: string): Promise<HotelTableOrderDoc | null> {
+  const normId = orderId.toUpperCase();
+  if (memoryHotelOrders.has(normId)) {
+    return memoryHotelOrders.get(normId)!;
+  }
+
+  try {
+    if (typeof localStorage !== "undefined") {
+      const stored = localStorage.getItem(`hotel_order_${orderId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        memoryHotelOrders.set(normId, parsed);
+        return parsed;
+      }
+    }
+  } catch {}
+
+  try {
+    const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, orderId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data() as HotelTableOrderDoc;
+      memoryHotelOrders.set(normId, data);
+      return data;
+    }
+  } catch (err) {
+    console.warn("[Firestore] getHotelOrder error:", err);
+  }
+
+  return null;
+}
+
+export async function verifyHotelOrderPayment(
+  orderId: string,
+  expectedAmountInr: number
+): Promise<{ verified: boolean; order?: HotelTableOrderDoc; reason?: string }> {
+  const order = await getHotelOrder(orderId);
+  if (!order) {
+    return { verified: false, reason: "Order record not found in database." };
+  }
+
+  if (order.status !== "VERIFIED" && order.status !== "PAID") {
+    return { verified: false, order, reason: "Payment status is not verified." };
+  }
+
+  if (order.amountInr < expectedAmountInr) {
+    return {
+      verified: false,
+      order,
+      reason: `Amount deducted (₹${order.amountInr}) is less than package price (₹${expectedAmountInr}).`
+    };
+  }
+
+  return { verified: true, order };
+}
