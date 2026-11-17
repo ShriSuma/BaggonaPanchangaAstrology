@@ -1789,13 +1789,13 @@ function _resolveSacredDeityImageRaw(
   // 3. Lord Maha Vishnu / Vishnu Sahasranama Stotra
   if (
     (normId.includes("vishnu") ||
-    normDeity.includes("vishnu") ||
-    normDeity.includes("ವಿಷ್ಣು") ||
-    normDeity.includes("विष्णु") ||
-    normDeity.includes("విష్ణు") ||
-    normDeity.includes("விஷ்ணு") ||
-    normDeity.includes("ನಾರಾಯಣ") ||
-    normDeity.includes("नारायण")) &&
+      normDeity.includes("vishnu") ||
+      normDeity.includes("ವಿಷ್ಣು") ||
+      normDeity.includes("विष्णु") ||
+      normDeity.includes("విష్ణు") ||
+      normDeity.includes("விஷ்ணு") ||
+      normDeity.includes("ನಾರಾಯಣ") ||
+      normDeity.includes("नारायण")) &&
     !normDeity.includes("ಸೂರ್ಯ") &&
     !normDeity.includes("सूर्य") &&
     !normDeity.includes("surya") &&
@@ -3318,9 +3318,8 @@ export function calculateCurrentLifeStatus(
 ): FiveYearCurrentLifeStatus {
   const now = new Date();
   const currentAgeDecimal = ageDecimalYearsAt(birthDateYmd, birthTimeHm, lat, lng, now);
-  const currentAgeFormatted = `${formatNumber6L(Math.floor(currentAgeDecimal), targetLang)} ${
-    targetLang === "kn" ? "ವರ್ಷ" : targetLang === "mr" ? "वर्षे" : targetLang === "hi" ? "वर्ष" : targetLang === "te" ? "సంవత్సరాలు" : targetLang === "ta" ? "ஆண்டுகள்" : "Years"
-  }`;
+  const currentAgeFormatted = `${formatNumber6L(Math.floor(currentAgeDecimal), targetLang)} ${targetLang === "kn" ? "ವರ್ಷ" : targetLang === "mr" ? "वर्षे" : targetLang === "hi" ? "वर्ष" : targetLang === "te" ? "సంవత్సరాలు" : targetLang === "ta" ? "ஆண்டுகள்" : "Years"
+    }`;
 
   const currentBhukti = findBhuktiAtAge(kundli, currentAgeDecimal);
   const mahaLord = currentBhukti?.maha?.planet ?? PlanetName.Jupiter;
@@ -3329,17 +3328,14 @@ export function calculateCurrentLifeStatus(
   const mahaLocalized = GRAHA_6L[mahaLord]?.[targetLang] || String(mahaLord);
   const bhuktiLocalized = GRAHA_6L[bhuktiLord]?.[targetLang] || String(bhuktiLord);
 
-  const activeMahadasha = `${mahaLocalized} ${
-    targetLang === "kn" ? "ಮಹಾದಶೆ" : targetLang === "mr" || targetLang === "hi" ? "महादशा" : targetLang === "te" ? "మహర్దశ" : targetLang === "ta" ? "மகாதிசை" : "Mahadasha"
-  }`;
-  const activeBhukti = `${bhuktiLocalized} ${
-    targetLang === "kn" ? "ಅಂತರ್ದಶೆ" : targetLang === "mr" || targetLang === "hi" ? "अंतर्दशा" : targetLang === "te" ? "అంతర్దశ" : targetLang === "ta" ? "புத்தி" : "Antardasha"
-  }`;
+  const activeMahadasha = `${mahaLocalized} ${targetLang === "kn" ? "ಮಹಾದಶೆ" : targetLang === "mr" || targetLang === "hi" ? "महादशा" : targetLang === "te" ? "మహర్దశ" : targetLang === "ta" ? "மகாதிசை" : "Mahadasha"
+    }`;
+  const activeBhukti = `${bhuktiLocalized} ${targetLang === "kn" ? "ಅಂತರ್ದಶೆ" : targetLang === "mr" || targetLang === "hi" ? "अंतर्दशा" : targetLang === "te" ? "అంతర్దశ" : targetLang === "ta" ? "புத்தி" : "Antardasha"
+    }`;
 
   const activeDashaPeriodText = (currentBhukti && typeof currentBhukti.bhuktiStartAge === "number" && typeof currentBhukti.bhuktiEndAge === "number")
-    ? `${formatNumber6L(currentBhukti.bhuktiStartAge.toFixed(1), targetLang)} - ${formatNumber6L(currentBhukti.bhuktiEndAge.toFixed(1), targetLang)} ${
-        targetLang === "kn" ? "ವರ್ಷ ವಯೋಮಿತಿ" : targetLang === "mr" ? "वर्षे वयोमर्यादा" : targetLang === "hi" ? "वर्ष आयु विस्तार" : targetLang === "te" ? "సంవత్సరాల వయస్సు" : targetLang === "ta" ? "ஆண்டுகள் வயது" : "Years Age Span"
-      }`
+    ? `${formatNumber6L(currentBhukti.bhuktiStartAge.toFixed(1), targetLang)} - ${formatNumber6L(currentBhukti.bhuktiEndAge.toFixed(1), targetLang)} ${targetLang === "kn" ? "ವರ್ಷ ವಯೋಮಿತಿ" : targetLang === "mr" ? "वर्षे वयोमर्यादा" : targetLang === "hi" ? "वर्ष आयु विस्तार" : targetLang === "te" ? "సంవత్సరాల వయస్సు" : targetLang === "ta" ? "ஆண்டுகள் வயது" : "Years Age Span"
+    }`
     : "—";
 
   // Transits as of current moment
@@ -3370,21 +3366,21 @@ export function calculateCurrentLifeStatus(
 
   const energyDesc = isHighEnergy
     ? pick6({
-        kn: "ಪ್ರಸ್ತುತ ಚಂದ್ರಬಲವು ಉತ್ತಮವಾಗಿದ್ದು, ದೈನಂದಿನ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳಲು ಹಾಗೂ ಮಾನಸಿಕ ಸಮತೋಲನ ಕಾಪಾಡಿಕೊಳ್ಳಲು ಪ್ರಶಸ್ತವಾದ ಸಮಯವಾಗಿದೆ.",
-        mr: "सध्या चंद्रबल उत्तम असून दैनंदिन महत्त्वाचे निर्णय घेण्यासाठी व मानसिक संतुलन राखण्यासाठी अनुकूल काळ आहे.",
-        hi: "वर्तमान चंद्रबल उत्तम है, जो दैनिक महत्वपूर्ण निर्णयों एवं मानसिक संतुलन बनाए रखने हेतु अत्यंत अनुकूल है।",
-        te: "ప్రస్తుత చంద్రబలం బాగుంది, రోజువారీ ముఖ్యమైన నిర్ణయాలు తీసుకోవడానికి మరియు మానసిక స్థైర్యానికి అనుకూలమైన సమయం.",
-        ta: "தற்போதைய சந்திரபலம் சிறப்பாக உள்ளது, முக்கிய முடிவுகளை எடுக்கவும் மன அமைதியைப் பேணவும் ஏற்ற காலமாகும்.",
-        en: "Current lunar vitality (Chandra Bala) is robust, providing mental poise and favorable clarity for crucial everyday undertakings."
-      }, targetLang)
+      kn: "ಪ್ರಸ್ತುತ ಚಂದ್ರಬಲವು ಉತ್ತಮವಾಗಿದ್ದು, ದೈನಂದಿನ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳಲು ಹಾಗೂ ಮಾನಸಿಕ ಸಮತೋಲನ ಕಾಪಾಡಿಕೊಳ್ಳಲು ಪ್ರಶಸ್ತವಾದ ಸಮಯವಾಗಿದೆ.",
+      mr: "सध्या चंद्रबल उत्तम असून दैनंदिन महत्त्वाचे निर्णय घेण्यासाठी व मानसिक संतुलन राखण्यासाठी अनुकूल काळ आहे.",
+      hi: "वर्तमान चंद्रबल उत्तम है, जो दैनिक महत्वपूर्ण निर्णयों एवं मानसिक संतुलन बनाए रखने हेतु अत्यंत अनुकूल है।",
+      te: "ప్రస్తుత చంద్రబలం బాగుంది, రోజువారీ ముఖ్యమైన నిర్ణయాలు తీసుకోవడానికి మరియు మానసిక స్థైర్యానికి అనుకూలమైన సమయం.",
+      ta: "தற்போதைய சந்திரபலம் சிறப்பாக உள்ளது, முக்கிய முடிவுகளை எடுக்கவும் மன அமைதியைப் பேணவும் ஏற்ற காலமாகும்.",
+      en: "Current lunar vitality (Chandra Bala) is robust, providing mental poise and favorable clarity for crucial everyday undertakings."
+    }, targetLang)
     : pick6({
-        kn: "ದಿನದ ಪ್ರಾಣಶಕ್ತಿ ಸಮತೋಲನದಲ್ಲಿದೆ. ಪ್ರಮುಖ ಆರ್ಥಿಕ ಅಥವಾ ಕೌಟುಂಬಿಕ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವ ಮುನ್ನ ಹಿರಿಯರ ಮತ್ತು ತಜ್ಞರ ಸಲಹೆ ಪಡೆಯುವುದು ಹಿತಕರ.",
-        mr: "दिवसाची ऊर्जा संतुलित आहे. महत्त्वाचे आर्थिक अथवा कौटुंबिक निर्णय घेण्यापूर्वी ज्येष्ठांचा सल्ला घ्यावा.",
-        hi: "दैनिक ऊर्जा संतुलित है। महत्वपूर्ण आर्थिक अथवा पारिवारिक निर्णय लेने से पूर्व अनुभवी व्यक्तियों का परामर्श श्रेयस्कर रहेगा।",
-        te: "రోజువారీ శక్తి సమతుల్యంగా ఉంది. ముఖ్యమైన ఆర్థిక లేదా కుటుంబ నిర్ణయాలు తీసుకునే ముందు పెద్దల సలహా పొందడం శ్రేయస్కరం.",
-        ta: "தினசரி ஆற்றல் சமநிலையில் உள்ளது. நிதி அல்லது குடும்ப முடிவுகளை எடுக்கும் முன் அனுபவசாலிகளின் ஆலோசனை பெறுவது நலம்.",
-        en: "Daily vital energy is balanced. Consult experienced mentors before executing major financial or family commitments."
-      }, targetLang);
+      kn: "ದಿನದ ಪ್ರಾಣಶಕ್ತಿ ಸಮತೋಲನದಲ್ಲಿದೆ. ಪ್ರಮುಖ ಆರ್ಥಿಕ ಅಥವಾ ಕೌಟುಂಬಿಕ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವ ಮುನ್ನ ಹಿರಿಯರ ಮತ್ತು ತಜ್ಞರ ಸಲಹೆ ಪಡೆಯುವುದು ಹಿತಕರ.",
+      mr: "दिवसाची ऊर्जा संतुलित आहे. महत्त्वाचे आर्थिक अथवा कौटुंबिक निर्णय घेण्यापूर्वी ज्येष्ठांचा सल्ला घ्यावा.",
+      hi: "दैनिक ऊर्जा संतुलित है। महत्वपूर्ण आर्थिक अथवा पारिवारिक निर्णय लेने से पूर्व अनुभवी व्यक्तियों का परामर्श श्रेयस्कर रहेगा।",
+      te: "రోజువారీ శక్తి సమతుల్యంగా ఉంది. ముఖ్యమైన ఆర్థిక లేదా కుటుంబ నిర్ణయాలు తీసుకునే ముందు పెద్దల సలహా పొందడం శ్రేయస్కరం.",
+      ta: "தினசரி ஆற்றல் சமநிலையில் உள்ளது. நிதி அல்லது குடும்ப முடிவுகளை எடுக்கும் முன் அனுபவசாலிகளின் ஆலோசனை பெறுவது நலம்.",
+      en: "Daily vital energy is balanced. Consult experienced mentors before executing major financial or family commitments."
+    }, targetLang);
 
   const bannerBadge = pick6({
     kn: "ಪ್ರಸ್ತುತ ಜಾತಕ ಸತ್ಯ · ನೈಜ ಸಮಯದ ಗೋಚಾರ ದರ್ಶನ",
@@ -3496,39 +3492,39 @@ export function calculateCurrentLifeStatus(
 
   const guruGocharaStatus = hasGuruBala
     ? pick6({
-        kn: `ಅನುಕೂಲಕರ ಗುರುಬಲ (ಚಂದ್ರನಿಂದ ${formatNumber6L(guruHouse, "kn")}ನೇ ಮನೆ)`,
-        mr: `अनुकूल गुरूबल (चंद्रापासून ${formatNumber6L(guruHouse, "mr")}वे स्थान)`,
-        hi: `अनुकूल गुरुबल (चन्द्र से ${formatNumber6L(guruHouse, "hi")}वां भाव)`,
-        te: `అనుకూల గురుబలం (చంద్రుని నుండి ${formatNumber6L(guruHouse, "te")}వ ఇల్లు)`,
-        ta: `சாதகமான குருபலம் (சந்திரனிலிருந்து ${formatNumber6L(guruHouse, "ta")}-ஆம் வீடு)`,
-        en: `Auspicious Guru Bala (House ${guruHouse} from Moon)`
-      }, targetLang)
+      kn: `ಅನುಕೂಲಕರ ಗುರುಬಲ (ಚಂದ್ರನಿಂದ ${formatNumber6L(guruHouse, "kn")}ನೇ ಮನೆ)`,
+      mr: `अनुकूल गुरूबल (चंद्रापासून ${formatNumber6L(guruHouse, "mr")}वे स्थान)`,
+      hi: `अनुकूल गुरुबल (चन्द्र से ${formatNumber6L(guruHouse, "hi")}वां भाव)`,
+      te: `అనుకూల గురుబలం (చంద్రుని నుండి ${formatNumber6L(guruHouse, "te")}వ ఇల్లు)`,
+      ta: `சாதகமான குருபலம் (சந்திரனிலிருந்து ${formatNumber6L(guruHouse, "ta")}-ஆம் வீடு)`,
+      en: `Auspicious Guru Bala (House ${guruHouse} from Moon)`
+    }, targetLang)
     : pick6({
-        kn: `ಸಾಮಾನ್ಯ ಗುರು ಗೋಚಾರ (ಚಂದ್ರನಿಂದ ${formatNumber6L(guruHouse, "kn")}ನೇ ಮನೆ)`,
-        mr: `सामान्य गुरू गोचर (चंद्रापासून ${formatNumber6L(guruHouse, "mr")}वे स्थान)`,
-        hi: `मध्यम गुरु गोचर (चन्द्र से ${formatNumber6L(guruHouse, "hi")}वां भाव)`,
-        te: `సాధారణ గురు గోచారం (చంద్రుని నుండి ${formatNumber6L(guruHouse, "te")}వ ఇల్లు)`,
-        ta: `சாதாரண குரு சஞ்சாரம் (சந்திரனிலிருந்து ${formatNumber6L(guruHouse, "ta")}-ஆம் வீடு)`,
-        en: `Neutral Jupiter Transit (House ${guruHouse} from Moon)`
-      }, targetLang);
+      kn: `ಸಾಮಾನ್ಯ ಗುರು ಗೋಚಾರ (ಚಂದ್ರನಿಂದ ${formatNumber6L(guruHouse, "kn")}ನೇ ಮನೆ)`,
+      mr: `सामान्य गुरू गोचर (चंद्रापासून ${formatNumber6L(guruHouse, "mr")}वे स्थान)`,
+      hi: `मध्यम गुरु गोचर (चन्द्र से ${formatNumber6L(guruHouse, "hi")}वां भाव)`,
+      te: `సాధారణ గురు గోచారం (చంద్రుని నుండి ${formatNumber6L(guruHouse, "te")}వ ఇల్లు)`,
+      ta: `சாதாரண குரு சஞ்சாரம் (சந்திரனிலிருந்து ${formatNumber6L(guruHouse, "ta")}-ஆம் வீடு)`,
+      en: `Neutral Jupiter Transit (House ${guruHouse} from Moon)`
+    }, targetLang);
 
   const guruGocharaImpact = hasGuruBala
     ? pick6({
-        kn: "ಬುದ್ಧಿಶಕ್ತಿ, ಗೌರವ, ಸನ್ಮಂಗಳ ಕಾರ್ಯಗಳಿಗೆ ದೈವಾನುಗ್ರಹ ಹಾಗೂ ಆರ್ಥಿಕ ವೃದ್ಧಿಯ ಸುವರ್ಣಾವಕಾಶ.",
-        mr: "बुद्धिमत्ता, मान-सन्मान, मंगल कार्ये व आर्थिक उन्नतीसाठी उत्तम दैवी कृपा लाभेल.",
-        hi: "बुद्धिमत्ता, प्रतिष्ठा, मांगलिक कार्य एवं धन वृद्धि हेतु ईश्वरीय अनुग्रह प्राप्त होगा।",
-        te: "జ్ఞానం, గౌరవం, శుభకార్యాలు మరియు ఆర్థికాభివృద్ధికి దైవానుగ్రహం లభిస్తుంది.",
-        ta: "புத்தி கூர்மை, கௌரவம், சுப காரியங்கள் மற்றும் பொருளாதார வளர்ச்சிக்கு தெய்வ அருள் துணை நிற்கும்.",
-        en: "Confers divine grace, wisdom, auspicious endeavors, and enhanced prospects for financial stability."
-      }, targetLang)
+      kn: "ಬುದ್ಧಿಶಕ್ತಿ, ಗೌರವ, ಸನ್ಮಂಗಳ ಕಾರ್ಯಗಳಿಗೆ ದೈವಾನುಗ್ರಹ ಹಾಗೂ ಆರ್ಥಿಕ ವೃದ್ಧಿಯ ಸುವರ್ಣಾವಕಾಶ.",
+      mr: "बुद्धिमत्ता, मान-सन्मान, मंगल कार्ये व आर्थिक उन्नतीसाठी उत्तम दैवी कृपा लाभेल.",
+      hi: "बुद्धिमत्ता, प्रतिष्ठा, मांगलिक कार्य एवं धन वृद्धि हेतु ईश्वरीय अनुग्रह प्राप्त होगा।",
+      te: "జ్ఞానం, గౌరవం, శుభకార్యాలు మరియు ఆర్థికాభివృద్ధికి దైవానుగ్రహం లభిస్తుంది.",
+      ta: "புத்தி கூர்மை, கௌரவம், சுப காரியங்கள் மற்றும் பொருளாதார வளர்ச்சிக்கு தெய்வ அருள் துணை நிற்கும்.",
+      en: "Confers divine grace, wisdom, auspicious endeavors, and enhanced prospects for financial stability."
+    }, targetLang)
     : pick6({
-        kn: "ಅತಿಯಾದ ನಿರೀಕ್ಷೆ ಬೇಡ; ಜ್ಞಾನಾರ್ಜನೆ, ಗುರು ಹಿರಿಯರ ಸೇವೆ ಹಾಗೂ ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆದರೆ ಶಾಂತಿ ಲಭಿಸಲಿದೆ.",
-        mr: "अति अपेक्षा टाळा; ज्ञानार्जन, वडीलधाऱ्यांची सेवा व सन्मार्गाचा अवलंब केल्यास मनःशांती लाभेल.",
-        hi: "अत्यधिक अपेक्षाओं से बचें; ज्ञानार्जन, गुरुजनों की सेवा एवं धर्म मार्ग पर चलने से शांति मिलेगी।",
-        te: "అధిక అంచనాలు వద్దు; జ్ఞానార్జన, పెద్దల సేవ మరియు ధర్మ మార్గంలో నడిస్తే మనశ్శాంతి లభిస్తుంది.",
-        ta: "அதிக எதிர்பார்ப்புகளைத் தவிர்க்கவும்; தர்ம வழியிலும் பெரியவர்களின் வழிகாட்டலிலும் செல்ல அமைதி கிடைக்கும்.",
-        en: "Moderates aggressive expectations; focus on structured learning, moral integrity, and inner reflection."
-      }, targetLang);
+      kn: "ಅತಿಯಾದ ನಿರೀಕ್ಷೆ ಬೇಡ; ಜ್ಞಾನಾರ್ಜನೆ, ಗುರು ಹಿರಿಯರ ಸೇವೆ ಹಾಗೂ ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆದರೆ ಶಾಂತಿ ಲಭಿಸಲಿದೆ.",
+      mr: "अति अपेक्षा टाळा; ज्ञानार्जन, वडीलधाऱ्यांची सेवा व सन्मार्गाचा अवलंब केल्यास मनःशांती लाभेल.",
+      hi: "अत्यधिक अपेक्षाओं से बचें; ज्ञानार्जन, गुरुजनों की सेवा एवं धर्म मार्ग पर चलने से शांति मिलेगी।",
+      te: "అధిక అంచనాలు వద్దు; జ్ఞానార్జన, పెద్దల సేవ మరియు ధర్మ మార్గంలో నడిస్తే మనశ్శాంతి లభిస్తుంది.",
+      ta: "அதிக எதிர்பார்ப்புகளைத் தவிர்க்கவும்; தர்ம வழியிலும் பெரியவர்களின் வழிகாட்டலிலும் செல்ல அமைதி கிடைக்கும்.",
+      en: "Moderates aggressive expectations; focus on structured learning, moral integrity, and inner reflection."
+    }, targetLang);
 
   const rahuKetuStatus = pick6({
     kn: `ರಾಹು ${formatNumber6L(rahuHouse, "kn")}ನೇ ಮನೆ & ಕೇತು ${formatNumber6L(ketuHouse, "kn")}ನೇ ಮನೆ`,
@@ -3652,21 +3648,21 @@ export function calculateCurrentLifeStatus(
 
   const turningPointTimeline = (isSadeSati || isAshtama)
     ? pick6({
-        kn: "ಮುಂದಿನ ೪ ರಿಂದ ೮ ತಿಂಗಳಲ್ಲಿ (೨೦೨೬ ರ ಉತ್ತರಾರ್ಧದಲ್ಲಿ) ಗುರುಬಲದ ಸಂಚಾರ ಆರಂಭವಾಗುತ್ತಿದ್ದಂತೆ, ಕಷ್ಟದ ಮೋಡಗಳು ಕರಗಿ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸುವರ್ಣ ತಿರುವು ಆರಂಭವಾಗಲಿದೆ!",
-        mr: "आगामी ४ ते ८ महिन्यांत (२०२६ च्या उत्तरार्धात) गुरूचे शुभ भ्रमण सुरू होताच अडचणी दूर होऊन आपल्या जीवनात सुवर्ण वळण सुरू होईल!",
-        hi: "आगामी ४ से ८ महीनों में (वर्ष २०२६ के उत्तरार्ध में) गुरु का शुभ गोचर प्रारंभ होते ही बाधाएं दूर होंगी और जीवन में स्वर्णिम मोड़ आएगा!",
-        te: "రాబోయే 4 నుండి 8 నెలల్లో గురుబలం ప్రారంభం కాగానే ఇబ్బందులు తొలగి మీ జీవితంలో అద్భుతమైన మలుపు ప్రారంభమవుతుంది!",
-        ta: "அடுத்த 4 முதல் 8 மாதங்களில் குருபலம் கூடி வர, தடைகள் நீங்கி உங்கள் வாழ்வில் பொற்காலம் மலரும்!",
-        en: "Within the next 4 to 8 months (late 2026), as Jupiter's benefic transit activates, chronic obstacles will dissolve and your golden turnaround will commence!"
-      }, targetLang)
+      kn: "ಮುಂದಿನ ೪ ರಿಂದ ೮ ತಿಂಗಳಲ್ಲಿ (೨೦೨೬ ರ ಉತ್ತರಾರ್ಧದಲ್ಲಿ) ಗುರುಬಲದ ಸಂಚಾರ ಆರಂಭವಾಗುತ್ತಿದ್ದಂತೆ, ಕಷ್ಟದ ಮೋಡಗಳು ಕರಗಿ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸುವರ್ಣ ತಿರುವು ಆರಂಭವಾಗಲಿದೆ!",
+      mr: "आगामी ४ ते ८ महिन्यांत (२०२६ च्या उत्तरार्धात) गुरूचे शुभ भ्रमण सुरू होताच अडचणी दूर होऊन आपल्या जीवनात सुवर्ण वळण सुरू होईल!",
+      hi: "आगामी ४ से ८ महीनों में (वर्ष २०२६ के उत्तरार्ध में) गुरु का शुभ गोचर प्रारंभ होते ही बाधाएं दूर होंगी और जीवन में स्वर्णिम मोड़ आएगा!",
+      te: "రాబోయే 4 నుండి 8 నెలల్లో గురుబలం ప్రారంభం కాగానే ఇబ్బందులు తొలగి మీ జీవితంలో అద్భుతమైన మలుపు ప్రారంభమవుతుంది!",
+      ta: "அடுத்த 4 முதல் 8 மாதங்களில் குருபலம் கூடி வர, தடைகள் நீங்கி உங்கள் வாழ்வில் பொற்காலம் மலரும்!",
+      en: "Within the next 4 to 8 months (late 2026), as Jupiter's benefic transit activates, chronic obstacles will dissolve and your golden turnaround will commence!"
+    }, targetLang)
     : pick6({
-        kn: "ಪ್ರಸ್ತುತ ವರ್ಷದ ೩ನೇ ತ್ರೈಮಾಸಿಕದಿಂದಲೇ ಹೊಸ ಒಪ್ಪಂದಗಳು, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಮಹತ್ವದ ಶುಭಕಾರ್ಯಗಳಿಗೆ ಪೂರ್ಣ ಕಾಲ ಕೂಡಿಬರಲಿದೆ!",
-        mr: "चालू वर्षाच्या तिसऱ्या तिमाहीपासूनच नवीन संधी, आर्थिक स्थैर्य व महत्त्वाच्या मंगल कार्यांसाठी अनुकूल काळ सुरू होईल!",
-        hi: "चालू वर्ष की तीसरी तिमाही से ही नए अवसर, आर्थिक स्थिरता एवं मांगलिक कार्यों हेतु उत्तम कालखंड प्रारंभ होगा!",
-        te: "ప్రస్తుత సంవత్సరం మూడవ త్రైమాసికం నుండే కొత్త అవకాశాలు, ఆర్థిక స్థిరత్వం మరియు శుభకార్యాలు ప్రారంభమవుతాయి!",
-        ta: "நடப்பு ஆண்டின் மூன்றாம் காலாண்டிலிருந்தே புதிய ஒப்பந்தங்கள், பொருளாதார நிலைத்தன்மை மற்றும் சுபகாரியங்கள் கூடிவரும்!",
-        en: "Starting from the 3rd quarter of this cycle, favorable contracts, financial expansion, and long-awaited auspicious milestones will align smoothly!"
-      }, targetLang);
+      kn: "ಪ್ರಸ್ತುತ ವರ್ಷದ ೩ನೇ ತ್ರೈಮಾಸಿಕದಿಂದಲೇ ಹೊಸ ಒಪ್ಪಂದಗಳು, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಮಹತ್ವದ ಶುಭಕಾರ್ಯಗಳಿಗೆ ಪೂರ್ಣ ಕಾಲ ಕೂಡಿಬರಲಿದೆ!",
+      mr: "चालू वर्षाच्या तिसऱ्या तिमाहीपासूनच नवीन संधी, आर्थिक स्थैर्य व महत्त्वाच्या मंगल कार्यांसाठी अनुकूल काळ सुरू होईल!",
+      hi: "चालू वर्ष की तीसरी तिमाही से ही नए अवसर, आर्थिक स्थिरता एवं मांगलिक कार्यों हेतु उत्तम कालखंड प्रारंभ होगा!",
+      te: "ప్రస్తుత సంవత్సరం మూడవ త్రైమాసికం నుండే కొత్త అవకాశాలు, ఆర్థిక స్థిరత్వం మరియు శుభకార్యాలు ప్రారంభమవుతాయి!",
+      ta: "நடப்பு ஆண்டின் மூன்றாம் காலாண்டிலிருந்தே புதிய ஒப்பந்தங்கள், பொருளாதார நிலைத்தன்மை மற்றும் சுபகாரியங்கள் கூடிவரும்!",
+      en: "Starting from the 3rd quarter of this cycle, favorable contracts, financial expansion, and long-awaited auspicious milestones will align smoothly!"
+    }, targetLang);
 
   const careerStatus: "favorable" | "moderate" | "caution" = hasGuruBala ? "favorable" : (isKantaka || isAshtama) ? "caution" : "moderate";
   const wealthStatus: "favorable" | "moderate" | "caution" = (isAshtama || isSadeSati) ? "caution" : hasGuruBala ? "favorable" : "moderate";
@@ -4007,21 +4003,21 @@ export function compute5YearMasterPrediction(
 
     const analysisText = isFavorable
       ? pick6({
-          kn: `${TARA_NAMES[taraNum].kn} ಯೋಗದಿಂದ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹ ಪೂರ್ಣವಾಗಿ ಲಭಿಸಿ, ಪ್ರಯತ್ನಿಸಿದ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಸಿದ್ಧಿ ಮತ್ತು ಧನಯೋಗ ಸೃಷ್ಟಿಯಾಗಲಿದೆ.`,
-          mr: `${TARA_NAMES[taraNum].mr} योगामुळे देवगुरूंचे पूर्ण आशीर्वाद मिळून सर्व प्रयत्नांना यश व आर्थिक समृद्धी लाभेल.`,
-          hi: `${TARA_NAMES[taraNum].hi} के प्रभाव से बृहस्पति देव की पूर्ण अनुकंपा प्राप्त होकर समस्त प्रयासों में सफलता एवं धन लाभ सुनिश्चित होगा।`,
-          te: `${TARA_NAMES[taraNum].te} ప్రభావంతో గురు దేవుని సంపూర్ణ అనుగ్రహం లభించి, ప్రయత్నించిన ప్రతి పనిలో విజయం మరియు ధనలాభం కలుగుతుంది.`,
-          ta: `${TARA_NAMES[taraNum].ta} யோகத்தால் குரு பகவானின் பூரண அருள் கிடைத்து, முயற்சிகளில் வெற்றியும் தன லாபமும் உறுதியாக கிட்டும்.`,
-          en: `Fortified by ${TARA_NAMES[taraNum].en}, Jupiter's celestial alignment empowers your initiatives with accelerated success and material compounding.`
-        }, lang)
+        kn: `${TARA_NAMES[taraNum].kn} ಯೋಗದಿಂದ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹ ಪೂರ್ಣವಾಗಿ ಲಭಿಸಿ, ಪ್ರಯತ್ನಿಸಿದ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಸಿದ್ಧಿ ಮತ್ತು ಧನಯೋಗ ಸೃಷ್ಟಿಯಾಗಲಿದೆ.`,
+        mr: `${TARA_NAMES[taraNum].mr} योगामुळे देवगुरूंचे पूर्ण आशीर्वाद मिळून सर्व प्रयत्नांना यश व आर्थिक समृद्धी लाभेल.`,
+        hi: `${TARA_NAMES[taraNum].hi} के प्रभाव से बृहस्पति देव की पूर्ण अनुकंपा प्राप्त होकर समस्त प्रयासों में सफलता एवं धन लाभ सुनिश्चित होगा।`,
+        te: `${TARA_NAMES[taraNum].te} ప్రభావంతో గురు దేవుని సంపూర్ణ అనుగ్రహం లభించి, ప్రయత్నించిన ప్రతి పనిలో విజయం మరియు ధనలాభం కలుగుతుంది.`,
+        ta: `${TARA_NAMES[taraNum].ta} யோகத்தால் குரு பகவானின் பூரண அருள் கிடைத்து, முயற்சிகளில் வெற்றியும் தன லாபமும் உறுதியாக கிட்டும்.`,
+        en: `Fortified by ${TARA_NAMES[taraNum].en}, Jupiter's celestial alignment empowers your initiatives with accelerated success and material compounding.`
+      }, lang)
       : pick6({
-          kn: `${TARA_NAMES[taraNum].kn} ಪ್ರಭಾವದಿಂದ ನಿರ್ಧಾರಗಳಲ್ಲಿ ತಾಳ್ಮೆ ಅತ್ಯಗತ್ಯ; ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ ಆರಾಧನೆ ಹಾಗೂ ನಿತ್ಯ ಸ್ತೋತ್ರ ಪಠಣೆ ರಕ್ಷೆಯಾಗಲಿದೆ.`,
-          mr: `${TARA_NAMES[taraNum].mr} मुळे निर्णयांमध्ये संयम बाळगणे आवश्यक आहे; श्री गोकर्ण महागणपती आराधना व नित्य स्तोत्र पठण सुरक्षा देईल.`,
-          hi: `${TARA_NAMES[taraNum].hi} के कारण निर्णयों में धैर्य आवश्यक है; श्री गोकर्ण महागणपति पूजन एवं नित्य स्तोत्र पाठ अचूक रक्षा कवच होगा।`,
-          te: `${TARA_NAMES[taraNum].te} వలన నిర్ణయాలలో సంయమనం అవసరం; శ్రీ గోకర్ణ మహా గణపతి పూజ మరియు నిత్య స్తోత్ర పారాయణం రక్షణగా నిలుస్తుంది.`,
-          ta: `${TARA_NAMES[taraNum].ta} காரணமாக முடிவுகளில் நிதானம் தேவை; ஸ்ரீ கோகர்ண மகா கணபதி வழிபாடு மற்றும் நித்திய ஸ்தோத்திர பாராயணம் சிறந்த அரணாகும்.`,
-          en: `Under ${TARA_NAMES[taraNum].en}, measured deliberation is advised; regular chanting and Gokarna Ganapati prayer ensure protective sanctuary.`
-        }, lang);
+        kn: `${TARA_NAMES[taraNum].kn} ಪ್ರಭಾವದಿಂದ ನಿರ್ಧಾರಗಳಲ್ಲಿ ತಾಳ್ಮೆ ಅತ್ಯಗತ್ಯ; ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ ಆರಾಧನೆ ಹಾಗೂ ನಿತ್ಯ ಸ್ತೋತ್ರ ಪಠಣೆ ರಕ್ಷೆಯಾಗಲಿದೆ.`,
+        mr: `${TARA_NAMES[taraNum].mr} मुळे निर्णयांमध्ये संयम बाळगणे आवश्यक आहे; श्री गोकर्ण महागणपती आराधना व नित्य स्तोत्र पठण सुरक्षा देईल.`,
+        hi: `${TARA_NAMES[taraNum].hi} के कारण निर्णयों में धैर्य आवश्यक है; श्री गोकर्ण महागणपति पूजन एवं नित्य स्तोत्र पाठ अचूक रक्षा कवच होगा।`,
+        te: `${TARA_NAMES[taraNum].te} వలన నిర్ణయాలలో సంయమనం అవసరం; శ్రీ గోకర్ణ మహా గణపతి పూజ మరియు నిత్య స్తోత్ర పారాయణం రక్షణగా నిలుస్తుంది.`,
+        ta: `${TARA_NAMES[taraNum].ta} காரணமாக முடிவுகளில் நிதானம் தேவை; ஸ்ரீ கோகர்ண மகா கணபதி வழிபாடு மற்றும் நித்திய ஸ்தோத்திர பாராயணம் சிறந்த அரணாகும்.`,
+        en: `Under ${TARA_NAMES[taraNum].en}, measured deliberation is advised; regular chanting and Gokarna Ganapati prayer ensure protective sanctuary.`
+      }, lang);
 
     return {
       taraName: TARA_NAMES[taraNum][lang] || TARA_NAMES[taraNum].kn,
@@ -4871,13 +4867,13 @@ export function compute5YearMasterPrediction(
 
     const yearTakeawayOneLiner = starRating === 5
       ? pick6({
-          kn: "ಜೀವನದ ಬಹುದಿನದ ಕನಸು ನನಸಾಗುವ ಸುವರ್ಣ ಕಾಲ; ಹೊಸ ಆಸ್ತಿ, ಬಡ್ತಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಮಹತ್ತರ ಗೌರವ ತರುವ ಅದೃಷ್ಟ ವರ್ಷ.",
-          mr: "जीवनातील बहुप्रतिक्षित स्वप्ने पूर्ण होण्याचा सुवर्ण काळ; नवीन संपत्ती, पदोन्नती व समाजात मान-सन्मान देणारे वर्ष.",
-          hi: "जीवन के चिरप्रतीक्षित स्वप्नों के साकार होने का स्वर्णिम समय; नई संपत्ति, पदोन्नति एवं समाज में यश-कीर्ति प्रदायक वर्ष।",
-          te: "ఎన్నో రోజుల కలలు నెరవేరే సువర్ణ సమయం; కొత్త ఆస్తి, పదోన్నతి మరియు సమాజంలో గౌరవం తెచ్చే అదృష్ట సంవత్సరం.",
-          ta: "நீண்ட நாள் கனவுகள் நனவாகும் பொற்காலம்; புதிய சொத்து, பதவி உயர்வு மற்றும் சமுதாயத்தில் நன்மதிப்பு தரும் ஆண்டு.",
-          en: "A golden landmark cycle when long-cherished ambitions materialize, bringing property/career ascent and societal esteem."
-        }, targetLang)
+        kn: "ಜೀವನದ ಬಹುದಿನದ ಕನಸು ನನಸಾಗುವ ಸುವರ್ಣ ಕಾಲ; ಹೊಸ ಆಸ್ತಿ, ಬಡ್ತಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಮಹತ್ತರ ಗೌರವ ತರುವ ಅದೃಷ್ಟ ವರ್ಷ.",
+        mr: "जीवनातील बहुप्रतिक्षित स्वप्ने पूर्ण होण्याचा सुवर्ण काळ; नवीन संपत्ती, पदोन्नती व समाजात मान-सन्मान देणारे वर्ष.",
+        hi: "जीवन के चिरप्रतीक्षित स्वप्नों के साकार होने का स्वर्णिम समय; नई संपत्ति, पदोन्नति एवं समाज में यश-कीर्ति प्रदायक वर्ष।",
+        te: "ఎన్నో రోజుల కలలు నెరవేరే సువర్ణ సమయం; కొత్త ఆస్తి, పదోన్నతి మరియు సమాజంలో గౌరవం తెచ్చే అదృష్ట సంవత్సరం.",
+        ta: "நீண்ட நாள் கனவுகள் நனவாகும் பொற்காலம்; புதிய சொத்து, பதவி உயர்வு மற்றும் சமுதாயத்தில் நன்மதிப்பு தரும் ஆண்டு.",
+        en: "A golden landmark cycle when long-cherished ambitions materialize, bringing property/career ascent and societal esteem."
+      }, targetLang)
       : starRating === 4
         ? pick6({
           kn: "ಕಠಿಣ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ದೊರೆತು, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ನೆಮ್ಮದಿ ತರುವ ಬೆಳವಣಿಗೆಯ ವರ್ಷ.",
@@ -5512,32 +5508,32 @@ export function compute5YearMasterPrediction(
         paragraphs: [
           isMarried
             ? pick6({
-                kn: `ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ, ವಿಶ್ವಾಸ ಹಾಗೂ ಸೌಹಾರ್ದತೆ ಹೆಚ್ಚಾಗಲಿದೆ. ಸಂಗಾತಿಯೊಂದಿಗೆ ಕೂಡಿ ಮಾಡುವ ಆರ್ಥಿಕ ಮತ್ತು ಕೌಟುಂಬಿಕ ಯೋಜನೆಗಳು ಸುಲಭವಾಗಿ ಈಡೇರಲಿವೆ. ಈ ಹಿಂದೆ ಇದ್ದ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಶಮನವಾಗಲಿವೆ.`,
-                mr: `कुटुंबात परस्पर प्रेम, विश्वास व सौहार्द वाढेल. वैवाहिक जीवनातील पूर्वीचे गैरसमज दूर होऊन जोडीदाराच्या साथीने मोठे यश लाभेल.`,
-                hi: `परिवार में परस्पर प्रेम, विश्वास एवं सामंजस्य बढ़ेगा। दांपत्य जीवन में पूर्व के मतभेद समाप्त होकर जीवनसाथी के साथ संबंध और अधिक मधुर होंगे।`,
-                te: `కుటుంబంలో పరస్పర ప్రేమ, నమ్మకం మరియు సామరస్యం పెరుగుతాయి. గత విభేదాలు సమసిపోయి జీవిత భాగస్వామితో సంబంధాలు బలపడతాయి.`,
-                ta: `குடும்பத்தில் அன்பு, நம்பிக்கை பெருகும். தம்பதியர் இடையே பழைய மனஸ்தாபங்கள் நீங்கி புரிதல் அதிகரிக்கும்.`,
-                en: `Domestic serenity will deepen with marital camaraderie. Mutual trust dissolves historical frictions and strengthens companionship.`
-              }, targetLang)
+              kn: `ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ, ವಿಶ್ವಾಸ ಹಾಗೂ ಸೌಹಾರ್ದತೆ ಹೆಚ್ಚಾಗಲಿದೆ. ಸಂಗಾತಿಯೊಂದಿಗೆ ಕೂಡಿ ಮಾಡುವ ಆರ್ಥಿಕ ಮತ್ತು ಕೌಟುಂಬಿಕ ಯೋಜನೆಗಳು ಸುಲಭವಾಗಿ ಈಡೇರಲಿವೆ. ಈ ಹಿಂದೆ ಇದ್ದ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಶಮನವಾಗಲಿವೆ.`,
+              mr: `कुटुंबात परस्पर प्रेम, विश्वास व सौहार्द वाढेल. वैवाहिक जीवनातील पूर्वीचे गैरसमज दूर होऊन जोडीदाराच्या साथीने मोठे यश लाभेल.`,
+              hi: `परिवार में परस्पर प्रेम, विश्वास एवं सामंजस्य बढ़ेगा। दांपत्य जीवन में पूर्व के मतभेद समाप्त होकर जीवनसाथी के साथ संबंध और अधिक मधुर होंगे।`,
+              te: `కుటుంబంలో పరస్పర ప్రేమ, నమ్మకం మరియు సామరస్యం పెరుగుతాయి. గత విభేదాలు సమసిపోయి జీవిత భాగస్వామితో సంబంధాలు బలపడతాయి.`,
+              ta: `குடும்பத்தில் அன்பு, நம்பிக்கை பெருகும். தம்பதியர் இடையே பழைய மனஸ்தாபங்கள் நீங்கி புரிதல் அதிகரிக்கும்.`,
+              en: `Domestic serenity will deepen with marital camaraderie. Mutual trust dissolves historical frictions and strengthens companionship.`
+            }, targetLang)
             : pick6({
-                kn: `ಅವಿವಾಹಿತರಿಗೆ ಶೀಘ್ರ ವಿವಾಹ ಯೋಗ ಕೂಡಿಬರಲಿದ್ದು, ಸುಸಂಸ್ಕೃತ ಜೀವನ ಸಂಗಾತಿಯ ಆಗಮನವಾಗಲಿದೆ. ಕುಟುಂಬದ ಹಿರಿಯರ ಆಶೀರ್ವಾದದಿಂದ ಶುಭ ವಿವಾಹ ಕಾರ್ಯಗಳು ನಿರ್ವಿಘ್ನವಾಗಿ ನೆರವೇರಲಿವೆ.`,
-                mr: `अविवाहितांसाठी विवाहाचे अत्यंत शुभ योग जुळून येतील. सुसंस्कारी जोडीदाराचे आगमन होऊन मंगलकार्ये निर्विघ्नपणे पार पडतील.`,
-                hi: `अविवाहितों के लिए शीघ्र विवाह के मांगलिक योग बनेंगे। सुयोग्य जीवनसाथी का आगमन होगा तथा मांगलिक कार्य संपन्न होंगे।`,
-                te: `అవివాహితులకు శీఘ్ర వివాహ యోగం కుదురుతుంది. సుగుణవంతుడైన భాగస్వామి లభించి శుభకార్యాలు ఘనంగా జరుగుతాయి.`,
-                ta: `திருமணம் ஆகாதவர்களுக்கு விரைவில் நல்ல வரன் அமையும். சுப நிகழ்வுகள் இனிதே கைகூடும்.`,
-                en: `Unmarried natives encounter highly auspicious matrimonial proposals, culminating in a blessed wedding union.`
-              }, targetLang),
+              kn: `ಅವಿವಾಹಿತರಿಗೆ ಶೀಘ್ರ ವಿವಾಹ ಯೋಗ ಕೂಡಿಬರಲಿದ್ದು, ಸುಸಂಸ್ಕೃತ ಜೀವನ ಸಂಗಾತಿಯ ಆಗಮನವಾಗಲಿದೆ. ಕುಟುಂಬದ ಹಿರಿಯರ ಆಶೀರ್ವಾದದಿಂದ ಶುಭ ವಿವಾಹ ಕಾರ್ಯಗಳು ನಿರ್ವಿಘ್ನವಾಗಿ ನೆರವೇರಲಿವೆ.`,
+              mr: `अविवाहितांसाठी विवाहाचे अत्यंत शुभ योग जुळून येतील. सुसंस्कारी जोडीदाराचे आगमन होऊन मंगलकार्ये निर्विघ्नपणे पार पडतील.`,
+              hi: `अविवाहितों के लिए शीघ्र विवाह के मांगलिक योग बनेंगे। सुयोग्य जीवनसाथी का आगमन होगा तथा मांगलिक कार्य संपन्न होंगे।`,
+              te: `అవివాహితులకు శీఘ్ర వివాహ యోగం కుదురుతుంది. సుగుణవంతుడైన భాగస్వామి లభించి శుభకార్యాలు ఘనంగా జరుగుతాయి.`,
+              ta: `திருமணம் ஆகாதவர்களுக்கு விரைவில் நல்ல வரன் அமையும். சுப நிகழ்வுகள் இனிதே கைகூடும்.`,
+              en: `Unmarried natives encounter highly auspicious matrimonial proposals, culminating in a blessed wedding union.`
+            }, targetLang),
           (isFemale && isMarried && currentAgeYears >= 20 && currentAgeYears <= 42)
             ? pick6({
-                kn: `ಸಂತಾನಾಪೇಕ್ಷಿ ಮಹಿಳೆಯರಿಗೆ ೫ನೇ ಮನೆಯ ಗುರು ಕೃಪೆಯಿಂದ ಸತ್ಸಂತಾನ ಪ್ರಾಪ್ತಿಯ ಪರಮ ಮಂಗಳಕರ ಯೋಗವಿದೆ. ಮಾತೃತ್ವದ ಸಂತೋಷವು ಮನೆಗೆ ಹೊಸ ಬೆಳಕನ್ನು ತರಲಿದೆ.`,
-                mr: `संततीची इच्छा असणाऱ्या महिलांना पंचमेश व गुरूच्या कृपेने कुलदीपक संततीचा लाभ होईल. मातृत्व सौख्याने जीवन समृद्ध होईल.`,
-                hi: `संतान सुख की अभिलाषा रखने वाली महिलाओं हेतु पंचम भाव एवं देवगुरु की कृपा से सन्तति प्राप्ति के पावन योग हैं।`,
-                te: `సంతానాపేక్ష గల మహిళలకు 5వ ఇంట్లో గురు అనుగ్రహంతో సత్సంతాన ప్రాప్తి లభించే శుభ యోగం ఉంది.`,
-                ta: `குழந்தை பாக்கியம் வேண்டுவோருக்கு 5ம் இடத்து குருவின் அருளால் மழலைச் செல்வம் கிட்டும் உன்னத யோகம் உண்டு.`,
-                en: `Progeny aspirations receive divine blessings, and the blossoming arrival of children will bring heartfelt joy.`
-              }, targetLang)
+              kn: `ಸಂತಾನಾಪೇಕ್ಷಿ ಮಹಿಳೆಯರಿಗೆ ೫ನೇ ಮನೆಯ ಗುರು ಕೃಪೆಯಿಂದ ಸತ್ಸಂತಾನ ಪ್ರಾಪ್ತಿಯ ಪರಮ ಮಂಗಳಕರ ಯೋಗವಿದೆ. ಮಾತೃತ್ವದ ಸಂತೋಷವು ಮನೆಗೆ ಹೊಸ ಬೆಳಕನ್ನು ತರಲಿದೆ.`,
+              mr: `संततीची इच्छा असणाऱ्या महिलांना पंचमेश व गुरूच्या कृपेने कुलदीपक संततीचा लाभ होईल. मातृत्व सौख्याने जीवन समृद्ध होईल.`,
+              hi: `संतान सुख की अभिलाषा रखने वाली महिलाओं हेतु पंचम भाव एवं देवगुरु की कृपा से सन्तति प्राप्ति के पावन योग हैं।`,
+              te: `సంతానాపేక్ష గల మహిళలకు 5వ ఇంట్లో గురు అనుగ్రహంతో సత్సంతాన ప్రాప్తి లభించే శుభ యోగం ఉంది.`,
+              ta: `குழந்தை பாக்கியம் வேண்டுவோருக்கு 5ம் இடத்து குருவின் அருளால் மழலைச் செல்வம் கிட்டும் உன்னத யோகம் உண்டு.`,
+              en: `Progeny aspirations receive divine blessings, and the blossoming arrival of children will bring heartfelt joy.`
+            }, targetLang)
             : hasChildren
-            ? pick6({
+              ? pick6({
                 kn: `ಮಕ್ಕಳ ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ನಡತೆಯು ಮನೆಗೆ ಕೀರ್ತಿ ತರಲಿದ್ದು, ಅವರ ಪ್ರಗತಿಯು ಪೋಷಕರಿಗೆ ಅಪಾರ ತೃಪ್ತಿ ನೀಡಲಿದೆ. ಉನ್ನತ ವ್ಯಾಸಂಗದಲ್ಲಿ ವಿಶೇಷ ಪ್ರಗತಿ ಕಾಣುವರು.`,
                 mr: `मुलांची शैक्षणिक प्रगती व संस्कार कुटुंबाची प्रतिष्ठा वाढवतील आणि पालकांना मोठा आनंद देतील. उच्च शिक्षणात मोठी यशप्राप्ती होईल.`,
                 hi: `बच्चों की शिक्षा एवं सुसंस्कार परिवार का मान बढ़ाएंगे तथा माता-पिता को असीम संतोष देंगे। उच्च शिक्षा में उल्लेखनीय सफलता मिलेगी।`,
@@ -5545,7 +5541,7 @@ export function compute5YearMasterPrediction(
                 ta: `பிள்ளைகளின் கல்வி மற்றும் நற்பண்புகள் குடும்பத்திற்கு பெருமை சேர்த்து பெற்றோருக்கு மகிழ்ச்சி தரும். உயர் கல்வியில் சாதனைகள் புரிவர்.`,
                 en: `Children will excel in academics and conduct, bringing pride and heartfelt contentment to the household.`
               }, targetLang)
-            : pick6({
+              : pick6({
                 kn: `ಕುಟುಂಬದಲ್ಲಿ ಹಬ್ಬ-ಹರಿದಿನಗಳ ಸಡಗರ ಹಾಗೂ ಬಂಧು-ಮಿತ್ರರ ಒಡನಾಟವು ನೆಮ್ಮದಿ ಮತ್ತು ಸಂತೋಷವನ್ನು ತರಲಿದೆ. ಹಿರಿಯರ ಆರೋಗ್ಯದಲ್ಲಿ ಸುಧಾರಣೆ ಕಂಡುಬರಲಿದೆ.`,
                 mr: `सण-उत्सवांचा आनंद व आप्तेष्टांचा स्नेह यामुळे घरात सदैव उत्साहाचे वातावरण राहील. घरातील ज्येष्ठांचे आरोग्य सुधारेल.`,
                 hi: `पारिवारिक उत्सवों एवं मांगलिक आयोजनों से घर में आनंद एवं सौहार्द बना रहेगा। बुजुर्गों के स्वास्थ्य में उत्तम सुधार होगा।`,
@@ -5668,47 +5664,47 @@ export function compute5YearMasterPrediction(
   const peakYStr = formatNumber6L(baseYear + peakYearIdx, targetLang);
   const pivotalTurningPointTitle = targetLang === "kn" ? `🌟 ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ತಿರುವು (${peakYStr})`
     : targetLang === "mr" ? `🌟 ५ वर्षांतील सुवर्ण वळण (${peakYStr})`
-    : targetLang === "hi" ? `🌟 ५ वर्षों का स्वर्णिम मोड़ (${peakYStr})`
-    : targetLang === "te" ? `🌟 5 సంవత్సరాల స్వర్ణ మలుపు (${peakYStr})`
-    : targetLang === "ta" ? `🌟 5 ஆண்டுகளின் பொற்கால திருப்புமுனை (${peakYStr})`
-    : `🌟 5-Year Sovereign Turning Point (${peakYStr})`;
+      : targetLang === "hi" ? `🌟 ५ वर्षों का स्वर्णिम मोड़ (${peakYStr})`
+        : targetLang === "te" ? `🌟 5 సంవత్సరాల స్వర్ణ మలుపు (${peakYStr})`
+          : targetLang === "ta" ? `🌟 5 ஆண்டுகளின் பொற்கால திருப்புமுனை (${peakYStr})`
+            : `🌟 5-Year Sovereign Turning Point (${peakYStr})`;
 
   const pivotalTurningPointSeason = targetLang === "kn" ? `ವೈಶಾಖ - ಜ್ಯೇಷ್ಠ ${peakYStr}`
     : targetLang === "mr" ? `वैशाख - ज्येष्ठ ${peakYStr}`
-    : targetLang === "hi" ? `वैशाख - ज्येष्ठ ${peakYStr}`
-    : targetLang === "te" ? `వైశాఖ - జ్యేష్ఠ ${peakYStr}`
-    : targetLang === "ta" ? `வைகாசி - ஆனி ${peakYStr}`
-    : `Vaishakha - Jyeshtha ${peakYStr}`;
+      : targetLang === "hi" ? `वैशाख - ज्येष्ठ ${peakYStr}`
+        : targetLang === "te" ? `వైశాఖ - జ్యేష్ఠ ${peakYStr}`
+          : targetLang === "ta" ? `வைகாசி - ஆனி ${peakYStr}`
+            : `Vaishakha - Jyeshtha ${peakYStr}`;
 
   const pivotalTurningPointImpact = targetLang === "kn" ? `ಗುರು-ಶುಕ್ರರ ಅನುಗ್ರಹದಿಂದ ಹಿಂದಿನ ಕಷ್ಟ-ನಷ್ಟಗಳು ಕರಗಿ, ಆರ್ಥಿಕ ಉನ್ನತಿ, ನೂತನ ಆಸ್ತಿ ಸೌಭಾಗ್ಯ ಹಾಗೂ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಗ್ರಗಣ್ಯ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`
     : targetLang === "mr" ? `गुरू-शुक्राच्या कृपेने जुनी संकटे दूर होऊन आर्थिक समृद्धी, नवीन संपत्ती योग व करिअरमध्ये सर्वोच्च अधिकार प्राप्त होतील.`
-    : targetLang === "hi" ? `गुरु-शुक्र की कृपा से पूर्व के समस्त संकट समाप्त होकर आर्थिक संपन्नता, नवीन संपत्ति योग एवं कार्यक्षेत्र में उच्च पद-प्रतिष्ठा प्राप्त होगी।`
-    : targetLang === "te" ? `గురు-శుక్రుల అనుగ్రహంతో పాత కష్టాలు తొలగిపోయి, ఆర్థిక ఉన్నతి, నూతన ఆస్తి ప్రాప్తి మరియు కెరీర్‌లో ఉన్నత అధికార యోగం కలుగుతుంది.`
-    : targetLang === "ta" ? `குரு-சுக்கிரனின் அருளால் முந்தைய தடைகள் நீங்கி, நிதி முன்னேற்றம், புதிய சொத்து யோகம் மற்றும் தொழிலில் உயர் பதவி கிட்டும்.`
-    : `Benefic planetary confluence dissolves historical frictions, catalyzing wealth accumulation, prime real estate acquisition, and executive ascendancy.`;
+      : targetLang === "hi" ? `गुरु-शुक्र की कृपा से पूर्व के समस्त संकट समाप्त होकर आर्थिक संपन्नता, नवीन संपत्ति योग एवं कार्यक्षेत्र में उच्च पद-प्रतिष्ठा प्राप्त होगी।`
+        : targetLang === "te" ? `గురు-శుక్రుల అనుగ్రహంతో పాత కష్టాలు తొలగిపోయి, ఆర్థిక ఉన్నతి, నూతన ఆస్తి ప్రాప్తి మరియు కెరీర్‌లో ఉన్నత అధికార యోగం కలుగుతుంది.`
+          : targetLang === "ta" ? `குரு-சுக்கிரனின் அருளால் முந்தைய தடைகள் நீங்கி, நிதி முன்னேற்றம், புதிய சொத்து யோகம் மற்றும் தொழிலில் உயர் பதவி கிட்டும்.`
+            : `Benefic planetary confluence dissolves historical frictions, catalyzing wealth accumulation, prime real estate acquisition, and executive ascendancy.`;
 
   // Macro Summary
   const macroSummary = {
     overview: targetLang === "kn" ? `ಮುಂದಿನ ೫ ವರ್ಷಗಳು (${baseYear} - ${baseYear + 5}) ನಿಮ್ಮ ಜೀವನದ ಪರಮ ಮಹತ್ವದ ಪರಿವರ್ತನೆಯ ಯುಗ. ದಶಾ ಮತ್ತು ಗೋಚಾರದ ಸಮ್ಮಿಲನವು ನಿಮ್ಮ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಅದ್ಭುತ ಫಲಿತಾಂಶಗಳನ್ನು ತರಲಿದೆ.`
       : targetLang === "hi" ? `आगामी ५ वर्ष (${formatNumber6L(baseYear, "hi")} - ${formatNumber6L(baseYear + 5, "hi")}) आपके जीवन का अत्यंत महत्वपूर्ण परिवर्तनकारी कालखंड है। दशा एवं गोचर का योग आपके परिश्रम को अभूतपूर्व सफलता में बदलेगा।`
-      : targetLang === "mr" ? `पुढील ५ वर्षे (${formatNumber6L(baseYear, "mr")} - ${formatNumber6L(baseYear + 5, "mr")}) आपल्या आयुष्यातील अत्यंत महत्त्वाचा परिवर्तनाचा कालखंड आहे. दशा व गोचराचा सुंदर संगम आपल्या कष्टांना मोठे यश मिळवून देईल.`
-      : targetLang === "te" ? `రాబోయే 5 సంవత్సరాలు (${formatNumber6L(baseYear, "te")} - ${formatNumber6L(baseYear + 5, "te")}) మీ జీవితంలో అత్యంత కీలకమైన పరివర్తన కాలం. దశా మరియు గోచార గ్రహాల కలయిక మీ కష్టానికి తగిన అద్భుత ఫలితాలను ఇస్తుంది.`
-      : targetLang === "ta" ? `அடுத்த 5 ஆண்டுகள் (${formatNumber6L(baseYear, "ta")} - ${formatNumber6L(baseYear + 5, "ta")}) உங்கள் வாழ்க்கையில் மிக முக்கியமான மாற்றத்தை ஏற்படுத்தும் பொற்காலம். தசா மற்றும் கோச்சார அமைப்புகள் உங்கள் உழைப்புக்கு ஏற்ப மகத்தான வெற்றியை தரும்.`
-      : `The ${baseYear} - ${baseYear + 5} 5-year cycle represents a defining watershed epoch, harmonizing Dasha transitions and transits into enduring breakthroughs.`,
+        : targetLang === "mr" ? `पुढील ५ वर्षे (${formatNumber6L(baseYear, "mr")} - ${formatNumber6L(baseYear + 5, "mr")}) आपल्या आयुष्यातील अत्यंत महत्त्वाचा परिवर्तनाचा कालखंड आहे. दशा व गोचराचा सुंदर संगम आपल्या कष्टांना मोठे यश मिळवून देईल.`
+          : targetLang === "te" ? `రాబోయే 5 సంవత్సరాలు (${formatNumber6L(baseYear, "te")} - ${formatNumber6L(baseYear + 5, "te")}) మీ జీవితంలో అత్యంత కీలకమైన పరివర్తన కాలం. దశా మరియు గోచార గ్రహాల కలయిక మీ కష్టానికి తగిన అద్భుత ఫలితాలను ఇస్తుంది.`
+            : targetLang === "ta" ? `அடுத்த 5 ஆண்டுகள் (${formatNumber6L(baseYear, "ta")} - ${formatNumber6L(baseYear + 5, "ta")}) உங்கள் வாழ்க்கையில் மிக முக்கியமான மாற்றத்தை ஏற்படுத்தும் பொற்காலம். தசா மற்றும் கோச்சார அமைப்புகள் உங்கள் உழைப்புக்கு ஏற்ப மகத்தான வெற்றியை தரும்.`
+              : `The ${baseYear} - ${baseYear + 5} 5-year cycle represents a defining watershed epoch, harmonizing Dasha transitions and transits into enduring breakthroughs.`,
     macroTrend: targetLang === "kn" ? `ಆರಂಭಿಕ ವರ್ಷಗಳಲ್ಲಿ ದೃಢ ತಳಹದಿ ನಿರ್ಮಾಣ, ಮಧ್ಯಂತರದಲ್ಲಿ ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ ಹಾಗೂ ಕೊನೆಯಲ್ಲಿ ಸ್ಥಿರ ಕೀರ್ತಿ-ಸಂಪತ್ತು.`
       : targetLang === "hi" ? `प्रारंभिक वर्षों में सुदृढ़ आधार निर्माण, मध्य में स्वर्णिम भाग्योदय एवं अंत में स्थिर यश व समृद्धि।`
-      : targetLang === "mr" ? `सुरुवातीच्या वर्षांत मजबूत पायाभरणी, मध्यंतरात भाग्योदय व अखेरीस स्थिर मान-सन्मान व संपत्ती प्राप्ती.`
-      : targetLang === "te" ? `ప్రారంభ సంవత్సరాల్లో బలమైన పునాది నిర్మాణం, మధ్య కాలంలో స్వర్ణ భాగ్యోదయం, చివరిలో స్థిరమైన కీర్తి-సంపద.`
-      : targetLang === "ta" ? `துவக்க ஆண்டுகளில் உறுதியான அடித்தளம், நடுப்பகுதியில் பொற்கால பாக்கியோதயம், முடிவில் நிலையான புகழ் மற்றும் தனவிருத்தி.`
-      : `Systematic foundation building in initial years, soaring breakthroughs at mid-cycle, and enduring consolidation toward ${baseYear + 5}.`,
+        : targetLang === "mr" ? `सुरुवातीच्या वर्षांत मजबूत पायाभरणी, मध्यंतरात भाग्योदय व अखेरीस स्थिर मान-सन्मान व संपत्ती प्राप्ती.`
+          : targetLang === "te" ? `ప్రారంభ సంవత్సరాల్లో బలమైన పునాది నిర్మాణం, మధ్య కాలంలో స్వర్ణ భాగ్యోదయం, చివరిలో స్థిరమైన కీర్తి-సంపద.`
+            : targetLang === "ta" ? `துவக்க ஆண்டுகளில் உறுதியான அடித்தளம், நடுப்பகுதியில் பொற்கால பாக்கியோதயம், முடிவில் நிலையான புகழ் மற்றும் தனவிருத்தி.`
+              : `Systematic foundation building in initial years, soaring breakthroughs at mid-cycle, and enduring consolidation toward ${baseYear + 5}.`,
     peakGoldenYear: peakYearLabel || `${baseYear + 1} - ${baseYear + 2}`,
     cautionPeriodYear: cautionYearLabel || `${baseYear} - ${baseYear + 1}`,
     destinyTheme: targetLang === "kn" ? `ಶ್ರಮ, ದೈವಬಲ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಸಕಲ ಸಿದ್ಧಿ`
       : targetLang === "hi" ? `परिश्रम, देवकृपा एवं आत्मविश्वास से सर्व कार्य सिद्धि`
-      : targetLang === "mr" ? `कष्ट, ईश्वरी कृपा व आत्मविश्वास या त्रिसूत्रीने सर्व कार्यसिद्धी`
-      : targetLang === "te" ? `కృషి, దైవబలం మరియు ఆత్మవిశ్వాసంతో సర్వ కార్యసిద్ధి`
-      : targetLang === "ta" ? `உழைப்பு, தெய்வ பலம் மற்றும் தன்னம்பிக்கையால் சகல காரிய சித்தி`
-      : `Triumph through disciplined perseverance, divine grace, and unshakeable conviction.`,
+        : targetLang === "mr" ? `कष्ट, ईश्वरी कृपा व आत्मविश्वास या त्रिसूत्रीने सर्व कार्यसिद्धी`
+          : targetLang === "te" ? `కృషి, దైవబలం మరియు ఆత్మవిశ్వాసంతో సర్వ కార్యసిద్ధి`
+            : targetLang === "ta" ? `உழைப்பு, தெய்வ பலம் மற்றும் தன்னம்பிக்கையால் சகல காரிய சித்தி`
+              : `Triumph through disciplined perseverance, divine grace, and unshakeable conviction.`,
     pivotalTurningPointTitle,
     pivotalTurningPointSeason,
     pivotalTurningPointImpact
@@ -5718,45 +5714,45 @@ export function compute5YearMasterPrediction(
     ishtaDevata: sacredDeityImage.deityName,
     gokarnaParihara: targetLang === "kn" ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹವನ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಸಂಕಲ್ಪ, ಪ್ರದೋಷ ಪೂಜೆ ಹಾಗೂ ಬ್ರಾಹ್ಮಣ ಭೋಜನ."
       : targetLang === "hi" ? "श्री गोकर्ण क्षेत्र में महामृत्युंजय हवन अथवा रुद्राभिषेक, प्रदोष पूजा एवं ब्राह्मण भोजन।"
-      : targetLang === "mr" ? "श्री गोकर्ण क्षेत्रात महामृत्युंजय होम किंवा रुद्राभिषेक संकल्प, प्रदोष पूजा व अन्नदान."
-      : targetLang === "te" ? "శ్రీ గోకర్ణ క్షేత్రంలో మహామృత్యుంజయ హవనం లేదా రుద్రాభిషేక సంకల్పం, ప్రదోష పూజ మరియు అన్నదానం."
-      : targetLang === "ta" ? "ஸ்ரீ கோகர்ண க்ஷேத்திரத்தில் மகா மிருத்யுஞ்சய ஹோமம் அல்லது ருத்ராபிஷேக சங்கல்பம், பிரதோஷ பூஜை & அன்னதானம்."
-      : "Gokarna Kshetra Rudrabhisheka, Mahamrityunjaya Homa sankalpa, and sacred cow-ghee lamp.",
+        : targetLang === "mr" ? "श्री गोकर्ण क्षेत्रात महामृत्युंजय होम किंवा रुद्राभिषेक संकल्प, प्रदोष पूजा व अन्नदान."
+          : targetLang === "te" ? "శ్రీ గోకర్ణ క్షేత్రంలో మహామృత్యుంజయ హవనం లేదా రుద్రాభిషేక సంకల్పం, ప్రదోష పూజ మరియు అన్నదానం."
+            : targetLang === "ta" ? "ஸ்ரீ கோகர்ண க்ஷேத்திரத்தில் மகா மிருத்யுஞ்சய ஹோமம் அல்லது ருத்ராபிஷேக சங்கல்பம், பிரதோஷ பூஜை & அன்னதானம்."
+              : "Gokarna Kshetra Rudrabhisheka, Mahamrityunjaya Homa sankalpa, and sacred cow-ghee lamp.",
     gemstoneRecommendation: parashariGem.gem,
     gemstoneCaveat: parashariGem.caveat,
     rudrakshaRecommendation: parashariGem.rudraksha,
     luckyColors: targetLang === "kn" ? "ಕೇಸರಿ, ಹಳದಿ, ಬಿಳಿ (ರಕ್ತವರ್ಣ/ಹಸಿರು ಶುಭ)"
       : targetLang === "hi" ? "केसरिया, पीला, श्वेत (लाल/हरा शुभ)"
-      : targetLang === "mr" ? "केशरी, पिवळा, पांढरा (लाल व हिरवा शुभ)"
-      : targetLang === "te" ? "కేసరి, పసుపు, తెలుపు (ఎరుపు/ఆకుపచ్చ శుభం)"
-      : targetLang === "ta" ? "காவி, மஞ்சள், வெள்ளை (சிவப்பு/பச்சை சுபம்)"
-      : "Saffron, Golden Yellow, Pure White, Emerald Green",
+        : targetLang === "mr" ? "केशरी, पिवळा, पांढरा (लाल व हिरवा शुभ)"
+          : targetLang === "te" ? "కేసరి, పసుపు, తెలుపు (ఎరుపు/ఆకుపచ్చ శుభం)"
+            : targetLang === "ta" ? "காவி, மஞ்சள், வெள்ளை (சிவப்பு/பச்சை சுபம்)"
+              : "Saffron, Golden Yellow, Pure White, Emerald Green",
     avoidColors: targetLang === "kn" ? "ಗಾಢ ಕಪ್ಪು ಹಾಗೂ ಧೂಸರ ಬಣ್ಣ ವರ್ಜಿಸಿ"
       : targetLang === "hi" ? "गहरा काला एवं मटमैला रंग वर्जित"
-      : targetLang === "mr" ? "गडद काळा व मळकट रंग शक्यतो टाळावा"
-      : targetLang === "te" ? "ముదురు నలుపు మరియు బూడిద రంగు వర్జించండి"
-      : targetLang === "ta" ? "அடர் கருப்பு மற்றும் சாம்பல் நிறத்தைத் தவிர்க்கவும்"
-      : "Jet Black and Dull Charcoal Gray",
+        : targetLang === "mr" ? "गडद काळा व मळकट रंग शक्यतो टाळावा"
+          : targetLang === "te" ? "ముదురు నలుపు మరియు బూడిద రంగు వర్జించండి"
+            : targetLang === "ta" ? "அடர் கருப்பு மற்றும் சாம்பல் நிறத்தைத் தவிர்க்கவும்"
+              : "Jet Black and Dull Charcoal Gray",
     luckyNumbers: formatNumber6L("1, 3, 5, 9", targetLang),
     luckyDirections: targetLang === "kn" ? "ಪೂರ್ವ ಹಾಗೂ ಈಶಾನ್ಯ ದಿಕ್ಕು"
       : targetLang === "hi" ? "पूर्व एवं ईशान कोण"
-      : targetLang === "mr" ? "पूर्व व ईशान्य दिशा"
-      : targetLang === "te" ? "తూర్పు మరియు ఈశాన్య దిశ"
-      : targetLang === "ta" ? "கிழக்கு மற்றும் வடகிழக்கு (ஈசான்யம்)"
-      : "East and North-East (Ishanya)"
+        : targetLang === "mr" ? "पूर्व व ईशान्य दिशा"
+          : targetLang === "te" ? "తూర్పు మరియు ఈశాన్య దిశ"
+            : targetLang === "ta" ? "கிழக்கு மற்றும் வடகிழக்கு (ஈசான்யம்)"
+              : "East and North-East (Ishanya)"
   };
 
   const astrologerBlessing = targetLang === "kn"
     ? `॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಪರಮಾನುಗ್ರಹದಿಂದ ನಿಮ್ಮ ಮುಂದಿನ ೫ ವರ್ಷಗಳು ಸಕಲ ಕಷ್ಟಗಳಿಂದ ಮುಕ್ತವಾಗಿ, ಧನ, ಧಾನ್ಯ, ಕೀರ್ತಿ, ಆಯುಷ್ಯ, ಆರೋಗ್ಯ ಹಾಗೂ ಸಂತೋಷಗಳಿಂದ ಸಮೃದ್ಧವಾಗಿರಲಿ. ನಿಮ್ಮ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳು ಈಡೇರಲಿ ಎಂದು ಶುಭ ಹಾರೈಸುತ್ತೇನೆ. - ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಭಾಗ್ಗೋಣ ಪಂಚಾಂಗ ಮುಖ್ಯ ಜ್ಯೋತಿಷಿ) ॥`
     : targetLang === "hi"
-    ? `॥ श्री गोकर्ण महाबलेश्वर स्वामी की परम कृपा से आपके आगामी ५ वर्ष समस्त विघ्न-बाधाओं से मुक्त होकर धन, धान्य, यश, आरोग्य एवं सुख-शांति से परिपूर्ण हों। आपके समस्त सत्कार्य सिद्ध हों। - श्रीराम पंडित (मुख्य ज्योतिषी, बग्गोण पंचांग) ॥`
-    : targetLang === "mr"
-    ? `॥ श्री गोकर्ण महाबळेश्वर स्वामींच्या परम कृपेने आपले पुढील ५ वर्षे सर्व संकटांतून मुक्त होऊन धन, धान्य, कीर्ती, दीर्घायुष्य, उत्तम आरोग्य व असीम आनंदाने समृद्ध जावोत. आपले सर्व शुभ संकल्प सिद्धीस जावोत. - श्रीराम पंडित (मुख्य ज्योतिषी, बग्गोण पंचांग) ॥`
-    : targetLang === "te"
-    ? `॥ శ్రీ గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్యానుగ్రహంతో మీ రాబోయే 5 సంవత్సరాలు సకల కష్టాల నుండి విముక్తమై, ధన, ధాన్య, కీర్తి, ఆయురారోగ్యాలు మరియు ఆనందంతో సమృద్ధిగా సాగాలని కోరుకుంటున్నాను. మీ సత్సంకల్పాలన్నీ నెరవేరాలి. - శ్రీరామ్ పండిత్ (బగ్గోణ పంచాంగ ప్రధాన జ్యోతిష్కుడు) ॥`
-    : targetLang === "ta"
-    ? `॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வர சுவாமியின் பேரருளால் உங்கள் அடுத்த 5 ஆண்டுகள் அனைத்து தடைகளும் நீங்கி, தன, தான்ய, கீர்த்தி, ஆயுள், ஆரோக்கியம் மற்றும் மகிழ்ச்சியுடன் சிறக்க வாழ்த்துகிறேன். உங்கள் நற்சிந்தனைகள் அனைத்தும் நிறைவேறட்டும். - ஸ்ரீராம் பண்டிட் (பக்கோண பஞ்சாங்க தலைமை ஜோதிடர்) ॥`
-    : `|| By the divine grace of Sri Gokarna Mahabaleshwara, may your upcoming 5 years be liberated from all obstacles, abounding in prosperity, honor, health, longevity, and spiritual fulfillment. - Shreeram Pandit (Chief Astrologer, Baggona Panchanga) ||`;
+      ? `॥ श्री गोकर्ण महाबलेश्वर स्वामी की परम कृपा से आपके आगामी ५ वर्ष समस्त विघ्न-बाधाओं से मुक्त होकर धन, धान्य, यश, आरोग्य एवं सुख-शांति से परिपूर्ण हों। आपके समस्त सत्कार्य सिद्ध हों। - श्रीराम पंडित (मुख्य ज्योतिषी, बग्गोण पंचांग) ॥`
+      : targetLang === "mr"
+        ? `॥ श्री गोकर्ण महाबळेश्वर स्वामींच्या परम कृपेने आपले पुढील ५ वर्षे सर्व संकटांतून मुक्त होऊन धन, धान्य, कीर्ती, दीर्घायुष्य, उत्तम आरोग्य व असीम आनंदाने समृद्ध जावोत. आपले सर्व शुभ संकल्प सिद्धीस जावोत. - श्रीराम पंडित (मुख्य ज्योतिषी, बग्गोण पंचांग) ॥`
+        : targetLang === "te"
+          ? `॥ శ్రీ గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్యానుగ్రహంతో మీ రాబోయే 5 సంవత్సరాలు సకల కష్టాల నుండి విముక్తమై, ధన, ధాన్య, కీర్తి, ఆయురారోగ్యాలు మరియు ఆనందంతో సమృద్ధిగా సాగాలని కోరుకుంటున్నాను. మీ సత్సంకల్పాలన్నీ నెరవేరాలి. - శ్రీరామ్ పండిత్ (బగ్గోణ పంచాంగ ప్రధాన జ్యోతిష్కుడు) ॥`
+          : targetLang === "ta"
+            ? `॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வர சுவாமியின் பேரருளால் உங்கள் அடுத்த 5 ஆண்டுகள் அனைத்து தடைகளும் நீங்கி, தன, தான்ய, கீர்த்தி, ஆயுள், ஆரோக்கியம் மற்றும் மகிழ்ச்சியுடன் சிறக்க வாழ்த்துகிறேன். உங்கள் நற்சிந்தனைகள் அனைத்தும் நிறைவேறட்டும். - ஸ்ரீராம் பண்டிட் (பக்கோண பஞ்சாங்க தலைமை ஜோதிடர்) ॥`
+            : `|| By the divine grace of Sri Gokarna Mahabaleshwara, may your upcoming 5 years be liberated from all obstacles, abounding in prosperity, honor, health, longevity, and spiritual fulfillment. - Shreeram Pandit (Chief Astrologer, Baggona Panchanga) ||`;
 
   // Future-Curiosity Chapters
   const muhurtaWindows = generateAuspiciousMuhurtas(baseYear, targetLang, ageCategory, personalization?.maritalStatus);

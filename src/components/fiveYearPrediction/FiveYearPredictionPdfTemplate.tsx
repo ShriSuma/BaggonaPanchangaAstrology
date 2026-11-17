@@ -272,10 +272,10 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 <span>
                   {isKn ? "೫ ವರ್ಷಗಳ ಜೀವಮಾನದ ಸುವರ್ಣ ತಿರುವು • ತ್ವರಿತ ದರ್ಶನ"
                     : isMr ? "५ वर्षांचे सुवर्ण वळण • संक्षिप्त दृष्टीक्षेप"
-                    : isHi ? "५ वर्षों का स्वर्णिम मोड़ • त्वरित दर्शन"
-                    : isTe ? "5 సంవత్సరాల సువర్ణ మలుపు • సంక్షిప్త దర్శనం"
-                    : isTa ? "5 ஆண்டுகளின் பொற்கால திருப்புமுனை • விரைவுப் பார்வை"
-                    : "5-Year Sovereign Turnaround • At A Glance"}
+                      : isHi ? "५ वर्षों का स्वर्णिम मोड़ • त्वरित दर्शन"
+                        : isTe ? "5 సంవత్సరాల సువర్ణ మలుపు • సంక్షిప్త దర్శనం"
+                          : isTa ? "5 ஆண்டுகளின் பொற்கால திருப்புமுனை • விரைவுப் பார்வை"
+                            : "5-Year Sovereign Turnaround • At A Glance"}
                 </span>
               </div>
               <span className="text-xs font-bold text-amber-900 font-serif italic">
@@ -474,17 +474,17 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                     <span>
                       {isKn ? "ಪ್ರಸ್ತುತ ಜೀವನದ ೪ ಸ್ತಂಭಗಳ ಸ್ಥಿತಿ ದರ್ಶನ"
                         : isMr ? "सध्याच्या जीवनातील ४ आधारस्तंभांची स्थिती"
-                        : isHi ? "वर्तमान जीवन के ४ प्रमुख स्तंभों की स्थिति"
-                        : isTe ? "ప్రస్తుత జీవిత 4 స్తంభాల స్థితి"
-                        : isTa ? "தற்போதைய வாழ்க்கையின் 4 தூண்கள் நிலை"
-                        : "Current 4 Pillars Status Dashboard"}
+                          : isHi ? "वर्तमान जीवन के ४ प्रमुख स्तंभों की स्थिति"
+                            : isTe ? "ప్రస్తుత జీవిత 4 స్తంభాల స్థితి"
+                              : isTa ? "தற்போதைய வாழ்க்கையின் 4 தூண்கள் நிலை"
+                                : "Current 4 Pillars Status Dashboard"}
                     </span>
                   </span>
                   <span className="text-[11px] font-bold text-amber-800 italic">
                     {isKn ? "ಸಾಮಾನ್ಯ ಓದುಗರಿಗೆ ಸರಳ ಅರ್ಥವಿವರಣೆ"
                       : isMr ? "सामान्य वाचकांसाठी सोपे स्पष्टीकरण"
-                      : isHi ? "सरल बोधगम्य व्याख्या"
-                      : "Clear Plain-Language Insights"}
+                        : isHi ? "सरल बोधगम्य व्याख्या"
+                          : "Clear Plain-Language Insights"}
                   </span>
                 </div>
 
@@ -669,10 +669,10 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   <span className="text-xs font-black uppercase tracking-wider text-amber-900 block mb-0.5">
                     {isKn ? "ಗ್ರಹಗಳ ಬದಲಾವಣೆ ಹಾಗೂ ಸುವರ್ಣ ತಿರುವು ಆರಂಭವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ:"
                       : isMr ? "ग्रह बदल व सुवर्ण वळण सुरू होण्याचा निश्चित काळ:"
-                      : isHi ? "ग्रह परिवर्तन एवं स्वर्णिम मोड़ प्रारंभ होने का निश्चित समय:"
-                      : isTe ? "గ్రహ మార్పు & సువర్ణ మలుపు ప్రారంభమయ్యే ఖచ్చిత సమయం:"
-                      : isTa ? "கிரக மாற்றம் & பொற்கால தொடக்கத்தின் திட்டவட்டமான காலம்:"
-                      : "Exact Turning Point Timeline:"}
+                        : isHi ? "ग्रह परिवर्तन एवं स्वर्णिम मोड़ प्रारंभ होने का निश्चित समय:"
+                          : isTe ? "గ్రహ మార్పు & సువర్ణ మలుపు ప్రారంభమయ్యే ఖచ్చిత సమయం:"
+                            : isTa ? "கிரக மாற்றம் & பொற்கால தொடக்கத்தின் திட்டவட்டமான காலம்:"
+                              : "Exact Turning Point Timeline:"}
                   </span>
                   <p className="text-sm font-black text-amber-950 font-serif leading-relaxed">
                     {data.currentLifeStatus.turningPointTimeline}
@@ -1054,7 +1054,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                             <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] ${item.severity === "critical" || item.severity === "high"
                               ? "bg-amber-200/90 text-amber-950 border border-amber-400 font-black shadow-2xs"
                               : "bg-amber-100/70 text-amber-900 border border-amber-300 font-bold"
-                            }`}>
+                              }`}>
                               {item.severityBadge}
                             </span>
                           </td>
@@ -1100,10 +1100,10 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
         const samvatText = isKn ? yr.samvatsaraKn
           : isMr ? `${yr.samvatsaraKn} संवत्सर`
-          : isHi ? `${yr.samvatsaraKn} संवत्सर`
-          : isTe ? `${yr.samvatsaraKn || yr.samvatsaraEn} సంవత్సరం`
-          : isTa ? `${yr.samvatsaraKn || yr.samvatsaraEn} வருடம்`
-          : yr.samvatsaraEn;
+            : isHi ? `${yr.samvatsaraKn} संवत्सर`
+              : isTe ? `${yr.samvatsaraKn || yr.samvatsaraEn} సంవత్సరం`
+                : isTa ? `${yr.samvatsaraKn || yr.samvatsaraEn} வருடம்`
+                  : yr.samvatsaraEn;
 
         const resolvedYearTitle = isKn
           ? `ವರ್ಷ ${knOrdinals[idx] || (idx + 1)}: ${yr.gregorianRange} (${samvatText})`
@@ -1219,10 +1219,10 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                     <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block mb-1">
                       💬 {isKn ? "ಈ ವರ್ಷದ ಮುಖ್ಯಾಂಶ (ಏಕವಾಕ್ಯ ಸಾರಾಂಶ)"
                         : isMr ? "या वर्षाचा मुख्य निष्कर्ष (एका ओळीत सारांश)"
-                        : isHi ? "इस वर्ष का मुख्य निष्कर्ष (एक पंक्ति में सार)"
-                        : isTe ? "ఈ సంవత్సరపు ముఖ్యాంశం (ఒకే వాక్య సారాంశం)"
-                        : isTa ? "இந்த ஆண்டின் முக்கிய சுருக்கம் (ஒரே வரி சுருக்கம்)"
-                        : "Year's Core Takeaway (One-Line Summary)"}
+                          : isHi ? "इस वर्ष का मुख्य निष्कर्ष (एक पंक्ति में सार)"
+                            : isTe ? "ఈ సంవత్సరపు ముఖ్యాంశం (ఒకే వాక్య సారాంశం)"
+                              : isTa ? "இந்த ஆண்டின் முக்கிய சுருக்கம் (ஒரே வரி சுருக்கம்)"
+                                : "Year's Core Takeaway (One-Line Summary)"}
                     </span>
                     <p className="text-base font-black text-amber-950 leading-relaxed font-serif italic">
                       "{yr.yearTakeawayOneLiner}"
