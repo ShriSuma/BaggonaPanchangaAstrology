@@ -183,7 +183,7 @@ export const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full bg-slate-950 border border-amber-500/40 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-medium transition shadow-inner"
+          className="w-full bg-white border-2 border-amber-300 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-400/30 font-medium transition shadow-sm"
           autoComplete="off"
           spellCheck="false"
         />
@@ -191,7 +191,7 @@ export const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
         {/* Trailing Clear or Loading Spinner */}
         <div className="absolute right-2.5 flex items-center gap-1">
           {isLoadingOnline && (
-            <svg className="animate-spin h-3.5 w-3.5 text-amber-400" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-3.5 w-3.5 text-amber-600" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
@@ -201,7 +201,7 @@ export const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
             <button
               type="button"
               onClick={handleClear}
-              className="text-slate-400 hover:text-amber-300 p-0.5 rounded-full hover:bg-slate-800 transition"
+              className="text-stone-400 hover:text-amber-700 p-0.5 rounded-full hover:bg-amber-100 transition"
               title="Clear"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,18 +214,18 @@ export const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
 
       {/* Floating Dropdown Suggestion List */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-slate-900 border-2 border-amber-500/80 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-xl animate-fadeIn max-h-64 overflow-y-auto">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#FFFDF7] border-2 border-[#D4AF37] rounded-2xl shadow-[0_12px_40px_rgba(180,83,9,0.22)] overflow-hidden backdrop-blur-xl animate-fadeIn max-h-64 overflow-y-auto">
           {/* Header Badge */}
-          <div className="px-3 py-1.5 bg-slate-950/90 border-b border-amber-500/30 flex items-center justify-between text-[10px] text-amber-300 font-bold uppercase tracking-wider">
+          <div className="px-3 py-1.5 bg-gradient-to-r from-amber-100/90 via-amber-50 to-amber-100/90 border-b border-amber-300 flex items-center justify-between text-[10px] text-amber-950 font-bold uppercase tracking-wider">
             <span className="flex items-center gap-1">
               <span>🇮🇳</span>
               <span>ನಗರಗಳ ಸಲಹೆಗಳು (Indian Cities & Towns)</span>
             </span>
-            <span className="text-slate-400 lowercase">{suggestions.length} ಕಂಡುಬಂದಿವೆ</span>
+            <span className="text-amber-800 font-semibold lowercase">{suggestions.length} ಕಂಡುಬಂದಿವೆ</span>
           </div>
 
           {/* Suggestion Items */}
-          <ul className="divide-y divide-slate-800/80">
+          <ul className="divide-y divide-amber-200/60">
             {suggestions.map((city, idx) => {
               const isHighlighted = idx === highlightedIndex;
               return (
@@ -235,17 +235,17 @@ export const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
                   onMouseEnter={() => setHighlightedIndex(idx)}
                   className={`px-3 py-2.5 flex items-center justify-between gap-2 cursor-pointer transition select-none ${
                     isHighlighted
-                      ? "bg-amber-500/25 text-amber-100"
-                      : "hover:bg-amber-500/15 text-slate-200"
+                      ? "bg-amber-200/80 text-amber-950 font-semibold"
+                      : "hover:bg-amber-100/70 text-stone-800"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="text-base text-amber-400 shrink-0">📍</span>
+                    <span className="text-base text-amber-600 shrink-0">📍</span>
                     <div className="truncate">
-                      <div className="font-bold text-xs sm:text-sm text-amber-200 font-serif">
+                      <div className="font-bold text-xs sm:text-sm text-amber-950 font-serif">
                         {city.cityName}
                       </div>
-                      <div className="text-[11px] text-slate-400 truncate">
+                      <div className="text-[11px] text-stone-600 truncate">
                         {city.stateName}
                         {city.pincode ? ` · PIN: ${city.pincode}` : ""}
                         {city.district && city.district !== city.cityName ? ` (${city.district})` : ""}
@@ -255,7 +255,7 @@ export const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
 
                   {/* Coordinates pill */}
                   <div className="shrink-0 text-right">
-                    <span className="text-[10px] font-mono text-amber-400/90 bg-amber-950/70 border border-amber-500/30 px-1.5 py-0.5 rounded-md">
+                    <span className="text-[10px] font-mono text-amber-900 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded-md font-semibold">
                       {city.lat.toFixed(2)}°, {city.lng.toFixed(2)}°
                     </span>
                   </div>
@@ -265,7 +265,7 @@ export const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
           </ul>
 
           {/* Footer Helper */}
-          <div className="px-3 py-1.5 bg-slate-950/90 border-t border-amber-500/20 text-center text-[10px] text-slate-400">
+          <div className="px-3 py-1.5 bg-amber-50 border-t border-amber-200 text-center text-[10px] text-amber-800 font-medium">
             <span>ನಗರದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಆಯ್ಕೆಮಾಡಿ (Click to select)</span>
           </div>
         </div>
@@ -273,9 +273,9 @@ export const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
 
       {/* No Results Message when typing 3+ characters */}
       {isOpen && suggestions.length === 0 && searchTerm.trim().length >= 3 && !isLoadingOnline && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-slate-900 border border-amber-500/40 rounded-xl p-3 shadow-2xl text-center text-xs text-slate-400 animate-fadeIn">
-          <p className="text-amber-300 font-semibold mb-0.5">ಯಾವುದೇ ನಗರ ಕಂಡುಬಂದಿಲ್ಲ (City not found)</p>
-          <p className="text-[11px] text-slate-500">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#FFFDF7] border-2 border-amber-300 rounded-xl p-3 shadow-xl text-center text-xs text-stone-600 animate-fadeIn">
+          <p className="text-amber-900 font-bold mb-0.5">ಯಾವುದೇ ನಗರ ಕಂಡುಬಂದಿಲ್ಲ (City not found)</p>
+          <p className="text-[11px] text-stone-500">
             ದಯವಿಟ್ಟು ಹತ್ತಿರದ ತಾಲೂಕು, ಜಿಲ್ಲೆ ಅಥವಾ ಪಿನ್‌ಕೋಡ್ ನಮೂದಿಸಿ (Try nearest district or pincode)
           </p>
         </div>

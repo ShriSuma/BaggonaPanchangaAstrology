@@ -850,6 +850,80 @@ const PDF_STAGES: Record<AntarangaLang, { s1: string; s2: string; s3: string; do
   }
 };
 
+// ═════════════════════════════════════════════════════════════════════════
+// 🌟 DYNAMIC ASTRONOMICAL VISUALS & ROTATING CELESTIAL SYMBOLS
+// ═════════════════════════════════════════════════════════════════════════
+
+/**
+ * Majestic rotating golden Vedic Surya Mandala / Kalachakra emblem
+ * with concentric rings, sun rays, and a pulsing sacred core.
+ */
+export const RotatingSuryaKalachakra: React.FC<{ size?: number; className?: string }> = ({ size = 52, className = "" }) => (
+  <div className={`relative inline-flex items-center justify-center shrink-0 ${className}`} style={{ width: size, height: size }}>
+    {/* Outer rotating Surya Rays (Clockwise) */}
+    <div className="absolute inset-0 animate-spin-slow">
+      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_8px_rgba(217,119,6,0.35)]">
+        <circle cx="50" cy="50" r="46" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeDasharray="3 3" />
+        {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
+          <g key={deg} transform={`rotate(${deg} 50 50)`}>
+            <path d="M 50 2 L 53 14 L 47 14 Z" fill="#D97706" />
+            <circle cx="50" cy="8" r="1.5" fill="#FBBF24" />
+          </g>
+        ))}
+      </svg>
+    </div>
+
+    {/* Counter-rotating Inner Shatkona / Star Geometry */}
+    <div className="absolute inset-2 animate-spin-reverse">
+      <svg viewBox="0 0 100 100" className="w-full h-full">
+        <polygon points="50,18 78,66 22,66" fill="none" stroke="#B45309" strokeWidth="1.2" opacity="0.8" />
+        <polygon points="50,78 78,30 22,30" fill="none" stroke="#B45309" strokeWidth="1.2" opacity="0.8" />
+        <circle cx="50" cy="50" r="28" fill="none" stroke="#D4AF37" strokeWidth="1" strokeDasharray="2 2" />
+      </svg>
+    </div>
+
+    {/* Pulsing Sacred Golden Core */}
+    <div className="relative w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 flex items-center justify-center shadow-[0_0_12px_rgba(217,119,6,0.5)] border border-amber-200 animate-pulse-celestial">
+      <span className="text-[12px] text-amber-950 font-black select-none leading-none">🕉️</span>
+    </div>
+  </div>
+);
+
+/**
+ * Ambient background rotating mandalas providing living Vedic astrological atmosphere
+ * without interfering with user interaction.
+ */
+export const AmbientRotatingMandalaWatermark: React.FC = () => (
+  <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    {/* Top Right Ambient Mandala */}
+    <div className="absolute -top-24 -right-24 sm:-top-32 sm:-right-32 w-80 h-80 sm:w-96 sm:h-96 opacity-[0.07] animate-spin-slow">
+      <svg viewBox="0 0 200 200" className="w-full h-full text-amber-700">
+        <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="6 4" />
+        <circle cx="100" cy="100" r="76" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="100" cy="100" r="58" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+        <circle cx="100" cy="100" r="40" fill="none" stroke="currentColor" strokeWidth="2" />
+        {[0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345].map((d) => (
+          <line key={d} x1="100" y1="8" x2="100" y2="28" stroke="currentColor" strokeWidth="1.5" transform={`rotate(${d} 100 100)`} />
+        ))}
+        {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((d) => (
+          <polygon key={d} points="100,24 106,44 94,44" fill="currentColor" transform={`rotate(${d} 100 100)`} />
+        ))}
+      </svg>
+    </div>
+
+    {/* Bottom Left Ambient Counter-Rotating Mandala */}
+    <div className="absolute -bottom-24 -left-24 sm:-bottom-32 sm:-left-32 w-80 h-80 sm:w-96 sm:h-96 opacity-[0.06] animate-spin-reverse">
+      <svg viewBox="0 0 200 200" className="w-full h-full text-amber-800">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" strokeWidth="2" />
+        <circle cx="100" cy="100" r="70" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="5 3" />
+        <circle cx="100" cy="100" r="48" fill="none" stroke="currentColor" strokeWidth="2" />
+        <polygon points="100,10 180,150 20,150" fill="none" stroke="currentColor" strokeWidth="2" />
+        <polygon points="100,190 180,50 20,50" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    </div>
+  </div>
+);
+
 export default function AntarangadaSatyaPage(): JSX.Element {
   // 1. Context from Table QR Code URL
   const [tableNumber, setTableNumber] = useState<string>("");
@@ -1537,33 +1611,41 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   // ═════════════════════════════════════════════════════════════════════════
   if (!isLanguageConfirmed) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-950 flex flex-col justify-between">
-        {/* Top Gold Gradient Bar */}
-        <div className="h-1.5 bg-gradient-to-r from-amber-600 via-amber-300 to-amber-600 w-full" />
+      <div className="min-h-screen bg-gradient-to-b from-[#FFFDF7] via-[#FFF9EC] to-[#FFF3DE] text-stone-900 font-sans selection:bg-amber-300 selection:text-amber-950 flex flex-col justify-between relative overflow-x-hidden">
+        {/* Background Rotating Mandalas */}
+        <AmbientRotatingMandalaWatermark />
+
+        {/* Top Gold Gradient Bar with Shimmer */}
+        <div className="relative z-10 h-1.5 bg-gradient-to-r from-amber-600 via-yellow-400 via-amber-300 to-amber-600 w-full shadow-sm" />
 
         {/* Central Language Selection Portal */}
-        <div className="max-w-xl mx-auto px-4 py-8 sm:py-12 flex-1 flex flex-col justify-center space-y-6 text-center">
-          {/* Temple Invocation */}
-          <div className="text-xs tracking-widest text-amber-400 font-serif font-bold uppercase">
-            {ui.topMantra}
+        <div className="relative z-10 max-w-xl mx-auto px-4 py-8 sm:py-12 flex-1 flex flex-col justify-center space-y-6 text-center">
+          {/* Rotating Surya Emblem + Temple Invocation */}
+          <div className="flex flex-col items-center justify-center gap-3">
+            <RotatingSuryaKalachakra size={64} />
+            <div className="text-xs tracking-widest text-amber-900 font-serif font-black uppercase flex items-center justify-center gap-2">
+              <span className="inline-block animate-spin-slow text-amber-700 text-xs">☸</span>
+              <span>{ui.topMantra}</span>
+              <span className="inline-block animate-spin-slow text-amber-700 text-xs">☸</span>
+            </div>
           </div>
 
           {/* Hotel Identity */}
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100/90 border-2 border-amber-300/80 text-amber-950 text-xs font-bold shadow-sm">
               <span>🍽️</span>
               <span>{hotelName || DEFAULT_HOTEL_FULL_NAME}</span>
               {tableNumber && (
-                <span className="bg-amber-500 text-slate-950 px-2 py-0.2 rounded-full font-black text-[10px]">
+                <span className="bg-amber-600 text-white px-2 py-0.5 rounded-full font-black text-[10px]">
                   {ui.tableLabel} {tableNumber}
                 </span>
               )}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500 font-serif">
+            <h1 className="text-2xl sm:text-3xl font-black text-amber-950 font-serif">
               {ui.langSelectHeader}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm text-stone-600 max-w-md mx-auto leading-relaxed font-medium">
               {ui.langSelectSubtitle}
             </p>
           </div>
@@ -1582,10 +1664,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                       setSelectedLang(l.code);
                     }
                   }}
-                  className={`p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between ${
+                  className={`p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
-                      ? "bg-amber-500/20 border-amber-400 shadow-lg shadow-amber-500/20 scale-[1.02]"
-                      : "bg-slate-900/80 border-slate-800 hover:border-amber-500/40 hover:bg-slate-900"
+                      ? "bg-gradient-to-r from-amber-100/95 via-amber-50 to-amber-100/95 border-[#D4AF37] shadow-[0_6px_24px_rgba(217,119,6,0.18)] scale-[1.02]"
+                      : "bg-white/95 border-amber-200/80 hover:border-amber-400 hover:bg-amber-50/70 shadow-sm"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -1593,19 +1675,19 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                       {l.code === "kn" ? "🟡" : l.code === "hi" ? "🟠" : l.code === "te" ? "🟢" : l.code === "ta" ? "🟣" : l.code === "ml" ? "🔵" : l.code === "mr" ? "🔴" : "🌐"}
                     </span>
                     <div>
-                      <div className="text-base font-black text-amber-200 font-serif">
+                      <div className="text-base font-black text-amber-950 font-serif">
                         {l.nativeName}
                       </div>
-                      <div className="text-[11px] text-slate-400">
+                      <div className="text-[11px] text-stone-500 font-medium">
                         {l.englishName}
                       </div>
                     </div>
                   </div>
 
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    isSelected ? "border-amber-400 bg-amber-400" : "border-slate-600"
+                    isSelected ? "border-[#D4AF37] bg-amber-500" : "border-stone-300 bg-stone-100"
                   }`}>
-                    {isSelected && <div className="w-2 h-2 rounded-full bg-slate-950" />}
+                    {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                   </div>
                 </button>
               );
@@ -1622,7 +1704,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   setIsLanguageConfirmed(true);
                 }, 700);
               }}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-base tracking-wide shadow-xl shadow-amber-500/25 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-black text-base tracking-wide shadow-xl shadow-amber-600/30 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{ui.startReadingBtn}</span>
             </button>
@@ -1630,7 +1712,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         </div>
 
         {/* Footer */}
-        <footer className="py-4 text-center text-[11px] text-slate-500 border-t border-slate-900">
+        <footer className="relative z-10 py-4 text-center text-[11px] text-stone-500 border-t border-amber-200/80 font-serif">
           {ui.footerSanctum}
         </footer>
 
@@ -1652,23 +1734,27 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   // SCREEN 2: DEVOTEE FORM, DARK SECRET, PACKAGE SELECTION & PAYMENT GATE
   // ═════════════════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-950">
-      {/* Top Gold Bar */}
-      <div className="h-1 bg-gradient-to-r from-amber-600 via-amber-300 to-amber-600 w-full" />
+    <div className="min-h-screen bg-gradient-to-b from-[#FFFDF7] via-[#FFF9EC] to-[#FFF3DE] text-stone-900 font-sans selection:bg-amber-300 selection:text-amber-950 relative overflow-x-hidden">
+      {/* Background Rotating Mandalas */}
+      <AmbientRotatingMandalaWatermark />
+
+      {/* Top Gold Bar with Shimmer */}
+      <div className="relative z-10 h-1.5 bg-gradient-to-r from-amber-600 via-yellow-400 via-amber-300 to-amber-600 w-full shadow-sm" />
 
       {/* Hotel & Table Welcome Banner */}
-      <header className="max-w-2xl mx-auto px-4 pt-4 pb-2">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-900/40 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🕉️</span>
+      <header className="relative z-10 max-w-2xl mx-auto px-4 pt-4 pb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3">
+          <div className="flex items-center gap-2.5">
+            <RotatingSuryaKalachakra size={44} />
             <div>
-              <div className="text-xs tracking-wider text-amber-400/90 font-serif font-bold uppercase">
-                {ui.topMantra}
+              <div className="text-xs tracking-wider text-amber-900 font-serif font-black uppercase flex items-center gap-1.5">
+                <span className="inline-block animate-spin-slow text-amber-700 text-[10px]">☸</span>
+                <span>{ui.topMantra}</span>
               </div>
-              <h1 className="text-lg font-black text-amber-200 font-serif">
+              <h1 className="text-lg font-black text-amber-950 font-serif">
                 {hotelName ? hotelName : ui.defaultSanctuaryTitle}
                 {tableNumber && (
-                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
                     {ui.tableLabel} {tableNumber}
                   </span>
                 )}
@@ -1684,11 +1770,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 triggerScreenLoader("language_switch", 600);
                 setTimeout(() => setIsLanguageConfirmed(false), 600);
               }}
-              className="text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-slate-900 px-2.5 py-1.5 rounded-xl border border-amber-500/30 hover:border-amber-400 transition"
+              className="text-[11px] font-bold text-amber-900 hover:text-amber-950 bg-white px-2.5 py-1.5 rounded-xl border-2 border-amber-300 hover:border-amber-400 shadow-sm transition cursor-pointer"
             >
               {ui.changeLangBtn}
             </button>
-            <div className="flex flex-wrap items-center gap-1 bg-slate-900/90 border border-amber-500/30 rounded-xl p-1 text-xs">
+            <div className="flex flex-wrap items-center gap-1 bg-amber-100/70 border border-amber-300 rounded-xl p-1 text-xs shadow-inner">
               {ANTARANGA_LANGUAGES.map((l) => (
                 <button
                   key={l.code}
@@ -1699,10 +1785,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                       setSelectedLang(l.code);
                     }
                   }}
-                  className={`px-2 py-1 rounded-lg font-medium transition ${
+                  className={`px-2 py-1 rounded-lg font-medium transition cursor-pointer ${
                     selectedLang === l.code
-                      ? "bg-amber-500 text-slate-950 font-bold shadow"
-                      : "text-slate-400 hover:text-amber-200"
+                      ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold shadow-sm"
+                      : "text-stone-700 hover:text-amber-900"
                   }`}
                 >
                   {l.nativeName}
@@ -1714,28 +1800,29 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       </header>
 
       {/* Main Content Container */}
-      <main className="max-w-2xl mx-auto px-4 py-4 space-y-6">
+      <main className="relative z-10 max-w-2xl mx-auto px-4 py-4 space-y-6">
         {/* Hero Section */}
         <div className="text-center space-y-2 pt-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/90 border border-amber-300 text-amber-900 text-xs font-bold shadow-sm">
+            <span className="inline-block animate-spin-slow text-amber-700">☸</span>
             <span>{ui.freeBannerBadge}</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500 font-serif">
+          <h2 className="text-2xl sm:text-3xl font-black text-amber-950 font-serif">
             {ui.heroTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-stone-600 max-w-md mx-auto leading-relaxed font-medium">
             {ui.heroSubtitle}
           </p>
         </div>
 
         {/* ── STEP 1: Devotee Free Input Form ── */}
-        <section className="bg-slate-900/80 border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-amber-500/20 pb-2">
-            <h3 className="text-sm font-bold text-amber-300 flex items-center gap-1.5">
+        <section className="bg-white/95 border-2 border-[#D4AF37] rounded-2xl p-4 sm:p-5 shadow-[0_8px_30px_rgba(217,119,6,0.12)] space-y-4">
+          <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+            <h3 className="text-sm font-bold text-amber-950 flex items-center gap-1.5">
               <span>👤</span>
               <span>{ui.formHeader}</span>
             </h3>
-            <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+            <span className="text-[11px] text-emerald-800 font-bold bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 rounded-full shadow-sm">
               {ui.freeTag}
             </span>
           </div>
@@ -1743,7 +1830,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           <div className="space-y-3 text-xs">
             {/* Devotee Name */}
             <div>
-              <label className="block text-slate-300 font-medium mb-1">
+              <label className="block text-stone-700 font-semibold mb-1">
                 {ui.nameLabel}
               </label>
               <input
@@ -1751,49 +1838,49 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 value={devoteeName}
                 onChange={(e) => setDevoteeName(e.target.value)}
                 placeholder={ui.namePlaceholder}
-                className="w-full bg-slate-950 border border-amber-500/30 rounded-xl px-3 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2.5 text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-500 font-medium shadow-sm"
               />
             </div>
 
             {/* Birth Date & Birth Time */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-300 font-medium mb-1">
+                <label className="block text-stone-700 font-semibold mb-1">
                   {ui.dateLabel}
                 </label>
                 <input
                   type="date"
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-amber-500/30 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-500 font-medium shadow-sm"
                 />
               </div>
               <div>
-                <label className="block text-slate-300 font-medium mb-1">
+                <label className="block text-stone-700 font-semibold mb-1">
                   {ui.timeLabel}
                 </label>
                 <input
                   type="time"
                   value={birthTime}
                   onChange={(e) => setBirthTime(e.target.value)}
-                  className="w-full bg-slate-950 border border-amber-500/30 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-500 font-medium shadow-sm"
                 />
               </div>
             </div>
 
             {/* Gender Selection */}
             <div>
-              <label className="block text-slate-300 font-medium mb-1">
+              <label className="block text-stone-700 font-semibold mb-1">
                 {ui.genderLabel}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setGender("male")}
-                  className={`py-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                  className={`py-2 rounded-xl border-2 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                     gender === "male"
-                      ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md font-bold"
-                      : "bg-slate-950 border-slate-700 text-slate-300 hover:border-amber-500/50"
+                      ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-600 shadow-md font-bold"
+                      : "bg-white border-amber-200 text-stone-700 hover:border-amber-400 hover:bg-amber-50"
                   }`}
                 >
                   <span>👨</span>
@@ -1802,10 +1889,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => setGender("female")}
-                  className={`py-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                  className={`py-2 rounded-xl border-2 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                     gender === "female"
-                      ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md font-bold"
-                      : "bg-slate-950 border-slate-700 text-slate-300 hover:border-amber-500/50"
+                      ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-600 shadow-md font-bold"
+                      : "bg-white border-amber-200 text-stone-700 hover:border-amber-400 hover:bg-amber-50"
                   }`}
                 >
                   <span>👩</span>
@@ -1817,8 +1904,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             {/* Birth Place */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-slate-300 font-medium">
-                  {ui.placeLabel}: <span className="text-amber-400 font-bold">{selectedCityName}</span>
+                <label className="text-stone-700 font-semibold">
+                  {ui.placeLabel}: <span className="text-amber-800 font-bold">{selectedCityName}</span>
                 </label>
               </div>
 
@@ -1829,10 +1916,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     key={c.name}
                     type="button"
                     onClick={() => handleSelectQuickCity(c)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] border transition ${
+                    className={`px-2.5 py-1 rounded-lg text-[11px] border-2 transition cursor-pointer ${
                       selectedCityName === c.name
-                        ? "bg-amber-500/30 border-amber-400 text-amber-200 font-bold"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-amber-500/40"
+                        ? "bg-amber-200/90 border-amber-500 text-amber-950 font-black shadow-sm"
+                        : "bg-white border-amber-200 text-stone-700 hover:border-amber-400 hover:bg-amber-50"
                     }`}
                   >
                     {c.name}
@@ -1864,11 +1951,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             type="button"
             onClick={handleGetDarkSecret}
             disabled={isCalculating}
-            className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-slate-950 font-black text-sm sm:text-base tracking-wide shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2"
+            className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 text-white font-black text-sm sm:text-base tracking-wide shadow-xl shadow-amber-600/30 hover:from-amber-600 hover:to-yellow-700 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
           >
             {isCalculating ? (
               <>
-                <svg className="animate-spin h-5 w-5 text-slate-950" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
@@ -1884,63 +1971,64 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         {secretResult && (
           <section
             id="antaranga-result-card"
-            className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 animate-in fade-in duration-300"
+            className="bg-[#FFFDF7] border-2 border-[#D4AF37] rounded-2xl p-5 sm:p-6 shadow-[0_12px_45px_rgba(217,119,6,0.18)] space-y-4 animate-in fade-in duration-300"
           >
             {/* Header Badge */}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/30 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3">
               <div>
-                <span className="text-[11px] font-bold tracking-wider text-amber-400 uppercase">
-                  {ui.resultBadge}
+                <span className="text-[11px] font-bold tracking-wider text-amber-800 uppercase flex items-center gap-1">
+                  <span className="inline-block animate-spin-slow text-amber-600">☸</span>
+                  <span>{ui.resultBadge}</span>
                 </span>
-                <h3 className="text-xl font-black text-amber-200 font-serif">
+                <h3 className="text-xl font-black text-amber-950 font-serif">
                   {secretResult.devoteeName} {ui.resultHeading}
                 </h3>
               </div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold shadow-sm">
                 {ui.authenticTruthBadge}
               </span>
             </div>
 
             {/* Astrological Coordinates Ribbon */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-slate-950/70 border border-amber-500/20 rounded-xl p-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-amber-50/80 border-2 border-amber-200 rounded-xl p-2.5">
               <div>
-                <span className="text-slate-400 block text-[10px]">{ui.moonSignLabel}:</span>
-                <span className="font-bold text-amber-300">{secretResult.moonSignName}</span>
+                <span className="text-stone-500 block text-[10px]">{ui.moonSignLabel}:</span>
+                <span className="font-bold text-amber-950">{secretResult.moonSignName}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">{ui.starLabel}:</span>
-                <span className="font-bold text-amber-300">
+                <span className="text-stone-500 block text-[10px]">{ui.starLabel}:</span>
+                <span className="font-bold text-amber-950">
                   {secretResult.nakshatraName} ({secretResult.moonPada})
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">{ui.lagnaLabel}:</span>
-                <span className="font-bold text-amber-300">{secretResult.lagnaSignName}</span>
+                <span className="text-stone-500 block text-[10px]">{ui.lagnaLabel}:</span>
+                <span className="font-bold text-amber-950">{secretResult.lagnaSignName}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">{ui.h8LordLabel}:</span>
-                <span className="font-bold text-amber-300">{secretResult.h8LordName}</span>
+                <span className="text-stone-500 block text-[10px]">{ui.h8LordLabel}:</span>
+                <span className="font-bold text-amber-950">{secretResult.h8LordName}</span>
               </div>
             </div>
 
             {/* Paragraph 1: Outward Composure vs Hidden Inner Dilemma */}
-            <div className="bg-amber-950/20 border-l-4 border-amber-500 rounded-r-xl p-4 text-xs sm:text-sm text-slate-200 leading-relaxed font-serif space-y-1">
-              <div className="text-xs font-bold text-amber-400 flex items-center gap-1">
+            <div className="bg-gradient-to-r from-amber-50/90 via-[#FFFDF7] to-amber-50/40 border-l-4 border-amber-500 rounded-r-xl p-4 text-xs sm:text-sm text-stone-800 leading-relaxed font-serif space-y-1 shadow-sm">
+              <div className="text-xs font-bold text-amber-900 flex items-center gap-1">
                 <span>{ui.paragraph1Title}</span>
               </div>
-              <p className="text-slate-200 text-justify leading-relaxed">{secretResult.paragraph1}</p>
+              <p className="text-stone-800 text-justify leading-relaxed">{secretResult.paragraph1}</p>
             </div>
 
             {/* Paragraph 2: Subconscious Solitude & The Unspoken Truth */}
-            <div className="bg-amber-950/20 border-l-4 border-amber-400 rounded-r-xl p-4 text-xs sm:text-sm text-slate-200 leading-relaxed font-serif space-y-1">
-              <div className="text-xs font-bold text-amber-400 flex items-center gap-1">
+            <div className="bg-gradient-to-r from-amber-50/90 via-[#FFFDF7] to-amber-50/40 border-l-4 border-amber-400 rounded-r-xl p-4 text-xs sm:text-sm text-stone-800 leading-relaxed font-serif space-y-1 shadow-sm">
+              <div className="text-xs font-bold text-amber-900 flex items-center gap-1">
                 <span>{ui.paragraph2Title}</span>
               </div>
-              <p className="text-slate-200 text-justify leading-relaxed">{secretResult.paragraph2}</p>
+              <p className="text-stone-800 text-justify leading-relaxed">{secretResult.paragraph2}</p>
             </div>
 
             {/* Sacred Kshetra Blessing */}
-            <div className="bg-slate-950/80 border border-amber-500/20 rounded-xl p-3.5 text-xs text-amber-300/90 leading-relaxed font-serif">
+            <div className="bg-amber-100/70 border border-amber-300 rounded-xl p-3.5 text-xs text-amber-950 leading-relaxed font-serif shadow-sm">
               {secretResult.kshetraBlessing}
             </div>
 
@@ -1951,12 +2039,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
             {/* 1. ⚡ COSMIC LIFE VOLTAGE & GOCHARA NIRNAYA */}
             {secretResult.cosmicVoltage && (
-              <div className="bg-slate-950/90 border-2 border-amber-500/30 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2.5">
+              <div className="bg-white/95 border-2 border-[#D4AF37] rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">⚡</span>
                     <div>
-                      <h4 className="text-sm sm:text-base font-black text-amber-200 font-serif">
+                      <h4 className="text-sm sm:text-base font-black text-amber-950 font-serif">
                         {selectedLang === "kn" ? "ಈ ಕ್ಷಣದ ಗ್ರಹಬಲ, ಜೀವಶಕ್ತಿ & ಗೋಚಾರ ನಿರ್ಣಯ"
                           : selectedLang === "hi" ? "वर्तमान ग्रहबल, जीवन ऊर्जा एवं गोचर निर्णय"
                           : selectedLang === "mr" ? "सध्याचे ग्रहबल, जीवन ऊर्जा व गोचर निर्णय"
@@ -1965,77 +2053,77 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                           : selectedLang === "ml" ? "നിലവിലെ ഗ്രഹബലം, ഊർജ്ജ നില & ഗോചാര നിർണ്ണയം"
                           : "Live Cosmic Vitality Voltage & Gochara Nirnaya"}
                       </h4>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-stone-600">
                         {secretResult.cosmicVoltage.energyLabel}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xl font-black text-amber-400">
+                    <span className="text-xl font-black text-amber-700">
                       {secretResult.cosmicVoltage.energyScore}%
                     </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
                       {selectedLang === "kn" ? "ಉಚಿತ ದರ್ಶನ" : "FREE REVELATION"}
                     </span>
                   </div>
                 </div>
 
                 {/* Animated Energy Progress Meter */}
-                <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-amber-500/30 p-0.5">
+                <div className="w-full bg-amber-100 rounded-full h-3 overflow-hidden border border-amber-300 p-0.5">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-400 to-yellow-300 transition-all duration-1000 shadow-md"
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-600 via-amber-500 to-yellow-500 transition-all duration-1000 shadow-md"
                     style={{ width: `${secretResult.cosmicVoltage.energyScore}%` }}
                   />
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed font-serif">
+                <p className="text-xs text-stone-800 leading-relaxed font-serif">
                   {secretResult.cosmicVoltage.energyDesc}
                 </p>
 
                 {/* 3-Pillar Gochara & Dasha Ribbon */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
                   {/* Shani Transit Status */}
-                  <div className="bg-slate-900/80 border border-amber-500/20 rounded-xl p-2.5 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <div className="bg-gradient-to-b from-[#FFFDF7] to-amber-50/50 border border-amber-200 rounded-xl p-2.5 space-y-1 shadow-sm">
+                    <span className="text-[10px] uppercase font-bold text-stone-600 block">
                       🪐 {selectedLang === "kn" ? "ಶನಿ ಗೋಚಾರ ಸ್ಥಿತಿ" : "Saturn Transit Status"}
                     </span>
-                    <span className="font-bold text-amber-300 block">
+                    <span className="font-bold text-amber-950 block">
                       {secretResult.cosmicVoltage.shaniGocharaStatus}
                     </span>
-                    <p className="text-[10px] text-slate-400 leading-tight">
+                    <p className="text-[10px] text-stone-600 leading-tight">
                       {secretResult.cosmicVoltage.shaniGocharaImpact}
                     </p>
                   </div>
 
                   {/* Guru Bala Status */}
-                  <div className="bg-slate-900/80 border border-amber-500/20 rounded-xl p-2.5 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <div className="bg-gradient-to-b from-[#FFFDF7] to-amber-50/50 border border-amber-200 rounded-xl p-2.5 space-y-1 shadow-sm">
+                    <span className="text-[10px] uppercase font-bold text-stone-600 block">
                       🌟 {selectedLang === "kn" ? "ಗುರುಬಲ ಅನುಗ್ರಹ" : "Jupiter Guru Bala"}
                     </span>
-                    <span className="font-bold text-yellow-300 block">
+                    <span className="font-bold text-amber-900 block">
                       {secretResult.cosmicVoltage.guruGocharaStatus}
                     </span>
-                    <p className="text-[10px] text-slate-400 leading-tight">
+                    <p className="text-[10px] text-stone-600 leading-tight">
                       {secretResult.cosmicVoltage.guruGocharaImpact}
                     </p>
                   </div>
 
                   {/* Running Dasha & Bhukti */}
-                  <div className="bg-slate-900/80 border border-amber-500/20 rounded-xl p-2.5 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <div className="bg-gradient-to-b from-[#FFFDF7] to-amber-50/50 border border-amber-200 rounded-xl p-2.5 space-y-1 shadow-sm">
+                    <span className="text-[10px] uppercase font-bold text-stone-600 block">
                       ⏳ {selectedLang === "kn" ? "ಚಾಲ್ತಿಯಲ್ಲಿರುವ ಮಹಾದಶಾ-ಭುಕ್ತಿ" : "Running Dasha & Bhukti"}
                     </span>
-                    <span className="font-bold text-amber-200 block">
+                    <span className="font-bold text-amber-950 block">
                       {secretResult.cosmicVoltage.activeMahadasha} - {secretResult.cosmicVoltage.activeBhukti}
                     </span>
-                    <span className="text-[10px] text-slate-400 block">
+                    <span className="text-[10px] text-stone-600 block">
                       {secretResult.cosmicVoltage.dashaPeriodText}
                     </span>
                   </div>
                 </div>
 
                 {/* Turning Point Verdict Card */}
-                <div className="bg-amber-950/30 border-l-4 border-amber-400 rounded-r-xl p-3 text-xs text-amber-100 font-serif leading-relaxed">
-                  <span className="font-bold text-amber-300 block mb-0.5">
+                <div className="bg-amber-50/90 border-l-4 border-amber-500 rounded-r-xl p-3 text-xs text-amber-950 font-serif leading-relaxed shadow-sm">
+                  <span className="font-bold text-amber-900 block mb-0.5">
                     ⚖️ {selectedLang === "kn" ? "ತತ್ಕ್ಷಣದ ಜೀವನ ನಿರ್ಣಯ (Turning Point Verdict):" : "Immediate Turning Point Verdict:"}
                   </span>
                   {secretResult.cosmicVoltage.turningPointVerdict}
@@ -2045,8 +2133,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
             {/* 2. 🏆 CLASSICAL MOORTHY NIRNAYA (ಮೂರ್ತಿ ನಿರ್ಣಯ) */}
             {secretResult.moorthyNirnaya && (
-              <div className="bg-gradient-to-r from-amber-950/30 via-slate-900 to-amber-950/30 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-xl space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2">
+              <div className="bg-gradient-to-r from-amber-50 via-[#FFFDF7] to-amber-50 border-2 border-[#D4AF37] rounded-2xl p-4 sm:p-5 shadow-xl space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">
                       {secretResult.moorthyNirnaya.tier === "swarna" ? "🥇"
@@ -2055,19 +2143,19 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                         : "🛡️"}
                     </span>
                     <div>
-                      <h4 className="text-sm sm:text-base font-black text-amber-200 font-serif">
+                      <h4 className="text-sm sm:text-base font-black text-amber-950 font-serif">
                         {secretResult.moorthyNirnaya.title}: {secretResult.moorthyNirnaya.moorthyName}
                       </h4>
-                      <span className="text-[11px] font-bold text-amber-400">
+                      <span className="text-[11px] font-bold text-amber-800">
                         {secretResult.moorthyNirnaya.badge}
                       </span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
                     {selectedLang === "kn" ? "ಶಾಸ್ತ್ರೋಕ್ತ ಫಲ" : "CLASSICAL SHASTRA"}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-serif">
+                <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-serif">
                   {secretResult.moorthyNirnaya.description}
                 </p>
               </div>
@@ -2075,11 +2163,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
             {/* 3. 💎 FREE DIVINE LUCKY BLUEPRINT */}
             {secretResult.luckyElements && (
-              <div className="bg-slate-950/90 border border-amber-500/30 rounded-2xl p-4 sm:p-5 space-y-3">
-                <div className="flex items-center justify-between border-b border-amber-500/20 pb-2">
+              <div className="bg-white/95 border-2 border-[#D4AF37] rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
+                <div className="flex items-center justify-between border-b border-amber-200 pb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">💎</span>
-                    <h4 className="text-xs sm:text-sm font-black text-amber-200 uppercase tracking-wider font-serif">
+                    <h4 className="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider font-serif">
                       {selectedLang === "kn" ? "ನಿಮ್ಮ ದೈವಿಕ ಅದೃಷ್ಟ ಅಂಶಗಳು (ಉಚಿತ ಉಡುಗೊರೆ)"
                         : selectedLang === "hi" ? "आपके दैवीय भाग्यशाली तत्व (निःशुल्क उपहार)"
                         : selectedLang === "mr" ? "आपले दैवी भाग्यशाली घटक (विनामूल्य भेट)"
@@ -2089,58 +2177,58 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                         : "Your Divine Lucky Blueprint (100% Free Gift)"}
                     </h4>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
                     {selectedLang === "kn" ? "ಅದೃಷ್ಟ ರಕ್ಷೆ" : "LUCKY ALIGNMENT"}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                   {/* Gemstone */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400 block font-medium">
+                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-2.5 space-y-0.5 shadow-sm">
+                    <span className="text-[10px] text-stone-600 block font-medium">
                       💍 {selectedLang === "kn" ? "ಅದೃಷ್ಟ ರತ್ನ" : "Lucky Gemstone"}
                     </span>
-                    <span className="font-bold text-amber-300 text-xs block truncate">
+                    <span className="font-bold text-amber-950 text-xs block truncate">
                       {secretResult.luckyElements.gemstone}
                     </span>
                   </div>
 
                   {/* Lucky Day */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400 block font-medium">
+                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-2.5 space-y-0.5 shadow-sm">
+                    <span className="text-[10px] text-stone-600 block font-medium">
                       🗓️ {selectedLang === "kn" ? "ಶುಭ ವಾರ" : "Auspicious Day"}
                     </span>
-                    <span className="font-bold text-amber-300 text-xs block">
+                    <span className="font-bold text-amber-950 text-xs block">
                       {secretResult.luckyElements.luckyDay}
                     </span>
                   </div>
 
                   {/* Lucky Number */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400 block font-medium">
+                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-2.5 space-y-0.5 shadow-sm">
+                    <span className="text-[10px] text-stone-600 block font-medium">
                       🔢 {selectedLang === "kn" ? "ಅದೃಷ್ಟ ಸಂಖ್ಯೆ" : "Lucky Number"}
                     </span>
-                    <span className="font-bold text-amber-300 text-xs block">
+                    <span className="font-bold text-amber-950 text-xs block">
                       {secretResult.luckyElements.luckyNumber}
                     </span>
                   </div>
 
                   {/* Auspicious Direction & Color */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400 block font-medium">
+                  <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-2.5 space-y-0.5 shadow-sm">
+                    <span className="text-[10px] text-stone-600 block font-medium">
                       🧭 {selectedLang === "kn" ? "ಶುಭ ದಿಕ್ಕು & ವರ್ಣ" : "Direction & Color"}
                     </span>
-                    <span className="font-bold text-amber-300 text-xs block truncate">
+                    <span className="font-bold text-amber-950 text-xs block truncate">
                       {secretResult.luckyElements.luckyDirection} • {secretResult.luckyElements.luckyColor}
                     </span>
                   </div>
                 </div>
 
                 {/* Ishta Devata Banner */}
-                <div className="bg-slate-900/60 border border-amber-500/20 rounded-xl px-3 py-2 flex items-center gap-2 text-xs text-amber-200/90 font-serif">
+                <div className="bg-amber-100/70 border border-amber-300 rounded-xl px-3 py-2 flex items-center gap-2 text-xs text-amber-950 font-serif shadow-sm">
                   <span className="text-base">🕉️</span>
                   <span>
-                    <strong className="text-amber-400">{selectedLang === "kn" ? "ಇಷ್ಟದೈವ:" : "Ishta Devata:"}</strong>{" "}
+                    <strong className="text-amber-900">{selectedLang === "kn" ? "ಇಷ್ಟದೈವ:" : "Ishta Devata:"}</strong>{" "}
                     {secretResult.luckyElements.ishtaDevata}
                   </span>
                 </div>
@@ -2149,12 +2237,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
             {/* 4. 🔮 NEXT 5-YEAR HORIZON SNEAK PREVIEW & LOCKED TEASERS */}
             {secretResult.fiveYearPreview && (
-              <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xl">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2.5">
+              <div className="bg-gradient-to-b from-[#FFFDF7] to-amber-50/50 border-2 border-[#D4AF37] rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xl">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">🔮</span>
                     <div>
-                      <h4 className="text-sm sm:text-base font-black text-amber-200 font-serif">
+                      <h4 className="text-sm sm:text-base font-black text-amber-950 font-serif">
                         {selectedLang === "kn" ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ಕಾಲ & ಎಚ್ಚರಿಕೆಯ ರಹಸ್ಯ ಮುನ್ನೋಟ"
                           : selectedLang === "hi" ? "आगामी ५ वर्षों का स्वर्णिम काल एवं महत्वपूर्ण पूर्वावलोकन"
                           : selectedLang === "mr" ? "पुढील ५ वर्षांचा सुवर्ण काळ व पूर्वदर्शन"
@@ -2163,58 +2251,58 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                           : selectedLang === "ml" ? "അടുത്ത 5 വർഷത്തെ സുവർണ്ണ കാലവും രഹസ്യ മുൻനോട്ടവും"
                           : "Next 5-Year Horizon Sneak Preview (2026 – 2031)"}
                       </h4>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-stone-600">
                         {selectedLang === "kn" ? "ವರ್ಷ ೧ ಉಚಿತ ಮುನ್ನೋಟ · ವರ್ಷ ೨-೫ ರಹಸ್ಯ ಪ್ರಶ್ನೆಗಳು" : "Year 1 Free Preview · Years 2-5 Locked"}
                       </p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 uppercase tracking-wider">
+                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-400 text-stone-950 uppercase tracking-wider">
                     {selectedLang === "kn" ? "ವರ್ಷ ೧ ಉಚಿತ" : "YEAR 1 FREE"}
                   </span>
                 </div>
 
                 {/* YEAR 1 (2026 - 2027) UNLOCKED FREE CARD */}
-                <div className="bg-amber-950/20 border-2 border-amber-500/50 rounded-xl p-3.5 sm:p-4 space-y-2">
-                  <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-amber-500/20 pb-2">
+                <div className="bg-gradient-to-br from-amber-50 via-white to-amber-100/60 border-2 border-amber-400 rounded-xl p-3.5 sm:p-4 space-y-2 shadow-md">
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-amber-200 pb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-slate-950 bg-amber-400 px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-black text-stone-950 bg-amber-400 px-2 py-0.5 rounded-full">
                         {secretResult.fiveYearPreview.year1.gregorianRange}
                       </span>
-                      <span className="text-xs font-bold text-amber-300">
+                      <span className="text-xs font-bold text-amber-900">
                         {secretResult.fiveYearPreview.year1.samvatsaraName}
                       </span>
                     </div>
-                    <span className="text-xs font-bold text-emerald-400">
+                    <span className="text-xs font-bold text-emerald-700">
                       ⚡ {selectedLang === "kn" ? "ಜೀವಶಕ್ತಿ ಸ್ಕೋರ್" : "Vitality"}: {secretResult.fiveYearPreview.year1.vitalityScore}%
                     </span>
                   </div>
 
-                  <h5 className="text-xs sm:text-sm font-bold text-amber-100 font-serif">
+                  <h5 className="text-xs sm:text-sm font-bold text-amber-950 font-serif">
                     {secretResult.fiveYearPreview.year1.headline}
                   </h5>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-lg p-2.5">
-                      <span className="text-amber-400 font-bold block mb-0.5">
+                    <div className="bg-white border border-amber-300 rounded-lg p-2.5 shadow-sm">
+                      <span className="text-amber-900 font-bold block mb-0.5">
                         🍂 {selectedLang === "kn" ? "ಮಹಾ ತಿರುವು ನೀಡುವ ಋತು:" : "Turning Point Season:"}
                       </span>
-                      <span className="text-slate-200">
+                      <span className="text-stone-800">
                         {secretResult.fiveYearPreview.year1.turningPointSeason}
                       </span>
                     </div>
 
-                    <div className="bg-slate-950/80 border border-emerald-500/20 rounded-lg p-2.5">
-                      <span className="text-emerald-400 font-bold block mb-0.5">
+                    <div className="bg-white border border-emerald-300 rounded-lg p-2.5 shadow-sm">
+                      <span className="text-emerald-800 font-bold block mb-0.5">
                         🌟 {selectedLang === "kn" ? "ಸುವರ್ಣಾವಕಾಶದ ಕಾಲಾವಧಿ:" : "Golden Opportunity Window:"}
                       </span>
-                      <span className="text-slate-200">
+                      <span className="text-stone-800">
                         {secretResult.fiveYearPreview.year1.goldenOpportunity}
                       </span>
                     </div>
                   </div>
 
-                  <div className="bg-amber-950/40 border border-amber-500/30 rounded-lg p-2.5 text-xs text-amber-200 font-serif">
-                    <span className="font-bold text-amber-300 block mb-0.5">
+                  <div className="bg-amber-100/80 border border-amber-300 rounded-lg p-2.5 text-xs text-amber-950 font-serif shadow-sm">
+                    <span className="font-bold text-amber-900 block mb-0.5">
                       ⚠️ {selectedLang === "kn" ? "ವರ್ಷ ೧ರ ಮುನ್ನೆಚ್ಚರಿಕೆ:" : "Immediate Caution Alert:"}
                     </span>
                     {secretResult.fiveYearPreview.year1.cautionAlert}
@@ -2224,7 +2312,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 {/* YEARS 2 TO 5: 4 LOCKED CLIFFHANGER TEASERS */}
                 <div className="space-y-2 pt-1">
                   <div className="text-center">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-amber-900">
                       {selectedLang === "kn" ? "🔒 ಮುಂದಿನ ವರ್ಷಗಳು (ವರ್ಷ ೨ ರಿಂದ ೫) - ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಲಭ್ಯ"
                         : "🔒 Next Years Horizon (Years 2 to 5) - Unlocked in Full Dossier"}
                     </span>
@@ -2238,20 +2326,20 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                           const target = document.getElementById("package-select-section");
                           if (target) target.scrollIntoView({ behavior: "smooth" });
                         }}
-                        className="bg-slate-950/80 border border-amber-500/20 hover:border-amber-400 rounded-xl p-3 space-y-1.5 cursor-pointer transition hover:bg-slate-900/90 group"
+                        className="bg-white border-2 border-amber-200 hover:border-amber-500 rounded-xl p-3 space-y-1.5 cursor-pointer transition hover:bg-amber-50/60 group shadow-sm"
                       >
-                        <div className="flex items-center justify-between text-xs pb-1 border-b border-slate-800">
-                          <span className="font-bold text-amber-300">
+                        <div className="flex items-center justify-between text-xs pb-1 border-b border-amber-100">
+                          <span className="font-bold text-amber-950">
                             {selectedLang === "kn" ? `ವರ್ಷ ${item.yearNum} (${item.gregorianRange})` : `Year ${item.yearNum} (${item.gregorianRange})`}
                           </span>
-                          <span className="text-amber-400 text-sm group-hover:scale-110 transition">🔒</span>
+                          <span className="text-amber-600 text-sm group-hover:scale-110 transition">🔒</span>
                         </div>
-                        <p className="text-xs text-slate-200 font-serif leading-relaxed">
+                        <p className="text-xs text-stone-800 font-serif leading-relaxed">
                           {item.headlineQuestion}
                         </p>
                         <div className="flex items-center justify-between text-[11px] pt-1">
-                          <span className="text-slate-400 text-[10px]">{item.keyTheme}</span>
-                          <span className="text-amber-400 font-bold group-hover:underline text-[10px]">
+                          <span className="text-stone-600 text-[10px]">{item.keyTheme}</span>
+                          <span className="text-amber-800 font-bold group-hover:underline text-[10px]">
                             {item.teaserCta} &rarr;
                           </span>
                         </div>
@@ -2264,22 +2352,22 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
             {/* 5. 🔥 PANDIT PALETTE DINING CONVERSION OFFER (SOCIAL PROOF & 10-SEC DELIVERY) */}
             {secretResult.diningOffer && (
-              <div className="bg-gradient-to-r from-amber-900/40 via-yellow-900/30 to-amber-900/40 border-2 border-amber-400 rounded-2xl p-4 sm:p-5 text-center space-y-3 shadow-2xl">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider shadow">
+              <div className="bg-gradient-to-r from-amber-100/90 via-[#FFF9EC] to-amber-100/90 border-2 border-[#D4AF37] rounded-2xl p-4 sm:p-5 text-center space-y-3 shadow-xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4AF37] text-stone-950 text-xs font-black uppercase tracking-wider shadow">
                   <span>🍽️</span>
                   <span>{selectedLang === "kn" ? "ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್ ವಿಶೇಷ ಅತಿಥಿ ಸೌಲಭ್ಯ" : "Pandit Palette Diner Special"}</span>
                 </div>
-                <h4 className="text-base sm:text-lg font-black text-amber-100 font-serif">
+                <h4 className="text-base sm:text-lg font-black text-amber-950 font-serif">
                   {secretResult.diningOffer.headline}
                 </h4>
-                <p className="text-xs text-slate-200 max-w-md mx-auto">
+                <p className="text-xs text-stone-800 max-w-md mx-auto">
                   {secretResult.diningOffer.subheadline}
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left text-xs text-slate-200 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left text-xs text-stone-800 pt-1">
                   {secretResult.diningOffer.features.map((feat, i) => (
-                    <div key={i} className="flex items-start gap-1.5 bg-slate-950/60 p-2 rounded-lg border border-amber-500/20">
-                      <span className="text-emerald-400 font-black">✓</span>
+                    <div key={i} className="flex items-start gap-1.5 bg-white/90 p-2 rounded-lg border border-amber-300 shadow-sm">
+                      <span className="text-emerald-700 font-black">✓</span>
                       <span className="text-[11px] leading-snug">{feat}</span>
                     </div>
                   ))}
@@ -2291,7 +2379,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     const target = document.getElementById("package-select-section");
                     if (target) target.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-500/30 active:scale-95 transition cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-500/20 active:scale-95 transition cursor-pointer"
                 >
                   {selectedLang === "kn" ? "🔓 ಕೇವಲ ₹೩೫೦ ನೀಡಿ ಪೂರ್ಣ ೫-ವರ್ಷಗಳ ಮಹಾ ದಸ್ತಾವೇಜು ಅನ್‌ಲಾಕ್ ಮಾಡಿ"
                     : "🔓 Unlock Full 5-Year Master Horizon for ₹350"}
@@ -2302,13 +2390,13 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             {/* ── STEP 3: PACKAGE SELECTION (₹350 Standard vs ₹450 with Sacred Remedy) ── */}
             <div id="package-select-section" className="pt-2 space-y-3 scroll-mt-6">
               <div className="text-center space-y-1">
-                <span className="inline-block px-3 py-1 rounded-full bg-amber-500 text-slate-950 text-xs font-black tracking-wide uppercase">
+                <span className="inline-block px-3 py-1 rounded-full bg-amber-400 text-stone-950 text-xs font-black tracking-wide uppercase">
                   {ui.specialOfferBadge}
                 </span>
-                <h4 className="text-lg sm:text-xl font-black text-amber-100 font-serif">
+                <h4 className="text-lg sm:text-xl font-black text-amber-950 font-serif">
                   {ui.packageSelectTitle}
                 </h4>
-                <p className="text-xs text-slate-300 max-w-lg mx-auto">
+                <p className="text-xs text-stone-700 max-w-lg mx-auto">
                   {ui.specialOfferDesc}
                 </p>
               </div>
@@ -2325,33 +2413,33 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   }}
                   className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                     selectedPackage === "standard_350"
-                      ? "bg-slate-900 border-amber-400 shadow-xl shadow-amber-500/20 ring-1 ring-amber-400"
-                      : "bg-slate-950/70 border-slate-800 hover:border-amber-500/40"
+                      ? "bg-gradient-to-b from-amber-50 to-white border-[#D4AF37] shadow-xl shadow-amber-500/10 ring-2 ring-[#D4AF37]"
+                      : "bg-white/95 border-amber-200 hover:border-amber-400 shadow-sm"
                   }`}
                 >
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                    <span className="text-xs font-bold text-amber-300">{ui.packageStandardTitle}</span>
+                  <div className="flex items-center justify-between pb-2 border-b border-amber-100">
+                    <span className="text-xs font-bold text-amber-950">{ui.packageStandardTitle}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-slate-500 line-through">₹1,500</span>
-                      <span className="text-lg font-black text-amber-400">₹350</span>
+                      <span className="text-xs text-stone-500 line-through">₹1,500</span>
+                      <span className="text-lg font-black text-amber-800">₹350</span>
                     </div>
                   </div>
-                  <p className="text-[11px] text-slate-300 mt-2 leading-relaxed">
+                  <p className="text-[11px] text-stone-700 mt-2 leading-relaxed">
                     {ui.packageStandardDesc}
                   </p>
-                  <ul className="mt-3 space-y-1.5 text-[11px] text-slate-300">
-                    <li className="flex items-center gap-1.5 text-emerald-400">
+                  <ul className="mt-3 space-y-1.5 text-[11px] text-stone-800">
+                    <li className="flex items-center gap-1.5 text-emerald-700 font-medium">
                       <span>✓</span>
                       <span>5-Year Master Destiny PDF (2026–2031)</span>
                     </li>
-                    <li className="flex items-center gap-1.5 text-emerald-400">
+                    <li className="flex items-center gap-1.5 text-emerald-700 font-medium">
                       <span>✓</span>
                       <span>Baggona Panchanga Janma Kundali PDF</span>
                     </li>
                   </ul>
                   <div className="mt-3 text-right">
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                      selectedPackage === "standard_350" ? "bg-amber-400 text-slate-950" : "text-slate-500"
+                      selectedPackage === "standard_350" ? "bg-amber-400 text-stone-950" : "text-stone-500"
                     }`}>
                       {selectedPackage === "standard_350" ? "✓ Selected" : "Select"}
                     </span>
@@ -2368,40 +2456,40 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   }}
                   className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative ${
                     selectedPackage === "remedy_450"
-                      ? "bg-gradient-to-b from-amber-950/40 to-slate-900 border-yellow-400 shadow-xl shadow-yellow-500/20 ring-1 ring-yellow-400"
-                      : "bg-slate-950/70 border-slate-800 hover:border-amber-500/40"
+                      ? "bg-gradient-to-b from-amber-100/70 via-amber-50 to-white border-amber-500 shadow-xl shadow-amber-500/15 ring-2 ring-amber-500"
+                      : "bg-white/95 border-amber-200 hover:border-amber-400 shadow-sm"
                   }`}
                 >
-                  <div className="absolute -top-2.5 right-4 bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow">
+                  <div className="absolute -top-2.5 right-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-stone-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow">
                     {ui.packageRemedyBadge}
                   </div>
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                    <span className="text-xs font-bold text-yellow-300">{ui.packageRemedyTitle}</span>
+                  <div className="flex items-center justify-between pb-2 border-b border-amber-100">
+                    <span className="text-xs font-bold text-amber-950">{ui.packageRemedyTitle}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-slate-500 line-through">₹2,100</span>
-                      <span className="text-lg font-black text-yellow-400">₹450</span>
+                      <span className="text-xs text-stone-500 line-through">₹2,100</span>
+                      <span className="text-lg font-black text-amber-900">₹450</span>
                     </div>
                   </div>
-                  <p className="text-[11px] text-slate-300 mt-2 leading-relaxed">
+                  <p className="text-[11px] text-stone-700 mt-2 leading-relaxed">
                     {ui.packageRemedyDesc}
                   </p>
-                  <ul className="mt-3 space-y-1.5 text-[11px] text-slate-300">
-                    <li className="flex items-center gap-1.5 text-emerald-400">
+                  <ul className="mt-3 space-y-1.5 text-[11px] text-stone-800">
+                    <li className="flex items-center gap-1.5 text-emerald-700 font-medium">
                       <span>✓</span>
                       <span>5-Year Master Destiny PDF (2026–2031)</span>
                     </li>
-                    <li className="flex items-center gap-1.5 text-emerald-400">
+                    <li className="flex items-center gap-1.5 text-emerald-700 font-medium">
                       <span>✓</span>
                       <span>Baggona Panchanga Janma Kundali PDF</span>
                     </li>
-                    <li className="flex items-center gap-1.5 text-yellow-300 font-bold">
+                    <li className="flex items-center gap-1.5 text-amber-900 font-bold">
                       <span>✓</span>
                       <span>Sacred Gokarna Remedy & Japa Mantra PDF (+₹100)</span>
                     </li>
                   </ul>
                   <div className="mt-3 text-right">
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                      selectedPackage === "remedy_450" ? "bg-yellow-400 text-slate-950" : "text-slate-500"
+                      selectedPackage === "remedy_450" ? "bg-amber-500 text-stone-950" : "text-stone-500"
                     }`}>
                       {selectedPackage === "remedy_450" ? "✓ Selected" : "Select"}
                     </span>
@@ -2410,14 +2498,14 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               </div>
 
               {/* Price Summary & CTA to Open Payment */}
-              <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-4 text-center space-y-3">
+              <div className="bg-[#FFFDF7] border-2 border-[#D4AF37] rounded-2xl p-4 text-center space-y-3 shadow-md">
                 <div className="flex items-center justify-center gap-3">
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-stone-700 font-medium">
                     {selectedPackage === "remedy_450" ? "5-Year PDF + Kundali + Remedy Dossier" : "5-Year PDF + Janma Kundali"}
                   </span>
-                  <div className="flex items-baseline gap-1 text-amber-300">
-                    <span className="text-2xl sm:text-3xl font-black text-amber-400">₹{packagePrice}</span>
-                    <span className="text-xs text-slate-400">({selectedPackage === "remedy_450" ? "INR 450 Only" : "INR 350 Only"})</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl sm:text-3xl font-black text-amber-900">₹{packagePrice}</span>
+                    <span className="text-xs text-stone-500">({selectedPackage === "remedy_450" ? "INR 450 Only" : "INR 350 Only"})</span>
                   </div>
                 </div>
 
@@ -2431,7 +2519,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                         if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
                       }, 100);
                     }}
-                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-slate-950 font-black text-sm tracking-wide shadow-lg hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2"
+                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-stone-950 font-black text-sm tracking-wide shadow-lg shadow-amber-500/20 hover:brightness-105 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>{ui.payUnlockCta} (₹{packagePrice})</span>
                   </button>
@@ -2443,20 +2531,20 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             {showPaymentSection && (
               <div
                 id="hotel-payment-box"
-                className="bg-slate-900 border-2 border-amber-500 rounded-2xl p-5 space-y-4 animate-in fade-in duration-300"
+                className="bg-[#FFFDF7] border-2 border-[#D4AF37] rounded-2xl p-5 space-y-4 shadow-xl animate-in fade-in duration-300"
               >
-                <div className="flex items-center justify-between border-b border-amber-500/30 pb-2">
-                  <h4 className="text-sm font-bold text-amber-300 flex items-center gap-2">
+                <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                  <h4 className="text-sm font-bold text-amber-950 flex items-center gap-2">
                     <span>{ui.upiSectionTitle}</span>
                   </h4>
-                  <span className="text-xs text-amber-400 font-mono font-bold">
+                  <span className="text-xs text-amber-900 font-mono font-bold">
                     UPI: {PRIEST_UPI_ID} (₹{packagePrice})
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                   {/* Dynamic QR Code for chosen package (₹350 or ₹450) */}
-                  <div className="flex flex-col items-center justify-center p-3 bg-white rounded-2xl shadow-inner">
+                  <div className="flex flex-col items-center justify-center p-3 bg-white rounded-2xl shadow-md border-2 border-amber-200">
                     {paymentQrDataUrl ? (
                       <img
                         src={paymentQrDataUrl}
@@ -2464,15 +2552,15 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                         className="w-48 h-48 object-contain"
                       />
                     ) : (
-                      <div className="w-48 h-48 flex items-center justify-center text-slate-500 text-xs">
+                      <div className="w-48 h-48 flex items-center justify-center text-stone-500 text-xs">
                         Loading QR...
                       </div>
                     )}
-                    <div className="text-center mt-2 text-slate-900">
+                    <div className="text-center mt-2 text-stone-900">
                       <div className="text-xs font-bold font-serif">{PRIEST_NAME}</div>
-                      <div className="text-[11px] text-slate-600 font-mono">
+                      <div className="text-[11px] text-stone-600 font-mono">
                         Amount: <span className="text-emerald-700 font-bold text-sm">₹{packagePrice}</span>
-                        <span className="ml-1 text-[10px] text-slate-500">
+                        <span className="ml-1 text-[10px] text-stone-500">
                           ({selectedPackage === "remedy_450" ? "Destiny + Remedy" : "Standard"})
                         </span>
                       </div>
@@ -2481,7 +2569,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
                   {/* Payment Instructions & Mobile 1-Tap Buttons */}
                   <div className="space-y-3 text-xs">
-                    <p className="text-slate-300 leading-relaxed">
+                    <p className="text-stone-700 leading-relaxed">
                       {ui.paymentInstructions}
                     </p>
 
@@ -2544,8 +2632,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     </div>
 
                     {/* Copy UPI ID */}
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
-                      <span className="font-mono text-amber-300 text-[11px]">{PRIEST_UPI_ID}</span>
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-amber-50 border border-amber-200">
+                      <span className="font-mono text-amber-950 text-[11px] font-bold">{PRIEST_UPI_ID}</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -2553,7 +2641,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                           setCopiedUpi(true);
                           setTimeout(() => setCopiedUpi(false), 2000);
                         }}
-                        className="text-[11px] text-amber-400 hover:underline font-semibold"
+                        className="text-[11px] text-amber-800 hover:underline font-semibold"
                       >
                         {copiedUpi ? ui.copiedUpiBtn : ui.copyUpiBtn}
                       </button>
@@ -2562,23 +2650,23 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 </div>
 
                 {/* ── 1-TAP FRICTIONLESS AUTO-VERIFICATION WITH FIREBASE CONSISTENCY ── */}
-                <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 border-2 border-amber-400 space-y-2 text-center shadow-lg">
-                  <div className="text-amber-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-500 space-y-2 text-center shadow-md">
+                  <div className="text-emerald-900 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
                     <span>⚡</span>
                     <span>{ui.instantUnlockTitle}</span>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-slate-300 max-w-md mx-auto">
+                  <p className="text-[11px] sm:text-xs text-stone-700 max-w-md mx-auto">
                     {ui.instantUnlockDesc}
                   </p>
                   <button
                     type="button"
                     onClick={() => void handleInstant1TapVerification()}
                     disabled={isVerifyingPayment || isPaymentVerified}
-                    className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.99] transition flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.99] transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
                     {isVerifyingPayment ? (
                       <>
-                        <svg className="animate-spin h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
@@ -2600,7 +2688,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   <button
                     type="button"
                     onClick={() => setShowManualUtrInput(!showManualUtrInput)}
-                    className="text-[11px] text-amber-400/80 hover:text-amber-300 hover:underline flex items-center justify-center gap-1 mx-auto"
+                    className="text-[11px] text-amber-900 font-bold hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer"
                   >
                     <span>{showManualUtrInput ? "▲" : "▼"}</span>
                     <span>{ui.manualUtrToggleText}</span>
@@ -2609,8 +2697,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
                 {/* Manual UTR Input */}
                 {showManualUtrInput && (
-                  <div className="pt-2 border-t border-amber-500/20 space-y-2 animate-in fade-in">
-                    <label className="block text-xs font-bold text-amber-300">
+                  <div className="pt-2 border-t border-amber-200 space-y-2 animate-in fade-in">
+                    <label className="block text-xs font-bold text-amber-950">
                       {ui.utrLabel}
                     </label>
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -2623,13 +2711,13 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                           setPaymentError(null);
                         }}
                         placeholder={ui.utrPlaceholder}
-                        className="flex-1 bg-slate-950 border border-amber-500/40 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder-slate-600 font-mono tracking-wider focus:outline-none focus:border-amber-400"
+                        className="flex-1 bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-sm text-stone-900 placeholder-stone-400 font-mono tracking-wider focus:outline-none focus:border-amber-500"
                       />
                       <button
                         type="button"
                         onClick={() => void handleVerifyManualPayment()}
                         disabled={isVerifyingPayment || isPaymentVerified}
-                        className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-black text-xs sm:text-sm tracking-wide shadow flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                        className="py-2.5 px-4 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-400 font-black text-xs sm:text-sm tracking-wide shadow flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
                       >
                         {isVerifyingPayment ? (
                           <span>{ui.verifyingUtrBtn}</span>
@@ -2645,14 +2733,14 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
                 {/* Payment Error */}
                 {paymentError && (
-                  <div className="p-2.5 rounded-xl bg-red-950/60 border border-red-500/50 text-red-300 text-xs">
+                  <div className="p-2.5 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs">
                     {paymentError}
                   </div>
                 )}
 
                 {/* Payment Success Confirmation */}
                 {isPaymentVerified && (
-                  <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs space-y-1">
+                  <div className="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-emerald-900 text-xs space-y-1 shadow-sm">
                     <div className="font-bold flex items-center gap-1.5">
                       <span>✓</span>
                       <span>
@@ -2661,7 +2749,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                           : `₹${packagePrice} Payment verified successfully! (Txn ID: ${verifiedTxnId})`}
                       </span>
                     </div>
-                    <p className="text-[11px] text-emerald-200/90">
+                    <p className="text-[11px] text-emerald-800">
                       {PDF_STAGES[selectedLang]?.s1 || PDF_STAGES.en.s1}
                     </p>
                   </div>
@@ -2671,14 +2759,14 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
             {/* ── STEP 5: PDF Progress ── */}
             {isGeneratingPdf && (
-              <div className="p-4 rounded-2xl bg-slate-900 border border-amber-500/40 space-y-2">
-                <div className="flex items-center justify-between text-xs text-amber-300 font-semibold">
+              <div className="p-4 rounded-2xl bg-[#FFFDF7] border-2 border-amber-300 rounded-2xl space-y-2 shadow-md">
+                <div className="flex items-center justify-between text-xs text-amber-950 font-bold">
                   <span>{pdfStageText}</span>
                   <span>{pdfProgress}%</span>
                 </div>
-                <div className="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-amber-500/20">
+                <div className="w-full bg-amber-100 h-2.5 rounded-full overflow-hidden border border-amber-300">
                   <div
-                    className="bg-gradient-to-r from-amber-500 to-yellow-400 h-full transition-all duration-300"
+                    className="bg-gradient-to-r from-amber-500 to-yellow-500 h-full transition-all duration-300"
                     style={{ width: `${pdfProgress}%` }}
                   />
                 </div>
@@ -2687,8 +2775,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
             {/* ── STEP 6: DEVOTEE MULTI-PDF DOWNLOAD CENTER ── */}
             {isPaymentVerified && (
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-emerald-950/80 border-2 border-emerald-500 space-y-4 text-center shadow-2xl animate-in fade-in">
-                <div className="text-emerald-400 text-sm sm:text-base font-bold flex items-center justify-center gap-2">
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-[#FFFDF7] to-emerald-50 border-2 border-emerald-500 space-y-4 text-center shadow-xl animate-in fade-in">
+                <div className="text-emerald-900 text-sm sm:text-base font-bold flex items-center justify-center gap-2">
                   <span>{ui.pdfReadyHeader}</span>
                 </div>
 
@@ -2698,7 +2786,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     type="button"
                     onClick={() => void handleDownload5YearPdf()}
                     disabled={isGeneratingPdf}
-                    className="py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.99] transition disabled:opacity-50"
+                    className="py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.99] transition disabled:opacity-50 cursor-pointer"
                   >
                     <span>{ui.downloadFiveYearPdfBtn}</span>
                   </button>
@@ -2708,7 +2796,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     type="button"
                     onClick={() => void handleDownloadKundliPdf()}
                     disabled={isGeneratingPdf}
-                    className="py-3 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.99] transition disabled:opacity-50"
+                    className="py-3 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.99] transition disabled:opacity-50 cursor-pointer"
                   >
                     <span>{ui.downloadKundliPdfBtn}</span>
                   </button>
@@ -2719,7 +2807,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                       type="button"
                       onClick={() => void handleDownloadRemedyPdf()}
                       disabled={isGeneratingPdf}
-                      className="py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:brightness-110 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.99] transition sm:col-span-2 disabled:opacity-50"
+                      className="py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.99] transition sm:col-span-2 disabled:opacity-50 cursor-pointer"
                     >
                       <span>{ui.downloadRemedyPdfBtn}</span>
                     </button>
@@ -2730,14 +2818,14 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     type="button"
                     onClick={() => void handleDownloadAllPdfs()}
                     disabled={isGeneratingPdf}
-                    className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg sm:col-span-2 disabled:opacity-50"
+                    className="py-3 px-4 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 border-2 border-amber-400 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md sm:col-span-2 disabled:opacity-50 cursor-pointer"
                   >
                     <span>{ui.downloadAllPdfsBtn}</span>
                   </button>
                 </div>
 
                 {/* iPhone Safari Tip */}
-                <p className="text-[11px] text-slate-400 max-w-md mx-auto leading-relaxed">
+                <p className="text-[11px] text-stone-600 max-w-md mx-auto leading-relaxed">
                   {ui.iphoneSafariTip}
                 </p>
               </div>
@@ -2792,11 +2880,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       </div>
 
       {/* Footer */}
-      <footer className="max-w-2xl mx-auto px-4 py-8 text-center border-t border-slate-900 mt-12 text-xs text-slate-500 space-y-1">
-        <p className="font-serif text-slate-400">
+      <footer className="max-w-2xl mx-auto px-4 py-8 text-center border-t border-amber-200 mt-12 text-xs text-stone-500 space-y-1">
+        <p className="font-serif text-stone-600">
           {ui.footerSanctum}
         </p>
-        <p className="text-[11px]">
+        <p className="text-[11px] text-stone-500">
           {ui.footerContact}
         </p>
       </footer>
