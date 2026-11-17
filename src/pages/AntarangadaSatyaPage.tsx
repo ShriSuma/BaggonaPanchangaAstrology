@@ -58,6 +58,7 @@ import {
   AntarangaAstrologicalScreenLoader,
   type AntarangaLoaderStage
 } from "../components/loaders/AntarangaAstrologicalScreenLoader";
+import { CityAutocompleteInput } from "../components/common/CityAutocompleteInput";
 
 // 7-Language Popular Dining Cities
 const QUICK_CITIES_BY_LANG: Record<AntarangaLang, Array<{ name: string; lat: number; lng: number }>> = {
@@ -1835,24 +1836,21 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 ))}
               </div>
 
-              {/* Custom Search Box */}
-              <div className="flex gap-2">
-                <input
-                  type="text"
+              {/* Google-Style Pan-India Instant City Dropdown Autocomplete */}
+              <div className="relative">
+                <CityAutocompleteInput
                   value={customCitySearch}
-                  onChange={(e) => setCustomCitySearch(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && void handleSearchCustomCity()}
                   placeholder={ui.customSearchPlaceholder}
-                  className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                  onSelectCity={(city) => {
+                    setSelectedCityName(city.name);
+                    setLatitude(city.lat);
+                    setLongitude(city.lng);
+                    setCustomCitySearch(city.name);
+                  }}
+                  currentSelectedCity={selectedCityName}
+                  currentLat={latitude}
+                  currentLng={longitude}
                 />
-                <button
-                  type="button"
-                  onClick={() => void handleSearchCustomCity()}
-                  disabled={isSearchingCity}
-                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-semibold"
-                >
-                  {isSearchingCity ? ui.searchingButton : ui.searchButton}
-                </button>
               </div>
             </div>
           </div>
