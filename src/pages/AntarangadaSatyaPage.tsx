@@ -18,6 +18,7 @@ import {
   HOTEL_PREMIUM_REMEDY_PRICE_INR,
   type HotelPackageType,
   PRIEST_UPI_ID,
+  PRIEST_UPI_NAME,
   PRIEST_NAME,
   PRIEST_PHONE,
   DEFAULT_HOTEL_FULL_NAME,
@@ -3221,10 +3222,13 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                         Loading QR...
                       </div>
                     )}
-                    <div className="text-center mt-2 text-stone-900">
-                      <div className="text-xs font-bold font-serif">{PRIEST_NAME}</div>
+                    <div className="text-center mt-2 text-stone-900 space-y-0.5">
+                      <div className="text-xs font-bold font-serif text-amber-950">{PRIEST_NAME}</div>
+                      <div className="text-[10px] text-stone-500 font-medium">
+                        UPI Payee: <span className="font-semibold text-stone-700">{PRIEST_UPI_NAME}</span>
+                      </div>
                       <div className="text-[11px] text-stone-600 font-mono">
-                        Amount: <span className="text-emerald-700 font-bold text-sm">₹{packagePrice}</span>
+                        UPI ID: <span className="font-semibold text-stone-700">{PRIEST_UPI_ID}</span> · <span className="text-emerald-700 font-bold text-sm">₹{packagePrice}</span>
                         <span className="ml-1 text-[10px] text-stone-500">
                           ({selectedPackage === "remedy_450" ? "Destiny + Remedy" : "Standard"})
                         </span>

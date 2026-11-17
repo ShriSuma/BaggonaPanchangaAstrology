@@ -45,7 +45,8 @@ import {
   generateGPayUri,
   generatePaytmUri,
   DEFAULT_PRIEST_UPI_ID,
-  DEFAULT_PRIEST_UPI_NAME
+  DEFAULT_PRIEST_UPI_NAME,
+  DEFAULT_PRIEST_NAME
 } from "../wallet/walletTypes";
 import {
   saveHotelOrderInitiated,
@@ -164,7 +165,8 @@ export const HOTEL_PREMIUM_REMEDY_PRICE_INR = 450;
 export type HotelPackageType = "standard_350" | "remedy_450";
 
 export const PRIEST_UPI_ID = DEFAULT_PRIEST_UPI_ID; // "9108135387@ybl"
-export const PRIEST_NAME = DEFAULT_PRIEST_UPI_NAME; // "Shreeram Pandit"
+export const PRIEST_UPI_NAME = DEFAULT_PRIEST_UPI_NAME; // "Sumana Ranganath Maarigoli"
+export const PRIEST_NAME = DEFAULT_PRIEST_NAME; // "Shreeram Pandit"
 export const PRIEST_PHONE = "9108135387";
 
 export const DEFAULT_HOTEL_NAME = "Pandit Palette";

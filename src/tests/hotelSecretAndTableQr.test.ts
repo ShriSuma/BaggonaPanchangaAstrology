@@ -160,14 +160,16 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
       expect(HOTEL_PREMIUM_REMEDY_PRICE_INR).toBe(450);
     });
 
-    it("generates standard UPI pay URI strictly targeting 9108135387@ybl for ₹350 and ₹450", () => {
+    it("generates standard UPI pay URI strictly targeting 9108135387@ybl for ₹350 and ₹450 with registered payee Sumana Ranganath Maarigoli", () => {
       const uri350 = getHotelPaymentUpiUri(350, "PP_T1_ORDER1");
       expect(uri350).toContain("9108135387%40ybl");
+      expect(uri350).toContain("pn=Sumana%20Ranganath%20Maarigoli");
       expect(uri350).toContain("am=350");
       expect(uri350).toContain("Antaranga_PP_T1_ORDER1_350");
 
       const uri450 = getHotelPaymentUpiUri(450, "PP_T1_ORDER1");
       expect(uri450).toContain("9108135387%40ybl");
+      expect(uri450).toContain("pn=Sumana%20Ranganath%20Maarigoli");
       expect(uri450).toContain("am=450");
       expect(uri450).toContain("Antaranga_PP_T1_ORDER1_450");
     });

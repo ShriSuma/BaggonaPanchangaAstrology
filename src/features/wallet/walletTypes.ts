@@ -293,7 +293,7 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
 };
 
 export const DEFAULT_PRIEST_UPI_ID = "9108135387@ybl";
-export const DEFAULT_PRIEST_UPI_NAME = "Shreeram Pandit";
+export const DEFAULT_PRIEST_UPI_NAME = "Sumana Ranganath Maarigoli";
 export const DEFAULT_PRIEST_MOBILE_NUMBER = "9108135387";
 export const DEFAULT_PRIEST_NAME = "Shreeram Pandit";
 
