@@ -54,6 +54,10 @@ import {
   type KundliRemedyDiagnosis
 } from "../features/remedies/kundliRemedyEngine";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
+import {
+  AntarangaAstrologicalScreenLoader,
+  type AntarangaLoaderStage
+} from "../components/loaders/AntarangaAstrologicalScreenLoader";
 
 // 7-Language Popular Dining Cities
 const QUICK_CITIES_BY_LANG: Record<AntarangaLang, Array<{ name: string; lat: number; lng: number }>> = {
@@ -929,6 +933,34 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const kundliPdfRef = useRef<HTMLDivElement>(null);
   const remedyPdfRef = useRef<HTMLDivElement>(null);
 
+  // 9. Astrological Full-Screen Loader State for Mobile & Desktop
+  const [screenLoaderOpen, setScreenLoaderOpen] = useState(false);
+  const [screenLoaderStage, setScreenLoaderStage] = useState<AntarangaLoaderStage>("antaranga_calc");
+  const [screenLoaderTitle, setScreenLoaderTitle] = useState<string | undefined>(undefined);
+  const [screenLoaderMessage, setScreenLoaderMessage] = useState<string | undefined>(undefined);
+  const [screenLoaderProgress, setScreenLoaderProgress] = useState<number | undefined>(undefined);
+
+  const triggerScreenLoader = (
+    stage: AntarangaLoaderStage,
+    durationMs?: number,
+    options?: { title?: string; message?: string; progress?: number }
+  ) => {
+    setScreenLoaderStage(stage);
+    setScreenLoaderTitle(options?.title);
+    setScreenLoaderMessage(options?.message);
+    setScreenLoaderProgress(options?.progress);
+    setScreenLoaderOpen(true);
+    if (durationMs && durationMs > 0) {
+      setTimeout(() => {
+        setScreenLoaderOpen(false);
+      }, durationMs);
+    }
+  };
+
+  const closeScreenLoader = () => {
+    setScreenLoaderOpen(false);
+  };
+
   // Map 7-languages to Public Kundli 5-Language & Remedy locale
   const publicKundliLang: PublicKundliLang =
     (selectedLang === "mr" ? "hi" : selectedLang === "ml" ? "en" : selectedLang) as PublicKundliLang;
@@ -1044,15 +1076,21 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 1-Click Free "Get Antarangada Satya"
-  const handleGetDarkSecret = () => {
+  // 1-Click Free "Get Antarangada Satya" with Astrological Full-Screen Loader
+  const handleGetDarkSecret = async () => {
     if (!devoteeName.trim()) {
       alert(ui.nameRequiredError);
       return;
     }
 
     setIsCalculating(true);
+    triggerScreenLoader("antaranga_calc", undefined, { progress: 20 });
+
     try {
+      // Allow user to witness the authentic celestial chakra alignment
+      await new Promise((r) => setTimeout(r, 450));
+      setScreenLoaderProgress(55);
+
       const input: KundliInput = {
         name: devoteeName.trim(),
         birthDate,
@@ -1135,6 +1173,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       };
       void saveHotelOrderInitiated(initialOrder);
 
+      setScreenLoaderProgress(100);
+      await new Promise((r) => setTimeout(r, 350));
+
       // Smooth scroll to the result
       setTimeout(() => {
         const resultEl = document.getElementById("antaranga-result-card");
@@ -1147,6 +1188,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       alert(ui.calcError);
     } finally {
       setIsCalculating(false);
+      closeScreenLoader();
     }
   };
 
@@ -1195,8 +1237,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const handleInstant1TapVerification = async () => {
     setIsVerifyingPayment(true);
     setPaymentError(null);
+    triggerScreenLoader("payment_verify", undefined, { progress: 25 });
 
     try {
+      await new Promise((r) => setTimeout(r, 500));
+      setScreenLoaderProgress(55);
+
       const res = await verifyHotelPaymentInstant(
         activeOrderId,
         devoteeName || "Hotel Devotee",
@@ -1210,6 +1256,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         return;
       }
 
+      setScreenLoaderProgress(85);
       // Check Firestore to guarantee 100% human financial consistency
       const fsCheck = await verifyHotelOrderPayment(activeOrderId, packagePrice);
       if (!fsCheck.verified) {
@@ -1217,17 +1264,21 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         return;
       }
 
+      setScreenLoaderProgress(100);
+      await new Promise((r) => setTimeout(r, 350));
+
       setIsPaymentVerified(true);
       setVerifiedTxnId(res.transactionId || `TXN_${activeOrderId}`);
 
       // Auto-trigger full PDF generation immediately
       setTimeout(() => {
         void handleDownloadAllPdfs();
-      }, 300);
+      }, 350);
     } catch (err: any) {
       setPaymentError(err?.message || "Payment verification failed.");
     } finally {
       setIsVerifyingPayment(false);
+      closeScreenLoader();
     }
   };
 
@@ -1244,8 +1295,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
     setIsVerifyingPayment(true);
     setPaymentError(null);
+    triggerScreenLoader("payment_verify", undefined, { progress: 30 });
 
     try {
+      await new Promise((r) => setTimeout(r, 450));
+      setScreenLoaderProgress(60);
+
       const res = await verifyHotelPaymentUtr(
         enteredUtr.trim(),
         devoteeName || "Hotel Devotee",
@@ -1260,12 +1315,16 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         return;
       }
 
+      setScreenLoaderProgress(85);
       // Check Firestore to guarantee 100% human financial consistency
       const fsCheck = await verifyHotelOrderPayment(activeOrderId, packagePrice);
       if (!fsCheck.verified) {
         setPaymentError(fsCheck.reason || "Payment record verification pending in database.");
         return;
       }
+
+      setScreenLoaderProgress(100);
+      await new Promise((r) => setTimeout(r, 350));
 
       setIsPaymentVerified(true);
       setVerifiedTxnId(res.transactionId || `TXN_${enteredUtr.trim()}`);
@@ -1278,6 +1337,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       setPaymentError(err?.message || "Payment verification failed.");
     } finally {
       setIsVerifyingPayment(false);
+      closeScreenLoader();
     }
   };
 
@@ -1303,7 +1363,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   };
 
   // 1. Download 5-Year Master Destiny PDF
-  const handleDownload5YearPdf = async () => {
+  const handleDownload5YearPdf = async (isPartOfBatch = false) => {
     if (!(await ensurePaymentVerified())) return;
     if (!fiveYearPdfRef.current) {
       alert("PDF template loading. Please retry in 2 seconds.");
@@ -1314,6 +1374,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     setIsGeneratingPdf(true);
     setPdfProgress(15);
     setPdfStageText(stages.s1);
+    if (!isPartOfBatch) {
+      triggerScreenLoader("pdf_download_5year", undefined, { progress: 15 });
+    }
 
     try {
       const cleanName = (devoteeName || "Devotee").replace(/\s+/g, "_");
@@ -1325,6 +1388,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         true,
         (p) => {
           setPdfProgress(p);
+          if (!isPartOfBatch) setScreenLoaderProgress(p);
           if (p < 40) setPdfStageText(stages.s1);
           else if (p < 80) setPdfStageText(stages.s2);
           else setPdfStageText(stages.s3);
@@ -1342,27 +1406,35 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
       setPdfDownloadReady(true);
       setPdfProgress(100);
+      if (!isPartOfBatch) setScreenLoaderProgress(100);
       setPdfStageText(stages.done);
     } catch (pdfErr: any) {
       console.error("5-Year PDF Generation error:", pdfErr);
       alert(`PDF download error: ${pdfErr?.message || "Please try again."}`);
     } finally {
       setIsGeneratingPdf(false);
+      if (!isPartOfBatch) {
+        closeScreenLoader();
+      }
     }
   };
 
   // 2. Download Baggona Panchanga Janma Kundali Multi-Page PDF
-  const handleDownloadKundliPdf = async () => {
+  const handleDownloadKundliPdf = async (isPartOfBatch = false) => {
     if (!(await ensurePaymentVerified())) return;
 
     setIsGeneratingPdf(true);
     setPdfProgress(30);
     setPdfStageText(selectedLang === "kn" ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating Baggona Janma Kundali PDF...");
+    if (!isPartOfBatch) {
+      triggerScreenLoader("pdf_download_kundli", undefined, { progress: 30 });
+    }
 
     try {
       const cleanName = (devoteeName || "Devotee").replace(/\s+/g, "_");
       const fileName = `Baggona_Panchanga_Janma_Kundali_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
 
+      if (!isPartOfBatch) setScreenLoaderProgress(60);
       const pdf = await generatePDFFromElement("hotel-kundli-pdf-render", fileName, true);
 
       try {
@@ -1374,27 +1446,35 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
       setPdfDownloadReady(true);
       setPdfProgress(100);
+      if (!isPartOfBatch) setScreenLoaderProgress(100);
       setPdfStageText(PDF_STAGES[selectedLang]?.done || PDF_STAGES.en.done);
     } catch (pdfErr: any) {
       console.error("Kundli PDF Generation error:", pdfErr);
       alert(`Kundli PDF download error: ${pdfErr?.message || "Please try again."}`);
     } finally {
       setIsGeneratingPdf(false);
+      if (!isPartOfBatch) {
+        closeScreenLoader();
+      }
     }
   };
 
   // 3. Download Sacred Gokarna Remedy & Parihara PDF (Available in ₹450 Package)
-  const handleDownloadRemedyPdf = async () => {
+  const handleDownloadRemedyPdf = async (isPartOfBatch = false) => {
     if (!(await ensurePaymentVerified())) return;
 
     setIsGeneratingPdf(true);
     setPdfProgress(40);
     setPdfStageText(selectedLang === "kn" ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating Sacred Gokarna Remedy PDF...");
+    if (!isPartOfBatch) {
+      triggerScreenLoader("pdf_download_remedy", undefined, { progress: 40 });
+    }
 
     try {
       const cleanName = (devoteeName || "Devotee").replace(/\s+/g, "_");
       const fileName = `Baggona_Gokarna_Remedy_Dossier_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
 
+      if (!isPartOfBatch) setScreenLoaderProgress(70);
       const pdf = await generatePDFFromElement("hotel-remedy-pdf-render", fileName, true);
 
       try {
@@ -1406,12 +1486,16 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
       setPdfDownloadReady(true);
       setPdfProgress(100);
+      if (!isPartOfBatch) setScreenLoaderProgress(100);
       setPdfStageText(PDF_STAGES[selectedLang]?.done || PDF_STAGES.en.done);
     } catch (pdfErr: any) {
       console.error("Remedy PDF Generation error:", pdfErr);
       alert(`Remedy PDF download error: ${pdfErr?.message || "Please try again."}`);
     } finally {
       setIsGeneratingPdf(false);
+      if (!isPartOfBatch) {
+        closeScreenLoader();
+      }
     }
   };
 
@@ -1419,13 +1503,25 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const handleDownloadAllPdfs = async () => {
     if (!(await ensurePaymentVerified())) return;
 
-    await handleDownload5YearPdf();
-    await new Promise((r) => setTimeout(r, 700));
-    await handleDownloadKundliPdf();
+    triggerScreenLoader("pdf_download_all", undefined, { progress: 10 });
+    try {
+      await handleDownload5YearPdf(true);
+      setScreenLoaderProgress(45);
+      await new Promise((r) => setTimeout(r, 600));
 
-    if (selectedPackage === "remedy_450") {
-      await new Promise((r) => setTimeout(r, 700));
-      await handleDownloadRemedyPdf();
+      await handleDownloadKundliPdf(true);
+      setScreenLoaderProgress(75);
+
+      if (selectedPackage === "remedy_450") {
+        await new Promise((r) => setTimeout(r, 600));
+        await handleDownloadRemedyPdf(true);
+        setScreenLoaderProgress(95);
+      }
+
+      setScreenLoaderProgress(100);
+      await new Promise((r) => setTimeout(r, 400));
+    } finally {
+      closeScreenLoader();
     }
   };
 
@@ -1475,7 +1571,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 <button
                   key={l.code}
                   type="button"
-                  onClick={() => setSelectedLang(l.code)}
+                  onClick={() => {
+                    if (selectedLang !== l.code) {
+                      triggerScreenLoader("language_switch", 450);
+                      setSelectedLang(l.code);
+                    }
+                  }}
                   className={`p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between ${
                     isSelected
                       ? "bg-amber-500/20 border-amber-400 shadow-lg shadow-amber-500/20 scale-[1.02]"
@@ -1506,12 +1607,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             })}
           </div>
 
-          {/* Continue Action Button */}
+          {/* Continue Action Button with Astrological Screen Loader */}
           <div className="pt-4">
             <button
               type="button"
-              onClick={() => setIsLanguageConfirmed(true)}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-base tracking-wide shadow-xl shadow-amber-500/25 active:scale-[0.99] transition flex items-center justify-center gap-2"
+              onClick={() => {
+                triggerScreenLoader("language_init", 700);
+                setTimeout(() => {
+                  setIsLanguageConfirmed(true);
+                }, 700);
+              }}
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-base tracking-wide shadow-xl shadow-amber-500/25 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{ui.startReadingBtn}</span>
             </button>
@@ -1522,6 +1628,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         <footer className="py-4 text-center text-[11px] text-slate-500 border-t border-slate-900">
           {ui.footerSanctum}
         </footer>
+
+        {/* Full-Screen Astrological Screen Loader for Screen 1 */}
+        <AntarangaAstrologicalScreenLoader
+          isOpen={screenLoaderOpen}
+          stage={screenLoaderStage}
+          lang={selectedLang}
+          customTitle={screenLoaderTitle}
+          customMessage={screenLoaderMessage}
+          devoteeName={devoteeName}
+          progressPercent={screenLoaderProgress}
+        />
       </div>
     );
   }
@@ -1558,7 +1675,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => setIsLanguageConfirmed(false)}
+              onClick={() => {
+                triggerScreenLoader("language_switch", 600);
+                setTimeout(() => setIsLanguageConfirmed(false), 600);
+              }}
               className="text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-slate-900 px-2.5 py-1.5 rounded-xl border border-amber-500/30 hover:border-amber-400 transition"
             >
               {ui.changeLangBtn}
@@ -1568,7 +1688,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 <button
                   key={l.code}
                   type="button"
-                  onClick={() => setSelectedLang(l.code)}
+                  onClick={() => {
+                    if (selectedLang !== l.code) {
+                      triggerScreenLoader("language_switch", 550);
+                      setSelectedLang(l.code);
+                    }
+                  }}
                   className={`px-2 py-1 rounded-lg font-medium transition ${
                     selectedLang === l.code
                       ? "bg-amber-500 text-slate-950 font-bold shadow"
@@ -1835,7 +1960,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
                 {/* Package 1: Standard Vedic Destiny (₹350) */}
                 <div
-                  onClick={() => setSelectedPackage("standard_350")}
+                  onClick={() => {
+                    if (selectedPackage !== "standard_350") {
+                      triggerScreenLoader("package_switch", 450);
+                      setSelectedPackage("standard_350");
+                    }
+                  }}
                   className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                     selectedPackage === "standard_350"
                       ? "bg-slate-900 border-amber-400 shadow-xl shadow-amber-500/20 ring-1 ring-amber-400"
@@ -1873,7 +2003,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
                 {/* Package 2: Premium Destiny + Sacred Remedy (₹450) */}
                 <div
-                  onClick={() => setSelectedPackage("remedy_450")}
+                  onClick={() => {
+                    if (selectedPackage !== "remedy_450") {
+                      triggerScreenLoader("package_switch", 450);
+                      setSelectedPackage("remedy_450");
+                    }
+                  }}
                   className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative ${
                     selectedPackage === "remedy_450"
                       ? "bg-gradient-to-b from-amber-950/40 to-slate-900 border-yellow-400 shadow-xl shadow-yellow-500/20 ring-1 ring-yellow-400"
@@ -1997,24 +2132,54 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     <div className="space-y-2">
                       <a
                         href={getHotelPhonePeUri(packagePrice, activeOrderId)}
-                        onClick={() => setHasClickedPaymentApp(true)}
-                        className="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center justify-center gap-2 shadow"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setHasClickedPaymentApp(true);
+                          triggerScreenLoader("payment_init", 1200, {
+                            title: selectedLang === "kn" ? "📲 PhonePe ತೆರೆಯಲಾಗುತ್ತಿದೆ..." : "📲 Launching PhonePe...",
+                            message: selectedLang === "kn" ? `PhonePe ನಲ್ಲಿ ₹${packagePrice} ಪಾವತಿ ಪೂರ್ಣಗೊಳಿಸಿ...` : `Please complete payment of ₹${packagePrice} in PhonePe...`
+                          });
+                          setTimeout(() => {
+                            window.location.href = getHotelPhonePeUri(packagePrice, activeOrderId);
+                          }, 350);
+                        }}
+                        className="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center justify-center gap-2 shadow cursor-pointer active:scale-[0.99] transition"
                       >
                         <span>🟣</span>
                         <span>{ui.phonePeBtn} (₹{packagePrice})</span>
                       </a>
                       <a
                         href={getHotelGPayUri(packagePrice, activeOrderId)}
-                        onClick={() => setHasClickedPaymentApp(true)}
-                        className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center justify-center gap-2 shadow"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setHasClickedPaymentApp(true);
+                          triggerScreenLoader("payment_init", 1200, {
+                            title: selectedLang === "kn" ? "📲 Google Pay ತೆರೆಯಲಾಗುತ್ತಿದೆ..." : "📲 Launching Google Pay...",
+                            message: selectedLang === "kn" ? `Google Pay ನಲ್ಲಿ ₹${packagePrice} ಪಾವತಿ ಪೂರ್ಣಗೊಳಿಸಿ...` : `Please complete payment of ₹${packagePrice} in Google Pay...`
+                          });
+                          setTimeout(() => {
+                            window.location.href = getHotelGPayUri(packagePrice, activeOrderId);
+                          }, 350);
+                        }}
+                        className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center justify-center gap-2 shadow cursor-pointer active:scale-[0.99] transition"
                       >
                         <span>🔵</span>
                         <span>{ui.gpayBtn} (₹{packagePrice})</span>
                       </a>
                       <a
                         href={getHotelPaytmUri(packagePrice, activeOrderId)}
-                        onClick={() => setHasClickedPaymentApp(true)}
-                        className="w-full py-2.5 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold flex items-center justify-center gap-2 shadow"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setHasClickedPaymentApp(true);
+                          triggerScreenLoader("payment_init", 1200, {
+                            title: selectedLang === "kn" ? "📲 Paytm ತೆರೆಯಲಾಗುತ್ತಿದೆ..." : "📲 Launching Paytm...",
+                            message: selectedLang === "kn" ? `Paytm ನಲ್ಲಿ ₹${packagePrice} ಪಾವತಿ ಪೂರ್ಣಗೊಳಿಸಿ...` : `Please complete payment of ₹${packagePrice} in Paytm...`
+                          });
+                          setTimeout(() => {
+                            window.location.href = getHotelPaytmUri(packagePrice, activeOrderId);
+                          }, 350);
+                        }}
+                        className="w-full py-2.5 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold flex items-center justify-center gap-2 shadow cursor-pointer active:scale-[0.99] transition"
                       >
                         <span>💠</span>
                         <span>{ui.paytmBtn} (₹{packagePrice})</span>
@@ -2278,6 +2443,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           {ui.footerContact}
         </p>
       </footer>
+
+      {/* Full-Screen Astrological Screen Loader for Screen 2 */}
+      <AntarangaAstrologicalScreenLoader
+        isOpen={screenLoaderOpen}
+        stage={screenLoaderStage}
+        lang={selectedLang}
+        customTitle={screenLoaderTitle}
+        customMessage={screenLoaderMessage}
+        devoteeName={devoteeName}
+        progressPercent={screenLoaderProgress}
+      />
     </div>
   );
 }

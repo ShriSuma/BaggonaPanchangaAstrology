@@ -3,6 +3,10 @@ import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useAppStore } from "../stores/appStore";
+import {
+  AntarangaAstrologicalScreenLoader,
+  type AntarangaLoaderStage
+} from "../components/loaders/AntarangaAstrologicalScreenLoader";
 
 type CardFormat = "table_tent" | "acrylic_insert" | "compact_sticker";
 
@@ -32,6 +36,11 @@ export default function HotelTableQrPage(): JSX.Element {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [customBaseHost, setCustomBaseHost] = useState<string>("");
 
+  // Full-Screen Astrological Screen Loader
+  const [screenLoaderOpen, setScreenLoaderOpen] = useState(false);
+  const [screenLoaderStage, setScreenLoaderStage] = useState<AntarangaLoaderStage>("table_qr_generate");
+  const [screenLoaderProgress, setScreenLoaderProgress] = useState<number | undefined>(undefined);
+
   const printContainerRef = useRef<HTMLDivElement>(null);
 
   // Base Customer URL
@@ -46,9 +55,15 @@ export default function HotelTableQrPage(): JSX.Element {
     return "https://baggona.com/antaranga";
   };
 
-  // Generate QR Codes
-  const generateAllCards = async () => {
+  // Generate QR Codes with Astrological Screen Loader
+  const generateAllCards = async (showLoader = false) => {
     setIsGenerating(true);
+    if (showLoader) {
+      setScreenLoaderStage("table_qr_generate");
+      setScreenLoaderProgress(20);
+      setScreenLoaderOpen(true);
+    }
+
     const baseUrl = getCustomerBaseUrl();
     const tables: (string | number)[] = [];
 
@@ -63,6 +78,10 @@ export default function HotelTableQrPage(): JSX.Element {
     }
 
     try {
+      if (showLoader) {
+        await new Promise((r) => setTimeout(r, 300));
+        setScreenLoaderProgress(50);
+      }
       const cards: TableCardData[] = [];
       for (const tableNum of tables) {
         const targetUrl = `${baseUrl}?table=${encodeURIComponent(String(tableNum))}&hotel=${encodeURIComponent(hotelName.trim())}`;
@@ -81,17 +100,21 @@ export default function HotelTableQrPage(): JSX.Element {
         });
       }
       setGeneratedCards(cards);
+      if (showLoader) setScreenLoaderProgress(100);
     } catch (err) {
       console.error("QR Generation error:", err);
       alert("QR ಕೋಡ್ ರಚನೆಯಲ್ಲಿ ದೋಷವಾಗಿದೆ. ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ.");
     } finally {
       setIsGenerating(false);
+      if (showLoader) {
+        setTimeout(() => setScreenLoaderOpen(false), 350);
+      }
     }
   };
 
   // Auto-generate on initial load or parameter change
   useEffect(() => {
-    void generateAllCards();
+    void generateAllCards(false);
   }, [hotelName, generationMode, singleTableNumber, batchStart, batchEnd, customBaseHost]);
 
   // Direct Print action
@@ -99,10 +122,14 @@ export default function HotelTableQrPage(): JSX.Element {
     window.print();
   };
 
-  // Export to PDF
+  // Export to PDF with Astrological Screen Loader & Progress Tracking
   const handleExportPdf = async () => {
     if (!printContainerRef.current) return;
     setIsExportingPdf(true);
+    setScreenLoaderStage("table_qr_pdf");
+    setScreenLoaderProgress(10);
+    setScreenLoaderOpen(true);
+
     try {
       const cards = printContainerRef.current.querySelectorAll(".hotel-table-card") as NodeListOf<HTMLElement>;
       if (!cards || cards.length === 0) {
@@ -118,6 +145,7 @@ export default function HotelTableQrPage(): JSX.Element {
 
       for (let i = 0; i < cards.length; i++) {
         const cardEl = cards[i];
+        setScreenLoaderProgress(Math.round(15 + (i / cards.length) * 75));
         const canvas = await html2canvas(cardEl, {
           scale: 2,
           useCORS: true,
@@ -129,12 +157,16 @@ export default function HotelTableQrPage(): JSX.Element {
         pdf.addImage(imgData, "JPEG", 10, 10, 190, 277);
       }
 
+      setScreenLoaderProgress(95);
       pdf.save(`Hotel_${hotelName.replace(/\s+/g, "_")}_Table_Tents.pdf`);
+      setScreenLoaderProgress(100);
+      await new Promise((r) => setTimeout(r, 300));
     } catch (err) {
       console.error("Export PDF error:", err);
       alert("PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷವಾಗಿದೆ.");
     } finally {
       setIsExportingPdf(false);
+      setTimeout(() => setScreenLoaderOpen(false), 300);
     }
   };
 
@@ -463,12 +495,12 @@ export default function HotelTableQrPage(): JSX.Element {
               </div>
             </div>
 
-            {/* Re-generate button */}
+            {/* Re-generate button with Astrological Screen Loader */}
             <button
               type="button"
-              onClick={() => void generateAllCards()}
+              onClick={() => void generateAllCards(true)}
               disabled={isGenerating}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow hover:brightness-110 active:scale-[0.99] transition"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow hover:brightness-110 active:scale-[0.99] transition cursor-pointer"
             >
               {isGenerating ? "QR ಕೋಡ್ ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "🔄 QR ಕೋಡ್ ಅಪ್ಡೇಟ್ ಮಾಡಿ"}
             </button>
@@ -614,6 +646,14 @@ export default function HotelTableQrPage(): JSX.Element {
           </div>
         </div>
       </div>
+
+      {/* Full-Screen Astrological Screen Loader for Hotel Table QR Operations */}
+      <AntarangaAstrologicalScreenLoader
+        isOpen={screenLoaderOpen}
+        stage={screenLoaderStage}
+        lang={cardLang === "en" ? "en" : "kn"}
+        progressPercent={screenLoaderProgress}
+      />
     </div>
   );
 }

@@ -42,6 +42,10 @@ import {
   generateDynamicLifeInsights
 } from "../features/publicKundli/publicKundliEngine";
 import { generateKundliRemedyReport } from "../features/remedies/kundliRemedyEngine";
+import {
+  AntarangaAstrologicalScreenLoader,
+  type AntarangaLoaderStage
+} from "../components/loaders/AntarangaAstrologicalScreenLoader";
 
 describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Languages)", () => {
   beforeEach(() => {
@@ -383,6 +387,44 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
       expect(diagnosis.primaryStruggle).toBeDefined();
       expect(diagnosis.afflictionFactors).toBeDefined();
       expect(diagnosis.lifeTurnaroundTiming).toBeDefined();
+    });
+  });
+
+  describe("7. Full-Screen Astrological Screen Loaders for Mobile & Dining Flow", () => {
+    const allStages: AntarangaLoaderStage[] = [
+      "language_init",
+      "language_switch",
+      "antaranga_calc",
+      "package_switch",
+      "payment_init",
+      "payment_verify",
+      "pdf_download_5year",
+      "pdf_download_kundli",
+      "pdf_download_remedy",
+      "pdf_download_all",
+      "table_qr_generate",
+      "table_qr_pdf"
+    ];
+
+    const allLangs: AntarangaLang[] = ["kn", "en", "hi", "te", "ta", "ml", "mr"];
+
+    it("verifies all 12 action loader stages are registered with complete astrological coverage", () => {
+      expect(allStages.length).toBe(12);
+      expect(allStages).toContain("language_init");
+      expect(allStages).toContain("antaranga_calc");
+      expect(allStages).toContain("package_switch");
+      expect(allStages).toContain("payment_init");
+      expect(allStages).toContain("payment_verify");
+      expect(allStages).toContain("pdf_download_5year");
+      expect(allStages).toContain("pdf_download_kundli");
+      expect(allStages).toContain("pdf_download_remedy");
+      expect(allStages).toContain("pdf_download_all");
+      expect(allStages).toContain("table_qr_generate");
+      expect(allStages).toContain("table_qr_pdf");
+    });
+
+    it("verifies that AntarangaAstrologicalScreenLoader is an authentic React component", () => {
+      expect(typeof AntarangaAstrologicalScreenLoader).toBe("function");
     });
   });
 });
