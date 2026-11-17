@@ -49,6 +49,10 @@ import {
 } from "../features/publicKundli/publicKundliEngine";
 import { generateKundliRemedyReport } from "../features/remedies/kundliRemedyEngine";
 import {
+  LAGNA_HARMONIZED_PRIMARY_GEM_MAP,
+  generateAstrologicalPrescriptions
+} from "../core/PanchangaAngaSynthesisEngine";
+import {
   AntarangaAstrologicalScreenLoader,
   type AntarangaLoaderStage
 } from "../components/loaders/AntarangaAstrologicalScreenLoader";
@@ -877,6 +881,176 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
         expect(dict.defaultSanctuaryTitle).not.toContain("Krishna");
         expect(dict.defaultSanctuaryTitle).not.toContain("Bhavan");
       }
+    });
+  });
+
+  describe("11. Cross-Report Astrological Consistency (Web Preview vs 5-Year PDF vs Remedy PDF vs Public Kundli)", () => {
+    it("11.1 Gemstone & Metal Harmony across all 12 Lagnas: matches between Free Web Preview and Primary Gem Map", () => {
+      for (let lagnaIdx = 0; lagnaIdx < 12; lagnaIdx++) {
+        const freeLucky = calculateFreeLuckyElements(lagnaIdx, lagnaIdx, "1990-01-01", "kn");
+        const harmonized = LAGNA_HARMONIZED_PRIMARY_GEM_MAP[lagnaIdx];
+
+        expect(harmonized).toBeDefined();
+        expect(freeLucky.gemstone).toBeTruthy();
+
+        // Parashari Yogakaraka & Bhagya lord gemstone verification
+        if (lagnaIdx === 0 || lagnaIdx === 7) {
+          // Aries (0) & Scorpio (7) - Mars: Red Coral
+          expect(harmonized.kn).toContain("ಹವಳ");
+          expect(freeLucky.gemstone).toContain("ಹವಳ");
+        } else if (lagnaIdx === 3) {
+          // Cancer (3) - Mars is supreme Yogakaraka: Red Coral
+          expect(harmonized.kn).toContain("ಹವಳ");
+          expect(freeLucky.gemstone).toContain("ಹವಳ");
+        } else if (lagnaIdx === 4) {
+          // Leo (4) - Mars is supreme Bhagya Lord: Red Coral
+          expect(harmonized.kn).toContain("ಹವಳ");
+          expect(freeLucky.gemstone).toContain("ಹವಳ");
+        } else if (lagnaIdx === 1 || lagnaIdx === 6) {
+          // Taurus (1) & Libra (6) - Venus: Diamond / White Zircon
+          expect(harmonized.kn).toContain("ವಜ್ರ");
+          expect(freeLucky.gemstone).toContain("ವಜ್ರ");
+        } else if (lagnaIdx === 9 || lagnaIdx === 10) {
+          // Capricorn (9) & Aquarius (10) - Venus Yogakaraka/Bhagya: Diamond / White Zircon
+          expect(harmonized.kn).toContain("ವಜ್ರ");
+          expect(freeLucky.gemstone).toContain("ವಜ್ರ");
+        } else if (lagnaIdx === 2 || lagnaIdx === 5) {
+          // Gemini (2) & Virgo (5) - Mercury: Emerald
+          expect(harmonized.kn).toContain("ಪಚ್ಚೆ");
+          expect(freeLucky.gemstone).toContain("ಪಚ್ಚೆ");
+        } else if (lagnaIdx === 8 || lagnaIdx === 11) {
+          // Sagittarius (8) & Pisces (11) - Jupiter: Yellow Sapphire
+          expect(harmonized.kn).toContain("ಪುಷ್ಯರಾಗ");
+          expect(freeLucky.gemstone).toContain("ಪುಷ್ಯರಾಗ");
+        }
+      }
+    });
+
+    it("11.2 Prescribed Protective Stotra is 100% synchronized between 5-Year Master Destiny PDF and Sacred Remedy PDF", () => {
+      const fiveYearPayload: FiveYearPredictionPayload = compute5YearMasterPrediction(
+        mockKundli,
+        mockDevoteeInput.birthDate,
+        mockDevoteeInput.birthTime,
+        "kn",
+        mockDevoteeInput.name,
+        2026,
+        {
+          gender: mockDevoteeInput.gender,
+          latitude: mockDevoteeInput.latitude,
+          longitude: mockDevoteeInput.longitude
+        }
+      );
+      const remedyDiagnosis = generateKundliRemedyReport(mockKundli, mockDevoteeInput);
+
+      // Verify Stotra ID matching
+      expect(fiveYearPayload.prescribedStotra).toBeDefined();
+      expect(remedyDiagnosis.personalizedStotras.length).toBeGreaterThan(0);
+      expect(remedyDiagnosis.personalizedStotras[0].id).toBe(fiveYearPayload.prescribedStotra.id);
+
+      // Verify Stotra title matching
+      expect(remedyDiagnosis.personalizedStotras[0].title.kn).toBe(fiveYearPayload.prescribedStotra.stotraName);
+
+      // Verify Stotra verse snippet presence
+      expect(remedyDiagnosis.personalizedStotras[0].shlokaSanskrit).toBeTruthy();
+      expect(fiveYearPayload.prescribedStotra.primaryBenefit).toBeTruthy();
+    });
+
+    it("11.3 Gemstone Recommendation is 100% harmonized between 5-Year Master Destiny PDF and Sacred Remedy PDF", () => {
+      const fiveYearPayload: FiveYearPredictionPayload = compute5YearMasterPrediction(
+        mockKundli,
+        mockDevoteeInput.birthDate,
+        mockDevoteeInput.birthTime,
+        "kn",
+        mockDevoteeInput.name,
+        2026,
+        {
+          gender: mockDevoteeInput.gender,
+          latitude: mockDevoteeInput.latitude,
+          longitude: mockDevoteeInput.longitude
+        }
+      );
+      const remedyDiagnosis = generateKundliRemedyReport(mockKundli, mockDevoteeInput);
+
+      // Verify exact matching of primary gemstone recommendation (remedy report includes recommended carat weight)
+      expect(remedyDiagnosis.gokarnaTempleRemedies.gemstoneRecommendation.stone.kn).toContain(
+        fiveYearPayload.remedies.gemstoneRecommendation
+      );
+
+      // Verify metal and finger recommendations are populated
+      expect(remedyDiagnosis.gokarnaTempleRemedies.gemstoneRecommendation.metal.kn).toBeTruthy();
+      expect(remedyDiagnosis.gokarnaTempleRemedies.gemstoneRecommendation.finger.kn).toBeTruthy();
+    });
+
+    it("11.4 Parashari Vajra (Diamond) vs Havala (Red Coral) Contraindication Safeguard: Karka and Simha Lagnas", () => {
+      // Cancer (Karka, 3): Mars is supreme Yogakaraka (rules 5th & 10th). Red Coral is recommended. Diamond is strictly forbidden.
+      const karkaHarmonized = LAGNA_HARMONIZED_PRIMARY_GEM_MAP[3];
+      expect(karkaHarmonized.kn).toContain("ಹವಳ");
+      expect(karkaHarmonized.kn).not.toContain("ವಜ್ರ");
+      expect(karkaHarmonized.caveatKn).toContain("ವಜ್ರ");
+      expect(karkaHarmonized.caveatKn).toMatch(/ಧರಿಸಬಾರದು|ಸೂಕ್ತವಲ್ಲ|ನಿಷೇಧಿಸಲಾಗಿದೆ/);
+      expect(karkaHarmonized.secondaryLagnaGemKn).toContain("ಮುತ್ತು");
+
+      // Leo (Simha, 4): Mars is supreme Bhagyeshadhipati (rules 9th & 4th). Red Coral is recommended. Diamond is strictly forbidden.
+      const simhaHarmonized = LAGNA_HARMONIZED_PRIMARY_GEM_MAP[4];
+      expect(simhaHarmonized.kn).toContain("ಹವಳ");
+      expect(simhaHarmonized.kn).not.toContain("ವಜ್ರ");
+      expect(simhaHarmonized.caveatKn).toContain("ವಜ್ರ");
+      expect(simhaHarmonized.caveatKn).toMatch(/ಧರಿಸಬಾರದು|ಸೂಕ್ತವಲ್ಲ|ನಿಷೇಧಿಸಲಾಗಿದೆ/);
+      expect(simhaHarmonized.secondaryLagnaGemKn).toContain("ಮಾಣಿಕ್ಯ");
+    });
+
+    it("11.5 Parashari Vajra (Diamond) vs Havala (Red Coral) Contraindication Safeguard: Vrishabha, Tula, Makara, Kumbha Lagnas", () => {
+      // Taurus (Vrishabha, 1): Venus is Lagnesha. Diamond is recommended. Red Coral is strictly forbidden.
+      const vrishabhaHarmonized = LAGNA_HARMONIZED_PRIMARY_GEM_MAP[1];
+      expect(vrishabhaHarmonized.kn).toContain("ವಜ್ರ");
+      expect(vrishabhaHarmonized.kn).not.toContain("ಹವಳ");
+      expect(vrishabhaHarmonized.caveatKn).toContain("ಹವಳ");
+      expect(vrishabhaHarmonized.caveatKn).toMatch(/ಧರಿಸಬಾರದು|ಸೂಕ್ತವಲ್ಲ|ನಿಷೇಧಿಸಲಾಗಿದೆ|ಬದಲು/);
+
+      // Libra (Tula, 6): Venus is Lagnesha. Diamond is recommended. Red Coral is strictly forbidden.
+      const tulaHarmonized = LAGNA_HARMONIZED_PRIMARY_GEM_MAP[6];
+      expect(tulaHarmonized.kn).toContain("ವಜ್ರ");
+      expect(tulaHarmonized.kn).not.toContain("ಹವಳ");
+      expect(tulaHarmonized.caveatKn).toContain("ಹವಳ");
+      expect(tulaHarmonized.caveatKn).toMatch(/ಧರಿಸಬಾರದು|ಸೂಕ್ತವಲ್ಲ|ನಿಷೇಧಿಸಲಾಗಿದೆ|ಬದಲು/);
+
+      // Capricorn (Makara, 9): Venus is supreme Yogakaraka (rules 5th & 10th). Diamond is recommended. Red Coral is strictly forbidden.
+      const makaraHarmonized = LAGNA_HARMONIZED_PRIMARY_GEM_MAP[9];
+      expect(makaraHarmonized.kn).toContain("ವಜ್ರ");
+      expect(makaraHarmonized.kn).not.toContain("ಹವಳ");
+      expect(makaraHarmonized.caveatKn).toContain("ಹವಳ");
+      expect(makaraHarmonized.caveatKn).toMatch(/ಧರಿಸಬಾರದು|ಸೂಕ್ತವಲ್ಲ|ನಿಷೇಧಿಸಲಾಗಿದೆ|ಬದಲು/);
+      expect(makaraHarmonized.secondaryLagnaGemKn).toContain("ನೀಲಂ");
+
+      // Aquarius (Kumbha, 10): Venus is supreme Bhagya Lord (rules 9th & 4th). Diamond is recommended. Red Coral is strictly forbidden.
+      const kumbhaHarmonized = LAGNA_HARMONIZED_PRIMARY_GEM_MAP[10];
+      expect(kumbhaHarmonized.kn).toContain("ವಜ್ರ");
+      expect(kumbhaHarmonized.kn).not.toContain("ಹವಳ");
+      expect(kumbhaHarmonized.caveatKn).toContain("ಹವಳ");
+      expect(kumbhaHarmonized.caveatKn).toMatch(/ಧರಿಸಬಾರದು|ಸೂಕ್ತವಲ್ಲ|ನಿಷೇಧಿಸಲಾಗಿದೆ|ಬದಲು/);
+      expect(kumbhaHarmonized.secondaryLagnaGemKn).toContain("ನೀಲಂ");
+    });
+
+    it("11.6 Devotee Temple Seva & Sacred Gokarna Sanctuary harmony across 5-Year and Remedy reports", () => {
+      const fiveYearPayload = compute5YearMasterPrediction(
+        mockKundli,
+        mockDevoteeInput.birthDate,
+        mockDevoteeInput.birthTime,
+        "kn",
+        mockDevoteeInput.name,
+        2026,
+        {
+          gender: mockDevoteeInput.gender,
+          latitude: mockDevoteeInput.latitude,
+          longitude: mockDevoteeInput.longitude
+        }
+      );
+      const remedyDiagnosis = generateKundliRemedyReport(mockKundli, mockDevoteeInput);
+
+      expect(fiveYearPayload.remedies.gokarnaParihara).toBeTruthy();
+      expect(remedyDiagnosis.gokarnaTempleRemedies.prescribedSeva.name.kn).toBeTruthy();
+      expect(remedyDiagnosis.gokarnaTempleRemedies.prescribedSeva.temple.kn).toContain("ಗೋಕರ್ಣ");
+      expect(remedyDiagnosis.chiefPriestBlessing.sanskritAshirvada).toBeTruthy();
     });
   });
 });

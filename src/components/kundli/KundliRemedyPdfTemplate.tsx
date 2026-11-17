@@ -2035,10 +2035,23 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 </div>
                 <div style={{ marginTop: "3px" }}>
                   <span style={{ fontWeight: 800, color: "#92400E" }}>💎 {cleanLabel(i18n.gemstone)} </span>
-                  <span style={{ color: "#451A03" }}>
+                  <span style={{ color: "#451A03", fontWeight: 700 }}>
                     {gokarnaTempleRemedies.gemstoneRecommendation.stone[code] || gokarnaTempleRemedies.gemstoneRecommendation.stone.kn} ({gokarnaTempleRemedies.gemstoneRecommendation.metal[code] || gokarnaTempleRemedies.gemstoneRecommendation.metal.kn})
                   </span>
                 </div>
+                {gokarnaTempleRemedies.gemstoneRecommendation.secondaryStone && (
+                  <div style={{ marginTop: "2px", fontSize: "11px", color: "#78350F" }}>
+                    <span style={{ fontWeight: 700 }}>
+                      {code === "kn" ? "• ಪೂರಕ ಲಗ್ನಾಧಿಪತಿ ರತ್ನ: " : code === "hi" ? "• पूरक लग्नेश रत्न: " : code === "te" ? "• పూరక లగ్నాధిపతి రత్నం: " : code === "ta" ? "• துணை லக்னாதிபதி ரத்தினம்: " : "• Auxiliary Lagna Lord Gem: "}
+                    </span>
+                    <span>{gokarnaTempleRemedies.gemstoneRecommendation.secondaryStone[code] || gokarnaTempleRemedies.gemstoneRecommendation.secondaryStone.kn}</span>
+                  </div>
+                )}
+                {gokarnaTempleRemedies.gemstoneRecommendation.caveat && (
+                  <div style={{ marginTop: "2px", fontSize: "10.5px", color: "#991B1B", fontWeight: 700 }}>
+                    ⚠️ {gokarnaTempleRemedies.gemstoneRecommendation.caveat[code] || gokarnaTempleRemedies.gemstoneRecommendation.caveat.kn}
+                  </div>
+                )}
                 {gokarnaTempleRemedies.neckWearRecommendation && (
                   <div style={{ marginTop: "3px" }}>
                     <span style={{ fontWeight: 800, color: "#92400E" }}>📿 {code === "kn" ? "ಕಂಠಹಾರ / ಸಾರ:" : code === "hi" ? "कंठहार / माला:" : code === "te" ? "కంఠహారం / సారా:" : code === "ta" ? "கழுத்து மாலை / சாரா:" : "Neck Wear / Sara:"} </span>

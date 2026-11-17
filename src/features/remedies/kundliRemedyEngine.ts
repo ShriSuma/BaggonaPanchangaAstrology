@@ -11,6 +11,7 @@ import {
 } from "../../core/PanchangaAngaSynthesisEngine";
 import { YOGA_NAMES_L5 } from "../premiumPdf/panchangaLifeEngine";
 import { transliterateName } from "../../utils/transliterator";
+import { getTransitsForDate } from "../../core/BaggonaPredictionEngine";
 
 export type SupportedLanguage = "kn" | "en" | "hi" | "te" | "ta";
 
@@ -390,6 +391,8 @@ export interface KundliRemedyDiagnosis {
       metal: Record<string, string>;
       finger: Record<string, string>;
       dayToWear: Record<string, string>;
+      secondaryStone?: Record<string, string>;
+      caveat?: Record<string, string>;
     };
     donationDaana: {
       item: Record<string, string>;
@@ -1736,6 +1739,154 @@ export const VARA_REMEDY_DATA: Record<number, {
 
 /** 8+ Classical Multilingual Stotras Repository */
 export const CLASSICAL_STOTRAS_CATALOG = [
+  {
+    id: "shani_dasharatha",
+    forAffliction: ["shani_affliction", "sade_sati", "ashtama_shani", "kantaka_shani"],
+    title: {
+      kn: "ಶ್ರೀ ದಶರಥ ಕೃತ ಶನಿ ಸ್ತೋತ್ರ ಹಾಗೂ ಹನುಮಾನ್ ಚಾಲೀಸಾ",
+      en: "Sri Dasharatha Kritha Shani Stotram & Hanuman Chalisa",
+      hi: "श्री दशरथ कृत शनि स्तोत्र एवं श्री हनुमान चालीसा",
+      te: "శ్రీ దశరథ కృత శని స్తోత్రం మరియు హనుమాన్ చాలీసా",
+      ta: "ஸ்ரீ தசரத கிருத சனி ஸ்தோத்திரம் & அனுமான் சாலிசா"
+    },
+    dedicatedTo: {
+      kn: "ಶ್ರೀ ಶನೈಶ್ಚರ ಸ್ವಾಮಿ & ಶ್ರೀ ಆಂಜನೇಯ",
+      en: "Lord Shanaishchara & Lord Hanuman",
+      hi: "श्री शनैश्चर देव एवं श्री हनुमान जी",
+      te: "శ్రీ శనైశ్చర స్వామి & శ్రీ హనుమంతుడు",
+      ta: "ஸ்ரீ சனைச்சர சுவாமி & ஸ்ரீ அனுமான்"
+    },
+    shlokaSanskrit: `नमः कृष्णाय नीलाय शितिकण्ठनिभाय च ।
+नमः कालाग्निरूपाय कृतान्ताय च वै नमः ॥
+नमो निर्मांसदेहाय दीर्घश्मश्रुजटाय च ।
+नमो विशालनेत्राय शुष्कोदर भयाकृते ॥`,
+    shlokaKannada: `ನಮಃ ಕೃಷ್ಣಾಯ ನೀಲಾಯ ಶಿತಿಕಂಠನಿಭಾಯ ಚ ।
+ನಮಃ ಕಾಲಾಗ್ನಿರೂಪಾಯ ಕೃತಾಂತಾಯ ಚ ವೈ ನಮಃ ॥
+ನಮೋ ನಿರ್ಮಾಂಸದೇಹಾಯ ದೀರ್ಘಶ್ಮಶ್ರುಜಟಾಯ ಚ ।
+ನಮೋ ವಿಶಾಲನೇತ್ರಾಯ ಶುಷ್ಕೋದರ ಭಯಾಕೃತೇ ॥`,
+    shlokaTelugu: `నమః కృష్ణాయ నీలాయ శితికంఠనిభాయ చ ।
+నమః కాలಾಗ್నిరూపాయ కృతాంతాయ చ వై నమః ॥
+నమో నిర్మాంసదేహాయ దీర్ఘశ్మశ్రుజటాయ చ ।
+నమో విశాలనేత్రాయ శుష్కోదర భయాకృతే ॥`,
+    shlokaTamil: `நமஹ் கிருஷ்ணாய நீலாய சிதிகண்டநிபாய ச ।
+நமஹ் காலாக்னிரூபாய கிருதாந்தாய ச வை நமஹ் ॥
+நமோ நிர்மாம்ஸதேஹாய தீர்க்கச்மச்ருஜடாய ச ।
+நமோ விஸாலநேத்ராய சுஷ்கோதர பயாக்ருதே ॥`,
+    shlokaHindi: `नमः कृष्णाय नीलाय शितिकण्ठनिभाय च ।
+नमः कालाग्निरूपाय कृतान्ताय च वै नमः ॥
+नमो निर्मांसदेहाय दीर्घश्मश्रुजटाय च ।
+नमो विशालनेत्राय शुष्कोदर भयाकृते ॥`,
+    transliteration: "Namah Krishnaya Nilaya Shitikanthanibhaya Cha | Namah Kalagnirupaya Kritantaya Cha Vai Namah ||",
+    meaning: {
+      kn: "ಕೃಷ್ಣವರ್ಣದವನೂ, ನೀಲಕಾಂತಿಯುಕ್ತನೂ, ಕಾಲಾಗ್ನಿಯಂತೆ ಶಕ್ತಿಶಾಲಿಯೂ ಆದ ಶನೈಶ್ಚರ ದೇವರಿಗೆ ಸಾಷ್ಟಾಂಗ ನಮಸ್ಕಾರಗಳು. ನಮ್ಮ ಸರ್ವ ಕರ್ಮ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಿ ಕೃಪೆ ತೋರು ಶನೀಶ್ವರನೇ.",
+      en: "Salutations to Lord Shani of dark azure radiance and divine cosmic justice. May divine grace dissolve all karmic delays and bless life with peace.",
+      hi: "नीलवर्ण, कालाग्निसदृश शक्तिशाली एवं न्यायप्रिय शनिदेव को कोटि-कोटि प्रणाम। हे शनिदेव, हमारे सर्व कर्म दोषों को क्षमा कर जीवन में शांति और स्थिरता प्रदान करें।",
+      te: "నీలవర్ణ, శక్తిశాలి అయిన శనైశ్చరునికి నమస్కారములు. మా కర్మదోషములను నివారించి కాపాడుము.",
+      ta: "நீலவண்ண, சக்திவாய்ந்த சனீஸ்வர பகவானுக்கு நமஸ்காரங்கள். எங்கள் கர்ம தோஷங்களை போக்கி காத்தருள்வீராக."
+    },
+    spiritualBenefits: {
+      kn: "ಶನಿ ಸಾಡೇಸಾತಿ, ಅಷ್ಟಮ ಶನಿ ದೋಷ ನಿವಾರಣೆ, ಮಾನಸಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ಸಕಲ ಕಾರ್ಯ ವಿಘ್ನ ಪರಿಹಾರ.",
+      en: "Mitigates Sade Sati / Ashtama Shani, removes delays, and grants unwavering mental peace.",
+      hi: "शनि साढ़ेसाती, अष्टम शनि दोष निवारण, मानसिक शांति एवं समस्त कार्य बाधा मुक्ति।",
+      te: "శని సాడేసాతి, అష్టమ శని దోష నివారణ, మానసిక ప్రశాంతత.",
+      ta: "சனி ஏழரை, அஷ்டம சனி தோஷ நிவர்த்தி, மன அமைதி."
+    },
+    bestTimeToRecite: {
+      kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಸೂರ್ಯಾಸ್ತದ ನಂತರ ಅಥವಾ ಪ್ರದೋಷ ಕಾಲದಲ್ಲಿ (ಶನಿವಾರ ವಿಶೇಷ)",
+      en: "Daily evening after sunset during Pradosha (especially Saturdays)",
+      hi: "प्रतिदिन सांध्यकाल अथवा प्रदोष काल (शनिवार विशेष)",
+      te: "రోజూ సాయంత్రం సూర్యాస్తమయం తర్వాత",
+      ta: "தினமும் மாலை சூரிய அஸ்தமனத்திற்குப் பின்"
+    },
+    facingDirection: {
+      kn: "ಪಶ್ಚಿಮ ದಿಕ್ಕು (ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿ)",
+      en: "West facing, with a sesame oil lamp",
+      hi: "पश्चिम दिशा (तिल के तेल का दीप प्रज्वलित कर)",
+      te: "పశ్చిమ దిశ (నువ్వుల నూనె దీపం వెలిగించి)",
+      ta: "மேற்கு திசை (நல்லெண்ணெய் தீபம் ஏற்றி)"
+    },
+    recitationCount: {
+      kn: "ದಿನಕ್ಕೆ ೧೧ ಬಾರಿ ಜಪಿಸಿ",
+      en: "11 Rounds Daily",
+      hi: "प्रतिदिन ११ बार जपें",
+      te: "రోజుకు 11 సార్లు",
+      ta: "தினமும் 11 முறை"
+    }
+  },
+  {
+    id: "tulsi_aradhana",
+    forAffliction: ["intellect_speech", "mercury_affliction", "trade_business"],
+    title: {
+      kn: "ಶ್ರೀ ತುಳಸಿ ಸ್ತೋತ್ರಂ ಹಾಗೂ ಬುಧ ಕವಚಂ (ಪವಿತ್ರ ತುಳಸಿ ವೃಂದಾವನ ಪೂಜೆ)",
+      en: "Sri Tulasi Stotram & Budha Kavacham (Sacred Tulasi Aradhana)",
+      hi: "श्री तुलसी स्तोत्र एवं बुध कवच (पवित्र तुलसी वृंदावन पूजन)",
+      te: "శ్రీ తులసి స్తోత్రం మరియు బుధ కవచం (పవిత్ర తులసి బృందావన పూజ)",
+      ta: "ஸ்ரீ துளசி ஸ்தோத்திரம் & புதன் கவசம் (புனித துளசி பிருந்தாவன பூஜை)"
+    },
+    dedicatedTo: {
+      kn: "ಶ್ರೀ ವೃಂದಾದೇವಿ & ಬುಧ ಗ್ರಹ",
+      en: "Goddess Tulasi & Lord Budha",
+      hi: "श्री तुलसी माता एवं बुध देव",
+      te: "తులసి దేవి & బుధ గ్రహం",
+      ta: "துளசி தேவி & புதன் பகவான்"
+    },
+    shlokaSanskrit: `नमस्ते तुलसि कल्याणि नमो विष्णुप्रिये शुभे ।
+नमो मोक्षप्रदे देवि नमः सम्पत्प्रदायिके ॥
+यन्मूले सर्वतीर्थानि यन्मध्ये सर्वदेवताः ।
+यदग्रे सर्ववेदाश्च तुलसि त्वां नमाम्यहम् ॥`,
+    shlokaKannada: `ನಮಸ್ತೇ ತುಲಸಿ ಕಲ್ಯಾಣಿ ನಮೋ ವಿಷ್ಣುಪ್ರಿಯೇ ಶುಭೇ ।
+ನಮೋ ಮೋಕ್ಷಪ್ರದೇ ದೇವಿ ನಮಃ ಸಂಪತ್ಪ್ರದಾಯಿಕೇ ॥
+ಯನ್ಮೂಲೇ ಸರ್ವತೀರ್ಥಾನಿ ಯನ್ಮಧ್ಯೇ ಸರ್ವದೇವತಾಃ ।
+ಯದಗ್ರೇ ಸರ್ವವೇದಾಶ್ಚ ತುಲಸಿ ತ್ವಾಂ ನಮಾಮ್ಯಹಮ್ ॥`,
+    shlokaTelugu: `నమస్తే తులసి కల్యాణి నమో విష్ణుప్రియే శుభే ।
+నమో మోక్షప్రదే దేవి నమః సంపత్ప్రదాయికే ॥
+యన్మూలే సర్వతీర్థాని యన్మధ్యే సర్వదేవతాః ।
+యదగ్రే సర్వవేదాశ్చ తులసి త్వాం నమామ్యహమ్ ॥`,
+    shlokaTamil: `நமஸ்தே துலஸி கல்யாணி நமோ விஷ்ணுப்ரியே சுபே ।
+நமோ மோக்ஷப்ரதே தேவி நமஹ் சம்பத்ப்ரதாயிகே ॥
+யன்மூலே சர்வ தீர்த்தானி யன்மத்யே சர்வ தேவதாஹ ।
+யதக்ரே சர்வ வேதாஸ்ச துலஸி த்வாம் நமாம்யஹம் ॥`,
+    shlokaHindi: `नमस्ते तुलसि कल्याणि नमो विष्णुप्रिये शुभे ।
+नमो मोक्षप्रदे देवि नमः सम्पत्प्रदायिके ॥
+यन्मूले सर्वतीर्थानि यन्मध्ये सर्वदेवताः ।
+यदग्रे सर्ववेदाश्च तुलसि त्वां नमाम्यहम् ॥`,
+    transliteration: "Namaste Tulasi Kalyani Namo Vishnupriye Shubhe | Namo Mokshaprade Devi Namah Sampatpradayike ||",
+    meaning: {
+      kn: "ಕಲ್ಯಾಣಕಾರಿಣಿಯೂ, ವಿಷ್ಣುಪ್ರಿಯೆಯೂ, ಮೋಕ್ಷದಾಯಕಿಯೂ, ಸಂಪತ್ತನ್ನು ನೀಡುವವಳೂ ಆದ ಪವಿತ್ರ ತುಳಸಿ ಮಾತೆಗೆ ಸಾಷ್ಟಾಂಗ ನಮಸ್ಕಾರಗಳು.",
+      en: "Obeisance to sacred mother Tulasi, beloved of Vishnu, the giver of auspiciousness, intellectual brilliance, and auspicious prosperity.",
+      hi: "कल्याणकारिणी, विष्णुप्रिया, मोक्षदात्री एवं ऐश्वर्य प्रदायिनी पवित्र तुलसी माता को कोटि-कोटि प्रणाम।",
+      te: "కల్యాణకారిణి, విష్ణుప్రియ అయిన పవిత్ర తులసి దేవికి నమస్కారములు.",
+      ta: "மங்களம் தரும் விஷ்ணுப்ரியையான துளசி மாதாவிற்கு நமஸ்காரங்கள்."
+    },
+    spiritualBenefits: {
+      kn: "ಬುದ್ಧಿ ಸ್ಥೈರ್ಯ, ವ್ಯಾಪಾರ-ವಿದ್ಯಾಭ್ಯಾಸ ಅಭಿವೃದ್ಧಿ, ವಾಕ್ ಸಿದ್ಧಿ ಹಾಗೂ ನರ ದೌರ್ಬಲ್ಯ ನಿವಾರಣೆ.",
+      en: "Intellectual brilliance, commercial trade success, articulate speech, and nervous system vitality.",
+      hi: "बुद्धि, व्यापार वृद्धि, वाक् शुद्धि एवं तंत्रिका शक्ति में वृद्धि।",
+      te: "తెలివితేటలు, వ్యాపార అభివృద్ధి, వాక్ శుద్ధి.",
+      ta: "புத்தி கூர்மை, வியாபார வளர்ச்சி, வாக்கு வன்மை."
+    },
+    bestTimeToRecite: {
+      kn: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ತುಳಸಿ ಕಟ್ಟೆಯ ಮುಂದೆ (ಬುಧವಾರ ವಿಶೇಷ)",
+      en: "Daily morning before sacred Tulasi Vrindavan (especially Wednesdays)",
+      hi: "प्रातःकाल तुलसी वृंदावन के सम्मुख",
+      te: "ఉదయం తులసి కోట ఎదుట",
+      ta: "காலை துளசி மாடத்தின் முன்"
+    },
+    facingDirection: {
+      kn: "ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕು",
+      en: "East or North",
+      hi: "पूर्व अथवा उत्तर",
+      te: "తూర్పు లేదా ఉత్తరం",
+      ta: "கிழக்கு அல்லது வடக்கு"
+    },
+    recitationCount: {
+      kn: "ದಿನಕ್ಕೆ ೩ ರಿಂದ ೧೧ ಬಾರಿ",
+      en: "3 to 11 Times Daily",
+      hi: "प्रतिदिन ३ से ११ बार",
+      te: "రోజుకు 3 నుండి 11 సార్లు",
+      ta: "தினமும் 3 முதல் 11 முறை"
+    }
+  },
   {
     id: "chandrashekhara_ashtakam",
     forAffliction: ["anger_temper", "mental_anxiety", "pitta"],
@@ -6247,35 +6398,73 @@ export function generateKundliRemedyReport(
     ]
   };
 
-  // 9. Curate Classical Stotras dynamically matching chart challenge
+  // 10. Active Dasha-Bhukti Analysis & Mitigation (100% Dynamic Parashari Calculation)
+  const dashaInfo = findBhuktiAtAge(kundli, ageNow);
+  const mahaDashaPlanet = dashaInfo?.maha?.planet ?? (dashaTiming?.currentMaha as PlanetName) ?? PlanetName.Jupiter;
+  const bhuktiPlanet = dashaInfo?.bhukti ?? (dashaTiming?.currentBhukti as PlanetName) ?? PlanetName.Jupiter;
+
+  // Transit Saturn house from natal Moon for Saturn affliction detection
+  const moonRashiIdx = moon?.rashi.index ?? 0;
+  // Calculate Saturn transit affliction across upcoming 5-year horizon (Sade Sati, Ashtama Shani)
+  const currentBaseYear = new Date().getFullYear();
+  let hasSaturnAffliction = mahaDashaPlanet === PlanetName.Saturn;
+  for (let i = 0; i < 5; i++) {
+    const checkDate = new Date(currentBaseYear + i, 9, 15);
+    const transits = getTransitsForDate(moonRashiIdx, checkDate, "lahiri");
+    const shaniHouse = transits[PlanetName.Saturn]?.house || 1;
+    if ([12, 1, 2, 8].includes(shaniHouse)) {
+      hasSaturnAffliction = true;
+      break;
+    }
+  }
+
+  // 9. Curate Classical Stotras dynamically matching chart challenge & 100% harmonized with 5-Year Master Stotra
+  let harmonizedStotraId = "kanakadhara_stotra";
+  if (hasSaturnAffliction) {
+    harmonizedStotraId = "shani_dasharatha";
+  } else if (mahaDashaPlanet === PlanetName.Sun || mahaDashaPlanet === PlanetName.Mars) {
+    harmonizedStotraId = "aditya_hrudayam";
+  } else if (mahaDashaPlanet === PlanetName.Mercury) {
+    harmonizedStotraId = "tulsi_aradhana";
+  } else if (mahaDashaPlanet === PlanetName.Jupiter) {
+    harmonizedStotraId = "vishnu_sahasranama_dhyana";
+  } else {
+    harmonizedStotraId = "kanakadhara_stotra";
+  }
+
+  const harmonizedStotraItem = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === harmonizedStotraId);
   const personalizedStotras = [];
+  if (harmonizedStotraItem) {
+    personalizedStotras.push(harmonizedStotraItem);
+  }
+
   if (struggleCategory === "student_academic") {
     const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "medha_dakshinamurthy");
-    if (s) personalizedStotras.push(s);
+    if (s && !personalizedStotras.some(p => p.id === s.id)) personalizedStotras.push(s);
   } else if (struggleCategory === "marriage_delay") {
     const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "swayamvara_parvati");
-    if (s) personalizedStotras.push(s);
+    if (s && !personalizedStotras.some(p => p.id === s.id)) personalizedStotras.push(s);
   } else if (struggleCategory === "relationship_friction") {
     const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "uma_maheshwara");
-    if (s) personalizedStotras.push(s);
+    if (s && !personalizedStotras.some(p => p.id === s.id)) personalizedStotras.push(s);
   } else if (struggleCategory === "debt_financial") {
     const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "runa_vimochana_angāraka");
-    if (s) personalizedStotras.push(s);
+    if (s && !personalizedStotras.some(p => p.id === s.id)) personalizedStotras.push(s);
   } else if (struggleCategory === "anger_temper") {
     const s1 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "chandrashekhara_ashtakam");
-    if (s1) personalizedStotras.push(s1);
+    if (s1 && !personalizedStotras.some(p => p.id === s1.id)) personalizedStotras.push(s1);
     const s2 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "subrahmanya_bhujangam");
-    if (s2) personalizedStotras.push(s2);
+    if (s2 && !personalizedStotras.some(p => p.id === s2.id)) personalizedStotras.push(s2);
   } else if (struggleCategory === "mental_anxiety") {
     const s1 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "durga_saptashati_aparadha_kshamapana");
-    if (s1) personalizedStotras.push(s1);
+    if (s1 && !personalizedStotras.some(p => p.id === s1.id)) personalizedStotras.push(s1);
     const s2 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "chandrashekhara_ashtakam");
-    if (s2) personalizedStotras.push(s2);
+    if (s2 && !personalizedStotras.some(p => p.id === s2.id)) personalizedStotras.push(s2);
   } else if (struggleCategory === "career_obstacles") {
     const s1 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "hanuman_sankata_mochana");
-    if (s1) personalizedStotras.push(s1);
+    if (s1 && !personalizedStotras.some(p => p.id === s1.id)) personalizedStotras.push(s1);
     const s2 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "aditya_hrudayam");
-    if (s2) personalizedStotras.push(s2);
+    if (s2 && !personalizedStotras.some(p => p.id === s2.id)) personalizedStotras.push(s2);
   }
 
   for (const fallbackId of ["aditya_hrudayam", "hanuman_sankata_mochana", "vishnu_sahasranama_dhyana", "kanakadhara_stotra"]) {
@@ -6285,11 +6474,6 @@ export function generateKundliRemedyReport(
       personalizedStotras.push(item);
     }
   }
-
-  // 10. Active Dasha-Bhukti Analysis & Mitigation (100% Dynamic Parashari Calculation)
-  const dashaInfo = findBhuktiAtAge(kundli, ageNow);
-  const mahaDashaPlanet = dashaInfo?.maha?.planet ?? (dashaTiming?.currentMaha as PlanetName) ?? PlanetName.Jupiter;
-  const bhuktiPlanet = dashaInfo?.bhukti ?? (dashaTiming?.currentBhukti as PlanetName) ?? PlanetName.Jupiter;
 
   const mahaDescByGraha: Record<PlanetName, { kn: string; en: string }> = {
     [PlanetName.Jupiter]: {
@@ -7127,7 +7311,21 @@ export function generateKundliRemedyReport(
         hi: prescriptions.gemstoneRing.activationDayHi || prescriptions.gemstoneRing.activationDay,
         te: prescriptions.gemstoneRing.activationDayTe || prescriptions.gemstoneRing.activationDay,
         ta: prescriptions.gemstoneRing.activationDayTa || prescriptions.gemstoneRing.activationDay
-      }
+      },
+      secondaryStone: prescriptions.gemstoneRing.secondaryGemstoneKn ? {
+        kn: prescriptions.gemstoneRing.secondaryGemstoneKn,
+        en: prescriptions.gemstoneRing.secondaryGemstoneEn || prescriptions.gemstoneRing.secondaryGemstoneKn,
+        hi: prescriptions.gemstoneRing.secondaryGemstoneKn,
+        te: prescriptions.gemstoneRing.secondaryGemstoneKn,
+        ta: prescriptions.gemstoneRing.secondaryGemstoneKn
+      } : undefined,
+      caveat: prescriptions.gemstoneRing.caveatKn ? {
+        kn: prescriptions.gemstoneRing.caveatKn,
+        en: prescriptions.gemstoneRing.caveatEn || prescriptions.gemstoneRing.caveatKn,
+        hi: prescriptions.gemstoneRing.caveatHi || prescriptions.gemstoneRing.caveatKn,
+        te: prescriptions.gemstoneRing.caveatTe || prescriptions.gemstoneRing.caveatKn,
+        ta: prescriptions.gemstoneRing.caveatTa || prescriptions.gemstoneRing.caveatKn
+      } : undefined
     },
     donationDaana: {
       item: donationItem,

@@ -360,6 +360,14 @@ export interface AstrologicalPrescriptions {
     bhagyaGemstoneEn?: string;
     lifeCatalystImpactKn?: string;
     lifeCatalystImpactEn?: string;
+    // Harmonized secondary Lagna Lord gemstone & Parashari caveat
+    secondaryGemstoneKn?: string;
+    secondaryGemstoneEn?: string;
+    caveatKn?: string;
+    caveatEn?: string;
+    caveatHi?: string;
+    caveatTe?: string;
+    caveatTa?: string;
     // Havala (Pravala / Red Coral) and Tara Bala Consecration
     isHavalaRecommended?: boolean;
     havalaPrescriptionKn?: string;
@@ -1031,6 +1039,258 @@ export const PLANET_AWAKENING_AGE_MAP: Record<PlanetName, number> = {
   [PlanetName.Saturn]: 36,
   [PlanetName.Rahu]: 42,
   [PlanetName.Ketu]: 44
+};
+
+/**
+ * 100% Harmonized Astrological Gemstone Map (Classical Parashari Yogakaraka & Bhagyeshadhipati Harmony)
+ * Synchronized identically across Antarangada Satya Web Preview, 5-Year Master Horizon,
+ * Sacred Gokarna Remedy PDF, and Baggona Janma Kundali.
+ */
+export const LAGNA_HARMONIZED_PRIMARY_GEM_MAP: Record<number, {
+  graha: PlanetName;
+  kn: string; en: string; hi: string; te: string; ta: string; sanskrit: string;
+  metalKn: string; metalEn: string; metalHi: string; metalTe: string; metalTa: string;
+  fingerKn: string; fingerEn: string; fingerHi: string; fingerTe: string; fingerTa: string;
+  activationDayKn: string; activationDayEn: string; activationDayHi: string; activationDayTe: string; activationDayTa: string;
+  secondaryLagnaGemKn?: string; secondaryLagnaGemEn?: string; secondaryLagnaGemHi?: string; secondaryLagnaGemTe?: string; secondaryLagnaGemTa?: string;
+  caveatKn: string; caveatEn: string; caveatHi: string; caveatTe: string; caveatTa: string;
+}> = {
+  0: {
+    graha: PlanetName.Mars,
+    kn: "ಕೆಂಪು ಹವಳ (Red Coral - ಲಗ್ನಾಧಿಪತಿ ಮಂಗಳನ ತೇಜೋ ರತ್ನ)",
+    en: "Red Coral (Pravala - Mars Lagna Lord)",
+    hi: "लाल मूंगा (Red Coral - लग्नेश मंगल का तेज रत्न)",
+    te: "ఎరుపు పగడం (Red Coral - లగ్నాధిపతి కుజుని రత్నం)",
+    ta: "சிவப்பு பவளம் (Red Coral - லக்னாதிபதி செவ்வாய்)",
+    sanskrit: "Pravala",
+    metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಅಪ್ಪಟ ಚಿನ್ನ", metalEn: "Pure Copper or Gold", metalHi: "शुद्ध तांबा अथवा स्वर्ण", metalTe: "స్వచ్ఛమైన రాగి లేదా బంగారం", metalTa: "தூய தாமிரம் அல்லது தங்கம்",
+    fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger (Anamika)", fingerHi: "अनामिका अंगुली", fingerTe: "ఉంగరపు వేలు", fingerTa: "மோதிர விரல்",
+    activationDayKn: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ (ಕುಜ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Tuesday Morning (Mars Hora)", activationDayHi: "मंगलवार प्रातःकाल", activationDayTe: "మంగళవారం ఉదయం", activationDayTa: "செவ்வாய் அதிகாலை",
+    caveatKn: "ಮೇಷ ಲಗ್ನಕ್ಕೆ ವಜ್ರ (Diamond) ಮಾರಕ ದೋಷ ತರಬಹುದು; ಹವಳವೇ ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ವರ್ಧಕ.",
+    caveatEn: "Diamond is maraka for Aries; Hawala guarantees vitality and protection.",
+    caveatHi: "मेष लग्न हेतु हीरा मारक हो सकता है; मूंगा ही स्वास्थ्य वर्धक है।",
+    caveatTe: "మేష లగ్నానికి వజ్రం మారకం; పగడమే రక్షా కవచం.",
+    caveatTa: "மேஷ லக்னத்திற்கு வைரம் மாரகம்; பவழமே நலம் தரும்."
+  },
+  1: {
+    graha: PlanetName.Venus,
+    kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್ (Diamond / White Sapphire - ಶುಕ್ರನ ರಾಜಯೋಗಕಾರಕ ರತ್ನ)",
+    en: "Diamond or White Zircon (Vajra - Venus Lagna Lord)",
+    hi: "हीरा अथवा श्वेत जरकन (Diamond / White Zircon - शुक्र लग्नेश)",
+    te: "వజ్రం లేదా తెల్ల జిర్కాన్ (Diamond / White Zircon)",
+    ta: "வைரம் அல்லது வெள்ளை ஜிர்கான் (Diamond / White Zircon)",
+    sanskrit: "Vajra",
+    metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ, ಪ್ಲಾಟಿನಂ ಅಥವಾ ಬಿಳಿ ಚಿನ್ನ", metalEn: "Pure Silver, Platinum or White Gold", metalHi: "चांदी अथवा प्लेटिनम", metalTe: "వెండి లేదా ప్లాటినం", metalTa: "வெள்ளி அல்லது பிளாட்டினம்",
+    fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger", fingerHi: "मध्यमा अथवा अनामिका अंगुली", fingerTe: "మధ్య లేదా ఉంగరపు వేలు", fingerTa: "நடுவிரல் அல்லது மோதிர விரல்",
+    activationDayKn: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Friday Morning (Venus Hora)", activationDayHi: "शुक्रवार प्रातःकाल", activationDayTe: "శుక్రవారం ఉదయం", activationDayTa: "வெள்ளி அதிகாலை",
+    caveatKn: "ವೃಷಭ ಲಗ್ನಕ್ಕೆ ಕೆಂಪು ಹವಳ ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧಿಸಲಾಗಿದೆ (ಮಾರಕ ದೋಷ); ವಜ್ರ ಅಥವಾ ಬಿಳಿ ರತ್ನವೇ ಸರ್ವೋತ್ತಮ.",
+    caveatEn: "Red Coral is strictly contraindicated for Taurus; Diamond/White Sapphire is most benefic.",
+    caveatHi: "वृषभ लग्न हेतु लाल मूंगा सख्त वर्जित है; हीरा ही सर्वोत्तम फलदायी है।",
+    caveatTe: "వృషభ లగ్నానికి పగడం నిషిద్ధం; వజ్రమే శ్రేష్ఠం.",
+    caveatTa: "ரிஷப லக்னத்திற்கு பவழம் முற்றிலும் கூடாது; வைரமே சிறந்தது."
+  },
+  2: {
+    graha: PlanetName.Mercury,
+    kn: "ಪಚ್ಚೆ ರತ್ನ (Emerald - ಬುಧನ ವಿದ್ಯಾ-ಬುದ್ಧಿ ವೃದ್ಧಿ ರತ್ನ)",
+    en: "Emerald (Marakata - Mercury Lagna Lord)",
+    hi: "पन्ना (Emerald - बुध का बुद्धि व व्यापार वर्धक रत्न)",
+    te: "మరకత పచ్చ (Emerald - బుధ గ్రహ రత్నం)",
+    ta: "மரகதம் (Emerald - புதன் ரத்தினம்)",
+    sanskrit: "Marakata",
+    metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", metalHi: "स्वर्ण अथवा पंचधातु", metalTe: "బంగారం లేదా పంచలోహం", metalTa: "தங்கம் அல்லது பஞ்சலோகம்",
+    fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger (Kanishthika)", fingerHi: "कनिष्ठिका अंगुली", fingerTe: "చిటికెన వేలు", fingerTa: "சுண்டு விரல்",
+    activationDayKn: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ (ಬುಧ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Wednesday Morning (Mercury Hora)", activationDayHi: "बुधवार प्रातःकाल", activationDayTe: "బుధవారం ఉదయం", activationDayTa: "புதன் அதிகாலை",
+    secondaryLagnaGemKn: "ವಜ್ರ / ಶ್ವೇತ ಜಿರ್ಕಾನ್ (5ನೇ ತ್ರಿಕೋಣಾಧಿಪತಿ ಶುಕ್ರ)",
+    secondaryLagnaGemEn: "Diamond / White Zircon (5th Trikona Lord Venus)",
+    caveatKn: "ಮಿಥುನ ಲಗ್ನಕ್ಕೆ ಹವಳ ವರ್ಜಿಸುವುದು ಉತ್ತಮ; ಪಚ್ಚೆಯು ಧನ-ಬುದ್ಧಿ ವೃದ್ಧಿ ನೀಡುತ್ತದೆ.",
+    caveatEn: "Emerald provides exceptional clarity; red coral is contraindicated.",
+    caveatHi: "मिथुन लग्न के लिए मूंगा वर्जित है; पन्ना ही धन-बुद्धि प्रदाता है।",
+    caveatTe: "మిథున లగ్నానికి పగడం వర్జ్యం; పచ్చయే శుభం.",
+    caveatTa: "மிதுன லக்னத்திற்கு பவழம் கூடாது; மரகதமே சிறந்தது."
+  },
+  3: {
+    graha: PlanetName.Mars,
+    kn: "ಕೆಂಪು ಹವಳ (Red Coral - ಮಂಗಳನಿಗೆ ಶ್ರೇಷ್ಠ ಯೋಗಕಾರಕ ರತ್ನ)",
+    en: "Red Coral (Pravala - Mars Supreme Yogakaraka)",
+    hi: "लाल मूंगा (Red Coral - मंगल का परम योगकारक रत्न)",
+    te: "ఎరుపు పగడం (Red Coral - కుజునికి శ్రేష్ఠ యోగకారక రత్నం)",
+    ta: "சிவப்பு பவளம் (Red Coral - செவ்வாயின் யோககாரக ரத்தினம்)",
+    sanskrit: "Pravala",
+    metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಅಪ್ಪಟ ಚಿನ್ನ", metalEn: "Pure Copper or Gold", metalHi: "शुद्ध तांबा अथवा स्वर्ण", metalTe: "స్వచ్ఛమైన రాగి లేదా బంగారం", metalTa: "தூய தாமிரம் அல்லது தங்கம்",
+    fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger (Anamika)", fingerHi: "अनामिका अंगुली", fingerTe: "ఉంగరపు వేలు", fingerTa: "மோதிர விரல்",
+    activationDayKn: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ (ಕುಜ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Tuesday Morning (Mars Hora)", activationDayHi: "मंगलवार प्रातःकाल", activationDayTe: "మంగళవారం ఉదయం", activationDayTa: "செவ்வாய் அதிகாலை",
+    secondaryLagnaGemKn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು (ಲಗ್ನಾಧಿಪತಿ ಚಂದ್ರ)",
+    secondaryLagnaGemEn: "Natural Pearl (Lagna Lord Moon)",
+    secondaryLagnaGemHi: "सच्चा मोती (लग्नेश चन्द्र)",
+    secondaryLagnaGemTe: "సహజ ముత్యం (లగ్నాధిపతి చంద్రుడు)",
+    secondaryLagnaGemTa: "இயற்கை முத்து (லக்னாதிபதி சந்திரன்)",
+    caveatKn: "ಪರಾಶರಿ ಶಾಸ್ತ್ರದಂತೆ ಕಟಕ ಲಗ್ನಕ್ಕೆ ವಜ್ರ (Diamond) ಧರಿಸಬಾರದು; ಹವಳವೇ ಸರ್ವಶ್ರೇಷ್ಠ ಯೋಗಕಾರಕ ರತ್ನ (ಮುತ್ತು ಪೂರಕ ರತ್ನ).",
+    caveatEn: "Diamond is strictly contraindicated for Cancer Lagna; Red Coral is supreme Yogakaraka (Pearl is auxiliary).",
+    caveatHi: "पाराशरी शास्त्रानुसार कर्क लग्न हेतु हीरा वर्जित है; मूंगा ही सर्वश्रेष्ठ योगकारक रत्न है।",
+    caveatTe: "కర్కాటక లగ్నానికి వజ్రం నిషిద్ధం; పగడమే పరమ యోగకారక రత్నం.",
+    caveatTa: "கடக லக்னத்திற்கு வைரம் முற்றிலும் கூடாது; பவழமே சிறந்த யோககாரக ரத்தினம்."
+  },
+  4: {
+    graha: PlanetName.Mars,
+    kn: "ಕೆಂಪು ಹವಳ (Red Coral - ಮಂಗಳನಿಗೆ ಶ್ರೇಷ್ಠ ಭಾಗ್ಯೇಶ ಯೋಗಕಾರಕ ರತ್ನ)",
+    en: "Red Coral (Pravala - Mars 9th Bhagya Lord & Yogakaraka)",
+    hi: "लाल मूंगा (Red Coral - मंगल का परम भाग्येश योगकारक रत्न)",
+    te: "ఎరుపు పగడం (Red Coral - కుజునికి శ్రేష్ఠ భాగ్యేశ యోగకారక రత్నం)",
+    ta: "சிவப்பு பவளம் (Red Coral - செவ்வாயின் பாக்ய யோககாரக ரத்தினம்)",
+    sanskrit: "Pravala",
+    metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಅಪ್ಪಟ ಚಿನ್ನ", metalEn: "Pure Copper or Gold", metalHi: "शुद्ध तांबा अथवा स्वर्ण", metalTe: "స్వచ్ఛమైన రాగి లేదా బంగారం", metalTa: "தூய தாமிரம் அல்லது தங்கம்",
+    fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger (Anamika)", fingerHi: "अनामिका अंगुली", fingerTe: "ఉంగరపు వేలు", fingerTa: "மோதிர விரல்",
+    activationDayKn: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ (ಕುಜ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Tuesday Morning (Mars Hora)", activationDayHi: "मंगलवार प्रातःकाल", activationDayTe: "మంగళవారం ఉదయం", activationDayTa: "செவ்வாய் அதிகாலை",
+    secondaryLagnaGemKn: "ಮಾಣಿಕ್ಯ (ಲಗ್ನಾಧಿಪತಿ ಸೂರ್ಯ)",
+    secondaryLagnaGemEn: "Ruby (Lagna Lord Sun)",
+    secondaryLagnaGemHi: "माणिक्य (लग्नेश सूर्य)",
+    secondaryLagnaGemTe: "మాణిక్యం (లగ్నాధిపతి సూర్యుడు)",
+    secondaryLagnaGemTa: "மாணிக்கம் (லக்னாதிபதி சூரியன்)",
+    caveatKn: "ಪರಾಶರಿ ಶಾಸ್ತ್ರದಂತೆ ಸಿಂಹ ಲಗ್ನಕ್ಕೆ ವಜ್ರ (Diamond) ಧರಿಸಬಾರದು; ಹವಳವೇ ಸರ್ವಶ್ರೇಷ್ಠ ಭಾಗ್ಯವರ್ಧಕ (ಮಾಣಿಕ್ಯ ಪೂರಕ ರತ್ನ).",
+    caveatEn: "Diamond is strictly contraindicated for Leo Lagna; Red Coral is supreme Bhagya catalyst (Ruby is auxiliary).",
+    caveatHi: "पाराशरी शास्त्रानुसार सिंह लग्न हेतु हीरा वर्जित है; मूंगा ही सर्वश्रेष्ठ भाग्यवर्धक रत्न है।",
+    caveatTe: "సింహ లగ్నానికి వజ్రం నిషిద్ధం; పగడమే పరమ భాగ్యవర్ధక రత్నం.",
+    caveatTa: "சிம்ம லக்னத்திற்கு வைரம் முற்றிலும் கூடாது; பவழமே சிறந்த பாக்ய ரத்தினம்."
+  },
+  5: {
+    graha: PlanetName.Mercury,
+    kn: "ಪಚ್ಚೆ ರತ್ನ (Emerald - ಬುಧನ ವಿದ್ಯಾ-ಬುದ್ಧಿ ವೃದ್ಧಿ ರತ್ನ)",
+    en: "Emerald (Marakata - Mercury Lagna Lord)",
+    hi: "पन्ना (Emerald - बुध का बुद्धि व व्यापार वर्धक रत्न)",
+    te: "మరకత పచ్చ (Emerald - బుధ గ్రహ రత్నం)",
+    ta: "மரகதம் (Emerald - புதன் ரத்தினம்)",
+    sanskrit: "Marakata",
+    metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", metalHi: "स्वर्ण अथवा पंचधातु", metalTe: "బంగారం లేదా పంచలోహం", metalTa: "தங்கம் அல்லது பஞ்சலோகம்",
+    fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger (Kanishthika)", fingerHi: "कनिष्ठिका अंगुली", fingerTe: "చిటికెన వేలు", fingerTa: "சுண்டு விரல்",
+    activationDayKn: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ (ಬುಧ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Wednesday Morning (Mercury Hora)", activationDayHi: "ಬುಧವಾರ प्रातःकाल", activationDayTe: "బుధవారం ఉదయం", activationDayTa: "புதன் அதிகாலை",
+    secondaryLagnaGemKn: "ವಜ್ರ / ಶ್ವೇತ ಜಿರ್ಕಾನ್ (9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ಶುಕ್ರ)",
+    secondaryLagnaGemEn: "Diamond / White Zircon (9th Bhagya Lord Venus)",
+    caveatKn: "ಕನ್ಯಾ ಲಗ್ನಕ್ಕೆ ಹವಳ ವರ್ಜಿಸುವುದು ಉತ್ತಮ; ಪಚ್ಚೆಯು ಧನ-ಬುದ್ಧಿ ವೃದ್ಧಿ ನೀಡುತ್ತದೆ.",
+    caveatEn: "Emerald provides exceptional clarity; red coral is contraindicated.",
+    caveatHi: "कन्या लग्न के लिए मूंगा वर्जित है; पन्ना ही धन-बुद्धि प्रदाता है।",
+    caveatTe: "కన్యా లగ్నానికి పగడం వర్జ్యం; పచ్చయే శుభం.",
+    caveatTa: "கன்னி லக்னத்திற்கு பவழம் கூடாது; மரகதமே சிறந்தது."
+  },
+  6: {
+    graha: PlanetName.Venus,
+    kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್ (Diamond / White Sapphire - ಶುಕ್ರನ ರಾಜಯೋಗಕಾರಕ ರತ್ನ)",
+    en: "Diamond or White Zircon (Vajra - Venus Lagna Lord)",
+    hi: "हीरा अथवा श्वेत जरकन (Diamond / White Zircon - शुक्र लग्नेश)",
+    te: "వజ్రం లేదా తెల్ల జిర్కాన్ (Diamond / White Zircon)",
+    ta: "வைரம் அல்லது வெள்ளை ஜிர்கான் (Diamond / White Zircon)",
+    sanskrit: "Vajra",
+    metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ, ಪ್ಲಾಟಿನಂ ಅಥವಾ ಬಿಳಿ ಚಿನ್ನ", metalEn: "Pure Silver, Platinum or White Gold", metalHi: "चांदी अथवा प्लेटिनम", metalTe: "వెండి లేదా ప్లాటినం", metalTa: "வெள்ளி அல்லது பிளாட்டினம்",
+    fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger", fingerHi: "मध्यमा अथवा अनामिका अंगुली", fingerTe: "మధ్య లేదా ఉంగరపు వేలు", fingerTa: "நடுவிரல் அல்லது மோதிர விரல்",
+    activationDayKn: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Friday Morning (Venus Hora)", activationDayHi: "शुक्रवार प्रातःकाल", activationDayTe: "శుక్రవారం ఉదయం", activationDayTa: "வெள்ளி அதிகாலை",
+    secondaryLagnaGemKn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ) (4ನೇ & 5ನೇ ಯೋಗಕಾರಕ ಶನಿ)",
+    secondaryLagnaGemEn: "Blue Sapphire (4th & 5th Yogakaraka Saturn)",
+    caveatKn: "ತುಲಾ ಲಗ್ನಕ್ಕೆ ಕೆಂಪು ಹವಳ ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧಿಸಲಾಗಿದೆ (ಮಾರಕ ದೋಷ); ವಜ್ರ ಅಥವಾ ಬಿಳಿ ರತ್ನವೇ ಸರ್ವೋತ್ತಮ.",
+    caveatEn: "Red Coral is strictly contraindicated for Libra (2nd & 7th Maraka); Diamond/White Sapphire is most benefic.",
+    caveatHi: "तुला लग्न हेतु लाल मूंगा सख्त वर्जित है; हीरा ही सर्वोत्तम फलदायी है।",
+    caveatTe: "తులా లగ్నానికి పగడం నిషిద్ధం; వజ్రమే శ్రేష్ఠం.",
+    caveatTa: "துலாம் லக்னத்திற்கு பவழம் முற்றிலும் கூடாது; வைரமே சிறந்தது."
+  },
+  7: {
+    graha: PlanetName.Mars,
+    kn: "ಕೆಂಪು ಹವಳ (Red Coral - ಲಗ್ನಾಧಿಪತಿ ಮಂಗಳನ ತೇಜೋ ರತ್ನ)",
+    en: "Red Coral (Pravala - Mars Lagna Lord)",
+    hi: "लाल मूंगा (Red Coral - लग्नेश मंगल का तेज रत्न)",
+    te: "ఎరుపు పగడం (Red Coral - లగ్నాధిపతి కుజుని రత్నం)",
+    ta: "சிவப்பு பவளம் (Red Coral - லக்னாதிபதி செவ்வாய்)",
+    sanskrit: "Pravala",
+    metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಅಪ್ಪಟ ಚಿನ್ನ", metalEn: "Pure Copper or Gold", metalHi: "शुद्ध तांबा अथवा स्वर्ण", metalTe: "స్వచ్ఛమైన రాగి లేదా బంగారం", metalTa: "தூய தாமிரம் அல்லது தங்கம்",
+    fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger (Anamika)", fingerHi: "अनामिका अंगुली", fingerTe: "ఉంగరపు వేలు", fingerTa: "மோதிர விரல்",
+    activationDayKn: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ (ಕುಜ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Tuesday Morning (Mars Hora)", activationDayHi: "मंगलवार प्रातःकाल", activationDayTe: "మంగళవారం ఉదయం", activationDayTa: "செவ்வாய் அதிகாலை",
+    secondaryLagnaGemKn: "ಹಳದಿ ಪುಷ್ಯರಾಗ (2ನೇ & 5ನೇ ತ್ರಿಕೋಣಾಧಿಪತಿ ಗುರು)",
+    secondaryLagnaGemEn: "Yellow Sapphire (2nd & 5th Lord Jupiter)",
+    caveatKn: "ವೃಶ್ಚಿಕ ಲಗ್ನದವರಿಗೆ ವಜ್ರ ಮಾರಕ ದೋಷ ತರಬಹುದು; ಹವಳವೇ ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ವರ್ಧಕ.",
+    caveatEn: "Diamond is maraka for Scorpio; Hawala guarantees vitality and protection.",
+    caveatHi: "वृश्चिक लग्न हेतु हीरा मारक हो सकता है; मूंगा ही स्वास्थ्य वर्धक है।",
+    caveatTe: "వృశ్చిక లగ్నానికి వజ్రం మారకం; పగడమే రక్షా కవచం.",
+    caveatTa: "விருச்சிக லக்னத்திற்கு வைரம் மாரகம்; பவழமே நலம் தரும்."
+  },
+  8: {
+    graha: PlanetName.Jupiter,
+    kn: "ಹಳದಿ ಪುಷ್ಯರಾಗ (Yellow Sapphire - ಗುರು ಲಗ್ನಾಧಿಪತಿ ರತ್ನ)",
+    en: "Yellow Sapphire (Pushparaga - Jupiter Lord)",
+    hi: "पीला पुखराज (Yellow Sapphire - गुरु लग्नेश रत्न)",
+    te: "పసుపు పుష్యరాగం (Yellow Sapphire - గురు గ్రహ రత్నం)",
+    ta: "மஞ்சள் புஷ்பராகம் (Yellow Sapphire - குரு ரத்தினம்)",
+    sanskrit: "Pushparaga",
+    metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", metalHi: "अति शुद्ध स्वर्ण", metalTe: "స్వచ్ఛమైన బంగారం", metalTa: "தூய தங்கம்",
+    fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger (Tarjani)", fingerHi: "तर्जनी अंगुली", fingerTe: "చూపుడు వేలు", fingerTa: "ஆள்காட்டி விரல்",
+    activationDayKn: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ (ಗುರು ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Thursday Morning (Jupiter Hora)", activationDayHi: "गुरुवार प्रातःकाल", activationDayTe: "గురువారం ఉదయం", activationDayTa: "வியாழன் அதிகாலை",
+    secondaryLagnaGemKn: "ಕೆಂಪು ಹವಳ (5ನೇ ತ್ರಿಕೋಣಾಧಿಪತಿ ಕುಜ)",
+    secondaryLagnaGemEn: "Red Coral (5th Trikona Lord Mars)",
+    caveatKn: "ಧನು ಲಗ್ನಕ್ಕೆ ವಜ್ರ ತ್ಯಜಿಸಬೇಕು (6ನೇ & 11ನೇ ದೋಷ); ಪುಷ್ಯರಾಗ ಹಾಗೂ ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿಯು ರಕ್ಷಾ ಕವಚ.",
+    caveatEn: "Diamond is contraindicated for Sagittarius; Yellow Sapphire and 5-Mukhi Rudraksha provide sovereign protection.",
+    caveatHi: "धनु लग्न हेतु हीरा वर्जित है; पीला पुखराज एवं पंचमुखी रुद्राक्ष रक्षा कवच है।",
+    caveatTe: "ధనుస్సు లగ్నానికి వజ్రం వర్జ్యం; పుష్యరాగమే రక్ష.",
+    caveatTa: "தனுசு லக்னத்திற்கு வைரம் கூடாது; புஷ்பராகமே கவசம்."
+  },
+  9: {
+    graha: PlanetName.Venus,
+    kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್ (Diamond / White Sapphire - ಶುಕ್ರನ ರಾಜಯೋಗಕಾರಕ ರತ್ನ)",
+    en: "Diamond or White Sapphire (Vajra - Venus Yogakaraka)",
+    hi: "हीरा या श्वेत पुखराज (Diamond / White Zircon - शुक्र का राजयोगकारक रत्न)",
+    te: "వజ్రం లేదా తెల్ల పుష్యరాగం (Diamond / White Sapphire - శుక్ర యోగకారక)",
+    ta: "வைரம் அல்லது வெள்ளை நீலம் (Diamond / White Zircon - சுக்கிர யோககாரக)",
+    sanskrit: "Vajra",
+    metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ, ಪ್ಲಾಟಿನಂ ಅಥವಾ ಬಿಳಿ ಚಿನ್ನ", metalEn: "Pure Silver, Platinum or White Gold", metalHi: "चांदी अथवा प्लेटिनम", metalTe: "వెండి లేదా ప్లాటినం", metalTa: "வெள்ளி அல்லது பிளாட்டினம்",
+    fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger", fingerHi: "मध्यमा अथवा अनामिका अंगुली", fingerTe: "మధ్య లేదా ఉంగరపు వేలు", fingerTa: "நடுவிரல் அல்லது மோதிர விரல்",
+    activationDayKn: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Friday Morning (Venus Hora)", activationDayHi: "शुक्रवार प्रातःकाल", activationDayTe: "శుక్రవారం ఉదయం", activationDayTa: "வெள்ளி அதிகாலை",
+    secondaryLagnaGemKn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ) (ಲಗ್ನಾಧಿಪತಿ ಶನಿ)",
+    secondaryLagnaGemEn: "Blue Sapphire (Lagna Lord Saturn)",
+    secondaryLagnaGemHi: "नीलम (लग्नेश शनि)",
+    secondaryLagnaGemTe: "నీలం (లగ్నాధిపతి శని)",
+    secondaryLagnaGemTa: "நீலக்கல் (லக்னாதிபதி சனி)",
+    caveatKn: "ಪರಾಶರಿ ಶಾಸ್ತ್ರದಂತೆ ಮಕರ ಲಗ್ನಕ್ಕೆ ಕೆಂಪು ಹವಳದ ಬದಲು ವಜ್ರ ಅಥವಾ ಬಿಳಿ ರತ್ನವೇ ಸರ್ವೋತ್ತಮ (ನೀಲಂ ಪೂರಕ ರತ್ನ).",
+    caveatEn: "Diamond/White Sapphire is most benefic Yogakaraka for Capricorn; avoid red coral on the same hand.",
+    caveatHi: "मकर लग्न हेतु लाल मूंगे की अपेक्षा हीरा ही सर्वोत्तम फलदायी है।",
+    caveatTe: "మకర లగ్నానికి ఎరుపు పగడం కంటే వజ్రమే సర్వోత్తమ ఫలితాలనిస్తుంది.",
+    caveatTa: "மகர லக்னத்திற்கு சிவப்பு பவளத்தை விட வைரமே சிறந்த பலனைத் தரும்."
+  },
+  10: {
+    graha: PlanetName.Venus,
+    kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್ (Diamond / White Sapphire - ಶುಕ್ರನ ರಾಜಯೋಗಕಾರಕ ರತ್ನ)",
+    en: "Diamond or White Sapphire (Vajra - Venus Yogakaraka)",
+    hi: "हीरा या श्वेत पुखराज (Diamond / White Zircon - शुक्र का राजयोगकारक रत्न)",
+    te: "వజ్రం లేదా తెల్ల పుష్యరాగం (Diamond / White Sapphire - శుక్ర యోగకారక)",
+    ta: "வைரம் அல்லது வெள்ளை நீலம் (Diamond / White Zircon - சுக்கிர யோககாரக)",
+    sanskrit: "Vajra",
+    metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ, ಪ್ಲಾಟಿನಂ ಅಥವಾ ಬಿಳಿ ಚಿನ್ನ", metalEn: "Pure Silver, Platinum or White Gold", metalHi: "चांदी अथवा प्लेटिनम", metalTe: "వెండి లేదా ప్లాటినం", metalTa: "வெள்ளி அல்லது பிளாட்டினம்",
+    fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger", fingerHi: "मध्यमा अथवा अनामिका अंगुली", fingerTe: "మధ్య లేదా ఉంగరపు వేలు", fingerTa: "நடுவிரல் அல்லது மோதிர விரல்",
+    activationDayKn: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Friday Morning (Venus Hora)", activationDayHi: "शुक्रवार प्रातःकाल", activationDayTe: "శుక్రవారం ఉదయం", activationDayTa: "வெள்ளி அதிகாலை",
+    secondaryLagnaGemKn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ) (ಲಗ್ನಾಧಿಪತಿ ಶನಿ)",
+    secondaryLagnaGemEn: "Blue Sapphire (Lagna Lord Saturn)",
+    secondaryLagnaGemHi: "नीलम (लग्नेश शनि)",
+    secondaryLagnaGemTe: "నీలం (లగ్నాధిపతి శని)",
+    secondaryLagnaGemTa: "நீலக்கல் (லக்னாதிபதி சனி)",
+    caveatKn: "ಪರಾಶರಿ ಶಾಸ್ತ್ರದಂತೆ ಕುಂಭ ಲಗ್ನಕ್ಕೆ ಕೆಂಪು ಹವಳದ ಬದಲು ವಜ್ರ ಅಥವಾ ಬಿಳಿ ರತ್ನವೇ ಸರ್ವೋತ್ತಮ (ನೀಲಂ ಪೂರಕ ರತ್ನ).",
+    caveatEn: "Diamond/White Sapphire is most benefic Yogakaraka for Aquarius; avoid red coral on the same hand.",
+    caveatHi: "कुंभ लग्न हेतु लाल मूंगे की अपेक्षा हीरा ही सर्वोत्तम फलदायी है।",
+    caveatTe: "కుంభ లగ్నానికి ఎరుపు పగడం కంటే వజ్రమే సర్వోత్తమ ఫలితాలనిస్తుంది.",
+    caveatTa: "கும்ப லக்னத்திற்கு சிவப்பு பவளத்தை விட வைரமே சிறந்த பலனைத் தரும்."
+  },
+  11: {
+    graha: PlanetName.Jupiter,
+    kn: "ಹಳದಿ ಪುಷ್ಯರಾಗ (Yellow Sapphire - ಗುರು ಲಗ್ನಾಧಿಪತಿ ರತ್ನ)",
+    en: "Yellow Sapphire (Pushparaga - Jupiter Lord)",
+    hi: "पीला पुखराज (Yellow Sapphire - गुरु लग्नेश रत्न)",
+    te: "పసుపు పుష్యరాగం (Yellow Sapphire - గురు గ్రహ రత్నం)",
+    ta: "மஞ்சள் புஷ்பராகம் (Yellow Sapphire - குரு ரத்தினம்)",
+    sanskrit: "Pushparaga",
+    metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", metalHi: "अति शुद्ध स्वर्ण", metalTe: "స్వచ్ఛమైన బంగారం", metalTa: "தூய தங்கம்",
+    fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger (Tarjani)", fingerHi: "तर्जनी अंगुली", fingerTe: "చూపుడు వేలు", fingerTa: "ஆள்காட்டி விரல்",
+    activationDayKn: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ (ಗುರು ಹೋರೆಯಲ್ಲಿ)", activationDayEn: "Thursday Morning (Jupiter Hora)", activationDayHi: "गुरुवार प्रातःकाल", activationDayTe: "గురువారం ఉదయం", activationDayTa: "வியாழன் அதிகாலை",
+    secondaryLagnaGemKn: "ಕೆಂಪು ಹವಳ (9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ಕುಜ)",
+    secondaryLagnaGemEn: "Red Coral (9th Bhagya Lord Mars)",
+    caveatKn: "ಮೀನ ಲಗ್ನಕ್ಕೆ ವಜ್ರ ಮಾರಕ ದೋಷ ತರಬಹುದು (3ನೇ & 8ನೇ ದೋಷ); ಪುಷ್ಯರಾಗ ಹಾಗೂ ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿಯು ರಕ್ಷಾ ಕವಚ.",
+    caveatEn: "Diamond is maraka for Pisces (3rd & 8th lord); Yellow Sapphire and 5-Mukhi Rudraksha provide sovereign protection.",
+    caveatHi: "मीन लग्न हेतु हीरा मारक हो सकता है; पीला पुखराज एवं पंचमुखी रुद्राक्ष रक्षा कवच है।",
+    caveatTe: "మీన లగ్నానికి వజ్రం మారకం; పుష్యరాగమే రక్ష.",
+    caveatTa: "மீன லக்னத்திற்கு வைரம் மாரகம்; புஷ்பராகமே கவசம்."
+  }
 };
 
 export const PLANET_LUCKY_DAYS_MAP: Record<PlanetName, { kn: string[]; en: string[] }> = {
@@ -2631,38 +2891,35 @@ export const generateAstrologicalPrescriptions = (
   const dynamicCaratTe = `${minCarat} నుండి ${maxCarat} క్యారెట్లు`;
   const dynamicCaratTa = `${minCarat} முதல் ${maxCarat} கேரட்`;
 
-  // 2. Gemstone Ring Selection (ಉಂಗುರ / ರತ್ನ - 5 Languages)
-  const gemstoneMap: Record<PlanetName, {
-    kn: string; en: string; hi: string; te: string; ta: string; sanskrit: string;
-    metalKn: string; metalEn: string; metalHi: string; metalTe: string; metalTa: string;
-    fingerKn: string; fingerEn: string; fingerHi: string; fingerTe: string; fingerTa: string;
-  }> = {
-    [PlanetName.Sun]: { kn: "ಮಾಣಿಕ್ಯ", en: "Ruby", hi: "माणिक्य (रूबी)", te: "మాణిక్యం", ta: "மாணிக்கம்", sanskrit: "Manikya", metalKn: "ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ಶುದ್ಧ ತಾಮ್ರ", metalEn: "Gold or Copper", metalHi: "स्वर्ण अथवा शुद्ध तांबा", metalTe: "బంగారం లేదా స్వచ్ఛమైన రాగి", metalTa: "தங்கம் அல்லது தூய தாமிரம்", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
-    [PlanetName.Moon]: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು", en: "Natural Pearl", hi: "सच्चा मोती", te: "సహజ ముత్యం", ta: "இயற்கை முத்து", sanskrit: "Mukta", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", metalEn: "Pure Silver", metalHi: "शुद्ध चांदी", metalTe: "స్వచ్ఛమైన వెండి", metalTa: "தூய வெள்ளி", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
-    [PlanetName.Mars]: { kn: "ಹವಳ", en: "Red Coral", hi: "लाल मूंगा", te: "పగడం", ta: "பவழம்", sanskrit: "Pravala", metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನ", metalEn: "Pure Copper or Gold", metalHi: "शुद्ध तांबा अथवा स्वर्ण", metalTe: "స్వచ్ఛమైన రాగి లేదా బంగారం", metalTa: "தூய தாமிரம் அல்லது தங்கம்", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
-    [PlanetName.Mercury]: { kn: "ಪಚ್ಚೆ", en: "Emerald", hi: "पन्ना", te: "పచ్చ", ta: "மரகதம்", sanskrit: "Marakata", metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", metalHi: "स्वर्ण अथवा पंचधातु", metalTe: "బంగారం లేదా పంచలోహం", metalTa: "தங்கம் அல்லது பஞ்சலோகம்", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
-    [PlanetName.Jupiter]: { kn: "ಪುಷ್ಪರಾಗ", en: "Yellow Sapphire", hi: "पुखराज", te: "పుష్యరాగం", ta: "புஷ்பராகம்", sanskrit: "Pushparaga", metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", metalHi: "अति शुद्ध स्वर्ण", metalTe: "స్వచ్ఛమైన బంగారం", metalTa: "தூய தங்கம்", fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger of Right Hand", fingerHi: "तर्जनी अंगुली (दाहिना हाथ)", fingerTe: "చూపుడు వేలు (కుడి చేయి)", fingerTa: "ஆள்காட்டி விரல் (வலது கை)" },
-    [PlanetName.Venus]: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", hi: "हीरा अथवा श्वेत जरकन", te: "వజ్రం లేదా తెల్ల జిర్కాన్", ta: "வைரம் அல்லது வெள்ளை ஜிர்கான்", sanskrit: "Vajra / Heera", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪ್ಲಾಟಿನಂ", metalEn: "Silver or Platinum", metalHi: "चांदी अथवा प्लेटिनम", metalTe: "వెండి లేదా ప్లాటినం", metalTa: "வெள்ளி அல்லது பிளாட்டினம்", fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger", fingerHi: "मध्यमा अथवा अनामिका अंगुली", fingerTe: "మధ్య వేలు లేదా ఉంగరపు వేలు", fingerTa: "நடுவிரல் அல்லது மோதிர விரல்" },
-    [PlanetName.Saturn]: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", hi: "नीलम", te: "నీలం", ta: "நீலக்கல் (நீலம்)", sanskrit: "Neelam", metalKn: "ಪಂಚಧಾತು ಅಥವಾ ಬೆಳ್ಳಿ", metalEn: "Panchadhatu or Silver", metalHi: "पंचधातु अथवा चांदी", metalTe: "పంచలోహం లేదా వెండి", metalTa: "பஞ்சலோகம் அல்லது வெள்ளி", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
-    [PlanetName.Rahu]: { kn: "ಗೋಮೇಧಿಕ", en: "Hessonite (Gomed)", hi: "गोमेद", te: "గోమేధికం", ta: "கோமேதகம்", sanskrit: "Gomedhika", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", metalHi: "चांदी अथवा पंचधातु", metalTe: "వెండి లేదా పంచలోహం", metalTa: "வெள்ளி அல்லது பஞ்சலோகம்", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
-    [PlanetName.Ketu]: { kn: "ವೈಢೂರ್ಯ", en: "Cat's Eye (Vaidurya)", hi: "लहसुनिया (वैडूर्य)", te: "వైడూర్యం", ta: "வைடூரியம்", sanskrit: "Vaidurya", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", metalHi: "चांदी अथवा पंचधातु", metalTe: "వెండి లేదా పంచలోహం", metalTa: "வெள்ளி அல்லது பஞ்சலோகம்", fingerKn: "ಉಂಗುರದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು", fingerEn: "Ring or Little Finger", fingerHi: "अनामिका अथवा कनिष्ठिका अंगुली", fingerTe: "ఉంగరపు వేలు లేదా చిటికెన వేలు", fingerTa: "மோதிர விரல் அல்லது சுண்டு விரல்" }
+  // 2. Harmonized Gemstone Ring Selection (ಉಂಗುರ / ರತ್ನ - 5 Languages)
+  // Aligns 100% with Parashari Yogakaraka & Bhagyeshadhipati harmony across web preview and 5-Year PDF
+  const harmonizedGem = LAGNA_HARMONIZED_PRIMARY_GEM_MAP[lagnaRashiIdx] || LAGNA_HARMONIZED_PRIMARY_GEM_MAP[0];
+  const selectedGem = {
+    kn: harmonizedGem.kn,
+    en: harmonizedGem.en,
+    hi: harmonizedGem.hi,
+    te: harmonizedGem.te,
+    ta: harmonizedGem.ta,
+    sanskrit: harmonizedGem.sanskrit,
+    metalKn: harmonizedGem.metalKn,
+    metalEn: harmonizedGem.metalEn,
+    metalHi: harmonizedGem.metalHi,
+    metalTe: harmonizedGem.metalTe,
+    metalTa: harmonizedGem.metalTa,
+    fingerKn: harmonizedGem.fingerKn,
+    fingerEn: harmonizedGem.fingerEn,
+    fingerHi: harmonizedGem.fingerHi,
+    fingerTe: harmonizedGem.fingerTe,
+    fingerTa: harmonizedGem.fingerTa
   };
 
-  const selectedGem = gemstoneMap[lagnaLord] || gemstoneMap[PlanetName.Jupiter];
-
-  // Dynamic Activation Day per Lagna Lord (5 Languages)
-  const activationDayMap: Record<PlanetName, { kn: string; en: string; hi: string; te: string; ta: string }> = {
-    [PlanetName.Sun]: { kn: "ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ (ಸೂರ್ಯೋದಯ ಕಾಲದಲ್ಲಿ)", en: "Sunday Morning (Sunrise)", hi: "रविवार प्रातःकाल (सूर्योदय काल)", te: "ఆదివారం ఉదయం (సూర్యోదయ వేళ)", ta: "ஞாயிறு அதிகாலை (சூரியோதய வேளை)" },
-    [PlanetName.Moon]: { kn: "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ಲಪಕ್ಷದಲ್ಲಿ)", en: "Monday Morning (Shukla Paksha)", hi: "शुक्ल पक्ष सोमवार प्रातःकाल", te: "శుక్లపక్ష సోమవారం ఉదయం", ta: "சுக்லபக்ஷ திங்கட்கிழமை அதிகாலை" },
-    [PlanetName.Mars]: { kn: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ (ಕುಜ ಹೋರೆಯಲ್ಲಿ)", en: "Tuesday Morning (Mars Hora)", hi: "मंगलवार प्रातःकाल (मंगल होरा)", te: "మంగళవారం ఉదయం (కుజ హోర)", ta: "செவ்வாய் அதிகாலை (குஜ ஓரை)" },
-    [PlanetName.Mercury]: { kn: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ (ಬುಧ ಹೋರೆಯಲ್ಲಿ)", en: "Wednesday Morning (Mercury Hora)", hi: "बुधवार प्रातःकाल (बुध होरा)", te: "బుధవారం ఉదయం (బుధ హోర)", ta: "புதன் அதிகாலை (புதன் ஓரை)" },
-    [PlanetName.Jupiter]: { kn: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ (ಗುರು ಹೋರೆಯಲ್ಲಿ)", en: "Thursday Morning (Jupiter Hora)", hi: "गुरुवार प्रातःकाल (गुरु होरा)", te: "గురువారం ఉదయం (గురు హోర)", ta: "வியாழன் அதிகாலை (குரு ஓரை)" },
-    [PlanetName.Venus]: { kn: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)", en: "Friday Morning (Venus Hora)", hi: "शुक्रवार प्रातःकाल (शुक्र होरा)", te: "శుక్రవారం ఉదయం (శుక్ర హోర)", ta: "வெள்ளி அதிகாலை (சுக்ர ஓரை)" },
-    [PlanetName.Saturn]: { kn: "ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ (ಶನಿ ಹೋರೆಯಲ್ಲಿ)", en: "Saturday Morning or Evening (Saturn Hora)", hi: "शनिवार प्रातः अथवा सांध्य (शनि होरा)", te: "శనివారం ఉదయం లేదా సాయంత్రం (శని హోర)", ta: "சனிக்கிழமை காலை அல்லது மாலை (சனி ஓரை)" },
-    [PlanetName.Rahu]: { kn: "ಶನಿವಾರ ಸಂಜೆ (ರಾಹುಕಾಲ ಕಳೆದು)", en: "Saturday Evening (Post Rahu Kalam)", hi: "शनिवार सांध्य (राहुकाल उपरांत)", te: "శనివారం సాయంత్రం (రాహుకాలం తర్వాత)", ta: "சனிக்கிழமை மாலை (ராகுகாலம் கடந்த பின்)" },
-    [PlanetName.Ketu]: { kn: "ಗುರುವಾರ ಅಥವಾ ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ", en: "Thursday or Tuesday Morning", hi: "गुरुवार अथवा मंगलवार प्रातःकाल", te: "గురువారం లేదా మంగళవారం ఉదయం", ta: "வியாழன் அல்லது செவ்வாய் அதிகாலை" }
+  const selectedActivationDay = {
+    kn: harmonizedGem.activationDayKn,
+    en: harmonizedGem.activationDayEn,
+    hi: harmonizedGem.activationDayHi,
+    te: harmonizedGem.activationDayTe,
+    ta: harmonizedGem.activationDayTa
   };
-  const selectedActivationDay = activationDayMap[lagnaLord] || activationDayMap[PlanetName.Jupiter];
 
   // Dynamic Shanti Pooja based on Lagna Lord & Affliction (5 Languages)
   let shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ & ಮೃತ್ಯುಂಜಯ ಸಂಪುಟ ನವಗ್ರಹ ಶಾಂತಿ";
@@ -3010,6 +3267,13 @@ export const generateAstrologicalPrescriptions = (
       bhagyaGemstoneEn: bhagyaInfo.en,
       lifeCatalystImpactKn: ykInfo.impactKn,
       lifeCatalystImpactEn: ykInfo.impactEn,
+      secondaryGemstoneKn: harmonizedGem.secondaryLagnaGemKn,
+      secondaryGemstoneEn: harmonizedGem.secondaryLagnaGemEn,
+      caveatKn: harmonizedGem.caveatKn,
+      caveatEn: harmonizedGem.caveatEn,
+      caveatHi: harmonizedGem.caveatHi,
+      caveatTe: harmonizedGem.caveatTe,
+      caveatTa: harmonizedGem.caveatTa,
       // Havala and Tara Bala fields
       isHavalaRecommended,
       havalaPrescriptionKn,
