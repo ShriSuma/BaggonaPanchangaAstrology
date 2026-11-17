@@ -129,6 +129,17 @@ export interface FiveYearCurrentLifeStatus {
   cautionWindowImmediate: string;
   dailyMantraText: string;
   prescribedSevaText: string;
+  emotionalEmpathyHeading?: string;
+  emotionalEmpathyText?: string;
+  turningPointTimeline?: string;
+  fourPillarsDashboard?: {
+    career: { status: "favorable" | "moderate" | "caution"; badgeText: string; oneLiner: string; detail: string };
+    wealth: { status: "favorable" | "moderate" | "caution"; badgeText: string; oneLiner: string; detail: string };
+    family: { status: "favorable" | "moderate" | "caution"; badgeText: string; oneLiner: string; detail: string };
+    health: { status: "favorable" | "moderate" | "caution"; badgeText: string; oneLiner: string; detail: string };
+  };
+  immediateSimpleActionTitle?: string;
+  immediateSimpleActionText?: string;
 }
 
 export interface HotelHospitalityPrivilege {
@@ -198,6 +209,18 @@ export interface FiveYearSingleYear {
     amatyakarakaPlanet: string;
     influenceSummary: string;
   };
+  starRating?: number;
+  starDisplay?: string;
+  yearThemeBadge?: string;
+  yearTakeawayOneLiner?: string;
+  fourPillarsAnnualVerdict?: {
+    career: { status: "good" | "moderate" | "caution"; text: string };
+    wealth: { status: "good" | "moderate" | "caution"; text: string };
+    family: { status: "good" | "moderate" | "caution"; text: string };
+    health: { status: "good" | "moderate" | "caution"; text: string };
+  };
+  goldenMonthsHighlight?: string;
+  cautionMonthHighlight?: string;
 }
 
 export interface FiveYearDoshaItem {
@@ -3588,6 +3611,125 @@ export function calculateCurrentLifeStatus(
     en: "Rudrabhisheka, Mrityunjaya Homa, and Navagraha Shanti Sankalpa at Sri Kshetra Gokarna Mahabaleshwara Temple."
   }, targetLang);
 
+  const emotionalEmpathyHeading = pick6({
+    kn: "ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಮನಸ್ಥಿತಿ ಹಾಗೂ ವಾಸ್ತವ ಜೀವನದ ಅನುಭವ (ಈಗ ನೀವು ಅನುಭವಿಸುತ್ತಿರುವ ಸತ್ಯ)",
+    en: "Your Current Inner Experience & Life Reality (What You Are Feeling Right Now)",
+    mr: "सध्याची आपली मनःस्थिती व वास्तविक जीवन अनुभव (सध्या आपण अनुभवत असलेले सत्य)",
+    hi: "वर्तमान आपकी मनःस्थिति एवं वास्तविक जीवन अनुभव (वर्तमान में आप जो अनुभव कर रहे हैं)",
+    te: "ప్రస్తుత మీ మనఃస్థితి మరియు వాస్తవ జీవిత అనుభవం (ఇప్పుడు మీరు అనుభవిస్తున్న సత్యం)",
+    ta: "தற்போதைய உங்கள் மனநிலை மற்றும் உண்மை வாழ்க்கை அனுபவம்"
+  }, targetLang);
+
+  let emotionalEmpathyText = "";
+  if (isSadeSati || isAshtama) {
+    emotionalEmpathyText = pick6({
+      kn: "ನೀವು ಕಳೆದ ಕೆಲವು ತಿಂಗಳುಗಳಿಂದ ನೂರಕ್ಕೆ ನೂರು ಪ್ರಾಮಾಣಿಕ ಪರಿಶ್ರಮ ಹಾಕುತ್ತಿದ್ದರೂ, ಕೈಗೆ ಬರಬೇಕಾದ ಫಲ ತಡವಾಗುತ್ತಿದೆಯೇ? ಎಲ್ಲ ಜವಾಬ್ದಾರಿಗಳು ನಿಮ್ಮ ಹೆಗಲ ಮೇಲೆಯೇ ಬಿದ್ದಂತೆ, ಮನಸ್ಸಿನಲ್ಲಿ ಅತೀವ ಆಯಾಸ ಹಾಗೂ ಆಪ್ತರಿಂದಲೇ ಸಣ್ಣಪುಟ್ಟ ಅಸಮಾಧಾನ ಕಾಡುತ್ತಿರಬಹುದು. ನೆನಪಿಡಿ, ಇದು ನಿಮ್ಮ ಕರ್ಮದ ದೋಷವಲ್ಲ! ಇದು ಶನೈಶ್ಚರನ ಪರೀಕ್ಷಾ ಸಮಯ. ಈ ಕಠಿಣ ತಪಸ್ಸಿನ ಹಂತವು ಇನ್ನೇನು ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ ಮುಕ್ತಾಯವಾಗಿ, ನಿಮ್ಮ ಎಲ್ಲಾ ಕಷ್ಟಗಳಿಗೆ ಪೂರ್ಣ ಸಾರ್ಥಕತೆ ಹಾಗೂ ಸುವರ್ಣ ತಿರುವು ದೊರೆಯಲಿದೆ.",
+      mr: "तुम्ही गेल्या काही महिन्यांपासून शंभर टक्के प्रामाणिक कष्ट करत असूनही अपेक्षेप्रमाणे फळ विलंबाने मिळत आहे का? सर्व जबाबदाऱ्या एकट्यावरच आल्यासारखे वाटणे, कामात थकवा व जवळच्या लोकांकडून गैरसमज होत असल्यास निराश होऊ नका! हा तुमचा दोष नसून शनीची परीक्षा आहे. हा संयमाचा काळ लवकरच संपून तुमच्या जीवनात सुवर्णसंधी व नवी पहाट येणार आहे.",
+      hi: "आप पिछले कुछ महीनों से शत-प्रतिशत निष्ठा से परिश्रम कर रहे हैं, फिर भी प्रतिफल में देरी का अनुभव हो रहा है? सारी जिम्मेदारियों का बोझ स्वयं पर महसूस होना, मानसिक थकान और अपनों से अनपेक्षित मतभेद होना—यह आपका दोष नहीं है, अपितु शनि की कठिन परीक्षा है। यह धैर्य की अवधि शीघ्र ही समाप्त होकर आपके जीवन में अभूतपूर्व सफलता का मार्ग प्रशस्त करेगी।",
+      te: "గత కొన్ని నెలలుగా మీరు వంద శాతం శ్రమిస్తున్నప్పటికీ, ఫలితం ఆలస్యమవుతోందని భావిస్తున్నారా? బాధ్యతల భారం, మానసిక అలసట కలగడం మీ లోపం కాదు; ఇది శని భగవానుడి పరీక్షా సమయం. ఈ ఓర్పు కాలం త్వరలోనే ముగిసి మీ జీవితంలో అద్భుతమైన మార్పులు రానున్నాయి.",
+      ta: "கடந்த சில மாதங்களாக முழு உழைப்பைத் தந்தும் உரிய பலன் தாமதமாகிறதா? அதிக பொறுப்புகள், மன சோர்வு ஏற்படுவது உங்கள் தவறல்ல; இது சனியின் தற்காலிக பரீட்சை காலம். இந்த சோதனைக் காலம் விரைவில் முடிந்து உங்களுக்கு மகத்தான நன்மைகள் காத்திருக்கின்றன.",
+      en: "Have you felt that despite giving your absolute 100% genuine effort, recognition and rewards have been unjustly delayed? Feeling weighed down by burdens, fatigue, or unreciprocated goodwill is not your fault—it is Saturn's rigorous testing phase. This period of endurance is nearing its resolution, paving the way for your monumental breakthrough."
+    }, targetLang);
+  } else if (hasGuruBala) {
+    emotionalEmpathyText = pick6({
+      kn: "ಹಿಂದಿನ ಕಷ್ಟದ ದಿನಗಳು ನಿಧಾನವಾಗಿ ಕರಗುತ್ತಿದ್ದು, ಮನಸ್ಸಿನಲ್ಲಿ ಹೊಸ ಭರವಸೆ ಹಾಗೂ ಜೀವನದಲ್ಲಿ ಸ್ಥಿರತೆಯ ಬೆಳಕು ಮೂಡುತ್ತಿದೆ. ಹೊಸ ಯೋಜನೆಗಳನ್ನು ಆರಂಭಿಸಲು, ಕುಟುಂಬದಲ್ಲಿ ನೆಮ್ಮದಿ ಕಾಣಲು ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಮುನ್ನಡೆಯಲು ದೈವಾನುಗ್ರಹವು ನಿಮ್ಮ ಬೆಂಬಲಕ್ಕಿದೆ. ಆತುರಪಡದೆ, ಗುರು ಹಿರಿಯರ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ಮುನ್ನಡೆದರೆ ಮಹತ್ತರ ಯಶಸ್ಸು ನಿಶ್ಚಿತ.",
+      mr: "मागील कठीण दिवस आता हळूहळू संपत असून मनात नवी उमेद व जीवनात स्थैर्य येत आहे. नवीन कार्य सुरू करण्यासाठी, कौटुंबिक शांततेसाठी व आत्मविश्वासाने पुढे जाण्यासाठी दैवी कृपा तुमच्या पाठीशी आहे. संयमाने पुढे गेल्यास मोठे यश नक्की मिळेल.",
+      hi: "पूर्व की कठिन परिस्थितियां अब धीरे-धीरे समाप्त हो रही हैं तथा जीवन में नई आशा और स्थिरता का संचार हो रहा है। नए कार्यों के शुभारंभ, पारिवारिक सौहार्द एवं आत्मविश्वास के साथ आगे बढ़ने हेतु ईश्वरीय कृपा आपके साथ है।",
+      te: "గతంలోని ఇబ్బందులు తొలగిపోయి, మనస్సులో నూతన ఆశలు మరియు జీవితంలో స్థిరత్వం ప్రారంభమవుతున్నాయి. కొత్త పనులు ప్రారంభించడానికి మరియు విజయాలు సాధించడానికి దైవానుగ్రహం లభిస్తోంది.",
+      ta: "கடந்த கால தடைகள் நீங்கி, புதிய நம்பிக்கையும் அமைதியும் உருவாகி வருகிறது. புதிய முயற்சிகளைத் தொடங்கவும் குடும்ப அமைதிக்கும் இறை அருள் துணை நிற்கிறது.",
+      en: "Past hurdles are gradually receding as auspicious planetary light restores your inner confidence and stability. Divine grace supports new beginnings, domestic serenity, and steady growth; move forward with clarity and faith."
+    }, targetLang);
+  } else {
+    emotionalEmpathyText = pick6({
+      kn: "ಪ್ರಸ್ತುತ ಜೀವನವು ಒಂದು ಪ್ರಮುಖ ಪರಿವರ್ತನೆಯ ಸಂಧಿಯಲ್ಲಿದೆ. ದಿನನಿತ್ಯದ ಕೆಲಸಗಳಲ್ಲಿ ಯಾವುದೇ ತೊಂದರೆಯಿಲ್ಲದಿದ್ದರೂ, ಮುಂದಿನ ಭವಿಷ್ಯದ ಬಗ್ಗೆ ಅಂತರಂಗದಲ್ಲಿ ತೀವ್ರ ಚಿಂತನೆ ನಡೆಯುತ್ತಿದೆ. ಇದು ಅಡಿಪಾಯವನ್ನು ಗಟ್ಟಿಗೊಳಿಸುವ ಸಮಯವಾಗಿದ್ದು, ಹಳೆಯ ತಪ್ಪುಗಳನ್ನು ಸರಿಪಡಿಸಿಕೊಂಡು ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಸುವರ್ಣಾವಕಾಶಗಳಿಗೆ ನಿಮ್ಮನ್ನು ನೀವು ಸಜ್ಜುಗೊಳಿಸಬೇಕಾದ ನಿರ್ಣಾಯಕ ಹಂತ.",
+      mr: "सध्याचे जीवन एका महत्त्वाच्या परिवर्तनाच्या टप्प्यावर आहे. दैनंदिन कामात अडचण नसली तरी भविष्याविषयी मनात गांभीर्याने विचार सुरू आहेत. ही पायाभरणीची वेळ असून जुन्या अनुभवांमधून शिकून पुढील ५ वर्षांच्या सुवर्णसंधींसाठी स्वतःला तयार करा.",
+      hi: "वर्तमान जीवन एक महत्वपूर्ण परिवर्तनकारी मोड़ पर है। यद्यपि दैनिक जीवन सुचारू है, तथापि भविष्य को लेकर मन में गहन विचार मंथन चल रहा है। यह अपनी नींव सुदृढ़ करने का समय है ताकि आगामी ५ वर्षों के स्वर्णिम अवसरों का पूर्ण लाभ उठाया जा सके।",
+      te: "ప్రస్తుత జీవితం ఒక కీలకమైన మార్పు దిశగా సాగుతోంది. భవిష్యత్తు గురించి లోతైన ఆలోచనలు కొనసాగుతున్నాయి. రాబోయే 5 సంవత్సరాల సువర్ణావకాశాలను అందుకోవడానికి ఇది సరైన పునాది సమయం.",
+      ta: "வாழ்க்கை ஒரு முக்கிய மாற்றக் கட்டத்தில் உள்ளது. எதிர்காலம் குறித்த ஆழமான சிந்தனைகள் எழுகின்றன. அடுத்த 5 ஆண்டுகளின் பொற்கால வாய்ப்புகளுக்கு உங்களை தயார்படுத்த வேண்டிய தருணம் இது.",
+      en: "You are currently standing at a pivotal transformative juncture. While routine persists, your mind is contemplating long-term security. This is your foundation-building phase to align yourself for the extraordinary turning point unfolding ahead."
+    }, targetLang);
+  }
+
+  const turningPointTimeline = (isSadeSati || isAshtama)
+    ? pick6({
+        kn: "ಮುಂದಿನ ೪ ರಿಂದ ೮ ತಿಂಗಳಲ್ಲಿ (೨೦೨೬ ರ ಉತ್ತರಾರ್ಧದಲ್ಲಿ) ಗುರುಬಲದ ಸಂಚಾರ ಆರಂಭವಾಗುತ್ತಿದ್ದಂತೆ, ಕಷ್ಟದ ಮೋಡಗಳು ಕರಗಿ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸುವರ್ಣ ತಿರುವು ಆರಂಭವಾಗಲಿದೆ!",
+        mr: "आगामी ४ ते ८ महिन्यांत (२०२६ च्या उत्तरार्धात) गुरूचे शुभ भ्रमण सुरू होताच अडचणी दूर होऊन आपल्या जीवनात सुवर्ण वळण सुरू होईल!",
+        hi: "आगामी ४ से ८ महीनों में (वर्ष २०२६ के उत्तरार्ध में) गुरु का शुभ गोचर प्रारंभ होते ही बाधाएं दूर होंगी और जीवन में स्वर्णिम मोड़ आएगा!",
+        te: "రాబోయే 4 నుండి 8 నెలల్లో గురుబలం ప్రారంభం కాగానే ఇబ్బందులు తొలగి మీ జీవితంలో అద్భుతమైన మలుపు ప్రారంభమవుతుంది!",
+        ta: "அடுத்த 4 முதல் 8 மாதங்களில் குருபலம் கூடி வர, தடைகள் நீங்கி உங்கள் வாழ்வில் பொற்காலம் மலரும்!",
+        en: "Within the next 4 to 8 months (late 2026), as Jupiter's benefic transit activates, chronic obstacles will dissolve and your golden turnaround will commence!"
+      }, targetLang)
+    : pick6({
+        kn: "ಪ್ರಸ್ತುತ ವರ್ಷದ ೩ನೇ ತ್ರೈಮಾಸಿಕದಿಂದಲೇ ಹೊಸ ಒಪ್ಪಂದಗಳು, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಮಹತ್ವದ ಶುಭಕಾರ್ಯಗಳಿಗೆ ಪೂರ್ಣ ಕಾಲ ಕೂಡಿಬರಲಿದೆ!",
+        mr: "चालू वर्षाच्या तिसऱ्या तिमाहीपासूनच नवीन संधी, आर्थिक स्थैर्य व महत्त्वाच्या मंगल कार्यांसाठी अनुकूल काळ सुरू होईल!",
+        hi: "चालू वर्ष की तीसरी तिमाही से ही नए अवसर, आर्थिक स्थिरता एवं मांगलिक कार्यों हेतु उत्तम कालखंड प्रारंभ होगा!",
+        te: "ప్రస్తుత సంవత్సరం మూడవ త్రైమాసికం నుండే కొత్త అవకాశాలు, ఆర్థిక స్థిరత్వం మరియు శుభకార్యాలు ప్రారంభమవుతాయి!",
+        ta: "நடப்பு ஆண்டின் மூன்றாம் காலாண்டிலிருந்தே புதிய ஒப்பந்தங்கள், பொருளாதார நிலைத்தன்மை மற்றும் சுபகாரியங்கள் கூடிவரும்!",
+        en: "Starting from the 3rd quarter of this cycle, favorable contracts, financial expansion, and long-awaited auspicious milestones will align smoothly!"
+      }, targetLang);
+
+  const careerStatus: "favorable" | "moderate" | "caution" = hasGuruBala ? "favorable" : (isKantaka || isAshtama) ? "caution" : "moderate";
+  const wealthStatus: "favorable" | "moderate" | "caution" = (isAshtama || isSadeSati) ? "caution" : hasGuruBala ? "favorable" : "moderate";
+  const familyStatus: "favorable" | "moderate" | "caution" = isKantaka ? "caution" : "favorable";
+  const healthStatus: "favorable" | "moderate" | "caution" = isAshtama ? "caution" : isSadeSati ? "moderate" : "favorable";
+
+  const fourPillarsDashboard = {
+    career: {
+      status: careerStatus,
+      badgeText: careerStatus === "favorable"
+        ? pick6({ kn: "ಬಡ್ತಿ & ವೃತ್ತಿ ಪ್ರಗತಿ", mr: "बढती व प्रगती", hi: "पदोन्नति एवं प्रगति", te: "పదోన్నతి & ప్రగతి", ta: "பதவி உயர்வு & வளர்ச்சி", en: "Advancement & Progress" }, targetLang)
+        : careerStatus === "caution"
+          ? pick6({ kn: "ಶ್ರಮ & ತಾಳ್ಮೆ ಅಗತ್ಯ", mr: "संयम व कष्ट हवेत", hi: "धैर्य एवं परिश्रम आवश्यक", te: "ఓర్పు & శ్రమ అవసరం", ta: "பொறுமையும் உழைப்பும் தேவை", en: "Patience & Steadfast Effort" }, targetLang)
+          : pick6({ kn: "ಸ್ಥಿರತೆ & ನೂತನ ಅವಕಾಶ", mr: "स्थैर्य व नवीन संधी", hi: "स्थिरता एवं नए अवसर", te: "స్థిరత్వం & కొత్త అవకాశాలు", ta: "நிலைத்தன்மை & புதிய வாய்ப்பு", en: "Stability & Steady Growth" }, targetLang),
+      oneLiner: careerImmediateFocus,
+      detail: ""
+    },
+    wealth: {
+      status: wealthStatus,
+      badgeText: wealthStatus === "favorable"
+        ? pick6({ kn: "ಆರ್ಥಿಕ ಉಳಿತಾಯ ವೃದ್ಧಿ", mr: "धनलाभ व बचत", hi: "धनलाभ एवं बचत", te: "ధనలాభం & పొదుపు", ta: "தனலாபம் & சேமிப்பு", en: "Wealth Accretion" }, targetLang)
+        : wealthStatus === "caution"
+          ? pick6({ kn: "ಖರ್ಚು ನಿಯಂತ್ರಿಸಿ", mr: "खर्च नियंत्रित ठेवा", hi: "खर्च पर नियंत्रण रखें", te: "ఖర్చులు నియంత్రించండి", ta: "செலவைக் கட்டுப்படுத்துக", en: "Prudent Budgeting" }, targetLang)
+          : pick6({ kn: "ಸಾಮಾನ್ಯ ಆರ್ಥಿಕ ಸ್ಥಿತಿ", mr: "मध्यम आर्थिक स्थिती", hi: "संतुलित वित्तीय स्थिति", te: "సాధారణ ఆర్థిక స్థితి", ta: "சமநிலை நிதிநிலை", en: "Balanced Finances" }, targetLang),
+      oneLiner: wealthImmediateFocus,
+      detail: ""
+    },
+    family: {
+      status: familyStatus,
+      badgeText: familyStatus === "favorable"
+        ? pick6({ kn: "ಸೌಖ್ಯ & ಶುಭಕಾರ್ಯ", mr: "कौटुंबिक सुख व शांतता", hi: "पारिवारिक सुख एवं शांति", te: "సౌఖ్యం & శుభకార్యం", ta: "குடும்ப சுபிக்ஷம்", en: "Domestic Harmony" }, targetLang)
+        : pick6({ kn: "ಸಂಯಮ & ಶಾಂತಿ ಅಗತ್ಯ", mr: "सामंजस्य व संयम ठेवा", hi: "सामंजस्य एवं संयम रखें", te: "శాంతి & సమన్వయం అవసరం", ta: "ஒற்றுமை அவசியம்", en: "Maintain Composure" }, targetLang),
+      oneLiner: familyImmediateFocus,
+      detail: ""
+    },
+    health: {
+      status: healthStatus,
+      badgeText: healthStatus === "favorable"
+        ? pick6({ kn: "ಉತ್ತಮ ಚೈತನ್ಯ & ಉತ್ಸಾಹ", mr: "उत्तम आरोग्य व उत्साह", hi: "उत्तम स्वास्थ्य एवं स्फूर्ति", te: "ఉత్తమ ఆరోగ్యం & ఉత్సాహం", ta: "சிறந்த ஆரோக்கியம்", en: "Robust Vitality" }, targetLang)
+        : pick6({ kn: "ಧ್ಯಾನ & ವಿಶ್ರಾಂತಿ ಅಗತ್ಯ", mr: "विश्रांती व काळजी हवी", hi: "विश्राम एवं ध्यान आवश्यक", te: "విశ్రాంతి & ధ్యానం అవసరం", ta: "ஓய்வும் தியானமும் தேவை", en: "Rest & Rejuvenation" }, targetLang),
+      oneLiner: healthImmediateFocus,
+      detail: ""
+    }
+  };
+
+  const immediateSimpleActionTitle = pick6({
+    kn: "ಇಂದೇ ಮನೆಯಲ್ಲಿ ನೀವು ಮಾಡಬಹುದಾದ ೨ ನಿಮಿಷದ ಸರಳ ಶಾಂತಿ ಕ್ರಮ",
+    mr: "आजपासूनच घरी करता येणारा २ मिनिटांचा सोपा शांती उपाय",
+    hi: "आज से ही घर पर करने योग्य २ मिनट का सरल शांति उपाय",
+    te: "ఈ రోజు నుండే ఇంట్లో చేసుకోగల 2 నిమిషాల సులభమైన శాంతి పరిహారం",
+    ta: "இன்றே வீட்டில் செய்யக்கூடிய 2 நிமிட எளிய வழிபாட்டு முறை",
+    en: "Immediate 2-Minute Daily Peaceful Ritual You Can Do At Home"
+  }, targetLang);
+
+  const immediateSimpleActionText = pick6({
+    kn: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ತುಪ್ಪದ ಅಥವಾ ಎಳ್ಳೆಣ್ಣೆಯ ದೀಪವನ್ನು ಹಚ್ಚಿ, ಮನಸ್ಸಿನಲ್ಲಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ 'ಶ್ರೀ ರಾಮದೂತಾಯ ಆಂಜನೇಯಾಯ ನಮಃ' ಎಂದು ೧೧ ಬಾರಿ ಜಪಿಸಿ. ಇದು ದಿನದ ಮಾನಸಿಕ ಆತಂಕವನ್ನು ಕಳೆದು ಮನಸ್ಸಿಗೆ ತಕ್ಷಣದ ಶಾಂತಿ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣೆ ಒದಗಿಸುತ್ತದೆ.",
+    mr: "दररोज सकाळी किंवा संध्याकाळी घरातील देव्हाऱ्यात शुद्ध तुपाचा किंवा तिळाच्या तेलाचा दिवा लावा आणि 'ॐ नमः शिवाय' किंवा 'श्री रामदूताय अंजनेयाय नमः' चा ११ वेळा जप करा. यामुळे मनातील भीती व ताण दूर होऊन तात्काळ मनःशांती लाभेल.",
+    hi: "प्रतिदिन प्रातःकाल अथवा संध्याकाल घर के पूजास्थान में शुद्ध घी अथवा तिल के तेल का दीपक प्रज्वलित कर 'ॐ नमः शिवाय' अथवा 'श्री रामदूताय आंजनेयाय नमः' का ११ बार जप करें। इससे मानसिक तनाव दूर होकर मन को तत्काल शांति एवं ईश्वरीय सुरक्षा प्राप्त होगी।",
+    te: "ప్రతిరోజూ ఉదయం లేదా సాయంత్రం ఇంట్లో దీపం వెలిగించి, 'ఓం నమః శివాయ' లేదా 'శ్రీ ఆంజనేయాయ నమః' అని 11 సార్లు జపించండి. ఇది మనశ్శాంతిని మరియు దైవిక రక్షణను ఇస్తుంది.",
+    ta: "தினமும் காலை அல்லது மாலையில் வீட்டில் நெய் அல்லது நல்லெண்ணெய் தீபம் ஏற்றி, 'ஓம் நம சிவாய' அல்லது 'ஸ்ரீ ஆஞ்சநேயாய நமஹ' என 11 முறை ஜபிக்கவும். இது உடனடி மன அமைதியைத் தரும்.",
+    en: "Light a sacred pure cow-ghee or sesame lamp in your home shrine every morning or evening and chant 'Om Namah Shivaya' or 'Sri Ramadutaya Anjaneyaya Namah' 11 times. This instantly clears mental friction and establishes divine peace."
+  }, targetLang);
+
   return {
     bannerBadge,
     title,
@@ -3616,7 +3758,13 @@ export function calculateCurrentLifeStatus(
     healthImmediateFocus,
     cautionWindowImmediate,
     dailyMantraText,
-    prescribedSevaText
+    prescribedSevaText,
+    emotionalEmpathyHeading,
+    emotionalEmpathyText,
+    turningPointTimeline,
+    fourPillarsDashboard,
+    immediateSimpleActionTitle,
+    immediateSimpleActionText
   };
 }
 
@@ -4712,6 +4860,72 @@ export function compute5YearMasterPrediction(
     const vedhaAnalysis = computeGocharaVedha(moonIdx, shaniSign, guruSign, targetLang);
     const charaKarakaInfluence = computeCharaKarakaInfluence(kundli, mahaLord, targetLang);
 
+    const starRating = score >= 90 ? 5 : score >= 75 ? 4 : 3;
+    const starDisplay = starRating === 5 ? "⭐⭐⭐⭐⭐" : starRating === 4 ? "⭐⭐⭐⭐☆" : "⭐⭐⭐☆☆";
+
+    const yearThemeBadge = starRating === 5
+      ? pick6({ kn: "ಸುವರ್ಣ ಮಹಾ ತಿರುವು ವರ್ಷ", mr: "सुवर्ण महा वळण वर्ष", hi: "स्वर्णिम महा मोड़ वर्ष", te: "సువర్ణ మహా మలుపు సంవత్సరం", ta: "பொற்கால திருப்புமுனை ஆண்டு", en: "Golden Pivotal Turning Year" }, targetLang)
+      : starRating === 4
+        ? pick6({ kn: "ಪ್ರಗತಿ & ಸ್ಥಿರತೆಯ ವರ್ಷ", mr: "प्रगती व स्थैर्याचे वर्ष", hi: "प्रगति एवं स्थिरता का वर्ष", te: "ప్రగతి & స్థిరత్వ సంవత్సరం", ta: "வளர்ச்சி & நிலைத்தன்மை ஆண்டு", en: "Progress & Consolidation Year" }, targetLang)
+        : pick6({ kn: "ಶ್ರಮ & ಅಡಿಪಾಯ ವರ್ಷ", mr: "कष्ट व पायाभरणीचे वर्ष", hi: "परिश्रम एवं नींव निर्माण वर्ष", te: "శ్రమ & పునాది సంవత్సరం", ta: "உழைப்பு & அடித்தள ஆண்டு", en: "Foundational Effort Year" }, targetLang);
+
+    const yearTakeawayOneLiner = starRating === 5
+      ? pick6({
+          kn: "ಜೀವನದ ಬಹುದಿನದ ಕನಸು ನನಸಾಗುವ ಸುವರ್ಣ ಕಾಲ; ಹೊಸ ಆಸ್ತಿ, ಬಡ್ತಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಮಹತ್ತರ ಗೌರವ ತರುವ ಅದೃಷ್ಟ ವರ್ಷ.",
+          mr: "जीवनातील बहुप्रतिक्षित स्वप्ने पूर्ण होण्याचा सुवर्ण काळ; नवीन संपत्ती, पदोन्नती व समाजात मान-सन्मान देणारे वर्ष.",
+          hi: "जीवन के चिरप्रतीक्षित स्वप्नों के साकार होने का स्वर्णिम समय; नई संपत्ति, पदोन्नति एवं समाज में यश-कीर्ति प्रदायक वर्ष।",
+          te: "ఎన్నో రోజుల కలలు నెరవేరే సువర్ణ సమయం; కొత్త ఆస్తి, పదోన్నతి మరియు సమాజంలో గౌరవం తెచ్చే అదృష్ట సంవత్సరం.",
+          ta: "நீண்ட நாள் கனவுகள் நனவாகும் பொற்காலம்; புதிய சொத்து, பதவி உயர்வு மற்றும் சமுதாயத்தில் நன்மதிப்பு தரும் ஆண்டு.",
+          en: "A golden landmark cycle when long-cherished ambitions materialize, bringing property/career ascent and societal esteem."
+        }, targetLang)
+      : starRating === 4
+        ? pick6({
+          kn: "ಕಠಿಣ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ದೊರೆತು, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ನೆಮ್ಮದಿ ತರುವ ಬೆಳವಣಿಗೆಯ ವರ್ಷ.",
+          mr: "कष्टाचे योग्य फळ मिळून आर्थिक स्थैर्य व कुटुंबात सुख-समाधान आणणारे प्रगतीचे वर्ष.",
+          hi: "कठिन परिश्रम का उचित प्रतिफल प्राप्त होकर आर्थिक स्थिरता एवं पारिवारिक शांति देने वाला वर्ष।",
+          te: "కష్టానికి తగిన ప్రతిఫలం లభించి, ఆర్థిక స్థిరత్వం మరియు కుటుంబంలో ప్రశాంతత తెచ్చే సంవత్సరం.",
+          ta: "உழைப்பிற்கேற்ற நற்பலன் கிடைத்து, பொருளாதார நிலைத்தன்மையும் குடும்ப அமைதியும் தரும் ஆண்டு.",
+          en: "A steady growth cycle where consistent effort yields financial stability, domestic harmony, and fruitful expansion."
+        }, targetLang)
+        : pick6({
+          kn: "ತಾಳ್ಮೆ ಹಾಗೂ ಜಾಗರೂಕತೆಯಿಂದ ಅಡಿಪಾಯ ಭದ್ರಪಡಿಸಿಕೊಳ್ಳಬೇಕಾದ ವರ್ಷ; ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ತಪ್ಪಿಸಿದರೆ ಮುಂದೆ ದೊಡ್ಡ ಜಯ ನಿಶ್ಚಿತ.",
+          mr: "संयम व खबरदारीने पाया मजबूत करण्याचे वर्ष; घाईघाईचे निर्णय टाळल्यास पुढे मोठे यश नक्की मिळेल.",
+          hi: "धैर्य एवं सतर्कता से अपनी नींव सुदृढ़ करने का वर्ष; जल्दबाजी के निर्णयों से बचें तो आगे बड़ी विजय सुनिश्चित होगी।",
+          te: "ఓర్పుతో పునాదిని పటిష్టం చేసుకోవాల్సిన సంవత్సరం; ఆవేశ నిర్ణయాలు తీసుకోకపోతే మున్ముందు గొప్ప విజయం తథ్యం.",
+          ta: "பொறுமையுடன் அடித்தளத்தை அமைக்கும் ஆண்டு; அவசர முடிவுகளைத் தவிர்த்தால் எதிர்காலத்தில் பெரிய வெற்றி நிச்சயம்.",
+          en: "A foundation-building year requiring patient discipline; avoiding reckless haste ensures sweeping triumphs ahead."
+        }, targetLang);
+
+    const fourPillarsAnnualVerdict = {
+      career: {
+        status: (starRating >= 4 ? "good" : "moderate") as "good" | "moderate" | "caution",
+        text: starRating >= 4
+          ? pick6({ kn: "ಹೊಸ ಜವಾಬ್ದಾರಿ, ಆದಾಯ ವೃದ್ಧಿ ಹಾಗೂ ಉನ್ನತ ಸ್ಥಾನ", mr: "नवीन संधी, उत्पन्न वाढ व उच्च पद", hi: "नए अवसर, आय वृद्धि एवं उच्च पद", te: "కొత్త అవకాశాలు, ఆదాయ వృద్ధి", ta: "புதிய வாய்ப்புகள், வருமான உயர்வு", en: "New Responsibilities & Promotion" }, targetLang)
+          : pick6({ kn: "ಸ್ಥಿರ ಕರ್ತವ್ಯ ನಿರ್ವಹಣೆ, ಆತುರದ ಬದಲಾವಣೆ ಬೇಡ", mr: "चालू काम निष्ठेने करा, घाई नको", hi: "वर्तमान कार्य पर ध्यान दें, जल्दबाजी से बचें", te: "ఉన్న ఉద్యోగంలో కొనసాగడం మంచిది", ta: "தற்போதைய பணியில் கவனம் தேவை", en: "Steady Routine, Avoid Hasty Exits" }, targetLang)
+      },
+      wealth: {
+        status: (starRating >= 4 ? "good" : "caution") as "good" | "moderate" | "caution",
+        text: starRating >= 4
+          ? pick6({ kn: "ಸಾಲ ಬಾಕಿ ತೀರಿಸುವ ಯೋಗ, ನೂತನ ಆಸ್ತಿ ಹೂಡಿಕೆ", mr: "कर्जमुक्तीचे योग, नवीन संपत्ती गुंतवणूक", hi: "ऋणमुक्ति के योग, नई संपत्ति में निवेश", te: "అప్పులు తీరే అవకాశం, ఆస్తి కొనుగోలు", ta: "கடன் சுமை குறையும், புதிய முதலீடு", en: "Debt Resolution & Asset Acquisition" }, targetLang)
+          : pick6({ kn: "ಹಣದ ಹರಿವಿನಲ್ಲಿ ಜಾಗ್ರತೆ, ದೊಡ್ಡ ಸಾಲ ಬೇಡ", mr: "आर्थिक व्यवहार सांभाळा, कर्ज टाळा", hi: "वित्तीय लेन-देन में सावधानी, बड़ा कर्ज न लें", te: "ఖర్చులపై అప్రమత్తత, కొత్త రుణాలు వద్దు", ta: "பணப்பரிவர்த்தனையில் கவனம், கடன் தவிர்க", en: "Prudent Cash Flow, Avoid New Loans" }, targetLang)
+      },
+      family: {
+        status: "good" as "good" | "moderate" | "caution",
+        text: starRating >= 4
+          ? pick6({ kn: "ಕುಟುಂಬದಲ್ಲಿ ಶುಭಕಾರ್ಯ, ಶಾಂತಿ ಹಾಗೂ ಬಾಂಧವ್ಯ ವೃದ್ಧಿ", mr: "कुटुंबात मंगल कार्ये, सुख व सौहार्द", hi: "पारिवारिक मांगलिक कार्य, सुख एवं सद्भाव", te: "కుటుంబంలో శుభకార్యాలు, సంతోషం", ta: "குடும்பத்தில் சுபகாரியங்கள், மகிழ்ச்சி", en: "Auspicious Celebrations & Peace" }, targetLang)
+          : pick6({ kn: "ಸಣ್ಣಪುಟ್ಟ ಮಾತುಕತೆಗೆ ಕಿವಿಗೊಡದೆ ಸೌಹಾರ್ದತೆ ಕಾಪಾಡಿ", mr: "किरकोळ वाद टाळा, शांतता राखा", hi: "छोटे विवादों की अनदेखी करें, शांति बनाए रखें", te: "చిన్న విషయాలను పట్టించుకోకండి", ta: "சிறு கருத்து வேறுபாடுகளைத் தவிர்க்கவும்", en: "Overlook Petty Friction, Foster Unity" }, targetLang)
+      },
+      health: {
+        status: (starRating >= 4 ? "good" : "moderate") as "good" | "moderate" | "caution",
+        text: starRating >= 4
+          ? pick6({ kn: "ಉತ್ತಮ ಮನೋಬಲ, ಆರೋಗ್ಯ ಸುಧಾರಣೆ ಹಾಗೂ ಚೈತನ್ಯ", mr: "उत्तम मनोधैर्य, आरोग्य सुधारणा व उत्साह", hi: "उत्तम मनोबल, स्वास्थ्य सुधार एवं ऊर्जा", te: "మంచి ఆరోగ్యం, ఉత్సాహం", ta: "சிறந்த மன உறுதி, நல்வாழ்வு", en: "Strong Vitality & Rejuvenation" }, targetLang)
+          : pick6({ kn: "ನಿಯಮಿತ ನಡಿಗೆ, ಆಹಾರ ಪಥ್ಯ ಹಾಗೂ ನಿದ್ರೆಯ ಕಾಳಜಿ", mr: "आहार, विहार व पुरेशी झोप यावर लक्ष द्या", hi: "नियमित दिनचर्या, खान-पान एवं निद्रा का ध्यान रखें", te: "ఆహార నియమాలు, తగిన విశ్రాంతి అవసరం", ta: "முறையான உணவு, தகுந்த தூக்கம் அவசியம்", en: "Disciplined Sleep & Dietary Prudence" }, targetLang)
+      }
+    };
+
+    const goldenMonthsHighlight = goldenWindow;
+    const cautionMonthHighlight = caution;
+
     years.push({
       yearIndex: i,
       gregorianRange,
@@ -4746,7 +4960,14 @@ export function compute5YearMasterPrediction(
       charaKarakaInfluence,
       isBandhanaRisk,
       isArishtaRisk,
-      isRajaYogaPeak
+      isRajaYogaPeak,
+      starRating,
+      starDisplay,
+      yearThemeBadge,
+      yearTakeawayOneLiner,
+      fourPillarsAnnualVerdict,
+      goldenMonthsHighlight,
+      cautionMonthHighlight
     });
   }
 

@@ -336,4 +336,56 @@ describe("FiveYearPredictionPdfTemplate Visual Architecture & Content Audit", ()
     expect(mrHotelSection?.textContent).toContain("स्वच्छ एसी व डिलक्स खोल्या");
     expect(mrHotelSection?.textContent).toContain("9972339362 / 9481389362");
   });
+
+  it("renders Executive Golden Hero Box, empathetic Current Life Status with 4-pillar dashboard, turning point and 2-min remedy", () => {
+    const data = getTestPayload("kn");
+    const { container } = render(<FiveYearPredictionPdfTemplate data={data} />);
+
+    // 1. Executive Golden Hero Box (At-a-Glance)
+    const execBox = container.querySelector('[data-section="executive-glance"]');
+    expect(execBox).not.toBeNull();
+    expect(execBox?.textContent).toContain("೫ ವರ್ಷಗಳ ಜೀವಮಾನದ ಸುವರ್ಣ ತಿರುವು • ತ್ವರಿತ ದರ್ಶನ");
+    expect(execBox?.textContent).toContain("ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ");
+    expect(execBox?.textContent).toContain("ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್");
+    expect(execBox?.textContent).toContain("ದೈವಿಕ ರಕ್ಷಾ ಕವಚ");
+    expect(execBox?.textContent).toContain("೫ ವರ್ಷಗಳ ದೈವಿಕ ಧ್ಯೇಯವಾಕ್ಯ");
+
+    // 2. Current Life Status Emotional Empathy Card & 4-Pillar Dashboard
+    const currentSection = container.querySelector('[data-section="current-life-status"]');
+    expect(currentSection).not.toBeNull();
+    expect(currentSection?.textContent).toContain("ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಮನಸ್ಥಿತಿ ಹಾಗೂ ವಾಸ್ತವ ಜೀವನದ ಅನುಭವ");
+    expect(currentSection?.textContent).toContain("ಪ್ರಸ್ತುತ ಜೀವನದ ೪ ಸ್ತಂಭಗಳ ಸ್ಥಿತಿ ದರ್ಶನ");
+    expect(currentSection?.textContent).toContain("ಉದ್ಯೋಗ & ವೃತ್ತಿ");
+    expect(currentSection?.textContent).toContain("ಆರ್ಥಿಕತೆ & ಹಣಕಾಸು");
+    expect(currentSection?.textContent).toContain("ಕುಟುಂಬ & ಮನಶ್ಶಾಂತಿ");
+    expect(currentSection?.textContent).toContain("ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ");
+
+    // 3. Turning Point Timeline & 2-Minute Simple Action
+    expect(currentSection?.textContent).toContain("ಗ್ರಹಗಳ ಬದಲಾವಣೆ ಹಾಗೂ ಸುವರ್ಣ ತಿರುವು ಆರಂಭವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ");
+    expect(currentSection?.textContent).toContain("೨ ನಿಮಿಷದ ಸರಳ ಶಾಂತಿ ಕ್ರಮ");
+  });
+
+  it("renders Visual Year Dashboard Cards for all 5 years with 1-sentence takeaways, star power ratings, 4-pillar verdicts, and friendly subheadings", () => {
+    const data = getTestPayload("kn");
+    const { container } = render(<FiveYearPredictionPdfTemplate data={data} />);
+
+    for (let yr = 1; yr <= 5; yr++) {
+      const yearSection = container.querySelector(`[data-section="year-${yr}"]`);
+      expect(yearSection).not.toBeNull();
+
+      // Visual Year Dashboard elements
+      expect(yearSection?.textContent).toContain("ಭಾಗ್ಯೋದಯ ಬಲ");
+      expect(yearSection?.textContent).toContain("ಈ ವರ್ಷದ ಮುಖ್ಯಾಂಶ (ಏಕವಾಕ್ಯ ಸಾರಾಂಶ)");
+      expect(yearSection?.textContent).toContain("ವೃತ್ತಿ");
+      expect(yearSection?.textContent).toContain("ಧನ");
+      expect(yearSection?.textContent).toContain("ಕುಟುಂಬ");
+      expect(yearSection?.textContent).toContain("ಆರೋಗ್ಯ");
+      expect(yearSection?.textContent).toContain("ಸುವರ್ಣ ಫಲಪ್ರದ ತಿಂಗಳುಗಳು");
+
+      // Friendly Subheadings for 3 paragraphs
+      expect(yearSection?.textContent).toContain("೧. ಪ್ರಮುಖ ಜೀವನ ತಿರುವು ಹಾಗೂ ಕರ್ಮಗತಿ");
+      expect(yearSection?.textContent).toContain("೨. ವೃತ್ತಿ, ಆರ್ಥಿಕತೆ & ಕೌಟುಂಬಿಕ ಬೆಳವಣಿಗೆ");
+      expect(yearSection?.textContent).toContain("೩. ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಹಾಗೂ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ");
+    }
+  });
 });
