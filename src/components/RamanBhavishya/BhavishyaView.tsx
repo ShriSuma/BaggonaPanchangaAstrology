@@ -2767,7 +2767,7 @@ Return ONLY this JSON (no extra text before or after):
       );
       let qrCodeUrl = "";
       try {
-        const qrPayload = `https://baggonapanchanga.web.app/?name=${encodeURIComponent(session.input.name)}&rashi=${session.result.moonSign.index}&nakshatra=${moonPlanet?.nakshatra?.index ?? 0}&priest=9972339362`;
+        const qrPayload = `https://baggonapanchanga.com/?name=${encodeURIComponent(session.input.name)}&rashi=${session.result.moonSign.index}&nakshatra=${moonPlanet?.nakshatra?.index ?? 0}&priest=9972339362`;
         qrCodeUrl = await QRCode.toDataURL(qrPayload, {
           errorCorrectionLevel: "M",
           margin: 2,

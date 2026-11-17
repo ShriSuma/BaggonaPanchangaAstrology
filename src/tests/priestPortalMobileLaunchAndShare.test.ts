@@ -13,12 +13,12 @@ describe("Priest Portal Mobile Launch and Share Engine", () => {
   });
 
   it("builds valid canonical shareable Priest Panchanga URL without target=_blank pitfalls", () => {
-    const origin = "https://baggona-panchanga-astrology.vercel.app";
+    const origin = "https://baggonapanchanga.com";
     const testDate = "2026-03-19";
     const pincode = "581326";
     const priestShareUrl = `${origin}/?portal=priest_panchanga&date=${testDate}&pincode=${pincode}`;
 
-    expect(priestShareUrl).toBe("https://baggona-panchanga-astrology.vercel.app/?portal=priest_panchanga&date=2026-03-19&pincode=581326");
+    expect(priestShareUrl).toBe("https://baggonapanchanga.com/?portal=priest_panchanga&date=2026-03-19&pincode=581326");
     
     // Verify params parse correctly
     const parsed = new URL(priestShareUrl);
@@ -28,7 +28,7 @@ describe("Priest Portal Mobile Launch and Share Engine", () => {
   });
 
   it("constructs WhatsApp share payload with authentic Priest invitation text", () => {
-    const origin = "https://baggona-panchanga-astrology.vercel.app";
+    const origin = "https://baggonapanchanga.com";
     const testDate = "2026-03-19";
     const pincode = "581326";
     const priestShareUrl = `${origin}/?portal=priest_panchanga&date=${testDate}&pincode=${pincode}`;

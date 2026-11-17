@@ -141,7 +141,7 @@ describe("High Precision Pincode Sun Times & 100% Muhurtha Parity Audit", () => 
       lang: "kn" as const,
       rhythmDays: [mockDay as any],
       days: [mockDay as any],
-      calendarUrl: "https://baggonapanchanga.web.app/calendar"
+      calendarUrl: "https://baggonapanchanga.com/calendar"
     };
 
     const icsContent = generateSevaICalendarString(options);

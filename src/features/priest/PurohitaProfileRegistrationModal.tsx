@@ -188,7 +188,7 @@ export const PurohitaProfileRegistrationModal: React.FC<PurohitaProfileRegistrat
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="pandit@baggona.com"
+              placeholder="pandit@baggonapanchanga.com"
               className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-slate-900 text-xs font-bold focus:border-amber-500 focus:outline-none shadow-inner"
             />
           </div>

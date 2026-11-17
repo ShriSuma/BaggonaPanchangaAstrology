@@ -467,7 +467,7 @@ export async function generateSuperAdminBatchPdfs(
         // Generate QR code data URL with localized names
         let qrDataUrl = "";
         try {
-          const qrText = `https://baggona.com/daily?action=seva&priest=${encodeURIComponent(localizedPriestName)}&pooja=${encodeURIComponent(localizedPoojaName)}&native=${encodeURIComponent(localizedDevoteeName)}`;
+          const qrText = `https://baggonapanchanga.com/daily?action=seva&priest=${encodeURIComponent(localizedPriestName)}&pooja=${encodeURIComponent(localizedPoojaName)}&native=${encodeURIComponent(localizedDevoteeName)}`;
           qrDataUrl = await QRCode.toDataURL(qrText, {
             errorCorrectionLevel: "M",
             margin: 2,

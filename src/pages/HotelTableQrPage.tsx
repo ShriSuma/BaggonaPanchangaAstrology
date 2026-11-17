@@ -98,7 +98,7 @@ export default function HotelTableQrPage(): JSX.Element {
     if (typeof window !== "undefined") {
       return `${window.location.origin}/antaranga`;
     }
-    return "https://baggona.com/antaranga";
+    return "https://baggonapanchanga.com/antaranga";
   };
 
   // Generate QR Codes with Astrological Screen Loader
@@ -471,10 +471,10 @@ export default function HotelTableQrPage(): JSX.Element {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCustomBaseHost("https://baggona.com")}
+                  onClick={() => setCustomBaseHost("https://baggonapanchanga.com")}
                   className="px-2 py-0.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-300 font-medium cursor-pointer"
                 >
-                  🌐 Production (baggona.com)
+                  🌐 Production (baggonapanchanga.com)
                 </button>
                 {customBaseHost && (
                   <button

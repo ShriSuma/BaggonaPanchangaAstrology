@@ -100,7 +100,7 @@ describe("Priest Mobile Portal: Consultation Engine & Technical Precision", () =
 
     const priestId = "priest_shreeram";
     const priestName = "Shreeram Pandit";
-    const inviteUrl = `https://baggona-panchanga.firebaseapp.com/?portal=priest&user=${encodeURIComponent(priestId)}&name=${encodeURIComponent(priestName)}&firstTime=true`;
+    const inviteUrl = `https://baggonapanchanga.com/?portal=priest&user=${encodeURIComponent(priestId)}&name=${encodeURIComponent(priestName)}&firstTime=true`;
     
     expect(inviteUrl).toContain("portal=priest");
     expect(inviteUrl).toContain("user=priest_shreeram");

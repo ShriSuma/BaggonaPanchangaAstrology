@@ -541,7 +541,7 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
     lng = 74.3187,
     locationName = "Gokarna",
     priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-    webAppBaseUrl = "https://baggonapanchanga.web.app",
+    webAppBaseUrl = "https://baggonapanchanga.com",
     lang = "kn"
   } = options;
 

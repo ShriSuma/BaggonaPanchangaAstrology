@@ -1248,7 +1248,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     let isMounted = true;
     try {
       const phoneDigits = (overridePriestPhone || "9482109844").replace(/[^0-9]/g, "") || "9482109844";
-      const verifyUrl = `https://baggonapanchanga.web.app/daily?action=dosha_verify&devotee=${encodeURIComponent(
+      const verifyUrl = `https://baggonapanchanga.com/daily?action=dosha_verify&devotee=${encodeURIComponent(
         devoteeInfo.name || "Devotee"
       )}&priestPhone=${phoneDigits}&lang=${code}`;
 

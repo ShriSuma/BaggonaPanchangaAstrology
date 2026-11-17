@@ -100,7 +100,7 @@ export function generateMaranottaraICalendar(
 
     lines.push(
       "BEGIN:VEVENT",
-      `UID:antyesti-d${day.dayNumber}-${result.demiseDate}-${Math.abs(result.personName.length)}@baggonapanchanga.web.app`,
+      `UID:antyesti-d${day.dayNumber}-${result.demiseDate}-${Math.abs(result.personName.length)}@baggonapanchanga.com`,
       `DTSTAMP:${nowIso}`,
       `DTSTART;VALUE=DATE:${dtStart}`,
       `DTEND;VALUE=DATE:${dtEnd}`,
@@ -121,7 +121,7 @@ export function generateMaranottaraICalendar(
   // 2. Add 12 to 60 Monthly Masika Shraddhas scheduled during exact Aparahna Kaala
   result.masikaSchedule.forEach((item: MasikaScheduleItem) => {
     const compactDate = formatYmdCompact(item.gregorianDate);
-    const uid = `masika-m${item.monthIndex}-${item.gregorianDate}-${Math.abs(result.personName.length)}@baggonapanchanga.web.app`;
+    const uid = `masika-m${item.monthIndex}-${item.gregorianDate}-${Math.abs(result.personName.length)}@baggonapanchanga.com`;
 
     // Aparahna default 13:30 to 15:45 IST
     const dtStart = `${compactDate}T133000`;
@@ -157,7 +157,7 @@ export function generateMaranottaraICalendar(
       "🏛️ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ",
       "🕉️ ಮುಖ್ಯ ಅರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
       "📞 ಮೊಬೈಲ್: +91 99723 39362",
-      "🌐 ವೆಬ್‌ಸೈಟ್: https://baggonapanchanga.web.app/maranottara"
+      "🌐 ವೆಬ್‌ಸೈಟ್: https://baggonapanchanga.com/maranottara"
     ];
 
     lines.push(

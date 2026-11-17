@@ -153,7 +153,7 @@ export async function searchOnlineIndianCities(query: string, limit = 6): Promis
       signal: controller.signal,
       headers: {
         Accept: "application/json",
-        "User-Agent": "BaggonaPanchangaAstrologyPWA/1.0 (city-autocomplete; contact: support@baggona.com)"
+        "User-Agent": "BaggonaPanchangaAstrologyPWA/1.0 (city-autocomplete; contact: support@baggonapanchanga.com)"
       }
     });
 

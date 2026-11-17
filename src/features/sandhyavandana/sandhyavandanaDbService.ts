@@ -202,7 +202,7 @@ export async function createSandhyavandanaSession(
 
   const baseUrl = typeof window !== "undefined" && window.location?.origin
     ? window.location.origin
-    : "https://baggona-panchanga.web.app";
+    : "https://baggonapanchanga.com";
   const shareableUrl = `${baseUrl}/sandhyavandana?token=${token}`;
 
   const session: SandhyavandanaSession = {

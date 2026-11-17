@@ -86,7 +86,7 @@ export function generateGuidedPoojaShareUrl(
     vrataKeys: config.vrataKeys !== undefined ? config.vrataKeys : [...GUIDED_VRATA_KEYS]
   };
 
-  const baseOrigin = origin || (typeof window !== "undefined" ? window.location.origin : "https://baggona.com");
+  const baseOrigin = origin || (typeof window !== "undefined" ? window.location.origin : "https://baggonapanchanga.com");
   const params = new URLSearchParams();
 
   // Readable poojas parameter (only if poojas are selected)

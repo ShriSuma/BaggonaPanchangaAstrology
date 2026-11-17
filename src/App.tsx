@@ -101,11 +101,19 @@ export default function App(): JSX.Element {
     window.location.pathname.startsWith("/chat-session/") ||
     window.location.pathname === "/astrology-chat" ||
     window.location.pathname.startsWith("/astrology-chat/") ||
+    window.location.pathname.startsWith("/20min") ||
+    window.location.pathname.startsWith("/20-min") ||
+    window.location.pathname.startsWith("/audio-consultation") ||
+    window.location.pathname.startsWith("/audio") ||
     window.location.search.includes("portal=consultation") ||
     window.location.search.includes("portal=chat_session") ||
     window.location.search.includes("portal=chat") ||
+    window.location.search.includes("portal=20min") ||
+    window.location.search.includes("portal=audio") ||
     window.location.search.includes("page=consultation") ||
     window.location.search.includes("page=chat_session") ||
+    window.location.search.includes("page=20min") ||
+    window.location.search.includes("page=audio") ||
     window.location.search.includes("id=bgn_cst_") ||
     window.location.search.includes("token=bgn_cst_") ||
     window.location.hash.startsWith("#/consultation?") ||
@@ -114,6 +122,8 @@ export default function App(): JSX.Element {
     window.location.hash === "#consultation" ||
     window.location.hash.startsWith("#consultation?") ||
     window.location.hash.startsWith("#/chat-session") ||
+    window.location.hash.startsWith("#/20min") ||
+    window.location.hash.startsWith("#/audio") ||
     window.location.hash.includes("id=bgn_cst_") ||
     window.location.hash.includes("token=bgn_cst_") ||
     window.location.hash.includes("bgn_cst_") ||
@@ -182,6 +192,9 @@ export default function App(): JSX.Element {
   const isDailyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isConsultationRoute && !isConsultationGeneratorRoute && !isSandhyavandanaRoute && !isKarmaMandalaRoute && (
     window.location.pathname.startsWith("/daily") ||
     window.location.pathname.startsWith("/darshana") ||
+    window.location.pathname.startsWith("/calendar-scan") ||
+    window.location.pathname.startsWith("/scan-calendar") ||
+    window.location.pathname.startsWith("/scan") ||
     (window.location.search.includes("token=") &&
       !window.location.search.includes("token=bgn_sv_") &&
       !window.location.search.includes("token=bgn_karma_") &&
@@ -200,7 +213,8 @@ export default function App(): JSX.Element {
       !window.location.search.includes("page=karma") &&
       !window.location.search.includes("page=consultation")) ||
     window.location.search.includes("fromCal=") ||
-    window.location.search.includes("action=ics")
+    window.location.search.includes("action=ics") ||
+    window.location.search.includes("action=calendar_sync")
   );
 
   const isPublicKundliRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
@@ -239,10 +253,12 @@ export default function App(): JSX.Element {
     window.location.pathname.startsWith("/dinank_panchanga") ||
     window.location.pathname.startsWith("/date-panchanga") ||
     window.location.pathname.startsWith("/ashirvada-patra") ||
+    window.location.pathname.startsWith("/qa-calendar") ||
     window.location.search.includes("portal=quick_calendar") ||
     window.location.search.includes("portal=quick-calendar") ||
     window.location.search.includes("portal=quick_seva") ||
     window.location.search.includes("portal=quick") ||
+    window.location.search.includes("portal=qa_calendar") ||
     window.location.search.includes("page=quick_calendar") ||
     window.location.hash.includes("#/quick-calendar") ||
     window.location.hash.includes("#/quick-seva")
@@ -282,15 +298,23 @@ export default function App(): JSX.Element {
   );
 
   const isAstrologyQARoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/qa") ||
+    window.location.pathname.startsWith("/astrology-qa") ||
+    window.location.pathname.startsWith("/qa-scan") ||
     window.location.pathname.startsWith("/ask") ||
     window.location.pathname.startsWith("/ask-astrology") ||
     window.location.pathname.startsWith("/prashna") ||
     window.location.pathname.startsWith("/jyotishya-prashne") ||
     window.location.pathname.startsWith("/ai-astrologer") ||
+    window.location.search.includes("portal=qa") ||
+    window.location.search.includes("portal=astrology_qa") ||
     window.location.search.includes("portal=ask_astrology") ||
     window.location.search.includes("portal=aiaastrologer") ||
+    window.location.search.includes("page=qa") ||
+    window.location.search.includes("page=astrology_qa") ||
     window.location.search.includes("page=ask_astrology") ||
     window.location.search.includes("page=aiaastrologer") ||
+    window.location.hash.includes("#/qa") ||
     window.location.hash.includes("#/ask") ||
     window.location.hash.includes("#/prashna") ||
     window.location.hash.includes("#ask-astrology")

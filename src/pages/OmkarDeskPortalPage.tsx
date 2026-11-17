@@ -881,7 +881,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       });
 
       const secureToken = encodeSecureConsultationToken(session.id);
-      const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://baggona-astrology.web.app";
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://baggonapanchanga.com";
       const fullUrl = `${baseUrl}/consultation?id=${encodeURIComponent(secureToken)}&session=${session.id}`;
       setLiveSessionUrl(fullUrl);
 
@@ -921,7 +921,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       `*॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ೩೦ ದಿನಗಳ ಕ್ಯಾಲೆಂಡರ್ ॥*\n\n` +
       `ನಮಸ್ಕಾರ ${effectiveDevoteeName},\n` +
       `ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರಕ್ಕೆ ವಿಶೇಷವಾಗಿ ತಯಾರಿಸಿದ ೩೦ ದಿನಗಳ ಡಿಜಿಟಲ್ ದರ್ಶನ & ಕ್ಯಾಲೆಂಡರ್ ಲಿಂಕ್:\n` +
-      `${calendarDirectDailyUrl || calendarGoogleUrl || "https://baggona-astrology.web.app"}\n\n` +
+      `${calendarDirectDailyUrl || calendarGoogleUrl || "https://baggonapanchanga.com"}\n\n` +
       `• ಹಸಿರು: ಶುಭ ಶಕ್ತಿ & ಖರೀದಿ | ಹಳದಿ: ಸಮತೋಲನ | ಕೆಂಪು: ಜಾಗರೂಕತೆ\n` +
       `— ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362)`;
     window.open(`https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`, "_blank");

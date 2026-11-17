@@ -275,7 +275,7 @@ export const ConsultationGeneratorPage: React.FC = () => {
     try {
       const origin = typeof window !== "undefined" && window.location.origin
         ? window.location.origin
-        : "https://baggona-panchanga.web.app";
+        : "https://baggonapanchanga.com";
 
       if (linkServiceType === "karma_mandala") {
         // Generate Karma Sanjeevini & Gokarna Parihara Mandala Token (Strict 90-Day Sacred Validity)
@@ -949,7 +949,7 @@ export const ConsultationGeneratorPage: React.FC = () => {
           ) : (
             <div className="divide-y divide-amber-100">
               {recentSessions.map((item) => {
-                const origin = typeof window !== "undefined" ? window.location.origin : "";
+                const origin = typeof window !== "undefined" && window.location.origin ? window.location.origin : "https://baggonapanchanga.com";
                 const secureToken = encodeSecureConsultationToken(item.id);
                 const link = `${origin}/consultation?id=${encodeURIComponent(secureToken)}&session=${item.id}`;
 

@@ -37,7 +37,7 @@ describe("Guided Pooja End-User Share URL & Single Tab Tests", () => {
   });
 
   it("parses single Vrata URL correctly into poojaKeys: [] and vrataKeys: ['kalyana_mangalagauri_vrata']", () => {
-    const testUrl = "https://baggona.com/guided-pooja?vratas=kalyana_mangalagauri_vrata&phone=9876543210&email=devotee@example.com";
+    const testUrl = "https://baggonapanchanga.com/guided-pooja?vratas=kalyana_mangalagauri_vrata&phone=9876543210&email=devotee@example.com";
     const config = parseGuidedPoojaFromUrl(testUrl);
 
     expect(config.poojaKeys).toEqual([]);

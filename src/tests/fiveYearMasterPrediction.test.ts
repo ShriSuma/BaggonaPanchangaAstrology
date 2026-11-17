@@ -522,7 +522,7 @@ describe("Baggona 5-Year Master Destiny Forecast Engine", () => {
     expect(fam.impactOnChildren.length).toBeGreaterThan(10);
     expect(fam.impactOnParents.length).toBeGreaterThan(10);
     expect(fam.familyBundleCta.length).toBeGreaterThan(10);
-    expect(fam.familyQrUrl).toContain("baggona.com/bhavishya?mode=fiveYear");
+    expect(fam.familyQrUrl).toContain("baggonapanchanga.com/bhavishya?mode=fiveYear");
   });
 
   it("computes Kundli Dosha Diagnostics with 3 substantive paragraphs & Gokarna protection shield", () => {

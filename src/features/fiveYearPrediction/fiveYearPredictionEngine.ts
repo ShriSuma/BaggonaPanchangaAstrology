@@ -1508,7 +1508,7 @@ export function generateFamilyDestinyInterlocking(
           : lang === "ta" ? "குடும்ப உறுப்பினர்களின் ஜாதக கிரக அமைப்புகளின் இணக்கம் இல்லத்தில் அமைதியையும் சுபிக்ஷத்தையும் நிலைநிறுத்தும்."
             : "Harmonizing the destiny charts and planetary alignments of all family members anchors domestic peace and enduring prosperity.";
 
-  const familyQrUrl = `https://baggona.com/bhavishya?mode=fiveYear&ref=family_bundle&devoteeName=${encodeURIComponent(devoteeName || "Family")}`;
+  const familyQrUrl = `https://baggonapanchanga.com/bhavishya?mode=fiveYear&ref=family_bundle&devoteeName=${encodeURIComponent(devoteeName || "Family")}`;
 
   return {
     impactOnSpouse,

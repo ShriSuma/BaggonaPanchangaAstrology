@@ -1320,7 +1320,7 @@ export const SuperAdminDashboard: React.FC = () => {
         );
       }
 
-      const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://baggonapanchanga.com";
       
       // Generate ONE single unified URL containing all selected modules
       const modulesQuery = modulesToAssign.length > 0 ? modulesToAssign.join(",") : "panchanga";
@@ -2739,7 +2739,7 @@ export const SuperAdminDashboard: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+                                    const origin = typeof window !== "undefined" ? window.location.origin : "https://baggonapanchanga.com";
                                     const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
                                     const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}`;
                                     const modulesList = modules
@@ -2762,7 +2762,7 @@ export const SuperAdminDashboard: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+                                    const origin = typeof window !== "undefined" ? window.location.origin : "https://baggonapanchanga.com";
                                     const publicUrl = `${origin}/?portal=public_kundli&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}`;
                                     const msg = `🕉️ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ - ಗೋಕರ್ಣ 🕉️\n\nನಮಸ್ಕಾರ!\nನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜನನ ಕುಂಡಲಿ ರಚನೆ ಮತ್ತು ಪ್ರಸ್ತುತ ಜೀವನ ಜ್ಯೋತಿಷ್ಯ ನೇರ ವಿಶ್ಲೇಷಣೆಗಾಗಿ ಕೆಳಗಿನ ಲಿಂಕ್ ಬಳಸಿ:\n\n🔗 ಸಾರ್ವಜನಿಕ ಕುಂಡಲಿ ಲಿಂಕ್:\n${publicUrl}\n\n🏛️ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಧಾನ ಅರ್ಚಕರು: ${priest.priestName}\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥`;
                                     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, "_blank");
@@ -4837,7 +4837,7 @@ export const SuperAdminDashboard: React.FC = () => {
                   {(() => {
                     const origin = typeof window !== "undefined" && window.location.origin && !window.location.hostname.includes("localhost")
                       ? window.location.origin
-                      : "https://baggona-panchanga-astrology.vercel.app";
+                      : "https://baggonapanchanga.com";
                     const priestShareUrl = `${origin}/?portal=priest_panchanga&date=${testDateInspector}&pincode=581326`;
                     const localPriestPortalUrl = `/?portal=priest_panchanga&date=${testDateInspector}&pincode=581326`;
 
@@ -6571,7 +6571,7 @@ export const SuperAdminDashboard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.firebaseapp.com";
+                      const origin = typeof window !== "undefined" ? window.location.origin : "https://baggonapanchanga.com";
                       const modulesQuery = modules.length > 0 ? modules.join(",") : "panchanga";
                       const unifiedUrl = `${origin}/?portal=priest&user=${encodeURIComponent(priest.userId)}&name=${encodeURIComponent(priest.priestName)}&modules=${encodeURIComponent(modulesQuery)}`;
                       const msg = `ನಮಸ್ಕಾರ ${priest.priestName} ಅವರೇ,\n\nನಿಮ್ಮ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಪೋರ್ಟಲ್‌ನ ವಿವರಗಳು:\n👤 ಯೂಸರ್ ID: ${priest.userId}\n🪙 ಪ್ರಸ್ತುತ ಬ್ಯಾಲೆನ್ಸ್: ${(priest.coinBalance || 0).toLocaleString()} Coins\n🔗 ಪ್ರವೇಶ ಲಿಂಕ್:\n${unifiedUrl}\n\n॥ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ॥`;

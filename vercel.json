@@ -1,4 +1,28 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.baggonapanchanga.com"
+        }
+      ],
+      "destination": "https://baggonapanchanga.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "baggona-panchanga-astrology.vercel.app"
+        }
+      ],
+      "destination": "https://baggonapanchanga.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/sunrise-sunset",
