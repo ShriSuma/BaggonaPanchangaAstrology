@@ -12,6 +12,11 @@ import {
   verifyHotelPaymentInstant,
   checkHotelPaymentWebhookStatus,
   generateHotelOrderId,
+  calculateMoorthyNirnaya,
+  calculateCosmicLifeVoltage,
+  calculateFiveYearPreviewHorizon,
+  calculateFreeLuckyElements,
+  getDiningConversionOffer,
   HOTEL_PDF_PRICE_INR,
   HOTEL_REMEDY_ADDON_INR,
   HOTEL_PREMIUM_REMEDY_PRICE_INR,
@@ -425,6 +430,197 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
 
     it("verifies that AntarangaAstrologicalScreenLoader is an authentic React component", () => {
       expect(typeof AntarangaAstrologicalScreenLoader).toBe("function");
+    });
+  });
+
+  describe("8. High-Converting Free Features Suite: Moorthy Nirnaya, Cosmic Voltage, 5-Year Teaser & Lucky Blueprint", () => {
+    it("8.1 Classical Moorthy Nirnaya: calculates Swarna, Rajata, Tamra, and Loha accurately across 7 languages", () => {
+      // Swarna: houses 1, 6, 11 (e.g. transit Moon = janma Moon => diffHouse = 1)
+      const swarna = calculateMoorthyNirnaya(3, 3, "kn");
+      expect(swarna.tier).toBe("swarna");
+      expect(swarna.diffHouse).toBe(1);
+      expect(swarna.moorthyName).toContain("ಸ್ವರ್ಣ ಮೂರ್ತಿ");
+      expect(swarna.badge).toContain("ಸುವರ್ಣ");
+
+      // Rajata: houses 2, 5, 9 (e.g. transit Moon = 4, janma Moon = 3 => diffHouse = 2)
+      const rajata = calculateMoorthyNirnaya(4, 3, "hi");
+      expect(rajata.tier).toBe("rajata");
+      expect(rajata.diffHouse).toBe(2);
+      expect(rajata.moorthyName).toContain("रजत मूर्ति");
+
+      // Tamra: houses 3, 7, 10 (e.g. transit Moon = 5, janma Moon = 3 => diffHouse = 3)
+      const tamra = calculateMoorthyNirnaya(5, 3, "mr");
+      expect(tamra.tier).toBe("tamra");
+      expect(tamra.diffHouse).toBe(3);
+      expect(tamra.moorthyName).toContain("ताम्र मूर्ती");
+
+      // Loha: houses 4, 8, 12 (e.g. transit Moon = 6, janma Moon = 3 => diffHouse = 4)
+      const loha = calculateMoorthyNirnaya(6, 3, "te");
+      expect(loha.tier).toBe("loha");
+      expect(loha.diffHouse).toBe(4);
+      expect(loha.moorthyName).toContain("లోహ మూర్తి");
+
+      // Test Tamil, Malayalam, and English
+      const swarnaTa = calculateMoorthyNirnaya(3, 3, "ta");
+      expect(swarnaTa.moorthyName).toContain("சொர்ண மூர்த்தி");
+
+      const swarnaMl = calculateMoorthyNirnaya(3, 3, "ml");
+      expect(swarnaMl.moorthyName).toContain("സ്വർണ്ണ മൂർത്തി");
+
+      const swarnaEn = calculateMoorthyNirnaya(3, 3, "en");
+      expect(swarnaEn.moorthyName).toContain("Swarna Moorthy");
+    });
+
+    it("8.2 Live Cosmic Vitality Voltage & Gochara Nirnaya: computes energy score and planetary statuses", () => {
+      const input: KundliInput = {
+        name: "Test Diner",
+        birthDate: "1992-05-15",
+        birthTime: "08:30",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        gender: "Male"
+      };
+      const kundli = calculateKundli(input);
+      const moonIdx = kundli.moonSign.index;
+      const lagnaIdx = kundli.lagnaRashi.index;
+
+      const voltage = calculateCosmicLifeVoltage(
+        kundli,
+        moonIdx,
+        lagnaIdx,
+        input.birthDate,
+        input.birthTime,
+        input.latitude,
+        input.longitude,
+        "kn"
+      );
+
+      // Energy score must be bounded between 55 and 95
+      expect(voltage.energyScore).toBeGreaterThanOrEqual(55);
+      expect(voltage.energyScore).toBeLessThanOrEqual(95);
+
+      // Energy labels and descriptions
+      expect(voltage.energyLabel.length).toBeGreaterThan(3);
+      expect(voltage.energyDesc.length).toBeGreaterThan(10);
+
+      // Shani transit status and Guru Bala must be valid strings
+      expect(voltage.shaniGocharaStatus.length).toBeGreaterThan(3);
+      expect(voltage.guruGocharaStatus.length).toBeGreaterThan(3);
+      expect(typeof voltage.isSadeSati).toBe("boolean");
+      expect(typeof voltage.hasGuruBala).toBe("boolean");
+
+      // Turning point verdict must be substantive
+      expect(voltage.turningPointVerdict).toContain("ಜೀವನವು");
+    });
+
+    it("8.3 Next 5-Year Horizon Preview: unlocks Year 1 and locks Years 2 to 5 with cliffhangers", () => {
+      const input: KundliInput = {
+        name: "Test Diner",
+        birthDate: "1988-10-20",
+        birthTime: "14:15",
+        latitude: 12.9716,
+        longitude: 77.5946,
+        gender: "Male"
+      };
+      const kundli = calculateKundli(input);
+
+      const preview = calculateFiveYearPreviewHorizon(
+        kundli,
+        kundli.moonSign.index,
+        kundli.lagnaRashi.index,
+        "kn"
+      );
+
+      // Year 1 Free Unlocked Preview
+      expect(preview.year1.gregorianRange).toBe("2026 - 2027");
+      expect(preview.year1.vitalityScore).toBe(84);
+      expect(preview.year1.samvatsaraName).toContain("ಸಂವತ್ಸರ");
+      expect(preview.year1.turningPointSeason.length).toBeGreaterThan(5);
+      expect(preview.year1.goldenOpportunity.length).toBeGreaterThan(10);
+      expect(preview.year1.cautionAlert.length).toBeGreaterThan(10);
+
+      // Years 2 to 5 Locked Teasers (Exactly 4 years)
+      expect(preview.lockedYears.length).toBe(4);
+      expect(preview.lockedYears[0].yearNum).toBe(2);
+      expect(preview.lockedYears[0].gregorianRange).toBe("2027 - 2028");
+      expect(preview.lockedYears[0].headlineQuestion).toContain("?");
+      expect(preview.lockedYears[0].teaserCta).toContain("೩೫೦");
+
+      expect(preview.lockedYears[1].yearNum).toBe(3);
+      expect(preview.lockedYears[2].yearNum).toBe(4);
+      expect(preview.lockedYears[3].yearNum).toBe(5);
+    });
+
+    it("8.4 Free Divine Lucky Blueprint: provides Lagna-based gemstone, day, number, and Ishta Devata", () => {
+      const luckyKn = calculateFreeLuckyElements(0, 3, "1995-07-28", "kn");
+      expect(luckyKn.gemstone).toContain("ಕೆಂಪು ಹವಳ"); // Aries Lagna -> Red Coral
+      expect(luckyKn.luckyDay).toBe("ಮಂಗಳವಾರ");
+      expect(luckyKn.luckyNumber).toBeGreaterThanOrEqual(1);
+      expect(luckyKn.luckyNumber).toBeLessThanOrEqual(9);
+      expect(luckyKn.ishtaDevata).toContain("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ");
+
+      const luckyEn = calculateFreeLuckyElements(4, 3, "1990-08-15", "en");
+      expect(luckyEn.gemstone).toContain("Ruby"); // Leo Lagna -> Ruby
+      expect(luckyEn.luckyDay).toBe("Sunday");
+      expect(luckyEn.ishtaDevata).toContain("Gokarna Mahabaleshwara");
+    });
+
+    it("8.5 Pandit Palette Dining Conversion Offer: includes diner social proof and 10-second delivery", () => {
+      const offerKn = getDiningConversionOffer("kn");
+      expect(offerKn.headline).toContain("೧೦ ಸೆಕೆಂಡುಗಳಲ್ಲಿ");
+      expect(offerKn.subheadline).toContain("೮೪%");
+      expect(offerKn.features.length).toBe(3);
+
+      const offerEn = getDiningConversionOffer("en");
+      expect(offerEn.headline).toContain("10 seconds");
+      expect(offerEn.subheadline).toContain("84%");
+      expect(offerEn.features.length).toBe(3);
+    });
+
+    it("8.6 Full End-to-End Integration: generateAntarangaSatya returns all 5 enriched suites cleanly", () => {
+      const input: KundliInput = {
+        name: "Shri Devotee",
+        birthDate: "1991-03-25",
+        birthTime: "10:30",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        gender: "Male"
+      };
+      const kundli = calculateKundli(input);
+
+      const result = generateAntarangaSatya(
+        kundli,
+        "kn",
+        input.name,
+        "male",
+        input.birthDate,
+        input.birthTime,
+        input.latitude,
+        input.longitude
+      );
+
+      // Core Antaranga Satya fields
+      expect(result.devoteeName).toContain("ಭಕ್ತ");
+      expect(result.paragraph1.length).toBeGreaterThan(100);
+      expect(result.paragraph2.length).toBeGreaterThan(100);
+      expect(result.kshetraBlessing).toContain("ಗೋಕರ್ಣ");
+
+      // 5 Enriched Free Features Suites
+      expect(result.moorthyNirnaya).toBeDefined();
+      expect(result.moorthyNirnaya!.moorthyName).toBeTruthy();
+
+      expect(result.cosmicVoltage).toBeDefined();
+      expect(result.cosmicVoltage!.energyScore).toBeGreaterThanOrEqual(55);
+
+      expect(result.fiveYearPreview).toBeDefined();
+      expect(result.fiveYearPreview!.year1.gregorianRange).toBe("2026 - 2027");
+      expect(result.fiveYearPreview!.lockedYears.length).toBe(4);
+
+      expect(result.luckyElements).toBeDefined();
+      expect(result.luckyElements!.gemstone).toBeTruthy();
+
+      expect(result.diningOffer).toBeDefined();
+      expect(result.diningOffer!.headline).toContain("೧೦ ಸೆಕೆಂಡುಗಳಲ್ಲಿ");
     });
   });
 });

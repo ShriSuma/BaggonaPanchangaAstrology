@@ -1104,12 +1104,16 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       const kundli = calculateKundli(input);
       setComputedKundli(kundli);
 
-      // 1. Generate Free Dark Secret (100% Astrological Truth)
+      // 1. Generate Free Dark Secret & Complete 7-Language Free Revelation Suite
       const secret = generateAntarangaSatya(
         kundli,
         selectedLang,
         devoteeName.trim(),
-        gender
+        gender,
+        birthDate,
+        birthTime,
+        latitude,
+        longitude
       );
       setSecretResult(secret);
 
@@ -1940,8 +1944,363 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               {secretResult.kshetraBlessing}
             </div>
 
+            {/* ═══════════════════════════════════════════════════════════════ */}
+            {/* 🌟 FREE FEATURE SUITE: COSMIC VOLTAGE, MOORTHY NIRNAYA,        */}
+            {/*    LUCKY BLUEPRINT, 5-YEAR TEASER & DINING SOCIAL PROOF        */}
+            {/* ═══════════════════════════════════════════════════════════════ */}
+
+            {/* 1. ⚡ COSMIC LIFE VOLTAGE & GOCHARA NIRNAYA */}
+            {secretResult.cosmicVoltage && (
+              <div className="bg-slate-950/90 border-2 border-amber-500/30 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">⚡</span>
+                    <div>
+                      <h4 className="text-sm sm:text-base font-black text-amber-200 font-serif">
+                        {selectedLang === "kn" ? "ಈ ಕ್ಷಣದ ಗ್ರಹಬಲ, ಜೀವಶಕ್ತಿ & ಗೋಚಾರ ನಿರ್ಣಯ"
+                          : selectedLang === "hi" ? "वर्तमान ग्रहबल, जीवन ऊर्जा एवं गोचर निर्णय"
+                          : selectedLang === "mr" ? "सध्याचे ग्रहबल, जीवन ऊर्जा व गोचर निर्णय"
+                          : selectedLang === "te" ? "ప్రస్తుత గ్రహబలం, జీవశక్తి & గోచార నిర్ణయం"
+                          : selectedLang === "ta" ? "தற்போதைய கிரகபலம், ஆற்றல் நிலை & கோச்சார முடிவு"
+                          : selectedLang === "ml" ? "നിലവിലെ ഗ്രഹബലം, ഊർജ്ജ നില & ഗോചാര നിർണ്ണയം"
+                          : "Live Cosmic Vitality Voltage & Gochara Nirnaya"}
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        {secretResult.cosmicVoltage.energyLabel}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-black text-amber-400">
+                      {secretResult.cosmicVoltage.energyScore}%
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                      {selectedLang === "kn" ? "ಉಚಿತ ದರ್ಶನ" : "FREE REVELATION"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Animated Energy Progress Meter */}
+                <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-amber-500/30 p-0.5">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-400 to-yellow-300 transition-all duration-1000 shadow-md"
+                    style={{ width: `${secretResult.cosmicVoltage.energyScore}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed font-serif">
+                  {secretResult.cosmicVoltage.energyDesc}
+                </p>
+
+                {/* 3-Pillar Gochara & Dasha Ribbon */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
+                  {/* Shani Transit Status */}
+                  <div className="bg-slate-900/80 border border-amber-500/20 rounded-xl p-2.5 space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                      🪐 {selectedLang === "kn" ? "ಶನಿ ಗೋಚಾರ ಸ್ಥಿತಿ" : "Saturn Transit Status"}
+                    </span>
+                    <span className="font-bold text-amber-300 block">
+                      {secretResult.cosmicVoltage.shaniGocharaStatus}
+                    </span>
+                    <p className="text-[10px] text-slate-400 leading-tight">
+                      {secretResult.cosmicVoltage.shaniGocharaImpact}
+                    </p>
+                  </div>
+
+                  {/* Guru Bala Status */}
+                  <div className="bg-slate-900/80 border border-amber-500/20 rounded-xl p-2.5 space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                      🌟 {selectedLang === "kn" ? "ಗುರುಬಲ ಅನುಗ್ರಹ" : "Jupiter Guru Bala"}
+                    </span>
+                    <span className="font-bold text-yellow-300 block">
+                      {secretResult.cosmicVoltage.guruGocharaStatus}
+                    </span>
+                    <p className="text-[10px] text-slate-400 leading-tight">
+                      {secretResult.cosmicVoltage.guruGocharaImpact}
+                    </p>
+                  </div>
+
+                  {/* Running Dasha & Bhukti */}
+                  <div className="bg-slate-900/80 border border-amber-500/20 rounded-xl p-2.5 space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                      ⏳ {selectedLang === "kn" ? "ಚಾಲ್ತಿಯಲ್ಲಿರುವ ಮಹಾದಶಾ-ಭುಕ್ತಿ" : "Running Dasha & Bhukti"}
+                    </span>
+                    <span className="font-bold text-amber-200 block">
+                      {secretResult.cosmicVoltage.activeMahadasha} - {secretResult.cosmicVoltage.activeBhukti}
+                    </span>
+                    <span className="text-[10px] text-slate-400 block">
+                      {secretResult.cosmicVoltage.dashaPeriodText}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Turning Point Verdict Card */}
+                <div className="bg-amber-950/30 border-l-4 border-amber-400 rounded-r-xl p-3 text-xs text-amber-100 font-serif leading-relaxed">
+                  <span className="font-bold text-amber-300 block mb-0.5">
+                    ⚖️ {selectedLang === "kn" ? "ತತ್ಕ್ಷಣದ ಜೀವನ ನಿರ್ಣಯ (Turning Point Verdict):" : "Immediate Turning Point Verdict:"}
+                  </span>
+                  {secretResult.cosmicVoltage.turningPointVerdict}
+                </div>
+              </div>
+            )}
+
+            {/* 2. 🏆 CLASSICAL MOORTHY NIRNAYA (ಮೂರ್ತಿ ನಿರ್ಣಯ) */}
+            {secretResult.moorthyNirnaya && (
+              <div className="bg-gradient-to-r from-amber-950/30 via-slate-900 to-amber-950/30 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-xl space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">
+                      {secretResult.moorthyNirnaya.tier === "swarna" ? "🥇"
+                        : secretResult.moorthyNirnaya.tier === "rajata" ? "🥈"
+                        : secretResult.moorthyNirnaya.tier === "tamra" ? "🥉"
+                        : "🛡️"}
+                    </span>
+                    <div>
+                      <h4 className="text-sm sm:text-base font-black text-amber-200 font-serif">
+                        {secretResult.moorthyNirnaya.title}: {secretResult.moorthyNirnaya.moorthyName}
+                      </h4>
+                      <span className="text-[11px] font-bold text-amber-400">
+                        {secretResult.moorthyNirnaya.badge}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    {selectedLang === "kn" ? "ಶಾಸ್ತ್ರೋಕ್ತ ಫಲ" : "CLASSICAL SHASTRA"}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-serif">
+                  {secretResult.moorthyNirnaya.description}
+                </p>
+              </div>
+            )}
+
+            {/* 3. 💎 FREE DIVINE LUCKY BLUEPRINT */}
+            {secretResult.luckyElements && (
+              <div className="bg-slate-950/90 border border-amber-500/30 rounded-2xl p-4 sm:p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-amber-500/20 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">💎</span>
+                    <h4 className="text-xs sm:text-sm font-black text-amber-200 uppercase tracking-wider font-serif">
+                      {selectedLang === "kn" ? "ನಿಮ್ಮ ದೈವಿಕ ಅದೃಷ್ಟ ಅಂಶಗಳು (ಉಚಿತ ಉಡುಗೊರೆ)"
+                        : selectedLang === "hi" ? "आपके दैवीय भाग्यशाली तत्व (निःशुल्क उपहार)"
+                        : selectedLang === "mr" ? "आपले दैवी भाग्यशाली घटक (विनामूल्य भेट)"
+                        : selectedLang === "te" ? "మీ దివ్య అదృష్ట అంశాలు (ఉచిత బహుమతి)"
+                        : selectedLang === "ta" ? "உங்கள் தெய்வீக அதிர்ஷ்ட அம்சங்கள் (இலவச பரிசு)"
+                        : selectedLang === "ml" ? "നിങ്ങളുടെ ഭാഗ്യ ഘടകങ്ങൾ (സൗജന്യ ഉപഹാരം)"
+                        : "Your Divine Lucky Blueprint (100% Free Gift)"}
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    {selectedLang === "kn" ? "ಅದೃಷ್ಟ ರಕ್ಷೆ" : "LUCKY ALIGNMENT"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  {/* Gemstone */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-0.5">
+                    <span className="text-[10px] text-slate-400 block font-medium">
+                      💍 {selectedLang === "kn" ? "ಅದೃಷ್ಟ ರತ್ನ" : "Lucky Gemstone"}
+                    </span>
+                    <span className="font-bold text-amber-300 text-xs block truncate">
+                      {secretResult.luckyElements.gemstone}
+                    </span>
+                  </div>
+
+                  {/* Lucky Day */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-0.5">
+                    <span className="text-[10px] text-slate-400 block font-medium">
+                      🗓️ {selectedLang === "kn" ? "ಶುಭ ವಾರ" : "Auspicious Day"}
+                    </span>
+                    <span className="font-bold text-amber-300 text-xs block">
+                      {secretResult.luckyElements.luckyDay}
+                    </span>
+                  </div>
+
+                  {/* Lucky Number */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-0.5">
+                    <span className="text-[10px] text-slate-400 block font-medium">
+                      🔢 {selectedLang === "kn" ? "ಅದೃಷ್ಟ ಸಂಖ್ಯೆ" : "Lucky Number"}
+                    </span>
+                    <span className="font-bold text-amber-300 text-xs block">
+                      {secretResult.luckyElements.luckyNumber}
+                    </span>
+                  </div>
+
+                  {/* Auspicious Direction & Color */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-0.5">
+                    <span className="text-[10px] text-slate-400 block font-medium">
+                      🧭 {selectedLang === "kn" ? "ಶುಭ ದಿಕ್ಕು & ವರ್ಣ" : "Direction & Color"}
+                    </span>
+                    <span className="font-bold text-amber-300 text-xs block truncate">
+                      {secretResult.luckyElements.luckyDirection} • {secretResult.luckyElements.luckyColor}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Ishta Devata Banner */}
+                <div className="bg-slate-900/60 border border-amber-500/20 rounded-xl px-3 py-2 flex items-center gap-2 text-xs text-amber-200/90 font-serif">
+                  <span className="text-base">🕉️</span>
+                  <span>
+                    <strong className="text-amber-400">{selectedLang === "kn" ? "ಇಷ್ಟದೈವ:" : "Ishta Devata:"}</strong>{" "}
+                    {secretResult.luckyElements.ishtaDevata}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* 4. 🔮 NEXT 5-YEAR HORIZON SNEAK PREVIEW & LOCKED TEASERS */}
+            {secretResult.fiveYearPreview && (
+              <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xl">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🔮</span>
+                    <div>
+                      <h4 className="text-sm sm:text-base font-black text-amber-200 font-serif">
+                        {selectedLang === "kn" ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ಕಾಲ & ಎಚ್ಚರಿಕೆಯ ರಹಸ್ಯ ಮುನ್ನೋಟ"
+                          : selectedLang === "hi" ? "आगामी ५ वर्षों का स्वर्णिम काल एवं महत्वपूर्ण पूर्वावलोकन"
+                          : selectedLang === "mr" ? "पुढील ५ वर्षांचा सुवर्ण काळ व पूर्वदर्शन"
+                          : selectedLang === "te" ? "రాబోయే 5 సంవత్సరాల సువర్ణ కాలం & ముందస్తు దర్శనం"
+                          : selectedLang === "ta" ? "அடுத்த 5 ஆண்டுகளின் பொற்காலம் & ரகசிய முன்னோட்டம்"
+                          : selectedLang === "ml" ? "അടുത്ത 5 വർഷത്തെ സുവർണ്ണ കാലവും രഹസ്യ മുൻനോട്ടവും"
+                          : "Next 5-Year Horizon Sneak Preview (2026 – 2031)"}
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        {selectedLang === "kn" ? "ವರ್ಷ ೧ ಉಚಿತ ಮುನ್ನೋಟ · ವರ್ಷ ೨-೫ ರಹಸ್ಯ ಪ್ರಶ್ನೆಗಳು" : "Year 1 Free Preview · Years 2-5 Locked"}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 uppercase tracking-wider">
+                    {selectedLang === "kn" ? "ವರ್ಷ ೧ ಉಚಿತ" : "YEAR 1 FREE"}
+                  </span>
+                </div>
+
+                {/* YEAR 1 (2026 - 2027) UNLOCKED FREE CARD */}
+                <div className="bg-amber-950/20 border-2 border-amber-500/50 rounded-xl p-3.5 sm:p-4 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-amber-500/20 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black text-slate-950 bg-amber-400 px-2 py-0.5 rounded-full">
+                        {secretResult.fiveYearPreview.year1.gregorianRange}
+                      </span>
+                      <span className="text-xs font-bold text-amber-300">
+                        {secretResult.fiveYearPreview.year1.samvatsaraName}
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-400">
+                      ⚡ {selectedLang === "kn" ? "ಜೀವಶಕ್ತಿ ಸ್ಕೋರ್" : "Vitality"}: {secretResult.fiveYearPreview.year1.vitalityScore}%
+                    </span>
+                  </div>
+
+                  <h5 className="text-xs sm:text-sm font-bold text-amber-100 font-serif">
+                    {secretResult.fiveYearPreview.year1.headline}
+                  </h5>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-950/80 border border-amber-500/20 rounded-lg p-2.5">
+                      <span className="text-amber-400 font-bold block mb-0.5">
+                        🍂 {selectedLang === "kn" ? "ಮಹಾ ತಿರುವು ನೀಡುವ ಋತು:" : "Turning Point Season:"}
+                      </span>
+                      <span className="text-slate-200">
+                        {secretResult.fiveYearPreview.year1.turningPointSeason}
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-950/80 border border-emerald-500/20 rounded-lg p-2.5">
+                      <span className="text-emerald-400 font-bold block mb-0.5">
+                        🌟 {selectedLang === "kn" ? "ಸುವರ್ಣಾವಕಾಶದ ಕಾಲಾವಧಿ:" : "Golden Opportunity Window:"}
+                      </span>
+                      <span className="text-slate-200">
+                        {secretResult.fiveYearPreview.year1.goldenOpportunity}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-950/40 border border-amber-500/30 rounded-lg p-2.5 text-xs text-amber-200 font-serif">
+                    <span className="font-bold text-amber-300 block mb-0.5">
+                      ⚠️ {selectedLang === "kn" ? "ವರ್ಷ ೧ರ ಮುನ್ನೆಚ್ಚರಿಕೆ:" : "Immediate Caution Alert:"}
+                    </span>
+                    {secretResult.fiveYearPreview.year1.cautionAlert}
+                  </div>
+                </div>
+
+                {/* YEARS 2 TO 5: 4 LOCKED CLIFFHANGER TEASERS */}
+                <div className="space-y-2 pt-1">
+                  <div className="text-center">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                      {selectedLang === "kn" ? "🔒 ಮುಂದಿನ ವರ್ಷಗಳು (ವರ್ಷ ೨ ರಿಂದ ೫) - ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಲಭ್ಯ"
+                        : "🔒 Next Years Horizon (Years 2 to 5) - Unlocked in Full Dossier"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {secretResult.fiveYearPreview.lockedYears.map((item) => (
+                      <div
+                        key={item.yearNum}
+                        onClick={() => {
+                          const target = document.getElementById("package-select-section");
+                          if (target) target.scrollIntoView({ behavior: "smooth" });
+                        }}
+                        className="bg-slate-950/80 border border-amber-500/20 hover:border-amber-400 rounded-xl p-3 space-y-1.5 cursor-pointer transition hover:bg-slate-900/90 group"
+                      >
+                        <div className="flex items-center justify-between text-xs pb-1 border-b border-slate-800">
+                          <span className="font-bold text-amber-300">
+                            {selectedLang === "kn" ? `ವರ್ಷ ${item.yearNum} (${item.gregorianRange})` : `Year ${item.yearNum} (${item.gregorianRange})`}
+                          </span>
+                          <span className="text-amber-400 text-sm group-hover:scale-110 transition">🔒</span>
+                        </div>
+                        <p className="text-xs text-slate-200 font-serif leading-relaxed">
+                          {item.headlineQuestion}
+                        </p>
+                        <div className="flex items-center justify-between text-[11px] pt-1">
+                          <span className="text-slate-400 text-[10px]">{item.keyTheme}</span>
+                          <span className="text-amber-400 font-bold group-hover:underline text-[10px]">
+                            {item.teaserCta} &rarr;
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 5. 🔥 PANDIT PALETTE DINING CONVERSION OFFER (SOCIAL PROOF & 10-SEC DELIVERY) */}
+            {secretResult.diningOffer && (
+              <div className="bg-gradient-to-r from-amber-900/40 via-yellow-900/30 to-amber-900/40 border-2 border-amber-400 rounded-2xl p-4 sm:p-5 text-center space-y-3 shadow-2xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider shadow">
+                  <span>🍽️</span>
+                  <span>{selectedLang === "kn" ? "ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್ ವಿಶೇಷ ಅತಿಥಿ ಸೌಲಭ್ಯ" : "Pandit Palette Diner Special"}</span>
+                </div>
+                <h4 className="text-base sm:text-lg font-black text-amber-100 font-serif">
+                  {secretResult.diningOffer.headline}
+                </h4>
+                <p className="text-xs text-slate-200 max-w-md mx-auto">
+                  {secretResult.diningOffer.subheadline}
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left text-xs text-slate-200 pt-1">
+                  {secretResult.diningOffer.features.map((feat, i) => (
+                    <div key={i} className="flex items-start gap-1.5 bg-slate-950/60 p-2 rounded-lg border border-amber-500/20">
+                      <span className="text-emerald-400 font-black">✓</span>
+                      <span className="text-[11px] leading-snug">{feat}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = document.getElementById("package-select-section");
+                    if (target) target.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-500/30 active:scale-95 transition cursor-pointer"
+                >
+                  {selectedLang === "kn" ? "🔓 ಕೇವಲ ₹೩೫೦ ನೀಡಿ ಪೂರ್ಣ ೫-ವರ್ಷಗಳ ಮಹಾ ದಸ್ತಾವೇಜು ಅನ್‌ಲಾಕ್ ಮಾಡಿ"
+                    : "🔓 Unlock Full 5-Year Master Horizon for ₹350"}
+                </button>
+              </div>
+            )}
+
             {/* ── STEP 3: PACKAGE SELECTION (₹350 Standard vs ₹450 with Sacred Remedy) ── */}
-            <div className="pt-2 space-y-3">
+            <div id="package-select-section" className="pt-2 space-y-3 scroll-mt-6">
               <div className="text-center space-y-1">
                 <span className="inline-block px-3 py-1 rounded-full bg-amber-500 text-slate-950 text-xs font-black tracking-wide uppercase">
                   {ui.specialOfferBadge}

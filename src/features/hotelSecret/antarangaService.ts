@@ -25,6 +25,9 @@
 import { calculateKundli } from "../../core/KundliEngine";
 import type { KundliInput, KundliOutput } from "../../core/AstroTypes";
 import { PlanetName } from "../../core/AstroTypes";
+import { getTransitsForDate } from "../../core/BaggonaPredictionEngine";
+import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
+import { ageDecimalYearsAt } from "../../core/birthTime";
 import {
   analyzeKundali,
   getLocalizedDevoteeName
@@ -70,6 +73,69 @@ export const ANTARANGA_LANGUAGES: AntarangaLanguageMeta[] = [
   { code: "mr", nativeName: "मराठी", englishName: "Marathi" }
 ];
 
+export interface MoorthyNirnayaData {
+  title: string;
+  moorthyName: string;
+  tier: "swarna" | "rajata" | "tamra" | "loha";
+  description: string;
+  badge: string;
+  diffHouse: number;
+}
+
+export interface CosmicLifeVoltageData {
+  energyScore: number; // 55..95
+  energyLabel: string;
+  energyDesc: string;
+  activeMahadasha: string;
+  activeBhukti: string;
+  dashaPeriodText: string;
+  shaniGocharaStatus: string;
+  shaniGocharaImpact: string;
+  isSadeSati: boolean;
+  isAshtama: boolean;
+  isKantaka: boolean;
+  hasGuruBala: boolean;
+  guruGocharaStatus: string;
+  guruGocharaImpact: string;
+  turningPointVerdict: string;
+}
+
+export interface FiveYearPreviewHorizonData {
+  year1: {
+    gregorianRange: string;
+    samvatsaraName: string;
+    vitalityScore: number;
+    turningPointSeason: string;
+    goldenOpportunity: string;
+    cautionAlert: string;
+    headline: string;
+  };
+  lockedYears: Array<{
+    yearNum: number;
+    gregorianRange: string;
+    headlineQuestion: string;
+    keyTheme: string;
+    teaserCta: string;
+  }>;
+}
+
+export interface FreeLuckyElementsData {
+  gemstone: string;
+  luckyDay: string;
+  luckyNumber: number;
+  luckyDirection: string;
+  luckyColor: string;
+  ishtaDevata: string;
+}
+
+export interface DiningConversionOfferData {
+  headline: string;
+  subheadline: string;
+  socialProof: string;
+  instantDeliveryText: string;
+  features: string[];
+}
+
 export interface AntarangaSecretResult {
   devoteeName: string;
   lang: AntarangaLang;
@@ -85,6 +151,11 @@ export interface AntarangaSecretResult {
   paragraph1: string; // Outward Composure vs Hidden Inner Dilemma
   paragraph2: string; // Subconscious Solitude & The Unspoken Truth
   kshetraBlessing: string; // Sacred Gokarna Atma Linga Blessing
+  moorthyNirnaya?: MoorthyNirnayaData;
+  cosmicVoltage?: CosmicLifeVoltageData;
+  fiveYearPreview?: FiveYearPreviewHorizonData;
+  luckyElements?: FreeLuckyElementsData;
+  diningOffer?: DiningConversionOfferData;
 }
 
 export const HOTEL_PDF_PRICE_INR = 350;
@@ -393,13 +464,19 @@ export function getAntarangaNigoodhaDetails(
 }
 
 /**
- * Generates the authentic 2-paragraph "Antarangada Satya" across all 7 languages
+ * Generates the authentic 2-paragraph "Antarangada Satya" across all 7 languages,
+ * enriched with Free Moorthy Nirnaya, Cosmic Vitality Voltage, 5-Year Horizon Preview,
+ * Free Lucky Elements, and Pandit Palette Dining Conversion Offer.
  */
 export function generateAntarangaSatya(
   kundli: KundliOutput,
   lang: AntarangaLang = "kn",
   devoteeName: string = "Devotee",
-  gender: "male" | "female" = "male"
+  gender: "male" | "female" = "male",
+  birthDate?: string,
+  birthTime?: string,
+  lat?: number,
+  lng?: number
 ): AntarangaSecretResult {
   const baseLang = lang || "kn";
   const localizedName = getLocalizedDevoteeName(devoteeName, baseLang) || devoteeName;
@@ -515,6 +592,45 @@ export function generateAntarangaSatya(
     kshetraBlessing = `【SACRED SRI KSHETRA GOKARNA DIVINE SHIELD】: Transmuting this subconscious emotional weight requires the grace of ancestral blessings and the sacred touch of Lord Mahabaleshwara (Atma Linga) at Sri Kshetra Gokarna. ${nigoodha.remedy} May the divine presence of Sri Mahabaleshwara dissolve your inner anxieties and illuminate your life with unshakable serenity and sovereign confidence.`;
   }
 
+  // Calculate live transits for the current moment
+  const now = new Date();
+  const currentTransits = getTransitsForDate(moonRashiIdx, now, "lahiri");
+  const transitMoonSign = currentTransits[PlanetName.Moon]?.rashiIndex ?? ((moonRashiIdx + 1) % 12);
+
+  // 1. Classical Moorthy Nirnaya (ಮೂರ್ತಿ ನಿರ್ಣಯ)
+  const moorthyNirnaya = calculateMoorthyNirnaya(transitMoonSign, moonRashiIdx, baseLang);
+
+  // 2. Cosmic Life Voltage & Gochara Nirnaya (ಜೀವಶಕ್ತಿ ವೋಲ್ಟೇಜ್ & ಗೋಚಾರ ನಿರ್ಣಯ)
+  const cosmicVoltage = calculateCosmicLifeVoltage(
+    kundli,
+    moonRashiIdx,
+    lagnaRashiIdx,
+    birthDate || "1990-01-01",
+    birthTime || "12:00",
+    lat || 14.5479,
+    lng || 74.3188,
+    baseLang
+  );
+
+  // 3. Next 5-Year Horizon Sneak Preview & Locked Cliffhangers (೫ ವರ್ಷಗಳ ಸುವರ್ಣ ಕಾಲ & ಮುನ್ನೋಟ)
+  const fiveYearPreview = calculateFiveYearPreviewHorizon(
+    kundli,
+    moonRashiIdx,
+    lagnaRashiIdx,
+    baseLang
+  );
+
+  // 4. Free Divine Lucky Blueprint (ಉಚಿತ ದೈವಿಕ ಅದೃಷ್ಟ ಅಂಶಗಳು)
+  const luckyElements = calculateFreeLuckyElements(
+    lagnaRashiIdx,
+    moonRashiIdx,
+    birthDate || "1990-01-01",
+    baseLang
+  );
+
+  // 5. Pandit Palette Dining Conversion Offer (೮೪% ಅತಿಥಿಗಳ ನಂಬಿಕೆ & ೧೦ ಸೆಕೆಂಡ್ ಡೌನ್‌ಲೋಡ್)
+  const diningOffer = getDiningConversionOffer(baseLang);
+
   return {
     devoteeName: localizedName,
     lang: baseLang,
@@ -529,7 +645,759 @@ export function generateAntarangaSatya(
     runningDashaText: dashaText,
     paragraph1,
     paragraph2,
-    kshetraBlessing
+    kshetraBlessing,
+    moorthyNirnaya,
+    cosmicVoltage,
+    fiveYearPreview,
+    luckyElements,
+    diningOffer
+  };
+}
+
+/**
+ * 1. Classical Moorthy Nirnaya (ಮೂರ್ತಿ ನಿರ್ಣಯ) across 7 languages
+ * Determines whether current celestial transit form is Gold, Silver, Copper, or Iron.
+ */
+export function calculateMoorthyNirnaya(
+  transitMoonSign: number,
+  janmaMoonSign: number,
+  lang: AntarangaLang = "kn"
+): MoorthyNirnayaData {
+  const diffHouse = ((transitMoonSign - janmaMoonSign + 12) % 12) + 1;
+
+  if ([1, 6, 11].includes(diffHouse)) {
+    // Swarna / Gold
+    const names: Record<AntarangaLang, string> = {
+      kn: "ಸ್ವರ್ಣ ಮೂರ್ತಿ (ಚಿನ್ನದ ಮೂರ್ತಿ - ಪೂರ್ಣ ಶುಭ ಫಲ)",
+      en: "Swarna Moorthy (Gold Form - Peak Benefic Fortune)",
+      hi: "स्वर्ण मूर्ति (पूर्ण शुभ फल - महा भाग्योदय)",
+      mr: "सुवर्ण मूर्ती (पूर्ण शुभ फळ - महा भाग्योदय)",
+      te: "స్వర్ణ మూర్తి (సంపూర్ణ శుభ ఫలితం - భాగ్యోదయం)",
+      ta: "சொர்ண மூர்த்தி (முழு சுப பலன் - பெரும் யோகம்)",
+      ml: "സ്വർണ്ണ മൂർത്തി (പൂർണ്ണ ശുഭ ഫലം - സുവർണ്ണ നേട്ടം)"
+    };
+    const badges: Record<AntarangaLang, string> = {
+      kn: "ಅತ್ಯುನ್ನತ ಸುವರ್ಣ ಭಾಗ್ಯ ಕಾಲ",
+      en: "Peak Golden Fortune Period",
+      hi: "अत्युत्तम स्वर्णिम काल",
+      mr: "अत्युत्तम सुवर्ण काळ",
+      te: "అత్యుత్తమ సువర్ణ కాలం",
+      ta: "உன்னத பொற்காலம்",
+      ml: "സുവർണ്ണ ഭാഗ്യ കാലം"
+    };
+    const descs: Record<AntarangaLang, string> = {
+      kn: "ಚಂದ್ರನಿಂದ ೧, ೬ ಅಥವಾ ೧೧ನೇ ಮನೆಯಲ್ಲಿ ಗೋಚಾರ ಸಂಭವಿಸುತ್ತಿದ್ದು, ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಇದು 'ಸ್ವರ್ಣ ಮೂರ್ತಿ' ಯೋಗವಾಗಿದೆ. ಈ ಅವಧಿಯು ಆರ್ಥಿಕ ಉನ್ನತಿ, ಸಮಾಜದಲ್ಲಿ ಕೀರ್ತಿ ಮತ್ತು ದೀರ್ಘಕಾಲದ ಕನಸುಗಳು ನನಸಾಗುವ ಸುವರ್ಣ ಕಾಲವಾಗಿದೆ!",
+      en: "Transiting through house 1, 6, or 11 from your natal Moon, classical Vedic shastra designates this as the 'Swarna Moorthy' alignment. This period brings sudden financial prosperity, social elevation, and realization of long-awaited aspirations!",
+      hi: "चन्द्र से १, ६ या ११वें भाव में गोचर के कारण यह शास्त्रीय 'स्वर्ण मूर्ति' फल है। यह समय आकस्मिक धन लाभ, सामाजिक प्रतिष्ठा एवं अटके कार्यों के पूर्ण होने का स्वर्णिम काल है!",
+      mr: "चंद्रापासून १, ६ अथवा ११व्या स्थानी गोचर भ्रमण असल्याने हे शास्त्रीय 'सुवर्ण मूर्ती' फळ आहे. हा काळ अचानक धनलाभ, समाजात मान-सन्मान व भाग्योदयाचा सुवर्ण काळ आहे!",
+      te: "చంద్రుని నుండి 1, 6 లేదా 11వ ఇంట గోచార ప్రభావం వల్ల ఇది శాస్త్రీయ 'స్వర్ణ మూర్తి' యోగం. ఈ సమయం ఆర్థిక పురోగతి, సమాజంలో గౌరవం మరియు సంపూర్ణ విజయానికి అనుకూలం!",
+      ta: "சந்திரனிலிருந்து 1, 6 அல்லது 11-ஆம் வீட்டில் சஞ்சரிப்பதால் இது 'சொர்ண மூர்த்தி' யோகமாகும். இது திடீர் தனலாபம், சமூக அந்தஸ்து மற்றும் வெற்றியைத் தரும் உன்னத காலமாகும்!",
+      ml: "ചന്ദ്രനിൽ നിന്ന് 1, 6 അല്ലെങ്കിൽ 11-ാം ഭാവത്തിൽ സഞ്ചരിക്കുന്നതിനാൽ ഇത് 'സ്വർണ്ണ മൂർത്തി' യോഗമാണ്. സാമ്പത്തിക നേട്ടം, സമൂഹത്തിൽ പ്രശസ്തി എന്നിവ ലഭിക്കുന്ന അനുകൂല സമയം!"
+    };
+    return {
+      title: lang === "kn" ? "ಮೂರ್ತಿ ನಿರ್ಣಯ" : lang === "hi" ? "मूर्ति निर्णय" : lang === "mr" ? "मूर्ती निर्णय" : lang === "te" ? "మూర్తి నిర్ణయం" : lang === "ta" ? "மூர்த்தி நிர்ணயம்" : lang === "ml" ? "മൂർത്തി നിർണ്ണയം" : "Moorthy Nirnaya",
+      moorthyName: names[lang] || names.en,
+      tier: "swarna",
+      description: descs[lang] || descs.en,
+      badge: badges[lang] || badges.en,
+      diffHouse
+    };
+  }
+
+  if ([2, 5, 9].includes(diffHouse)) {
+    // Rajata / Silver
+    const names: Record<AntarangaLang, string> = {
+      kn: "ರಜತ ಮೂರ್ತಿ (ಬೆಳ್ಳಿ ಮೂರ್ತಿ - ಉತ್ತಮ ಸ್ಥಿರತೆ)",
+      en: "Rajata Moorthy (Silver Form - Highly Auspicious Growth)",
+      hi: "रजत मूर्ति (उत्तम फल - स्थिरता एवं उन्नति)",
+      mr: "रजत मूर्ती (उत्तम फळ - स्थिरता व प्रगती)",
+      te: "రజత మూర్తి (ఉత్తమ ఫలితం - స్థిరమైన ప్రగతి)",
+      ta: "ரஜத மூர்த்தி (நற்பலன் - நிலையான வளர்ச்சி)",
+      ml: "രജത മൂർത്തി (ഉത്തമ ഫലം - സുസ്ഥിര പുരോഗതി)"
+    };
+    const badges: Record<AntarangaLang, string> = {
+      kn: "ಉತ್ತಮ ಶುಭ ಸ್ಥಿರತೆಯ ಕಾಲ",
+      en: "High Auspicious Stability",
+      hi: "उत्तम शुभ स्थिरता",
+      mr: "उत्तम प्रगती व स्थिरता",
+      te: "ఉత్తమ శుభ స్థిరత్వం",
+      ta: "சுப யோகம் & அமைதி",
+      ml: "ഉത്തമ പുരോഗതി & ശാന്തി"
+    };
+    const descs: Record<AntarangaLang, string> = {
+      kn: "ಚಂದ್ರನಿಂದ ೨, ೫ ಅಥವಾ ೯ನೇ ಮನೆಯಲ್ಲಿ ಗೋಚಾರವಾಗುತ್ತಿದ್ದು, ಇದು 'ರಜತ ಮೂರ್ತಿ' ಶುಭ ಯೋಗವಾಗಿದೆ. ಕೌಟುಂಬಿಕ ಶಾಂತಿ, ವೃತ್ತಿ ಸ್ಥಿರತೆ ಮತ್ತು ಧನ ಹರಿವಿನಲ್ಲಿ ನಿರಂತರ ಪ್ರಗತಿ ಕಂಡುಬರುತ್ತದೆ.",
+      en: "Transiting through house 2, 5, or 9 from natal Moon, classical shastra marks this as 'Rajata Moorthy'. Brings steady financial stability, domestic harmony, and career advancement.",
+      hi: "चन्द्र से २, ५ या ९वें भाव में गोचर के कारण यह 'रजत मूर्ति' शुभ फल है। पारिवारिक सौख्य, कार्यक्षेत्र में स्थिरता एवं निरंतर धन वृद्धि का सुंदर योग है।",
+      mr: "चंद्रापासून २, ५ अथवा ९व्या स्थानी गोचर असल्याने हे 'रजत मूर्ती' शुभ फळ आहे. कौटुंबिक शांतता, नोकरी-व्यवसायात स्थिरता व उत्तम प्रगतीचा काळ आहे.",
+      te: "చంద్రుని నుండి 2, 5 లేదా 9వ ఇంట గోచారం వల్ల ఇది 'రజత మూర్తి' ఫలితం. కుటుంబంలో ప్రశాంతత, వృత్తిలో స్థిరత్వం మరియు ధనాగమనం బాగుంటుంది.",
+      ta: "சந்திரனிலிருந்து 2, 5 அல்லது 9-ஆம் வீட்டில் சஞ்சரிப்பதால் இது 'ரஜத மூர்த்தி' நற்பலனாகும். குடும்ப அமைதி, தொழில் நிலைத்தன்மை மற்றும் தனவிருத்தி ஏற்படும்.",
+      ml: "ചന്ദ്രനിൽ നിന്ന് 2, 5 അല്ലെങ്കിൽ 9-ാം ഭാവത്തിൽ സഞ്ചരിക്കുന്നതിനാൽ ഇത് 'രജത മൂർത്തി' ഫലമാണ്. കുടുംബത്തിൽ സമാധാനം, തൊഴിൽ രംഗത്ത് സ്ഥിരത, സാമ്പത്തിക വളർച്ച എന്നിവ ലഭിക്കും."
+    };
+    return {
+      title: lang === "kn" ? "ಮೂರ್ತಿ ನಿರ್ಣಯ" : lang === "hi" ? "मूर्ति निर्णय" : lang === "mr" ? "मूर्ती निर्णय" : lang === "te" ? "మూర్తి నిర్ణయం" : lang === "ta" ? "மூர்த்தி நிர்ணயம்" : lang === "ml" ? "മൂർത്തി നിർണ്ണയം" : "Moorthy Nirnaya",
+      moorthyName: names[lang] || names.en,
+      tier: "rajata",
+      description: descs[lang] || descs.en,
+      badge: badges[lang] || badges.en,
+      diffHouse
+    };
+  }
+
+  if ([3, 7, 10].includes(diffHouse)) {
+    // Tamra / Copper
+    const names: Record<AntarangaLang, string> = {
+      kn: "ತಾಮ್ರ ಮೂರ್ತಿ (ತಾಮ್ರ ಮೂರ್ತಿ - ಮಧ್ಯಮ ಫಲ)",
+      en: "Tamra Moorthy (Copper Form - Moderate Yield & Steady Effort)",
+      hi: "ताम्र मूर्ति (मध्यम फल - परिश्रम अनुसार लाभ)",
+      mr: "ताम्र मूर्ती (मध्यम फळ - कष्टाला योग्य फळ)",
+      te: "తామ్ర మూర్తి (మధ్యమ ఫలితం - శ్రమకు తగిన ఫలితం)",
+      ta: "தாமிர மூர்த்தி (மத்திமம் - உழைப்புக்கேற்ற பலன்)",
+      ml: "താമ്ര മൂർത്തി (മധ്യമ ഫലം - അധ്വാനത്തിനൊത്ത നേട്ടം)"
+    };
+    const badges: Record<AntarangaLang, string> = {
+      kn: "ಮಧ್ಯಮ ಪರಿಶ್ರಮದ ಕಾಲ",
+      en: "Moderate Effort & Progress",
+      hi: "मध्यम परिश्रम फल",
+      mr: "मध्यम कष्टाचे फळ",
+      te: "మధ్యమ శ్రమ ఫలితం",
+      ta: "மத்திம உழைப்புப் பலன்",
+      ml: "മധ്യമ അധ്വാന ഫലം"
+    };
+    const descs: Record<AntarangaLang, string> = {
+      kn: "ಚಂದ್ರನಿಂದ ೩, ೭ ಅಥವಾ ೧೦ನೇ ಮನೆಯಲ್ಲಿ ಗೋಚಾರವಾಗುತ್ತಿದ್ದು, ಇದು 'ತಾಮ್ರ ಮೂರ್ತಿ' ಯೋಗ. ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಏಕಾಗ್ರತೆಗೆ ತಕ್ಕಂತೆ ಹಂತ-ಹಂತವಾಗಿ ಯಶಸ್ಸು ಲಭಿಸುತ್ತದೆ.",
+      en: "Transiting through house 3, 7, or 10 from natal Moon, designated as 'Tamra Moorthy'. Rewards disciplined perseverance with gradual progress and structured growth.",
+      hi: "चन्द्र से ३, ७ या १०वें भाव में गोचर के कारण यह 'ताम्र मूर्ति' फल है। निरंतर प्रयास एवं धैर्य से धीरे-धीरे सफलता प्राप्त होगी।",
+      mr: "चंद्रापासून ३, ७ अथवा १०व्या स्थानी गोचर असल्याने हे 'ताम्र मूर्ती' फळ आहे. सातत्यपूर्ण प्रयत्न आणि संयमाने यश संपादन करता येईल.",
+      te: "చంద్రుని నుండి 3, 7 లేదా 10వ ఇంట గోచారం వల్ల ఇది 'తామ్ర మూర్తి'. క్రమశిక్షణతో కూడిన శ్రమతో అంచెలంచెలుగా విజయం దక్కుతుంది.",
+      ta: "சந்திரனிலிருந்து 3, 7 அல்லது 10-ஆம் வீட்டில் சஞ்சரிப்பதால் இது 'தாமிர மூர்த்தி' பலனாகும். விடாமுயற்சி மற்றும் பொறுமையுடன் படிப்படியாக முன்னேற்றம் ஏற்படும்.",
+      ml: "ചന്ദ്രനിൽ നിന്ന് 3, 7 അല്ലെങ്കിൽ 10-ാം ഭാവത്തിൽ സഞ്ചരിക്കുന്നതിനാൽ ഇത് 'താമ്ര മൂർത്തി' ഫലമാണ്. നിരന്തര പരിശ്രമത്തിലൂടെ ഘട്ടംഘട്ടമായി വിജയം കൈവരിക്കാം."
+    };
+    return {
+      title: lang === "kn" ? "ಮೂರ್ತಿ ನಿರ್ಣಯ" : lang === "hi" ? "मूर्ति निर्णय" : lang === "mr" ? "मूर्ती निर्णय" : lang === "te" ? "మూర్తి నిర్ణయం" : lang === "ta" ? "மூர்த்தி நிர்ணயம்" : lang === "ml" ? "മൂർത്തി നിർണ്ണയം" : "Moorthy Nirnaya",
+      moorthyName: names[lang] || names.en,
+      tier: "tamra",
+      description: descs[lang] || descs.en,
+      badge: badges[lang] || badges.en,
+      diffHouse
+    };
+  }
+
+  // Loha / Iron
+  const names: Record<AntarangaLang, string> = {
+    kn: "ಲೋಹ ಮೂರ್ತಿ (ಕಬ್ಬಿಣ ಮೂರ್ತಿ - ತಾಳ್ಮೆ & ಶಾಂತಿ ಅಗತ್ಯ)",
+    en: "Loha Moorthy (Iron Form - Demands Patience & Remedial Care)",
+    hi: "लोह मूर्ति (धैर्य एवं शांति उपाय आवश्यक)",
+    mr: "लोह मूर्ती (संयम व शांती उपाय आवश्यक)",
+    te: "లోహ మూర్తి (ఓర్పు & పరిహార శాంతి అవసరం)",
+    ta: "இரும்பு மூர்த்தி (பொறுமை & பரிகாரம் தேவை)",
+    ml: "ലോഹ മൂർത്തി (ക്ഷമയും ശാന്തിയും ആവശ്യം)"
+  };
+  const badges: Record<AntarangaLang, string> = {
+    kn: "ತಾಳ್ಮೆ & ದೈವಿಕ ರಕ್ಷೆ ಅಗತ್ಯ",
+    en: "Remedial Shield & Patience Required",
+    hi: "धैर्य एवं शांति उपाय आवश्यक",
+    mr: "संयम व शांती आवश्यक",
+    te: "ఓర్పు & పరిహారం అవసరం",
+    ta: "பொறுமை & பரிகாரம் தேவை",
+    ml: "ക്ഷമയും ശാന്തിയും ആവശ്യം"
+  };
+  const descs: Record<AntarangaLang, string> = {
+    kn: "ಚಂದ್ರನಿಂದ ೪, ೮ ಅಥವಾ ೧೨ನೇ ಮನೆಯಲ್ಲಿ ಗೋಚಾರವಾಗುತ್ತಿದ್ದು, ಇದು 'ಲೋಹ ಮೂರ್ತಿ' ಕಾಲವಾಗಿದೆ. ಅವಸರದ ನಿರ್ಧಾರಗಳನ್ನು ತಪ್ಪಿಸುವುದು, ಅನಗತ್ಯ ಹೂಡಿಕೆ ಮಾಡದಿರುವುದು ಮತ್ತು ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರಕ್ಷಾ ಶಾಂತಿ ಮಾಡಿಸುವುದು ಅತ್ಯಗತ್ಯ.",
+    en: "Transiting through house 4, 8, or 12 from natal Moon, classical texts categorize this as 'Loha Moorthy'. Calls for strategic restraint, avoiding speculative ventures, and performing Gokarna Kshetra Shanti.",
+    hi: "चन्द्र से ४, ८ या १२वें भाव में गोचर के कारण यह 'लोह मूर्ति' फल है। जल्दबाजी में निर्णय न लें, विवादों से बचें तथा गोಕರ್ण महाबलेश्वर की शांति पूजा कराएं।",
+    mr: "चंद्रापासून ४, ८ अथवा १२व्या स्थानी गोचर असल्याने हे 'लोह मूर्ती' फळ आहे. घाईगडबडीत मोठे निर्णय घेणे टाळा, आर्थिक व्यवहार सांभाळा व गोकर्ण महाबळेश्वर शांती पूजा करा.",
+    te: "చంద్రుని నుండి 4, 8 లేదా 12వ ఇంట గోచారం వల్ల ఇది 'లోహ మూర్తి' సమయం. తొందరపాటు నిర్ణయాలు తీసుకోరాదు, గోకర్ణ మహాబలేశ్వర స్వామి శాంతి పూజ జరిపించడం శ్రేయస్కరం.",
+    ta: "சந்திரனிலிருந்து 4, 8 அல்லது 12-ஆம் வீட்டில் சஞ்சரிப்பதால் இது 'இரும்பு மூர்த்தி' காலமாகும். அவசர முடிவுகளைத் தவிர்க்கவும், கோகர்ணம் மகாபலேஸ்வரருக்கு சாந்தி பரிகாரம் செய்வது நலம் தரும்.",
+    ml: "ചന്ദ്രനിൽ നിന്ന് 4, 8 അല്ലെങ്കിൽ 12-ാം ഭാവത്തിൽ സഞ്ചരിക്കുന്നതിനാൽ ഇത് 'ലോഹ മൂർത്തി' കാലമാണ്. എടുത്തുചാടിയുള്ള തീരുമാനങ്ങൾ ഒഴിവാക്കുക, ഗോകർണം മഹാബലേശ്വര സന്നിധിയിൽ ശാന്തി പൂജ നടത്തുക."
+  };
+  return {
+    title: lang === "kn" ? "ಮೂರ್ತಿ ನಿರ್ಣಯ" : lang === "hi" ? "मूर्ति निर्णय" : lang === "mr" ? "मूर्ती निर्णय" : lang === "te" ? "మూర్తి निर्णय" : lang === "ta" ? "மூர்த்தி நிர்ணயம்" : lang === "ml" ? "മൂർത്തി നിർണ്ണയം" : "Moorthy Nirnaya",
+    moorthyName: names[lang] || names.en,
+    tier: "loha",
+    description: descs[lang] || descs.en,
+    badge: badges[lang] || badges.en,
+    diffHouse
+  };
+}
+
+/**
+ * 2. Live Cosmic Life Voltage & Gochara Nirnaya
+ */
+export function calculateCosmicLifeVoltage(
+  kundli: KundliOutput,
+  moonIdx: number,
+  lagnaIdx: number,
+  birthDate: string = "1990-01-01",
+  birthTime: string = "12:00",
+  lat: number = 14.5479,
+  lng: number = 74.3188,
+  lang: AntarangaLang = "kn"
+): CosmicLifeVoltageData {
+  const now = new Date();
+  const transits = getTransitsForDate(moonIdx, now, "lahiri");
+  const shaniHouse = transits[PlanetName.Saturn]?.house ?? 8;
+  const guruHouse = transits[PlanetName.Jupiter]?.house ?? 5;
+
+  const isSadeSati = [12, 1, 2].includes(shaniHouse);
+  const isAshtama = shaniHouse === 8;
+  const isKantaka = [4, 7, 10].includes(shaniHouse);
+  const hasGuruBala = [2, 5, 7, 9, 11].includes(guruHouse);
+
+  // Dynamic Cosmic Voltage
+  let energyScore = 70;
+  if (hasGuruBala) energyScore += 12;
+  if (!isSadeSati && !isAshtama) energyScore += 8;
+  if (isSadeSati) energyScore -= 8;
+  if (isAshtama) energyScore -= 10;
+  if (kundli.planets.some(p => p.isExalted)) energyScore += 6;
+  energyScore = Math.min(95, Math.max(55, energyScore));
+
+  const isHighEnergy = energyScore >= 75;
+
+  // Age & Dasha/Bhukti
+  let activeMahadasha = "ಗುರು (Jupiter)";
+  let activeBhukti = "ಶನಿ (Saturn)";
+  let dashaPeriodText = "೨೦೨೪ - ೨೦೨೭";
+
+  try {
+    const ageDec = ageDecimalYearsAt(birthDate, birthTime, lat, lng, now);
+    const bhukti = findBhuktiAtAge(kundli, ageDec);
+    if (bhukti) {
+      const mahaLord = bhukti.maha?.planet ?? PlanetName.Jupiter;
+      const bhuktiLord = bhukti.bhukti ?? PlanetName.Saturn;
+      const mahaKey = String(mahaLord) as GrahaKey;
+      const bhuktiKey = String(bhuktiLord) as GrahaKey;
+      activeMahadasha = GRAHA_7L[mahaKey]?.[lang] || String(mahaLord);
+      activeBhukti = GRAHA_7L[bhuktiKey]?.[lang] || String(bhuktiLord);
+      if (bhukti.bhuktiStartAge && bhukti.bhuktiEndAge) {
+        dashaPeriodText = `${bhukti.bhuktiStartAge.toFixed(1)} - ${bhukti.bhuktiEndAge.toFixed(1)} ${lang === "kn" ? "ವರ್ಷ ವಯೋಮಿತಿ" : "Years"}`;
+      }
+    }
+  } catch {}
+
+  const shaniGocharaStatus = isSadeSati
+    ? (lang === "kn" ? "ಶನಿ ಸಾಡೇ ಸಾತಿ (ಏಳೂವರೆ ಶನಿ ಪ್ರಭಾವ)"
+      : lang === "hi" ? "शनि साढ़ेसाती (सक्रिय प्रभाव)"
+      : lang === "mr" ? "शनी साडेसाती (सक्रिय प्रभाव)"
+      : lang === "te" ? "ఏలినాటి శని (ప్రభావ కాలం)"
+      : lang === "ta" ? "ஏழரை சனி (தாக்க காலம்)"
+      : lang === "ml" ? "ഏഴര ശനി (സ്വാധീന കാലം)"
+      : "Saturn Sade Sati Active Phase")
+    : isAshtama
+    ? (lang === "kn" ? "ಅಷ್ಟಮ ಶನಿ (೮ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ)"
+      : lang === "hi" ? "अष्टम शनि (८वें भाव में शनि)"
+      : lang === "mr" ? "अष्टम शनी (८व्या स्थानी शनी)"
+      : lang === "te" ? "అష్టమ శని (8వ ఇంట శని)"
+      : lang === "ta" ? "அஷ்டம சனி (8-ஆம் வீட்டில் சனி)"
+      : lang === "ml" ? "അഷ്ടമ ശനി (8-ാം ഭാവത്തിൽ ശനി)"
+      : "Ashtama Shani (8th House Transit)")
+    : isKantaka
+    ? (lang === "kn" ? "ಕಂಟಕ ಶನಿ (ಪರಿಶ್ರಮದ ಕಾಲ)"
+      : lang === "hi" ? "कंटक शनि (परिश्रम की अवधि)"
+      : lang === "mr" ? "कंटक शनी (कष्टाचा काळ)"
+      : lang === "te" ? "కంటక శని (శ్రమతో కూడిన కాలం)"
+      : lang === "ta" ? "கண்டக சனி (கடின உழைப்பு)"
+      : lang === "ml" ? "കണ്ടക ശനി (അധ്വാന കാലം)"
+      : "Kantaka Shani (Patience Demanded)")
+    : (lang === "kn" ? "ಶನಿ ಬಾಧೆ ಮುಕ್ತ (ಅನುಕೂಲಕರ ಶುಭ ಕಾಲ)"
+      : lang === "hi" ? "शनि बाधा मुक्त (शुभ गोचर)"
+      : lang === "mr" ? "शनी पीडा मुक्त (शुभ गोचर)"
+      : lang === "te" ? "శని బాధా ముక్తం (శుభ కాలం)"
+      : lang === "ta" ? "சனி பாதிப்பற்ற காலம்"
+      : lang === "ml" ? "ശനി ദോഷ മുക്ത കാലം"
+      : "Free from Saturn Affliction (Favorable)");
+
+  const shaniGocharaImpact = isSadeSati || isAshtama
+    ? (lang === "kn" ? "ಕಾರ್ಯಗಳಲ್ಲಿ ತಾಳ್ಮೆ, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷಾ ಶಾಂತಿ ಅತ್ಯಗತ್ಯ."
+      : lang === "hi" ? "धैर्य, अनुशासन एवं गोकर्ण क्षेत्र में शनि शांति आराधना श्रेयस्कर।"
+      : lang === "mr" ? "संयम, प्रामाणिकपणा व गोकर्ण महाबळेश्वर शांती पूजा आवश्यक."
+      : lang === "te" ? "ఓర్పు, క్రమశిక్షణ మరియు గోకర్ణంలో శని శాంతి పూజ అవసరం."
+      : lang === "ta" ? "பொறுமையும் கோகர்ணம் மகாபலேஸ்வரர் சாந்தி வழிபாடும் அவசியம்."
+      : lang === "ml" ? "ക്ഷമയും ഗോകർണം മഹാബലേശ്വര സന്നിധിയിൽ ശാന്തി പൂജയും ആവശ്യം."
+      : "Requires calm patience, ethical steadfastness, and Gokarna Kshetra Shanti.")
+    : (lang === "kn" ? "ಶನಿ ಗೋಚಾರವು ಶಾಂತಿಯುತವಾಗಿದ್ದು, ದೀರ್ಘಕಾಲಿಕ ಗುರಿಗಳನ್ನು ಸಾಕಾರಗೊಳಿಸಲು ಉತ್ತಮ ಕಾಲ."
+      : lang === "hi" ? "शनि का गोचर शांत है, दीर्घकालिक लक्ष्यों हेतु उपयुक्त समय।"
+      : lang === "mr" ? "शनी गोचर अनुकूल असून दीर्घकालीन उद्दिष्टांसाठी उत्तम काळ आहे."
+      : lang === "te" ? "శని గోచారం అనుకూలంగా ఉంది, దీర్ఘకాలిక లక్ష్యాల సాధనకు మంచి సమయం."
+      : lang === "ta" ? "சனி கோச்சாரம் சாதகமாக உள்ளது, நீண்டகால திட்டங்களுக்கு நலம்."
+      : lang === "ml" ? "ശനി ഗോചാരം അനുകൂലമാണ്, ദീർഘകാല ലക്ഷ്യങ്ങൾക്ക് നല്ല സമയം."
+      : "Saturn transit is supportive, ideal for executing long-term milestones.");
+
+  const guruGocharaStatus = hasGuruBala
+    ? (lang === "kn" ? "ಗುರುಬಲ ಪ್ರಾಪ್ತಿ (ಅತ್ಯಂತ ಮಂಗಳಕರ ಯೋಗ)"
+      : lang === "hi" ? "गुरुबल प्राप्ति (अत्यंत मंगलकारी योग)"
+      : lang === "mr" ? "गुरुबल प्राप्ती (अतिशय मंगलमय काळ)"
+      : lang === "te" ? "గురుబల ప్రాప్తి (అత్యంత శుభ యోగం)"
+      : lang === "ta" ? "குருபல பிராப்தி (மிகச் சிறந்த சுப யோகம்)"
+      : lang === "ml" ? "ഗുരുബല പ്രാപ്തി (അത്യന്തം മംഗളകരമായ സമയം)"
+      : "Guru Bala Blessed (Highly Auspicious Jupiter Transit)")
+    : (lang === "kn" ? "ಗುರು ನಿರೀಕ್ಷಾ ಕಾಲ (ಶಾಂತಿ & ಪ್ರಾರ್ಥನೆ ಹಿತಕರ)"
+      : lang === "hi" ? "गुरु अनुकूलता हेतु साधना काल"
+      : lang === "mr" ? "गुरू कृपेसाठी साधना काळ"
+      : lang === "te" ? "గురు అనుగ్రహ సాధన సమయం"
+      : lang === "ta" ? "குரு அருள் பெற வழிபாடு தேவை"
+      : lang === "ml" ? "ഗുരു കൃപയ്ക്കായി പ്രാർത്ഥനാ കാലം"
+      : "Guru Inward Alignment (Spiritual Sadhana Recommended)");
+
+  const guruGocharaImpact = hasGuruBala
+    ? (lang === "kn" ? "ಧನ ವೃದ್ಧಿ, ನೂತನ ಜವಾಬ್ದಾರಿ, ಕುಟುಂಬದಲ್ಲಿ ಶುಭ ಕಾರ್ಯ ಹಾಗೂ ಗೌರವ ಪ್ರಾಪ್ತಿ!"
+      : lang === "hi" ? "धन वृद्धि, नवीन अवसर, परिवार में मांगलिक कार्य एवं सम्मान प्राप्ति!"
+      : lang === "mr" ? "धन वृद्धी, नवीन संधी, कुटुंबात मंगल कार्ये व सन्मान प्राप्ती!"
+      : lang === "te" ? "ధనాభివృద్ధి, నూతన అవకాశాలు, కుటుంబంలో శుభకార్యాలు మరియు గౌరవం!"
+      : lang === "ta" ? "தனவிருத்தி, புதிய வாய்ப்புகள், குடும்பத்தில் சுபகாரியங்கள் மற்றும் மரியாதை!"
+      : lang === "ml" ? "സാമ്പത്തിക നേട്ടം, പുതിയ അവസരങ്ങൾ, കുടുംബത്തിൽ മംഗള കർമ്മങ്ങൾ!"
+      : "Catalyzes wealth expansion, auspicious family milestones, and social recognition!")
+    : (lang === "kn" ? "ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಕೃಪೆಗಾಗಿ ಗುರುವಾರ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ ಹಾಗೂ ಗುರು ಸೇವೆ ಶ್ರೇಷ್ಠ."
+      : lang === "hi" ? "गुरुवार को श्री विष्णु सहस्रनाम का पाठ एवं गुरु सेवा कल्याणकारी।"
+      : lang === "mr" ? "गुरुवारी विष्णू सहस्रनाम पठण व गुरु सेवा लाभदायक ठरेल."
+      : lang === "te" ? "గురువారం శ్రీ విష్ణు సహస్రనామ పారాయణం శ్రేయస్కరం."
+      : lang === "ta" ? "வியாழக்கிழமைகளில் விஷ்ணு சஹஸ்ரநாமம் பாராயணம் செய்வது நலம்."
+      : lang === "ml" ? "വ്യാഴാഴ്ചകളിൽ വിഷ്ണു സഹസ്രനാമം ജപിക്കുന്നത് ഉത്തമം."
+      : "Chanting Vishnu Sahasranama on Thursdays invites divine benevolence.");
+
+  const energyLabel = isHighEnergy
+    ? (lang === "kn" ? "ಉನ್ನತ ದೈವಿಕ ಶಕ್ತಿ ಪ್ರವಾಹ (High Cosmic Voltage)"
+      : lang === "hi" ? "उच्च दैवीय ऊर्जा स्तर (High Energy)"
+      : lang === "mr" ? "उच्च ऊर्जा प्रवाह (High Energy)"
+      : lang === "te" ? "ఉన్నత దివ్య శక్తి ప్రవాహం (High Energy)"
+      : lang === "ta" ? "உயர் ஆற்றல் நிலை (High Voltage)"
+      : lang === "ml" ? "ഉയർന്ന ഊർജ്ജ നില (High Voltage)"
+      : "High Cosmic Voltage Alignment")
+    : (lang === "kn" ? "ಸಮತೋಲಿತ ಕರ್ಮ ಪ್ರವಾಹ (Balanced Cosmic Energy)"
+      : lang === "hi" ? "संतुलित कर्मिक ऊर्जा (Balanced Energy)"
+      : lang === "mr" ? "संतुलित ऊर्जा स्तर (Balanced Energy)"
+      : lang === "te" ? "సమతుల్య శక్తి ప్రవాహం (Balanced Energy)"
+      : lang === "ta" ? "சமநிலை ஆற்றல் (Balanced Energy)"
+      : lang === "ml" ? "സന്തുലിത ഊർജ്ജ നില (Balanced Energy)"
+      : "Balanced Cosmic Vitality");
+
+  const energyDesc = isHighEnergy
+    ? (lang === "kn" ? "ಪ್ರಸ್ತುತ ಗ್ರಹಬಲವು ಪ್ರಬಲವಾಗಿದ್ದು, ನಿಮ್ಮ ದೈನಂದಿನ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳಲು ಹಾಗೂ ಹೊಸ ಉಪಕ್ರಮ ಆರಂಭಿಸಲು ಸುವರ್ಣ ಕಾಲವಾಗಿದೆ!"
+      : lang === "hi" ? "वर्तमान ग्रहबल सशक्त है, महत्वपूर्ण निर्णय लेने एवं नए उपक्रम आरंभ करने का स्वर्णिम समय है!"
+      : lang === "mr" ? "सध्याचे ग्रहबल उत्तम असून महत्त्वाचे निर्णय घेण्यासाठी व नवीन सुरुवात करण्यासाठी अनुकूल काळ आहे!"
+      : lang === "te" ? "ప్రస్తుత గ్రహబలం బలంగా ఉంది, ముఖ్యమైన నిర్ణయాలు తీసుకోవడానికి మరియు నూతన ప్రారంభానికి అనుకూలం!"
+      : lang === "ta" ? "தற்போதைய கிரகபலம் வலுவாக உள்ளது, முக்கிய முடிவுகளை எடுக்கவும் புதிய முயற்சிகளுக்கும் ஏற்ற காலம்!"
+      : lang === "ml" ? "നിലവിലെ ഗ്രഹബലം അനുകൂലമാണ്, പ്രധാന തീരുമാനങ്ങൾ എടുക്കാനും പുതിയ തുടക്കങ്ങൾക്കും ഉത്തമ സമയം!"
+      : "Cosmic vitality is vigorous, offering immense clarity for crucial decisions and forward-looking ventures!")
+    : (lang === "kn" ? "ದಿನದ ಪ್ರಾಣಶಕ್ತಿ ಸಮತೋಲನದಲ್ಲಿದೆ. ಪ್ರಮುಖ ಆರ್ಥಿಕ ಹೂಡಿಕೆ ಅಥವಾ ಕೌಟುಂಬಿಕ ಒಪ್ಪಂದಗಳ ಮುನ್ನ ಹಿರಿಯರ ಸಲಹೆ ಪಡೆಯುವುದು ಹಿತಕರ."
+      : lang === "hi" ? "ऊर्जा संतुलित है। महत्वपूर्ण निवेश अथवा पारिवारिक निर्णय से पूर्व बड़ों की सलाह लें।"
+      : lang === "mr" ? "ऊर्जा संतुलित आहे। आर्थिक गुंतवणूक अथवा कौटुंबिक निर्णयापूर्वी ज्येष्ठांचा सल्ला घ्या."
+      : lang === "te" ? "శక్తి సమతుల్యంగా ఉంది. ముఖ్యమైన పెట్టుబడులకు ముందు అనుభవజ్ఞుల సలహా శ్రేయస్కరం."
+      : lang === "ta" ? "ஆற்றல் சமநிலையில் உள்ளது. முக்கிய முதலீடுகளுக்கு முன் பெரியோர்களின் ஆலோசனை நலம்."
+      : lang === "ml" ? "ഊർജ്ജം സന്തുലിതമാണ്. പ്രധാന തീരുമാനങ്ങൾക്ക് മുമ്പ് മുതിർന്നവരുടെ ഉപദേശം തേടുക."
+      : "Vital energy is balanced; consult trusted mentors before major capital or family commitments.");
+
+  const turningPointVerdict = lang === "kn"
+    ? "ಈ ಕ್ಷಣದಲ್ಲಿ ನಿಮ್ಮ ಜೀವನವು ಮಹತ್ತರ ಕರ್ಮಿಕ ತಿರುವನ್ನು ಪಡೆಯುತ್ತಿದೆ. ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ಕಾಲವನ್ನು ಸರಿಯಾಗಿ ಬಳಸಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಭವಿಷ್ಯವನ್ನು ನಿರ್ಧರಿಸಲಿದೆ!"
+    : lang === "hi"
+    ? "इस समय आपका जीवन एक महत्वपूर्ण कर्मिक मोड़ पर है। आगामी ५ वर्षों के स्वर्णिम काल का सही उपयोग आपका भाग्य तय करेगा!"
+    : lang === "mr"
+    ? "या क्षणी आपले जीवन एका महत्त्वाच्या कर्मिक वळणावर आहे. पुढील ५ वर्षांच्या सुवर्ण काळाचा योग्य वापर आपले भविष्य घडवेल!"
+    : lang === "te"
+    ? "ఈ సమయంలో మీ జీవితం ఒక ముఖ్యమైన మలుపు తిరుగుతోంది. రాబోయే 5 సంవత్సరాల సువర్ణ కాలాన్ని సద్వినియోగం చేసుకోవడం మీ భవిష్యత్తును నిర్ణయిస్తుంది!"
+    : lang === "ta"
+    ? "இந்த தருணத்தில் உங்கள் வாழ்க்கை ஒரு முக்கிய திருப்பத்தை அடைகிறது. அடுத்த 5 ஆண்டுகளின் பொற்காலத்தை சரியாகப் பயன்படுத்துவது உங்கள் எதிர்காலத்தை நிர்ணயிக்கும்!"
+    : lang === "ml"
+    ? "ഈ നിമിഷത്തിൽ നിങ്ങളുടെ ജീവിതം ഒരു വലിയ വഴിത്തിരിവിലാണ്. അടുത്ത 5 വർഷത്തെ സുവർണ്ണ കാലം പ്രയോജനപ്പെടുത്തുന്നത് നിങ്ങളുടെ ഭാവിയെ നിർണ്ണയിക്കും!"
+    : "Your life is currently positioned at a profound karmic crossroads. Navigating the next 5-year horizon with strategic wisdom will determine your destiny!";
+
+  return {
+    energyScore,
+    energyLabel,
+    energyDesc,
+    activeMahadasha,
+    activeBhukti,
+    dashaPeriodText,
+    shaniGocharaStatus,
+    shaniGocharaImpact,
+    isSadeSati,
+    isAshtama,
+    isKantaka,
+    hasGuruBala,
+    guruGocharaStatus,
+    guruGocharaImpact,
+    turningPointVerdict
+  };
+}
+
+/**
+ * 3. Next 5-Year Horizon Sneak Preview & Locked Psychological Cliffhangers
+ */
+export function calculateFiveYearPreviewHorizon(
+  kundli: KundliOutput,
+  moonIdx: number,
+  lagnaIdx: number,
+  lang: AntarangaLang = "kn"
+): FiveYearPreviewHorizonData {
+  // Year 1 (2026 - 2027) Free Revelation
+  const yr1Samvatsaras: Record<AntarangaLang, string> = {
+    kn: "ವಿಶ್ವಾವಸು / ಕ್ರೋಧೀ ಸಂವತ್ಸರ",
+    en: "Vishvavasu / Krodhi Samvatsara",
+    hi: "विश्वावसु / क्रोधी संवत्सर",
+    mr: "विश्वावसु / क्रोधी संवत्सर",
+    te: "విశ్వావసు / క్రోధి సంవత్సరం",
+    ta: "விஸ்வாவசு / குரோதி சம்வத்சரம்",
+    ml: "വിശ്വാവസു / ക്രോധി സംവത്സരം"
+  };
+
+  const yr1Seasons: Record<AntarangaLang, string> = {
+    kn: "ಶರದೃತು & ಹೇಮಂತ ಋತು (ಅಕ್ಟೋಬರ್ - ಜನವರಿ)",
+    en: "Sharad & Hemanta Ritu (Oct - Jan)",
+    hi: "शरद एवं हेमन्त ऋतु (अक्टूबर - जनवरी)",
+    mr: "शरद व हेमंत ऋतू (ऑक्टोबर - जानेवारी)",
+    te: "శరత్ & హేమంత ఋతువులు (అక్టోబర్ - జనవరి)",
+    ta: "சரத் & ஹேமந்த ருது (அக்டோபர் - ஜனவரி)",
+    ml: "ശരത് & ഹേമന്ത ഋതുക്കൾ (ഒക്ടോബർ - ജനുവരി)"
+  };
+
+  const yr1Opportunities: Record<AntarangaLang, string> = {
+    kn: "ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ಹೊಸ ಹೆಜ್ಜೆ, ಆರ್ಥಿಕ ಆದಾಯದ ಹೊಸ ಮಾರ್ಗಗಳು ಹಾಗೂ ಕೌಟುಂಬಿಕ ಗೌರವ ಹೆಚ್ಚಾಗುವ ಸುಸಂದರ್ಭ ಆರಂಭವಾಗಲಿದೆ!",
+    en: "A breakthrough window in professional endeavors, novel income streams, and expanding community honor!",
+    hi: "कार्यक्षेत्र में नई शुरुआत, आय के नवीन स्रोत तथा पारिवारिक मान-प्रतिष्ठा में वृद्धि का शुभ अवसर!",
+    mr: "नोकरी-व्यवसायात नवीन सुरुवात, उत्पन्नाचे नवीन मार्ग व कुटुंबात मानसन्मान वाढण्याची सुवर्णसंधी!",
+    te: "వృత్తి రంగంలో నూతన ముందడుగు, కొత్త ఆదాయ మార్గాలు మరియు కుటుంబ గౌరవం పెరిగే శుభ సమయం!",
+    ta: "தொழில் துறையில் புதிய வளர்ச்சி, புதிய வருமான வழிகள் மற்றும் குடும்ப மரியாதை கூடும் நற்காலம்!",
+    ml: "തൊഴിൽ രംഗത്ത് പുതിയ തുടക്കം, വരുമാന വർദ്ധനവ്, കുടുംബത്തിൽ ആദരവ് എന്നിവ ലഭിക്കുന്ന നല്ല സമയം!"
+  };
+
+  const yr1Cautions: Record<AntarangaLang, string> = {
+    kn: "ಆಪ್ತರ ಜತೆ ಅವಸರದ ವ್ಯವಹಾರ, ಭರವಸೆ ನೀಡುವುದು ಅಥವಾ ಸಾಲ ಕೊಡುವ ವಿಚಾರದಲ್ಲಿ ಎಚ್ಚರಿಕೆ ವಹಿಸಿ.",
+    en: "Exercise prudence in partnership agreements, financial guarantees, and impulsive verbal commitments.",
+    hi: "आकस्मिक साझेदारी, उधार लेन-देन अथवा अत्यधिक भावुक वादों से बचें।",
+    mr: "जवळच्या व्यक्तींसोबत घाईगडबडीत आर्थिक व्यवहार किंवा जामीन राहणे टाळा.",
+    te: "ఆర్థిక హామీలు ఇవ్వడం లేదా తొందరపాటు ఒప్పందాల విషయంలో జాగ్రత్త వహించండి.",
+    ta: "பணப் பரிவர்த்தனைகள் அல்லது அவசர வாக்குறுதிகள் கொடுப்பதில் எச்சரிக்கை தேவை.",
+    ml: "സാമ്പത്തിക ഇടപാടുകളിലും തിടുക്കത്തിലുള്ള തീരുമാനങ്ങളിലും ജാഗ്രത പാലിക്കുക."
+  };
+
+  const yr1Headlines: Record<AntarangaLang, string> = {
+    kn: "೨೦೨೬-೨೦೨೭: ಕರ್ಮಿಕ ಪರಿವರ್ತನೆ & ನೂತನ ಅವಕಾಶಗಳ ಮಹಾ ಆರಂಭ",
+    en: "2026-2027: Karmic Awakening & New Horizons Inception",
+    hi: "2026-2027: कर्मिक परिवर्तन एवं नवीन अवसरों का शुभारंभ",
+    mr: "२०२६-२०२७: कर्मिक परिवर्तन व नवीन संधींचा प्रारंभ",
+    te: "2026-2027: కర్మిక పరివర్తన & నూతన అవకాశాల ఆరంభం",
+    ta: "2026-2027: கர்ம விழிப்புணர்வு & புதிய வாய்ப்புகளின் துவக்கம்",
+    ml: "2026-2027: കർമ്മ പരിവർത്തനവും പുതിയ അവസരങ്ങളും"
+  };
+
+  // Locked Years 2 to 5 Teasers (High Curiosity Hooks)
+  const lockedTeasersKn = [
+    {
+      yearNum: 2,
+      gregorianRange: "2027 - 2028",
+      headlineQuestion: "ಗುರು ಗೋಚಾರ ಪರಿವರ್ತನೆ: ನಿಮ್ಮ ಆರ್ಥಿಕ ಹಾಗೂ ಉದ್ಯೋಗದ ಯಾವ ೩ ತಿಂಗಳುಗಳು ಅನಿರೀಕ್ಷಿತ ಮಹಾ ಭಾಗ್ಯೋದಯ ನೀಡಲಿವೆ?",
+      keyTheme: "ಆರ್ಥಿಕ ಮಹಾ ತಿರುವು & ಧನ ಸಮೃದ್ಧಿ (Financial Catalyst)",
+      teaserCta: "🔒 ₹೩೫೦ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಪೂರ್ಣ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
+    },
+    {
+      yearNum: 3,
+      gregorianRange: "2028 - 2029",
+      headlineQuestion: "ಭೂಮಿ, ಆಸ್ತಿ ಖರೀದಿ, ನೂತನ ವಾಹನ ಅಥವಾ ಕೌಟುಂಬಿಕ ಮಂಗಳ ಕಾರ್ಯದ ನಿಖರ ಯೋಗ ಕಾಲಾವಧಿ ಯಾವುದು?",
+      keyTheme: "ಆಸ್ತಿ ಯೋಗ & ಗೃಹ ನಿರ್ಮಾಣ (Property & Family Milestone)",
+      teaserCta: "🔒 ₹೩೫೦ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಪೂರ್ಣ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
+    },
+    {
+      yearNum: 4,
+      gregorianRange: "2029 - 2030",
+      headlineQuestion: "ರಾಹು-ಕೇತು ಅಕ್ಷ ಸಂಚಾರ: ನಿಮ್ಮ ಆರೋಗ್ಯ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿಗೆ ತೆಗೆದುಕೊಳ್ಳಬೇಕಾದ ಅತ್ಯಂತ ಪ್ರಮುಖ ಮುನ್ನೆಚ್ಚರಿಕೆಗಳೇನು?",
+      keyTheme: "ಆರೋಗ್ಯ ರಕ್ಷಾ ಕವಚ & ಕರ್ಮಿಕ ಪರಿಹಾರ (Health & Karmic Shield)",
+      teaserCta: "🔒 ₹೩೫೦ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಪೂರ್ಣ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
+    },
+    {
+      yearNum: 5,
+      gregorianRange: "2030 - 2031",
+      headlineQuestion: "ಪೂರ್ಣ ರಾಜಯೋಗ ಫಲ: ನಿಮ್ಮ ಜೀವನದ ಸರ್ವಶ್ರೇಷ್ಠ ಶಿಖರಾವಧಿಯ ಸುವರ್ಣ ತಿರುವು ಯಾವ ಋತುವಿನಲ್ಲಿ ಆರಂಭವಾಗುತ್ತದೆ?",
+      keyTheme: "ಪೂರ್ಣ ರಾಜಯೋಗ ಶಿಖರಾವಧಿ (Peak Raja Yoga Catalyst)",
+      teaserCta: "🔒 ₹೩೫೦ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಪೂರ್ಣ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
+    }
+  ];
+
+  const lockedTeasersEn = [
+    {
+      yearNum: 2,
+      gregorianRange: "2027 - 2028",
+      headlineQuestion: "Jupiter Transit Shift: Which 3 pivotal months will unlock an unexpected financial and career surge for you?",
+      keyTheme: "Wealth Expansion & Career Catalyst",
+      teaserCta: "🔒 Unlocked in full ₹350 Master 5-Year Dossier"
+    },
+    {
+      yearNum: 3,
+      gregorianRange: "2028 - 2029",
+      headlineQuestion: "Real Estate, Vehicle Acquisition & Auspicious Family Milestones: What is your exact astrological window?",
+      keyTheme: "Property Yogam & Domestic Elevation",
+      teaserCta: "🔒 Unlocked in full ₹350 Master 5-Year Dossier"
+    },
+    {
+      yearNum: 4,
+      gregorianRange: "2029 - 2030",
+      headlineQuestion: "Rahu-Ketu Axis Transformation: What vital longevity safeguards and mental health shields must you adopt?",
+      keyTheme: "Longevity Shield & Karmic Pacification",
+      teaserCta: "🔒 Unlocked in full ₹350 Master 5-Year Dossier"
+    },
+    {
+      yearNum: 5,
+      gregorianRange: "2030 - 2031",
+      headlineQuestion: "Peak Raja Yoga Culmination: In which sacred season will your life's greatest crowning triumph unfold?",
+      keyTheme: "Supreme Raja Yoga Zenith",
+      teaserCta: "🔒 Unlocked in full ₹350 Master 5-Year Dossier"
+    }
+  ];
+
+  const lockedTeasersHi = [
+    {
+      yearNum: 2,
+      gregorianRange: "2027 - 2028",
+      headlineQuestion: "गुरु गोचर परिवर्तन: आपके आर्थिक एवं कार्यक्षेत्र के कौन से ३ महीने अप्रत्याशित महा भाग्योदय लाएंगे?",
+      keyTheme: "आर्थिक महा मोड़ एवं धन समृद्धि (Wealth Catalyst)",
+      teaserCta: "🔒 ₹३५० सम्पूर्ण महा कुंडली में विस्तार से जानें"
+    },
+    {
+      yearNum: 3,
+      gregorianRange: "2028 - 2029",
+      headlineQuestion: "भूमि, भवन क्रय, नवीन वाहन या मांगलिक कार्य का सटीक ज्योतिषीय समय कौन सा है?",
+      keyTheme: "संपत्ति योग एवं पारिवारिक उत्सव (Property & Family)",
+      teaserCta: "🔒 ₹३५० सम्पूर्ण महा कुंडली में विस्तार से जानें"
+    },
+    {
+      yearNum: 4,
+      gregorianRange: "2029 - 2030",
+      headlineQuestion: "राहु-केतु अक्ष परिवर्तन: आपके स्वास्थ्य एवं मानसिक शांति हेतु कौन से उपाय अनिवार्य हैं?",
+      keyTheme: "स्वास्थ्य रक्षा कवच एवं कर्मिक उपाय",
+      teaserCta: "🔒 ₹३५० सम्पूर्ण महा कुंडली में विस्तार से जानें"
+    },
+    {
+      yearNum: 5,
+      gregorianRange: "2030 - 2031",
+      headlineQuestion: "पूर्ण राजयोग फल: आपके जीवन की सर्वोच्च शिखर सफलता किस पावन ऋतु में आरंभ होगी?",
+      keyTheme: "सर्वोच्च राजयोग शिखर (Peak Raja Yoga)",
+      teaserCta: "🔒 ₹३५० सम्पूर्ण महा कुंडली में विस्तार से जानें"
+    }
+  ];
+
+  let lockedYears = lockedTeasersKn;
+  if (lang === "en") lockedYears = lockedTeasersEn;
+  else if (lang === "hi") lockedYears = lockedTeasersHi;
+  else {
+    lockedYears = lockedTeasersKn.map((item) => ({
+      ...item,
+      teaserCta: lang === "mr" ? "🔒 ₹३५० संपूर्ण महा पत्रिकेत सविस्तर पहा"
+        : lang === "te" ? "🔒 ₹350 సంపూర్ణ జాతకంలో వివరంగా చూడండి"
+        : lang === "ta" ? "🔒 ₹350 முழு ஜாதகத்தில் விரிவாகப் பார்க்கவும்"
+        : lang === "ml" ? "🔒 ₹350 സമ്പൂർണ്ണ ജാതകത്തിൽ വിശദമായി കാണുക"
+        : item.teaserCta
+    }));
+  }
+
+  return {
+    year1: {
+      gregorianRange: "2026 - 2027",
+      samvatsaraName: yr1Samvatsaras[lang] || yr1Samvatsaras.en,
+      vitalityScore: 84,
+      turningPointSeason: yr1Seasons[lang] || yr1Seasons.en,
+      goldenOpportunity: yr1Opportunities[lang] || yr1Opportunities.en,
+      cautionAlert: yr1Cautions[lang] || yr1Cautions.en,
+      headline: yr1Headlines[lang] || yr1Headlines.en
+    },
+    lockedYears
+  };
+}
+
+/**
+ * 4. Free Divine Lucky Blueprint across 7 languages
+ */
+export function calculateFreeLuckyElements(
+  lagnaIdx: number,
+  moonIdx: number,
+  birthDate: string = "1990-01-01",
+  lang: AntarangaLang = "kn"
+): FreeLuckyElementsData {
+  // Gemstone based on Lagna Lord
+  const gemstoneMap: Record<number, Record<AntarangaLang, string>> = {
+    0: { kn: "ಕೆಂಪು ಹವಳ (Red Coral) - ಧೈರ್ಯ & ತೇಜಸ್ಸು", en: "Red Coral (Mars) - Vitality & Courage", hi: "मूंगा (मंगल) - पराक्रम", mr: "पोवळे (मंगळ)", te: "పగడం (కుజుడు)", ta: "பவளம் (செவ்வாய்)", ml: "പവിഴം (ചൊവ്വ)" },
+    1: { kn: "ವಜ್ರ / ಬಿಳಿ ಜಿರ್ಕಾನ್ (Diamond) - ಸೌಖ್ಯ", en: "Diamond / White Zircon (Venus) - Elegance", hi: "हीरा / ओपल (शुक्र) - सौंदर्य", mr: "हिरा (शुक्र)", te: "వజ్రం (శుక్రుడు)", ta: "வைரம் (சுக்கிரன்)", ml: "വൈരം (ശുക്രൻ)" },
+    2: { kn: "ಪಚ್ಚೆ (Emerald) - ಬುದ್ಧಿ & ವ್ಯಾಪಾರ", en: "Emerald (Mercury) - Intellect & Trade", hi: "पन्ना (बुध) - बुद्धि व व्यापार", mr: "पाचू (बुध)", te: "పచ్చ (బుధుడు)", ta: "மரகதம் (புதன்)", ml: "മരതകം (ബുധൻ)" },
+    3: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು (Natural Pearl) - ಮನಃಶಾಂತಿ", en: "Natural Pearl (Moon) - Serenity", hi: "सच्चा मोती (चन्द्र) - मानसिक शांति", mr: "मोती (चंद्र)", te: "ముత్యం (చంద్రుడు)", ta: "முத்து (சந்திரன்)", ml: "മുത്ത് (ചന്ദ്രൻ)" },
+    4: { kn: "ಮಾಣಿಕ್ಯ (Ruby) - ಸೂರ್ಯ ತೇಜಸ್ಸು & ಕೀರ್ತಿ", en: "Ruby (Sun) - Authority & Radiance", hi: "माणिक्य (सूर्य) - प्रतिष्ठा", mr: "माणिक (सूर्य)", te: "మాణిక్యం (సూర్యుడు)", ta: "மாணிக்கம் (சூரியன்)", ml: "മാണിക്യം (സൂര്യൻ)" },
+    5: { kn: "ಪಚ್ಚೆ (Emerald) - ಬುದ್ಧಿವಂತಿಕೆ", en: "Emerald (Mercury) - Crystalline Wit", hi: "पन्ना (बुध) - विवेक", mr: "पाचू (बुध)", te: "పచ్చ (బుధుడు)", ta: "மரகதம் (புதன்)", ml: "മരതകം (ബുധൻ)" },
+    6: { kn: "ವಜ್ರ / ಬಿಳಿ ಜಿರ್ಕಾನ್ (Diamond) - ಭಾಗ್ಯ", en: "Diamond / Zircon (Venus) - Harmonious Fortune", hi: "हीरा (शुक्र) - वैभव", mr: "हिरा (शुक्र)", te: "వజ్రం (శుక్రుడు)", ta: "வைரம் (சுக்கிரன்)", ml: "വൈരം (ശുക്രൻ)" },
+    7: { kn: "ಕೆಂಪು ಹವಳ (Red Coral) - ರಕ್ಷಾ ಕವಚ", en: "Red Coral (Mars) - Protective Sovereign Shield", hi: "मूंगा (मंगल) - सुरक्षा", mr: "पोवळे (मंगळ)", te: "పగడం (కుజుడు)", ta: "பவளம் (செவ்வாய்)", ml: "പവിഴം (ചൊവ്വ)" },
+    8: { kn: "ಪುಷ್ಯರಾಗ (Yellow Sapphire) - ಜ್ಞಾನ & ಧನ", en: "Yellow Sapphire (Jupiter) - Wisdom & Wealth", hi: "पुखराज (गुरु) - ज्ञान व धन", mr: "पुष्कराज (गुरू)", te: "పుష్యరాగం (గురుడు)", ta: "புஷ்பராகம் (குரு)", ml: "പുഷ്യരാഗം (ഗുരു)" },
+    9: { kn: "ಇಂದ್ರನೀಲ (Blue Sapphire) - ಶನಿ ಕೃಪೆ", en: "Blue Sapphire (Saturn) - Stability & Focus", hi: "नीलम (शनि) - स्थिरता", mr: "नीलम (शनी)", te: "నీలం (శని)", ta: "நீலம் (சனி)", ml: "നീലക്കല്ല് (ശനി)" },
+    10: { kn: "ಇಂದ್ರನೀಲ (Blue Sapphire) - ದೃಢತೆ", en: "Blue Sapphire (Saturn) - Enduring Grit", hi: "नीलम (शनि) - दृढ़ता", mr: "नीलम (शनी)", te: "నీలం (శని)", ta: "நீலம் (சனி)", ml: "നീലക്കല്ല് (ശനി)" },
+    11: { kn: "ಪುಷ್ಯರಾಗ (Yellow Sapphire) - ಸಕಲ ಸಿದ್ಧಿ", en: "Yellow Sapphire (Jupiter) - Divine Grace", hi: "पुखराज (गुरु) - सर्वसिद्धि", mr: "पुष्कराज (गुरू)", te: "పుష్యరాగం (గురుడు)", ta: "புஷ்பராகம் (குரு)", ml: "പുഷ്യരാഗം (ഗുരു)" }
+  };
+
+  const luckyDayMap: Record<number, Record<AntarangaLang, string>> = {
+    0: { kn: "ಮಂಗಳವಾರ", en: "Tuesday", hi: "मंगलवार", mr: "मंगळवार", te: "మంగళవారం", ta: "செவ்வாய்க்கிழமை", ml: "ചൊവ്വാഴ്ച" },
+    1: { kn: "ಶುಕ್ರವಾರ", en: "Friday", hi: "शुक्रवार", mr: "शुक्रवार", te: "శుక్రవారం", ta: "வெள்ளிக்கிழமை", ml: "വെള്ളിയാഴ്ച" },
+    2: { kn: "ಬುಧವಾರ", en: "Wednesday", hi: "बुधवार", mr: "बुधवार", te: "బుధవారం", ta: "புதன்கிழமை", ml: "ബുധനാഴ്ച" },
+    3: { kn: "ಸೋಮವಾರ", en: "Monday", hi: "सोमवार", mr: "सोमवार", te: "సోమవారం", ta: "திங்கட்கிழமை", ml: "തിങ്കളാഴ്ച" },
+    4: { kn: "ಭಾನುವಾರ", en: "Sunday", hi: "रविवार", mr: "रविवार", te: "ఆదివారం", ta: "ஞாயிற்றுக்கிழமை", ml: "ഞായറാഴ്ച" },
+    5: { kn: "ಬುಧವಾರ", en: "Wednesday", hi: "बुधवार", mr: "बुधवार", te: "బుಧవారం", ta: "புதன்கிழமை", ml: "ബുധനാഴ്ച" },
+    6: { kn: "ಶುಕ್ರವಾರ", en: "Friday", hi: "शुक्रवार", mr: "शुक्रवार", te: "శుక్రవారం", ta: "வெள்ளிக்கிழமை", ml: "വെള്ളിയാഴ്ച" },
+    7: { kn: "ಮಂಗಳವಾರ", en: "Tuesday", hi: "मंगलवार", mr: "मंगळवार", te: "మంగళవారం", ta: "செவ்வாய்க்கிழமை", ml: "ചൊവ്വാഴ്ച" },
+    8: { kn: "ಗುರುವಾರ", en: "Thursday", hi: "गुरुवार", mr: "गुरुवार", te: "గురువారం", ta: "வியாழக்கிழமை", ml: "വ്യാഴാഴ്ച" },
+    9: { kn: "ಶನಿವಾರ", en: "Saturday", hi: "शनिवार", mr: "शनिवार", te: "శనివారం", ta: "சனிக்கிழமை", ml: "ശനിയാഴ്ച" },
+    10: { kn: "ಶನಿವಾರ", en: "Saturday", hi: "शनिवार", mr: "शनिवार", te: "శనివారం", ta: "சனிக்கிழமை", ml: "ശനിയാഴ്ച" },
+    11: { kn: "ಗುರುವಾರ", en: "Thursday", hi: "गुरुवार", mr: "गुरुवार", te: "గురువారం", ta: "வியாழக்கிழமை", ml: "വ്യാഴാഴ്ച" }
+  };
+
+  // Lucky Number (from birth day sum)
+  let luckyNum = 3;
+  try {
+    const dayDigits = birthDate.split("-")[2] || "15";
+    const sum = dayDigits.split("").reduce((acc, d) => acc + (parseInt(d, 10) || 0), 0);
+    luckyNum = sum > 9 ? (sum % 9 === 0 ? 9 : sum % 9) : (sum || 3);
+  } catch {}
+
+  const directionMap: Record<number, Record<AntarangaLang, string>> = {
+    0: { kn: "ಪೂರ್ವ", en: "East", hi: "पूर्व", mr: "पूर्व", te: "తూర్పు", ta: "கிழக்கு", ml: "കിഴക്ക്" },
+    1: { kn: "ದಕ್ಷಿಣ", en: "South", hi: "दक्षिण", mr: "दक्षिण", te: "దక్షిణం", ta: "தெற்கு", ml: "തെക്ക്" },
+    2: { kn: "ಪಶ್ಚಿಮ", en: "West", hi: "पश्चिम", mr: "पश्चिम", te: "పడమర", ta: "மேற்கு", ml: "പടിഞ്ഞാറ്" },
+    3: { kn: "ಉತ್ತರ", en: "North", hi: "उत्तर", mr: "उत्तर", te: "ఉత్తరం", ta: "வடக்கு", ml: "വടക്ക്" },
+    4: { kn: "ಪೂರ್ವ", en: "East", hi: "पूर्व", mr: "पूर्व", te: "తూర్పు", ta: "கிழக்கு", ml: "കിഴക്ക്" },
+    5: { kn: "ದಕ್ಷಿಣ", en: "South", hi: "दक्षिण", mr: "दक्षिण", te: "దక్షిణం", ta: "தெற்கு", ml: "തെക്ക്" },
+    6: { kn: "ಪಶ್ಚಿಮ", en: "West", hi: "पश्चिम", mr: "पश्चिम", te: "పడమర", ta: "மேற்கு", ml: "പടിഞ്ഞാറ്" },
+    7: { kn: "ಉತ್ತರ", en: "North", hi: "उत्तर", mr: "उत्तर", te: "ఉత్తరం", ta: "வடக்கு", ml: "വടക്ക്" },
+    8: { kn: "ಈಶಾನ್ಯ", en: "North-East", hi: "ईशान", mr: "ईशान्य", te: "ఈశాన్యం", ta: "ஈசானியம்", ml: "വടക്കുകിഴക്ക്" },
+    9: { kn: "ದಕ್ಷಿಣ", en: "South", hi: "दक्षिण", mr: "दक्षिण", te: "దక్షిణం", ta: "தெற்கு", ml: "തെക്ക്" },
+    10: { kn: "ಪಶ್ಚಿಮ", en: "West", hi: "पश्चिम", mr: "पश्चिम", te: "పడమర", ta: "மேற்கு", ml: "പടിഞ്ഞാറ്" },
+    11: { kn: "ಈಶಾನ್ಯ", en: "North-East", hi: "ईशान", mr: "ईशान्य", te: "ఈశాన్యం", ta: "ஈசானியம்", ml: "വടക്കുകിഴക്ക്" }
+  };
+
+  const colorMap: Record<number, Record<AntarangaLang, string>> = {
+    0: { kn: "ಕೆಂಪು & ಕೇಸರಿ", en: "Red & Saffron", hi: "लाल व केसरिया", mr: "लाल व भगवा", te: "ఎరుపు & కాషాయం", ta: "சிவப்பு & காவி", ml: "ചുവപ്പ് & കാവി" },
+    1: { kn: "ಬಿಳಿ & ತಿಳಿ ನೀಲಿ", en: "White & Light Blue", hi: "श्वेत व हल्का नीला", mr: "पांढरा व निळा", te: "తెలుపు & లేత నీలం", ta: "வெள்ளை & நீலம்", ml: "വെള്ള & നീല" },
+    2: { kn: "ಹಸಿರು & ಪಚ್ಚೆ", en: "Emerald Green", hi: "हरा", mr: "हिरवा", te: "ఆకుపచ్చ", ta: "பச்சை", ml: "പച്ച" },
+    3: { kn: "ಮುತ್ತಿನ ಬಿಳಿ", en: "Pearl White & Silver", hi: "मोतिया श्वेत", mr: "पांढरा", te: "ముత్యపు తెలుపు", ta: "முத்து வெள்ளை", ml: "മുത്ത് വെള്ള" },
+    4: { kn: "ಹಳದಿ & ಚಿನ್ನದ ಬಣ್ಣ", en: "Gold & Bright Yellow", hi: "स्वर्णिम पीला", mr: "सोनेरी पिवळा", te: "బంగారు పసుపు", ta: "தங்க மஞ்சள்", ml: "സ്വർണ്ണ മഞ്ഞ" },
+    5: { kn: "ಹಸಿರು", en: "Green", hi: "हरा", mr: "हिरवा", te: "ఆకుపచ్చ", ta: "பச்சை", ml: "പച്ച" },
+    6: { kn: "ಬಿಳಿ & ರೇಷ್ಮೆ ವರ್ಣ", en: "Silken White & Rose", hi: "श्वेत व गुलाबी", mr: "पांढरा व गुलाबी", te: "తెలుపు & గులాబీ", ta: "வெள்ளை & ரோஸ்", ml: "വെള്ള & റോസ്" },
+    7: { kn: "ಕಡುಗೆಂಪು", en: "Deep Scarlet", hi: "गहरा लाल", mr: "गडद लाल", te: "ముదురు ఎరుపు", ta: "அடர் சிவப்பு", ml: "കടും ചുവപ്പ്" },
+    8: { kn: "ಕೇಸರಿ & ಹಳದಿ", en: "Golden Yellow & Saffron", hi: "पीला व केसरिया", mr: "पिवळा व भगवा", te: "పసుపు & కాషాయం", ta: "மஞ்சள் & காவி", ml: "മഞ്ഞ & കാവി" },
+    9: { kn: "ಗಾಢ ನೀಲಿ", en: "Navy Blue & Black", hi: "नीला", mr: "निळा", te: "ముదురు నీలం", ta: "நீலம்", ml: "നീല" },
+    10: { kn: "ನೀಲಿ & ಕಪ್ಪು", en: "Cobalt Blue", hi: "नीला", mr: "निळा", te: "నీలం", ta: "நீலம்", ml: "നീല" },
+    11: { kn: "ಹಳದಿ", en: "Golden Yellow", hi: "पीला", mr: "पिवळा", te: "పసుపు", ta: "மஞ்சள்", ml: "മഞ്ഞ" }
+  };
+
+  const ishtaMap: Record<AntarangaLang, string> = {
+    kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ (ಆತ್ಮಲಿಂಗ) & ಶ್ರೀ ಮಹಾಗಣಪತಿ",
+    en: "Sri Kshetra Gokarna Mahabaleshwara (Atma Linga) & Lord Ganesha",
+    hi: "श्री गोकर्ण महाबलेश्वर ज्योतिर्लिंग (आत्मलिंग) एवं श्री गणेश",
+    mr: "श्री क्षेत्र गोकर्ण महाबळेश्वर आत्मलिंग व श्री महागणपती",
+    te: "శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి (ఆత్మలింగం) & వినాయకుడు",
+    ta: "ஸ்ரீ கோகர்ணம் மகாபலேஸ்வரர் (ஆத்மலிங்கம்) & விநாயகர்",
+    ml: "ശ്രീ ഗോകർണം മഹാബലേശ്വരൻ (ആത്മലിംഗം) & ഗണപതി"
+  };
+
+  return {
+    gemstone: gemstoneMap[lagnaIdx]?.[lang] || gemstoneMap[lagnaIdx]?.en || "ಮಾಣಿಕ್ಯ",
+    luckyDay: luckyDayMap[lagnaIdx]?.[lang] || luckyDayMap[lagnaIdx]?.en || "ಗುರುವಾರ",
+    luckyNumber: luckyNum,
+    luckyDirection: directionMap[lagnaIdx]?.[lang] || directionMap[lagnaIdx]?.en || "ಪೂರ್ವ",
+    luckyColor: colorMap[lagnaIdx]?.[lang] || colorMap[lagnaIdx]?.en || "ಹಳದಿ",
+    ishtaDevata: ishtaMap[lang] || ishtaMap.en
+  };
+}
+
+/**
+ * 5. Pandit Palette Dining Conversion Offer Block
+ */
+export function getDiningConversionOffer(lang: AntarangaLang = "kn"): DiningConversionOfferData {
+  if (lang === "kn") {
+    return {
+      headline: "ಊಟ ಬರುವಷ್ಟರಲ್ಲಿ ಕೇವಲ ೧೦ ಸೆಕೆಂಡುಗಳಲ್ಲಿ ನಿಮ್ಮ ಮೊಬೈಲ್‌ಗೆ ನೇರ ಡೌನ್‌ಲೋಡ್!",
+      subheadline: "ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್‌ನಲ್ಲಿ ಊಟ ಮಾಡುತ್ತಿರುವ ೮೪% ಅತಿಥಿಗಳು ಈ ೫-ವರ್ಷಗಳ ಮಹಾ ದಸ್ತಾವೇಜನ್ನು ಇಂದೇ ಪಡೆದುಕೊಂಡಿದ್ದಾರೆ.",
+      socialProof: "ಊಟದ ಮೇಜಿನಲ್ಲೇ ೧-ಕ್ಲಿಕ್ ಪಾವತಿ & ತಕ್ಷಣದ PDF ಡೌನ್‌ಲೋಡ್ ಗ್ಯಾರಂಟಿ",
+      instantDeliveryText: "ಕೇವಲ ₹೩೫೦ ನೀಡಿ ಸಂಪೂರ್ಣ ೫-ವರ್ಷಗಳ ಸುವರ್ಣ ಕಾಲ, ಆರ್ಥಿಕ ದಿಕ್ಕೂಚಿ & ೧೦೦ ವರ್ಷಗಳ ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಇಂದೇ ಪಡೆಯಿರಿ!",
+      features: [
+        "ಪೂರ್ಣ ೫-ವರ್ಷಗಳ ವರ್ಷವಾರು ಮಹಾ ಭವಿಷ್ಯ (೪ ಋತುಗಳು, ಆರ್ಥಿಕ ದಿಕ್ಕೂಚಿ & ಮುನ್ನೆಚ್ಚರಿಕೆ)",
+        "೧೦೦-ವರ್ಷಗಳ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿ (೧೬ ವರ್ಗಗಳು, ದಶಾ-ಅಂತರ್ದಶಾ ಕೋಷ್ಟಕ)",
+        "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ವಿಶೇಷ ಆಶೀರ್ವಾದ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ"
+      ]
+    };
+  }
+
+  if (lang === "hi") {
+    return {
+      headline: "भोजन आने तक मात्र १० सेकंड में सीधे आपके मोबाइल पर डाउनलोड!",
+      subheadline: "पंडित पैलेट के ८४% अतिथि इस ५-वर्षीय महा कुंडली को आज ही प्राप्त कर चुके हैं।",
+      socialProof: "डाइनिंग टेबल पर ही १-क्लिक भुगतान एवं त्वरित PDF डाउनलोड गारंटी",
+      instantDeliveryText: "मात्र ₹३५० में आगामी ५ वर्षों का स्वर्णिम काल, वित्तीय रोडमैप एवं १०० वर्षीय जन्म पत्रिका प्राप्त करें!",
+      features: [
+        "सम्पूर्ण ५-वर्षीय वर्षवार महा भविष्य (४ ऋतुओं का फल, धन व स्वास्थ्य रोडमैप)",
+        "१०० वर्षीय प्रामाणिक बग्गोण जन्म कुंडली (१६ वर्ग एवं दशा-अंतर्दशा)",
+        "श्री गोकर्ण महाबलेश्वर ज्योतिर्लिंग का विशेष पावन रक्षा कवच"
+      ]
+    };
+  }
+
+  if (lang === "mr") {
+    return {
+      headline: "जेवण येईपर्यंत अवघ्या १० सेकंदात थेट आपल्या मोबाईलवर डाऊनलोड!",
+      subheadline: "पंडित पॅलेटमधील ८४% पाहुण्यांनी ही ५-वर्षांची महा पत्रिका आजच मिळवली आहे.",
+      socialProof: "डायनिंग टेबलवरच १-क्लिक पेमेंट व तात्काळ PDF डाऊनलोड गॅरंटी",
+      instantDeliveryText: "फक्त ₹३५० मध्ये पुढील ५ वर्षांचा सुवर्ण काळ, आर्थिक दिशा व १०० वर्षांची जन्म पत्रिका मिळवा!",
+      features: [
+        "संपूर्ण ५-वर्षांची वर्षवार महा पत्रिका (४ ऋतूंचे फळ, आर्थिक व आरोग्य दिशा)",
+        "१०० वर्षांची अधिकृत बग्गोण जन्म पत्रिका (१६ वर्ग व दशा कोष्टक)",
+        "श्री क्षेत्र गोकर्ण महाबळेश्वर आत्मलिंग विशेष पावन संरक्षण कवच"
+      ]
+    };
+  }
+
+  if (lang === "te") {
+    return {
+      headline: "భోజనం వచ్చేలోపు కేవలం 10 సెకన్లలో నేరుగా మీ మొబైల్‌కు డౌన్‌లోడ్!",
+      subheadline: "పండిట్ ప్యాలెట్‌లో భోజనం చేస్తున్న 84% అతిథులు ఈ 5 సంవత్సరాల జాతకాన్ని పొందారు.",
+      socialProof: "టేబుల్ వద్దే 1-క్లిక్ చెల్లింపు మరియు తక్షణ PDF డౌన్‌లోడ్ గ్యారంటీ",
+      instantDeliveryText: "కేవలం ₹350 తో రాబోయే 5 సంవత్సరాల సువర్ణ కాలం, ఆర్థిక మార్గదర్శనం & జన్మ కుండలి పొందండి!",
+      features: [
+        "సంపూర్ణ 5 సంవత్సరాల వార్షిక జాతకం (4 ఋతువులు, ఆర్థిక & ఆరోగ్య రక్ష)",
+        "100 సంవత్సరాల అధికారిక బగ్గోణ జన్మ కుండలి (16 వర్గాలు & దశా పట్టిక)",
+        "శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ఆత్మలింగ దివ్య రక్షణ కవచం"
+      ]
+    };
+  }
+
+  if (lang === "ta") {
+    return {
+      headline: "உணவு வருவதற்குள் வெறும் 10 வினாடிகளில் உங்கள் மொபைலில் நேரடி பதிவிறக்கம்!",
+      subheadline: "பண்டிட் பேலட்டில் உணவு உண்ணும் 84% விருந்தினர்கள் இந்த 5 ஆண்டு ஜாதகத்தை பெற்றுள்ளனர்.",
+      socialProof: "டேபிளிலேயே 1-கிளிக் கட்டணம் மற்றும் உடனடி PDF பதிவிறக்க உத்தரவாதம்",
+      instantDeliveryText: "வெறும் ₹350-ல் அடுத்த 5 ஆண்டுகளின் பொற்காலம், நிதி வழிகாட்டி மற்றும் ஜென்ம குண்டலியைப் பெறுங்கள்!",
+      features: [
+        "முழு 5 ஆண்டு விரிவான பலன்கள் (4 பருவங்கள், நிதி & ஆரோக்கிய கவசம்)",
+        "100 ஆண்டு பாரம்பரிய பக்கோணா ஜென்ம குண்டலி (16 வர்க்கங்கள் & தசா அட்டவணை)",
+        "ஸ்ரீ கோகர்ணம் மகாபலேஸ்வரர் ஆத்மலிங்க தெய்வீக ரக்ஷா கவசம்"
+      ]
+    };
+  }
+
+  if (lang === "ml") {
+    return {
+      headline: "ഭക്ഷണം എത്തുന്നതിന് മുമ്പ് വെറും 10 സെക്കൻഡിൽ മൊബൈലിലേക്ക് നേരിട്ട് ഡൗൺലോഡ്!",
+      subheadline: "പണ്ഡിറ്റ് പാലറ്റിൽ ഭക്ഷണം കഴിക്കുന്ന 84% അതിഥികളും ഈ 5 വർഷത്തെ ജാതകം നേടിയിട്ടുണ്ട്.",
+      socialProof: "ഡൈനിംഗ് ടേബിളിൽ തന്നെ 1-ക്ലിക്ക് പേയ്‌മെന്റും തൽക്ഷണ PDF ഡൗൺലോഡും",
+      instantDeliveryText: "വെറും ₹350-ൽ അടുത്ത 5 വർഷത്തെ സുവർണ്ണ കാലവും 100 വർഷത്തെ ജന്മ കുണ്ഡലിയും സ്വന്തമാക്കൂ!",
+      features: [
+        "പൂർണ്ണ 5 വർഷത്തെ വാർഷിക ഭവിഷ്യത്ത് (4 ഋതുക്കൾ, ധന & ആരോഗ്യ മാർഗ്ഗരേഖ)",
+        "100 വർഷത്തെ ആധികാരിക ബഗ്ഗോണ ജന്മ കുണ്ഡലി (16 വർഗ്ഗങ്ങൾ & ദശാ പട്ടിക)",
+        "ശ്രീ ഗോകർണം മഹാബലേശ്വര ആത്മലിംഗ ദിവ്യ രക്ഷാ കവചം"
+      ]
+    };
+  }
+
+  return {
+    headline: "Direct download to your mobile in just 10 seconds before your meal arrives!",
+    subheadline: "84% of Pandit Palette dining guests download this 5-Year Master Horizon at their table.",
+    socialProof: "1-Tap Table Payment with Instant High-Speed PDF Download Guarantee",
+    instantDeliveryText: "For only ₹350, unlock your complete 5-Year Master Golden Roadmap, Financial Radar & 100-Year Baggona Janma Kundali!",
+    features: [
+      "Complete 5-Year Year-by-Year Roadmap (4 Seasonal Breakdowns, Wealth Timing & Health Shield)",
+      "100-Year Authentic Baggona Janma Kundali (16 Shodashavargas & Dasha-Bhukti Tables)",
+      "Sacred Sri Kshetra Gokarna Mahabaleshwara Divine Protective Shield"
+    ]
   };
 }
 
