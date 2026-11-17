@@ -15,7 +15,7 @@ function sendResponse(res: any, status: number, data: any) {
 }
 
 const webhookProcessedTxs = new Set<string>();
-const webhookOrdersMap = new Map<string, { status: string; amountInr: number; utr: string; timestamp: string }>();
+const webhookOrdersMap = new Map<string, { status: string; amountInr: number; utr: string; paymentId?: string; timestamp: string }>();
 
 const PACKAGE_RATES: Record<number, number> = {
   50: 500,
@@ -53,6 +53,8 @@ export default async function handler(req: any, res: any) {
             orderId,
             amountInr: recordedAmount,
             packageType: recordedAmount >= 450 ? "remedy_450" : "standard_350",
+            paymentId: orderData?.paymentId || `PAY_${normId}`,
+            utr: orderData?.utr || `TXN_${normId}`,
             verified: true,
             engine: "Baggona Panchanga Instant Payment Webhook Engine",
             timestamp: new Date().toISOString()
@@ -149,6 +151,7 @@ export default async function handler(req: any, res: any) {
         status: "PAID",
         amountInr,
         utr: cleanUtr,
+        paymentId: txId || `PAY_${normOrderId}`,
         timestamp: new Date().toISOString()
       });
     }

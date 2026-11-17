@@ -1645,7 +1645,7 @@ export async function verifyHotelPaymentInstant(
 
   // 2. Persist in Firebase Firestore Database for 100% Payment Consistency & Human Financial Audit
   try {
-    await updateHotelOrderVerified(cleanOrderId, txnId, amountInr, "PHONEPE_1TAP_AUTO_VERIFY");
+    await updateHotelOrderVerified(cleanOrderId, txnId, amountInr, "PHONEPE_1TAP_AUTO_VERIFY", txnId);
   } catch (dbErr) {
     console.warn("[AntarangaService] Firestore update warning:", dbErr);
   }
@@ -1706,7 +1706,13 @@ export async function checkHotelPaymentWebhookStatus(
         if (amt >= expectedAmountInr) {
           // Sync to Firestore in background
           try {
-            await updateHotelOrderVerified(orderId, `TXN_WEBHOOK_${orderId}`, amt, "WEBHOOK_POLL");
+            await updateHotelOrderVerified(
+              orderId,
+              data?.utr || `TXN_WEBHOOK_${orderId}`,
+              amt,
+              "WEBHOOK_POLL",
+              data?.paymentId || `PAY_WH_${orderId}`
+            );
           } catch {}
           return true;
         }
@@ -1813,7 +1819,7 @@ export async function verifyHotelPaymentUtr(
   // 4. Update Firebase Firestore database for permanent financial record
   const effectiveOrderId = orderId || `PP_ORD_${cleanUtr.slice(-6)}`;
   try {
-    await updateHotelOrderVerified(effectiveOrderId, cleanUtr, amountInr, "UPI_UTR_MANUAL");
+    await updateHotelOrderVerified(effectiveOrderId, cleanUtr, amountInr, "UPI_UTR_MANUAL", `PAY_${cleanUtr}`);
   } catch (dbErr) {
     console.warn("[AntarangaService] Firestore manual UTR update warning:", dbErr);
   }

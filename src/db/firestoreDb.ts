@@ -3757,6 +3757,8 @@ export interface HotelTableOrderDoc {
   selectedLang: string;
   utr?: string;
   transactionId?: string;
+  paymentId?: string;
+  paymentLink?: string;
   paymentMethod?: string;
   birthDate?: string;
   birthTime?: string;
@@ -3766,6 +3768,12 @@ export interface HotelTableOrderDoc {
   gender?: string;
   createdAt: string;
   verifiedAt?: string;
+  downloadedFiles?: {
+    fiveYear?: boolean;
+    kundli?: boolean;
+    remedy?: boolean;
+    all?: boolean;
+  };
 }
 
 const memoryHotelOrders = new Map<string, HotelTableOrderDoc>();
@@ -3791,7 +3799,8 @@ export async function updateHotelOrderVerified(
   orderId: string,
   utrOrTxn: string,
   amountInr: number,
-  paymentMethod: string = "UPI"
+  paymentMethod: string = "UPI",
+  paymentId?: string
 ): Promise<HotelTableOrderDoc | null> {
   const normId = orderId.toUpperCase();
   const existing = memoryHotelOrders.get(normId) || {
@@ -3807,11 +3816,15 @@ export async function updateHotelOrderVerified(
     createdAt: new Date().toISOString()
   } as HotelTableOrderDoc;
 
+  const effectiveTxn = utrOrTxn || paymentId || `TXN_${Date.now()}`;
+  const effectivePaymentId = paymentId || utrOrTxn || `PAY_${Date.now()}`;
+
   const updated: HotelTableOrderDoc = {
     ...existing,
     status: "VERIFIED",
     utr: utrOrTxn,
-    transactionId: utrOrTxn,
+    transactionId: effectiveTxn,
+    paymentId: effectivePaymentId,
     amountInr,
     packageType: amountInr >= 450 ? "remedy_450" : "standard_350",
     paymentMethod,
@@ -3833,6 +3846,76 @@ export async function updateHotelOrderVerified(
   }
 
   return updated;
+}
+
+export async function updateHotelOrderDownloaded(
+  orderId: string,
+  fileKey: "fiveYear" | "kundli" | "remedy" | "all"
+): Promise<HotelTableOrderDoc | null> {
+  const normId = orderId.toUpperCase();
+  const existing = await getHotelOrder(orderId);
+  if (!existing) return null;
+
+  const currentDownloaded = existing.downloadedFiles || {};
+  const updatedDownloaded = {
+    ...currentDownloaded,
+    [fileKey]: true,
+    ...(fileKey === "all" ? { fiveYear: true, kundli: true, remedy: true, all: true } : {})
+  };
+
+  const updated: HotelTableOrderDoc = {
+    ...existing,
+    downloadedFiles: updatedDownloaded
+  };
+
+  memoryHotelOrders.set(normId, updated);
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(`hotel_order_${orderId}`, JSON.stringify(updated));
+    }
+  } catch {}
+
+  try {
+    const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, orderId);
+    await setDoc(docRef, updated, { merge: true });
+  } catch (err) {
+    console.warn("[Firestore] updateHotelOrderDownloaded offline fallback:", err);
+  }
+
+  return updated;
+}
+
+export function subscribeHotelOrder(
+  orderId: string,
+  onUpdate: (order: HotelTableOrderDoc) => void,
+  onError?: (err: any) => void
+): Unsubscribe {
+  const normId = orderId.toUpperCase();
+  try {
+    const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, orderId);
+    return onSnapshot(
+      docRef,
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as HotelTableOrderDoc;
+          memoryHotelOrders.set(normId, data);
+          try {
+            if (typeof localStorage !== "undefined") {
+              localStorage.setItem(`hotel_order_${orderId}`, JSON.stringify(data));
+            }
+          } catch {}
+          onUpdate(data);
+        }
+      },
+      (err) => {
+        console.warn("[Firestore] subscribeHotelOrder listener error:", err);
+        if (onError) onError(err);
+      }
+    );
+  } catch (err) {
+    console.warn("[Firestore] subscribeHotelOrder failed to bind onSnapshot:", err);
+    return () => {};
+  }
 }
 
 export async function getHotelOrder(orderId: string): Promise<HotelTableOrderDoc | null> {

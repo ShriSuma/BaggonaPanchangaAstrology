@@ -34,6 +34,7 @@ import {
 import {
   saveHotelOrderInitiated,
   updateHotelOrderVerified,
+  updateHotelOrderDownloaded,
   getHotelOrder,
   verifyHotelOrderPayment,
   type HotelTableOrderDoc
@@ -253,6 +254,50 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
       expect(verification.verified).toBe(true);
       expect(verification.order?.amountInr).toBe(450);
       expect(verification.order?.packageType).toBe("remedy_450");
+    });
+
+    it("records paymentLink, paymentId, and tracks downloadedFiles in Firestore order document", async () => {
+      const orderId = "PP_T2_TRACKING_TEST";
+      const paymentLink = getHotelPaymentUpiUri(350, orderId);
+      await saveHotelOrderInitiated({
+        id: orderId,
+        orderId,
+        tableNumber: "5",
+        hotelName: "Pandit Palette",
+        devoteeName: "Suma",
+        amountInr: 350,
+        packageType: "standard_350",
+        status: "INITIATED",
+        selectedLang: "kn",
+        paymentLink,
+        paymentId: `PAY_${orderId}`,
+        createdAt: new Date().toISOString()
+      });
+
+      const initial = await getHotelOrder(orderId);
+      expect(initial?.paymentLink).toBe(paymentLink);
+      expect(initial?.paymentId).toBe(`PAY_${orderId}`);
+
+      // Verify payment update retains payment link and assigns verified paymentId
+      await updateHotelOrderVerified(orderId, "TXN_SUMA_350", 350, "UPI", "PAY_CONFIRMED_SUMA");
+      const verified = await getHotelOrder(orderId);
+      expect(verified?.status).toBe("VERIFIED");
+      expect(verified?.paymentId).toBe("PAY_CONFIRMED_SUMA");
+      expect(verified?.transactionId).toBe("TXN_SUMA_350");
+
+      // Track individual file download in database
+      await updateHotelOrderDownloaded(orderId, "fiveYear");
+      const afterFiveYear = await getHotelOrder(orderId);
+      expect(afterFiveYear?.downloadedFiles?.fiveYear).toBe(true);
+      expect(afterFiveYear?.downloadedFiles?.kundli).toBeFalsy();
+
+      // Track all files download in database
+      await updateHotelOrderDownloaded(orderId, "all");
+      const afterAll = await getHotelOrder(orderId);
+      expect(afterAll?.downloadedFiles?.fiveYear).toBe(true);
+      expect(afterAll?.downloadedFiles?.kundli).toBe(true);
+      expect(afterAll?.downloadedFiles?.remedy).toBe(true);
+      expect(afterAll?.downloadedFiles?.all).toBe(true);
     });
   });
 
@@ -799,6 +844,9 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
         expect(dict.dinerSpecialBadge).toBeTruthy();
         expect(dict.utrSectionTitle).toBeTruthy();
         expect(dict.downloadAllPdfsBtn).toBeTruthy();
+        expect(dict.paymentRequiredLock).toBeTruthy();
+        expect(dict.lockedPdfNotice).toBeTruthy();
+        expect(dict.lockedPdfBtn).toBeTruthy();
 
         // In non-English languages, verify no English parentheticals leaked
         if (lang !== "en") {
@@ -819,6 +867,8 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
           expect(dict.downloadAllPdfsBtn).not.toContain("(Combined)");
           expect(dict.downloadAllPdfsBtn).not.toContain("(Full Package)");
           expect(dict.downloadedBtn).not.toContain("(Downloaded)");
+          expect(dict.lockedPdfBtn).not.toContain("Pending");
+          expect(dict.lockedPdfNotice).not.toContain("Notice");
         }
 
         // Never mention Sri Krishna Bhavan

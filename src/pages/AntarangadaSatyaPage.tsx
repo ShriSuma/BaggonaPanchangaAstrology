@@ -28,6 +28,8 @@ import {
 import {
   saveHotelOrderInitiated,
   updateHotelOrderVerified,
+  updateHotelOrderDownloaded,
+  subscribeHotelOrder,
   verifyHotelOrderPayment,
   type HotelTableOrderDoc
 } from "../db/firestoreDb";
@@ -202,6 +204,9 @@ export const ANTARANGA_UI_STRINGS: Record<
     viewPdfBtn: string;
     iphoneSafariTip: string;
     unpaidWarning: string;
+    paymentRequiredLock: string;
+    lockedPdfNotice: string;
+    lockedPdfBtn: string;
     footerSanctum: string;
     footerContact: string;
     nameRequiredError: string;
@@ -343,6 +348,9 @@ export const ANTARANGA_UI_STRINGS: Record<
     viewPdfBtn: "👁️ PDF ವೀಕ್ಷಿಸಿ",
     iphoneSafariTip: "iPhone Safari ಬಳಕೆದಾರರು: ಮೇಲಿನ ಬಟನ್ ಒತ್ತಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ, ಅಥವಾ ಹೊಸ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ತೆರೆದು 'Save to Files' ಗೆ ಸೇವ್ ಮಾಡಬಹುದು.",
     unpaidWarning: "ಪಾವತಿ ಪೂರ್ಣಗೊಂಡ ನಂತರವೇ ಅಧಿಕೃತ PDF ಡೌನ್‌ಲೋಡ್ ಸಕ್ರಿಯವಾಗುತ್ತದೆ.",
+    paymentRequiredLock: "🔒 ₹{amount} ಪಾವತಿ ನಂತರ ಡೌನ್‌ಲೋಡ್ ಲಭ್ಯವಾಗುತ್ತದೆ",
+    lockedPdfNotice: "ಗಮನಿಸಿ: ₹{amount} ಪಾವತಿ ಯಶಸ್ವಿಯಾದ ನಂತರವೇ ಅಧಿಕೃತ PDF ಡೌನ್‌ಲೋಡ್ ಬಟನ್‌ಗಳು ಸಕ್ರಿಯಗೊಳ್ಳುತ್ತವೆ. ಯಾವುದೇ ಉಚಿತ ಡೌನ್‌ಲೋಡ್ ಲಭ್ಯವಿಲ್ಲ.",
+    lockedPdfBtn: "🔒 ₹{amount} ಪಾವತಿ ಬಾಕಿ ಇದೆ",
     footerSanctum: "॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥",
     footerContact: `ಪೂಜಾ ಸಂಕಲ್ಪ ಅಥವಾ ಸೇವಾ ವಿವರಗಳಿಗಾಗಿ ಸಂಪರ್ಕಿಸಿ: ${PRIEST_NAME} (${PRIEST_PHONE})`,
     nameRequiredError: "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
@@ -483,6 +491,9 @@ export const ANTARANGA_UI_STRINGS: Record<
     viewPdfBtn: "👁️ View PDF (Open in New Tab)",
     iphoneSafariTip: "iPhone Safari Users: Tap above to download. You can also view in a new tab, tap the Safari Share icon, and select 'Save to Files' or 'Books'.",
     unpaidWarning: "Payment verification required. Complete payment to download official PDFs.",
+    paymentRequiredLock: "🔒 Complete ₹{amount} payment to unlock download",
+    lockedPdfNotice: "Notice: PDF download buttons will unlock only after confirmed ₹{amount} payment in the database. No free downloads are permitted.",
+    lockedPdfBtn: "🔒 ₹{amount} Payment Pending",
     footerSanctum: "॥ Sri Kshetra Gokarna Mahabaleshwara Sanctum · Baggona Panchanga Astrology ॥",
     footerContact: `For Seva Assistance or Sankalpa, Contact: ${PRIEST_NAME} (${PRIEST_PHONE})`,
     nameRequiredError: "Please enter your full name.",
@@ -623,6 +634,9 @@ export const ANTARANGA_UI_STRINGS: Record<
     viewPdfBtn: "👁️ PDF देखें",
     iphoneSafariTip: "iPhone Safari उपयोगकर्ता: ऊपर क्लिक कर PDF डाउनलोड करें या Safari Share आइकन से 'Save to Files' में सुरक्षित करें।",
     unpaidWarning: "भुगतान सत्यापन आवश्यक है। आधिकारिक PDF डाउनलोड करने के लिए भुगतान पूरा करें।",
+    paymentRequiredLock: "🔒 ₹{amount} भुगतान के बाद डाउनलोड उपलब्ध होगा",
+    lockedPdfNotice: "सूचना: ₹{amount} का भुगतान डेटाबेस में सत्यापित होने के बाद ही PDF डाउनलोड बटन सक्रिय होंगे। कोई निःशुल्क डाउनलोड उपलब्ध नहीं है।",
+    lockedPdfBtn: "🔒 ₹{amount} भुगतान लंबित है",
     footerSanctum: "॥ श्री क्षेत्र गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष ॥",
     footerContact: `पूजा संकल्प या सहायता के लिए संपर्क करें: ${PRIEST_NAME} (${PRIEST_PHONE})`,
     nameRequiredError: "कृपया अपना पूरा नाम दर्ज करें।",
@@ -763,6 +777,9 @@ export const ANTARANGA_UI_STRINGS: Record<
     viewPdfBtn: "👁️ PDF చూడండి",
     iphoneSafariTip: "iPhone Safari వినియోగదారులు: పైన క్లిక్ చేస్తే PDF ఓపెన్ అవుతుంది. Share చిహ్నం నొక్కి 'Save to Files' లో సేవ్ చేయవచ్చు.",
     unpaidWarning: "చెల్లింపు ధృవీకరణ అవసరం. అధికారిక PDFలను డౌన్‌లోడ్ చేయడానికి చెల్లింపును పూర్తి చేయండి.",
+    paymentRequiredLock: "🔒 ₹{amount} చెల్లింపు తర్వాత డౌన్‌లోడ్ అందుబాటులో ఉంటుంది",
+    lockedPdfNotice: "గమనిక: డేటాబేస్‌లో ₹{amount} చెల్లింపు విజయవంతమైన తర్వాత మాత్రమే PDF డౌన్‌లోడ్ బటన్లు పనిచేస్తాయి. ఉచిత డౌన్‌లోడ్‌లు లేవు.",
+    lockedPdfBtn: "🔒 ₹{amount} చెల్లింపు పెండింగ్‌లో ఉంది",
     footerSanctum: "॥ శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగ జ్యోతిష్యం ॥",
     footerContact: `సహాయం లేదా పూజా సంకల్పం కొరకు సంప్రదించండి: ${PRIEST_NAME} (${PRIEST_PHONE})`,
     nameRequiredError: "దయచేసి మీ పూర్తి పేరును నమోదు చేయండి.",
@@ -903,6 +920,9 @@ export const ANTARANGA_UI_STRINGS: Record<
     viewPdfBtn: "👁️ PDF பார்க்க",
     iphoneSafariTip: "iPhone Safari பயனர்கள்: மேலே கிளிக் செய்தால் PDF திறக்கும். கீழே உள்ள Share குறியீட்டை அழுத்தி 'Save to Files' அல்லது 'Books' இல் சேமிக்கலாம்.",
     unpaidWarning: "கட்டண சரிபார்ப்பு தேவை. அதிகாரப்பூர்வ PDF பதிவிறக்க கட்டணத்தை முடிக்கவும்.",
+    paymentRequiredLock: "🔒 ₹{amount} கட்டணத்திற்குப் பின் பதிவிறக்கம் கிடைக்கும்",
+    lockedPdfNotice: "அறிவிப்பு: ₹{amount} கட்டணம் தரவுத்தளத்தில் சரிபார்க்கப்பட்ட பின்னரே PDF பதிவிறக்க பொத்தான்கள் செயல்படும். இலவச பதிவிறக்கம் கிடையாது.",
+    lockedPdfBtn: "🔒 ₹{amount} கட்டணம் நிலுவையில் உள்ளது",
     footerSanctum: "॥ ஸ்ரீ க்ஷேத்ர கோகர்ணம் மகாபலேஸ்வர சன்னிதானம் · பக்கவணா ஜோதிடம் ॥",
     footerContact: `உதவி அல்லது பூஜை சங்கல்பத்திற்கு தொடர்பு கொள்ளவும்: ${PRIEST_NAME} (${PRIEST_PHONE})`,
     nameRequiredError: "தயவுசெய்து உங்கள் முழுப் பெயரை உள்ளிடவும்.",
@@ -1043,6 +1063,9 @@ export const ANTARANGA_UI_STRINGS: Record<
     viewPdfBtn: "👁️ PDF കാണുക",
     iphoneSafariTip: "iPhone Safari ഉപയോക്താക്കൾ: മുകളിൽ ക്ലിക്ക് ചെയ്താൽ PDF തുറക്കും. താഴെയുള്ള Share ചിഹ്നം അമർത്തി 'Save to Files' അല്ലെങ്കിൽ 'Books'-ലേക്ക് സേവ് ചെയ്യാം.",
     unpaidWarning: "പേയ്‌മെന്റ് സ്ഥിരീകരണം ആവശ്യമാണ്. ഔദ്യോഗിക PDF ഡൗൺലോഡ് ചെയ്യാൻ പേയ്‌മെന്റ് പൂർത്തിയാക്കുക.",
+    paymentRequiredLock: "🔒 ₹{amount} പേയ്‌മെന്റിന് ശേഷം ഡൗൺലോഡ് ലഭ്യമാകും",
+    lockedPdfNotice: "ശ്രദ്ധിക്കുക: ഡാറ്റാബേസിൽ ₹{amount} പേയ്‌മെന്റ് സ്ഥിരീകരിച്ചതിനു ശേഷം മാത്രമേ PDF ഡൗൺലോഡ് ബട്ടണുകൾ സജീവമാകൂ. സൗജന്യ ഡൗൺലോഡ് ലഭ്യമല്ല.",
+    lockedPdfBtn: "🔒 ₹{amount} പേയ്‌മെന്റ് ബാക്കിയാണ്",
     footerSanctum: "॥ ശ്രീ ഗോകർണം മഹാബലേശ്വര സന്നിധാനം · ബഗ്ഗോണ പഞ്ചാംഗ ജ്യോതിഷം ॥",
     footerContact: `സഹായത്തിനോ പൂജാ സങ്കല്പത്തിനോ ബന്ധപ്പെടുക: ${PRIEST_NAME} (${PRIEST_PHONE})`,
     nameRequiredError: "ദയവായി നിങ്ങളുടെ പൂർണ്ണ നാമം നൽകുക.",
@@ -1183,6 +1206,9 @@ export const ANTARANGA_UI_STRINGS: Record<
     viewPdfBtn: "👁️ PDF पहा",
     iphoneSafariTip: "iPhone Safari वापरकर्ते: वरील बटण दाबताच PDF उघडेल. खालील Share चिन्हावर टॅप करून 'Save to Files' किंवा 'Books' मध्ये सेव्ह करू शकता.",
     unpaidWarning: "पेमेंट पडताळणी आवश्यक आहे. अधिकृत PDF डाउनलोड करण्यासाठी कृपया पेमेंट पूर्ण करा.",
+    paymentRequiredLock: "🔒 ₹{amount} पेमेंट्सनंतर डाउनलोड उपलब्ध होईल",
+    lockedPdfNotice: "सूचना: डेटाबेसमध्ये ₹{amount} पेमेंट पडताळणी पूर्ण झाल्यानंतरच PDF डाउनलोड बटणे सक्रिय होतील. कोणतेही मोफत डाउनलोड उपलब्ध नाही.",
+    lockedPdfBtn: "🔒 ₹{amount} पेमेंट बाकी आहे",
     footerSanctum: "॥ श्री क्षेत्र गोकर्ण महाबळेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष ॥",
     footerContact: `मदत किंवा पूजा संकल्पासाठी संपर्क साधा: ${PRIEST_NAME} (${PRIEST_PHONE})`,
     nameRequiredError: "कृपया आपले पूर्ण नाव प्रविष्ट करा.",
@@ -1668,6 +1694,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   // Synchronize Order with Firebase Firestore when package or devotee details change
   useEffect(() => {
     if (activeOrderId && devoteeName.trim()) {
+      const upiUri = getHotelPaymentUpiUri(packagePrice, activeOrderId);
       const orderDoc: HotelTableOrderDoc = {
         id: activeOrderId,
         orderId: activeOrderId,
@@ -1678,6 +1705,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         packageType: selectedPackage,
         status: isPaymentVerified ? "VERIFIED" : "INITIATED",
         selectedLang,
+        paymentLink: upiUri,
+        paymentId: `PAY_${activeOrderId}`,
         birthDate,
         birthTime,
         placeName: selectedCityName,
@@ -1689,6 +1718,27 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       void saveHotelOrderInitiated(orderDoc);
     }
   }, [activeOrderId, devoteeName, packagePrice, selectedPackage, selectedLang, birthDate, birthTime, selectedCityName, latitude, longitude, gender, isPaymentVerified]);
+
+  // Real-time Firebase Firestore Order Subscription: Reactively unlock on Firestore update
+  useEffect(() => {
+    if (!activeOrderId) return;
+    const unsubscribe = subscribeHotelOrder(activeOrderId, (order) => {
+      if ((order.status === "PAID" || order.status === "VERIFIED") && order.amountInr >= packagePrice) {
+        setIsPaymentVerified(true);
+        setVerifiedTxnId(order.paymentId || order.transactionId || order.utr || `TXN_${activeOrderId}`);
+        if (order.downloadedFiles) {
+          setDownloadedPdfs((prev) => ({
+            ...prev,
+            ...order.downloadedFiles
+          }));
+        }
+      }
+    });
+
+    return () => {
+      if (typeof unsubscribe === "function") unsubscribe();
+    };
+  }, [activeOrderId, packagePrice]);
 
   // App-Switch detection: Listen for user returning from PhonePe / GPay / Paytm
   useEffect(() => {
@@ -1981,7 +2031,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
   // ── STRICT SECURITY: Verify in Firebase Firestore before allowing any PDF generation ──
   const ensurePaymentVerified = async (): Promise<boolean> => {
-    if (!isPaymentVerified) {
+    if (!activeOrderId) {
+      alert(ui.unpaidWarning);
+      setShowPaymentSection(true);
+      return false;
+    }
+
+    // Direct database validation: single source of truth in Firebase Firestore
+    const check = await verifyHotelOrderPayment(activeOrderId, packagePrice);
+    if (!check.verified) {
+      setPaymentError(check.reason || ui.unpaidWarning);
+      setIsPaymentVerified(false);
       setShowPaymentSection(true);
       setTimeout(() => {
         const payEl = document.getElementById("hotel-payment-box");
@@ -1990,14 +2050,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       return false;
     }
 
-    // Verify in Firestore database
-    const check = await verifyHotelOrderPayment(activeOrderId, packagePrice);
-    if (!check.verified) {
-      setPaymentError(check.reason || ui.unpaidWarning);
-      setIsPaymentVerified(false);
-      setShowPaymentSection(true);
-      return false;
-    }
+    setIsPaymentVerified(true);
     return true;
   };
 
@@ -2060,6 +2113,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         } catch {}
         return next;
       });
+      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
     } catch (pdfErr: any) {
       console.error("5-Year PDF Generation error:", pdfErr);
       alert(`PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -2113,6 +2167,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         } catch {}
         return next;
       });
+      void updateHotelOrderDownloaded(activeOrderId, "kundli");
     } catch (pdfErr: any) {
       console.error("Kundli PDF Generation error:", pdfErr);
       alert(`Kundli PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -2166,6 +2221,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         } catch {}
         return next;
       });
+      void updateHotelOrderDownloaded(activeOrderId, "remedy");
     } catch (pdfErr: any) {
       console.error("Remedy PDF Generation error:", pdfErr);
       alert(`Remedy PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -2220,6 +2276,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         } catch {}
         return next;
       });
+      void updateHotelOrderDownloaded(activeOrderId, "all");
     } catch (batchErr: any) {
       console.error("Batch download error:", batchErr);
       alert(`Download error: ${batchErr?.message || "Please retry downloading individually."}`);
@@ -3342,108 +3399,174 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               </div>
             )}
 
-            {/* ── STEP 6: DEVOTEE MULTI-PDF DOWNLOAD CENTER (Single-use download per file) ── */}
-            {isPaymentVerified && (
-              <div
-                id="hotel-download-center"
-                className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-50 via-[#FFFDF7] to-emerald-50 border-2 border-emerald-500 space-y-4 text-center shadow-xl animate-in fade-in"
-              >
-                <div className="space-y-1">
-                  <div className="text-emerald-900 text-sm sm:text-base font-bold flex items-center justify-center gap-2">
-                    <span>{ui.pdfReadyHeader}</span>
-                  </div>
-                  <p className="text-[11px] text-stone-600 max-w-md mx-auto">
-                    {ui.singleUseNotice}
-                  </p>
+            {/* ── STEP 6: DEVOTEE MULTI-PDF DOWNLOAD CENTER (Strict Payment Gate & Single-use per file) ── */}
+            <div
+              id="hotel-download-center"
+              className={`p-5 sm:p-6 rounded-2xl border-2 space-y-4 text-center shadow-xl transition-all duration-300 ${
+                isPaymentVerified
+                  ? "bg-gradient-to-r from-emerald-50 via-[#FFFDF7] to-emerald-50 border-emerald-500 animate-in fade-in"
+                  : "bg-gradient-to-r from-amber-50/70 via-[#FFFDF7] to-amber-50/70 border-amber-400"
+              }`}
+            >
+              <div className="space-y-1">
+                <div
+                  className={`text-sm sm:text-base font-bold flex items-center justify-center gap-2 ${
+                    isPaymentVerified ? "text-emerald-900" : "text-amber-950"
+                  }`}
+                >
+                  <span>
+                    {isPaymentVerified
+                      ? ui.pdfReadyHeader
+                      : ui.paymentRequiredLock.replace("{amount}", String(packagePrice))}
+                  </span>
                 </div>
+                <p className="text-[11px] text-stone-600 max-w-md mx-auto">
+                  {isPaymentVerified
+                    ? ui.singleUseNotice
+                    : ui.lockedPdfNotice.replace("{amount}", String(packagePrice))}
+                </p>
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-lg mx-auto">
-                  {/* Button 1: 5-Year Master Destiny PDF */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-lg mx-auto">
+                {/* Button 1: 5-Year Master Destiny PDF */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isPaymentVerified) {
+                      alert(ui.unpaidWarning);
+                      const payEl = document.getElementById("hotel-payment-box");
+                      if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
+                      return;
+                    }
+                    void handleDownload5YearPdf();
+                  }}
+                  disabled={!isPaymentVerified || isGeneratingPdf || Boolean(downloadedPdfs.fiveYear) || Boolean(downloadedPdfs.all)}
+                  className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                    !isPaymentVerified
+                      ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300/80 cursor-not-allowed opacity-90"
+                      : downloadedPdfs.fiveYear || downloadedPdfs.all
+                      ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
+                      : "bg-amber-500 hover:bg-amber-400 text-stone-950 active:scale-[0.99] cursor-pointer"
+                  }`}
+                >
+                  <span>
+                    {!isPaymentVerified
+                      ? `${ui.downloadFiveYearPdfBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                      : downloadedPdfs.fiveYear || downloadedPdfs.all
+                      ? ui.downloadedBtn
+                      : ui.downloadFiveYearPdfBtn}
+                  </span>
+                </button>
+
+                {/* Button 2: Baggona Panchanga Janma Kundali PDF */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isPaymentVerified) {
+                      alert(ui.unpaidWarning);
+                      const payEl = document.getElementById("hotel-payment-box");
+                      if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
+                      return;
+                    }
+                    void handleDownloadKundliPdf();
+                  }}
+                  disabled={!isPaymentVerified || isGeneratingPdf || Boolean(downloadedPdfs.kundli) || Boolean(downloadedPdfs.all)}
+                  className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                    !isPaymentVerified
+                      ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300/80 cursor-not-allowed opacity-90"
+                      : downloadedPdfs.kundli || downloadedPdfs.all
+                      ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
+                      : "bg-yellow-500 hover:bg-yellow-400 text-stone-950 active:scale-[0.99] cursor-pointer"
+                  }`}
+                >
+                  <span>
+                    {!isPaymentVerified
+                      ? `${ui.downloadKundliPdfBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                      : downloadedPdfs.kundli || downloadedPdfs.all
+                      ? ui.downloadedBtn
+                      : ui.downloadKundliPdfBtn}
+                  </span>
+                </button>
+
+                {/* Button 3: Sacred Gokarna Remedy PDF (Only if ₹450 package chosen) */}
+                {selectedPackage === "remedy_450" && (
                   <button
                     type="button"
-                    onClick={() => void handleDownload5YearPdf()}
-                    disabled={isGeneratingPdf || Boolean(downloadedPdfs.fiveYear) || Boolean(downloadedPdfs.all)}
-                    className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
-                      downloadedPdfs.fiveYear || downloadedPdfs.all
+                    onClick={() => {
+                      if (!isPaymentVerified) {
+                        alert(ui.unpaidWarning);
+                        const payEl = document.getElementById("hotel-payment-box");
+                        if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
+                        return;
+                      }
+                      void handleDownloadRemedyPdf();
+                    }}
+                    disabled={!isPaymentVerified || isGeneratingPdf || Boolean(downloadedPdfs.remedy) || Boolean(downloadedPdfs.all)}
+                    className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition sm:col-span-2 ${
+                      !isPaymentVerified
+                        ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300/80 cursor-not-allowed opacity-90"
+                        : downloadedPdfs.remedy || downloadedPdfs.all
                         ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
-                        : "bg-amber-500 hover:bg-amber-400 text-stone-950 active:scale-[0.99] cursor-pointer"
+                        : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white active:scale-[0.99] cursor-pointer"
                     }`}
                   >
                     <span>
-                      {downloadedPdfs.fiveYear || downloadedPdfs.all
+                      {!isPaymentVerified
+                        ? `${ui.downloadRemedyPdfBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                        : downloadedPdfs.remedy || downloadedPdfs.all
                         ? ui.downloadedBtn
-                        : ui.downloadFiveYearPdfBtn}
+                        : ui.downloadRemedyPdfBtn}
                     </span>
                   </button>
+                )}
 
-                  {/* Button 2: Baggona Panchanga Janma Kundali PDF */}
-                  <button
-                    type="button"
-                    onClick={() => void handleDownloadKundliPdf()}
-                    disabled={isGeneratingPdf || Boolean(downloadedPdfs.kundli) || Boolean(downloadedPdfs.all)}
-                    className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
-                      downloadedPdfs.kundli || downloadedPdfs.all
-                        ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
-                        : "bg-yellow-500 hover:bg-yellow-400 text-stone-950 active:scale-[0.99] cursor-pointer"
-                    }`}
-                  >
-                    <span>
-                      {downloadedPdfs.kundli || downloadedPdfs.all
-                        ? ui.downloadedBtn
-                        : ui.downloadKundliPdfBtn}
-                    </span>
-                  </button>
-
-                  {/* Button 3: Sacred Gokarna Remedy PDF (Only if ₹450 package chosen) */}
-                  {selectedPackage === "remedy_450" && (
+                {/* Button 4: Download Complete All-in-One Package */}
+                {(() => {
+                  const isAllDone =
+                    Boolean(downloadedPdfs.all) ||
+                    (Boolean(downloadedPdfs.fiveYear) &&
+                      Boolean(downloadedPdfs.kundli) &&
+                      (selectedPackage !== "remedy_450" || Boolean(downloadedPdfs.remedy)));
+                  return (
                     <button
                       type="button"
-                      onClick={() => void handleDownloadRemedyPdf()}
-                      disabled={isGeneratingPdf || Boolean(downloadedPdfs.remedy) || Boolean(downloadedPdfs.all)}
-                      className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition sm:col-span-2 ${
-                        downloadedPdfs.remedy || downloadedPdfs.all
+                      onClick={() => {
+                        if (!isPaymentVerified) {
+                          alert(ui.unpaidWarning);
+                          const payEl = document.getElementById("hotel-payment-box");
+                          if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
+                          return;
+                        }
+                        void handleDownloadAllPdfs();
+                      }}
+                      disabled={!isPaymentVerified || isGeneratingPdf || isAllDone}
+                      className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md sm:col-span-2 transition ${
+                        !isPaymentVerified
+                          ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300/80 cursor-not-allowed opacity-90"
+                          : isAllDone
                           ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
-                          : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white active:scale-[0.99] cursor-pointer"
+                          : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-2 border-amber-400 cursor-pointer"
                       }`}
                     >
                       <span>
-                        {downloadedPdfs.remedy || downloadedPdfs.all
-                          ? ui.downloadedBtn
-                          : ui.downloadRemedyPdfBtn}
+                        {!isPaymentVerified
+                          ? `${ui.downloadAllPdfsBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                          : isAllDone
+                          ? ui.downloadAllCompletedBtn
+                          : ui.downloadAllPdfsBtn}
                       </span>
                     </button>
-                  )}
+                  );
+                })()}
+              </div>
 
-                  {/* Button 4: Download Complete All-in-One Package */}
-                  {(() => {
-                    const isAllDone =
-                      Boolean(downloadedPdfs.all) ||
-                      (Boolean(downloadedPdfs.fiveYear) &&
-                        Boolean(downloadedPdfs.kundli) &&
-                        (selectedPackage !== "remedy_450" || Boolean(downloadedPdfs.remedy)));
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => void handleDownloadAllPdfs()}
-                        disabled={isGeneratingPdf || isAllDone}
-                        className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md sm:col-span-2 transition ${
-                          isAllDone
-                            ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
-                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-2 border-amber-400 cursor-pointer"
-                        }`}
-                      >
-                        <span>{isAllDone ? ui.downloadAllCompletedBtn : ui.downloadAllPdfsBtn}</span>
-                      </button>
-                    );
-                  })()}
-                </div>
-
-                {/* iPhone Safari Tip */}
+              {/* iPhone Safari Tip */}
+              {isPaymentVerified && (
                 <p className="text-[11px] text-stone-600 max-w-md mx-auto leading-relaxed">
                   {ui.iphoneSafariTip}
                 </p>
-              </div>
-            )}
+              )}
+            </div>
           </section>
         )}
       </main>
