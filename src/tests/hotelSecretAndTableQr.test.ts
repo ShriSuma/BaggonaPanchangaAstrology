@@ -699,4 +699,132 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
       expect(DEFAULT_HOTEL_TAGLINE).not.toContain("Krishna");
     });
   });
+
+  describe("10. Strict 7-Language Parity & Line-by-Line Token Purity Audit (Marathi & Zero Script Leakage)", () => {
+    it("guarantees 100% pure Marathi output with ZERO Kannada or English token pollution", () => {
+      const result = generateAntarangaSatya(mockKundli, "mr", "अमित कुलकर्णी", "male");
+
+      // Devotee name localized in Marathi
+      expect(result.devoteeName).toBe("अमित कुलकर्णी");
+
+      // Verify ZERO Kannada characters in entire Marathi output
+      const kannadaRegex = /[\u0c80-\u0cff]/;
+      expect(result.paragraph1).not.toMatch(kannadaRegex);
+      expect(result.paragraph2).not.toMatch(kannadaRegex);
+      expect(result.kshetraBlessing).not.toMatch(kannadaRegex);
+      expect(result.lagnaSignName).toMatch(/^[\u0900-\u097F\s]+$/); // Pure Devanagari
+      expect(result.moonSignName).toMatch(/^[\u0900-\u097F\s]+$/);
+      expect(result.nakshatraName).toMatch(/^[\u0900-\u097F\s]+$/);
+      expect(result.h8LordName).toMatch(/^[\u0900-\u097F\s()]+$/);
+
+      // Verify Moorthy Nirnaya in pure Marathi
+      expect(result.moorthyNirnaya).toBeDefined();
+      expect(result.moorthyNirnaya!.title).toBe("मूर्ती निर्णय");
+      expect(result.moorthyNirnaya!.moorthyName).not.toMatch(kannadaRegex);
+      expect(result.moorthyNirnaya!.description).not.toMatch(kannadaRegex);
+
+      // Verify Cosmic Voltage in pure Marathi
+      expect(result.cosmicVoltage).toBeDefined();
+      expect(result.cosmicVoltage!.energyLabel).not.toMatch(kannadaRegex);
+      expect(result.cosmicVoltage!.energyLabel).not.toContain("Voltage");
+      expect(result.cosmicVoltage!.shaniGocharaStatus).not.toMatch(kannadaRegex);
+      expect(result.cosmicVoltage!.guruGocharaStatus).not.toMatch(kannadaRegex);
+      expect(result.cosmicVoltage!.turningPointVerdict).not.toMatch(kannadaRegex);
+
+      // Verify 5-Year Horizon locked teasers in pure Marathi
+      expect(result.fiveYearPreview).toBeDefined();
+      expect(result.fiveYearPreview!.lockedYears.length).toBe(4);
+      for (const yr of result.fiveYearPreview!.lockedYears) {
+        expect(yr.headlineQuestion).not.toMatch(kannadaRegex);
+        expect(yr.keyTheme).not.toMatch(kannadaRegex);
+        expect(yr.teaserCta).not.toMatch(kannadaRegex);
+        // Ensure no leftover English tokens
+        expect(yr.teaserCta).not.toContain("Dossier");
+        expect(yr.keyTheme).not.toContain("Catalyst");
+      }
+
+      // Verify Dining Offer in pure Marathi
+      expect(result.diningOffer).toBeDefined();
+      expect(result.diningOffer!.headline).not.toMatch(kannadaRegex);
+      expect(result.diningOffer!.subheadline).toContain("पंडित पॅलेट");
+      expect(result.diningOffer!.subheadline).not.toMatch(kannadaRegex);
+      for (const feat of result.diningOffer!.features) {
+        expect(feat).not.toMatch(kannadaRegex);
+      }
+    });
+
+    it("verifies script isolation across all 7 languages (no Kannada in non-Kannada outputs)", () => {
+      const nonKannadaLangs: AntarangaLang[] = ["en", "hi", "mr", "te", "ta", "ml"];
+      const kannadaRegex = /[\u0c80-\u0cff]/;
+
+      for (const lang of nonKannadaLangs) {
+        const result = generateAntarangaSatya(mockKundli, lang, "Devotee", "male");
+
+        expect(result.paragraph1, `Paragraph 1 in ${lang} must not contain Kannada`).not.toMatch(kannadaRegex);
+        expect(result.paragraph2, `Paragraph 2 in ${lang} must not contain Kannada`).not.toMatch(kannadaRegex);
+        expect(result.kshetraBlessing, `Kshetra Blessing in ${lang} must not contain Kannada`).not.toMatch(kannadaRegex);
+
+        expect(result.fiveYearPreview).toBeDefined();
+        for (const locked of result.fiveYearPreview!.lockedYears) {
+          expect(locked.headlineQuestion, `Teaser headline in ${lang} must not contain Kannada`).not.toMatch(kannadaRegex);
+          expect(locked.keyTheme, `Teaser keyTheme in ${lang} must not contain Kannada`).not.toMatch(kannadaRegex);
+          expect(locked.teaserCta, `Teaser CTA in ${lang} must not contain Kannada`).not.toMatch(kannadaRegex);
+        }
+
+        const dining = getDiningConversionOffer(lang);
+        expect(dining.headline, `Dining headline in ${lang} must not contain Kannada`).not.toMatch(kannadaRegex);
+        expect(dining.subheadline, `Dining subheadline in ${lang} must not contain Kannada`).not.toMatch(kannadaRegex);
+      }
+    });
+
+    it("verifies that ANTARANGA_UI_STRINGS across all 7 languages has zero English parentheticals in non-English dictionaries", async () => {
+      const { ANTARANGA_UI_STRINGS } = await import("../pages/AntarangadaSatyaPage");
+
+      const all7Langs: AntarangaLang[] = ["kn", "en", "hi", "te", "ta", "ml", "mr"];
+
+      for (const lang of all7Langs) {
+        const dict = ANTARANGA_UI_STRINGS[lang];
+        expect(dict, `UI dictionary for ${lang} must exist`).toBeDefined();
+
+        // Check required fields
+        expect(dict.topMantra).toBeTruthy();
+        expect(dict.heroTitle).toBeTruthy();
+        expect(dict.startReadingBtn).toBeTruthy();
+        expect(dict.packageStandardTitle).toBeTruthy();
+        expect(dict.packageRemedyTitle).toBeTruthy();
+        expect(dict.gocharaSectionTitle).toBeTruthy();
+        expect(dict.moorthyClassicalBadge).toBeTruthy();
+        expect(dict.luckyBlueprintTitle).toBeTruthy();
+        expect(dict.fiveYearPreviewTitle).toBeTruthy();
+        expect(dict.dinerSpecialBadge).toBeTruthy();
+        expect(dict.utrSectionTitle).toBeTruthy();
+        expect(dict.downloadAllPdfsBtn).toBeTruthy();
+
+        // In non-English languages, verify no English parentheticals leaked
+        if (lang !== "en") {
+          expect(dict.langSelectHeader).not.toContain("(Select");
+          expect(dict.heroTitle).not.toContain("(Dark");
+          expect(dict.formHeader).not.toContain("(Birth");
+          expect(dict.freeTag).not.toContain("(Free)");
+          expect(dict.nameLabel).not.toContain("(Your Full Name)");
+          expect(dict.dateLabel).not.toContain("(Date of Birth)");
+          expect(dict.timeLabel).not.toContain("(Time of Birth)");
+          expect(dict.genderLabel).not.toContain("(Gender)");
+          expect(dict.maleLabel).not.toContain("(Male)");
+          expect(dict.femaleLabel).not.toContain("(Female)");
+          expect(dict.placeLabel).not.toContain("(Birth Place)");
+          expect(dict.specialOfferBadge).not.toContain("(Special Offer)");
+          expect(dict.packageSelectTitle).not.toContain("(Select Package)");
+          expect(dict.packageRemedyBadge).not.toContain("(Recommended)");
+          expect(dict.downloadAllPdfsBtn).not.toContain("(Combined)");
+          expect(dict.downloadAllPdfsBtn).not.toContain("(Full Package)");
+          expect(dict.downloadedBtn).not.toContain("(Downloaded)");
+        }
+
+        // Never mention Sri Krishna Bhavan
+        expect(dict.defaultSanctuaryTitle).not.toContain("Krishna");
+        expect(dict.defaultSanctuaryTitle).not.toContain("Bhavan");
+      }
+    });
+  });
 });
