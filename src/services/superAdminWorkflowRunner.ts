@@ -42,7 +42,8 @@ export type ReportType =
   | "doshagalu"
   | "seva_patra"
   | "multi_question"
-  | "single_question";
+  | "single_question"
+  | "five_year";
 
 export interface WorkflowParams {
   rawPrompt: string;
@@ -588,6 +589,18 @@ export function parseWorkflowInstruction(
   }
   if (lower.includes("seva") || lower.includes("ಸೇವಾ") || lower.includes("patra")) {
     requestedReports.push("seva_patra");
+  }
+
+  if (
+    lower.includes("five year") ||
+    lower.includes("5 year") ||
+    lower.includes("5-year") ||
+    lower.includes("5 years") ||
+    lower.includes("೫ ವರ್ಷ") ||
+    lower.includes("ಪಂಚವರ್ಷ") ||
+    lower.includes("destiny blueprint")
+  ) {
+    requestedReports.push("five_year");
   }
 
   const includeQrCode =

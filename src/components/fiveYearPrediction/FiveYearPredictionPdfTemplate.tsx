@@ -341,90 +341,70 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </div>
             )}
 
-            {/* 0B. 4-Pillars Visual Traffic-Light Dashboard */}
+            {/* 0B. 4-Pillars Classical Question-Answer Section (No grids, no busy badge pills) */}
             {data.currentLifeStatus.fourPillarsDashboard && (
-              <div className="space-y-3 font-serif">
-                <div className="flex items-center justify-between border-b border-amber-700/20 pb-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
-                    <span>🚦</span>
+              <div className="space-y-4 font-serif border-b border-amber-700/20 pb-5">
+                <div className="border-b border-amber-700/20 pb-2">
+                  <h3 className="text-xl font-bold text-amber-950 font-serif flex items-center gap-2">
+                    <span>❖</span>
                     <span>
-                      {isKn ? "ಪ್ರಸ್ತುತ ಜೀವನದ ೪ ಸ್ತಂಭಗಳ ಸ್ಥಿತಿ ದರ್ಶನ"
-                        : isMr ? "सध्याच्या जीवनातील ४ आधारस्तंभांची स्थिती"
-                          : isHi ? "वर्तमान जीवन के ४ प्रमुख स्तंभों की स्थिति"
-                            : isTe ? "ప్రస్తుత జీవిత 4 స్తంభాల స్థితి"
-                              : isTa ? "தற்போதைய வாழ்க்கையின் 4 தூண்கள் நிலை"
-                                : "Current 4 Pillars Status Dashboard"}
+                      {isKn ? "ಪ್ರಶ್ನೆ: ಪ್ರಸ್ತುತ ಜೀವನದ ೪ ಸ್ತಂಭಗಳ ಸ್ಥಿತಿ ದರ್ಶನ"
+                        : isMr ? "प्रश्न: सध्याच्या जीवनातील ४ आधारस्तंभांची स्थिती"
+                        : isHi ? "प्रश्न: वर्तमान जीवन के ४ प्रमुख स्तंभों की स्थिति"
+                        : isTe ? "ప్రశ్న: ప్రస్తుత జీవిత 4 స్తంభాల స్థితి"
+                        : isTa ? "கேள்வி: தற்போதைய வாழ்க்கையின் 4 தூண்கள் நிலை"
+                        : "Inquest: Current 4 Pillars Status Dashboard"}
                     </span>
-                  </span>
-                  <span className="text-[11px] font-bold text-amber-800 italic">
+                  </h3>
+                  <p className="text-xs text-amber-900/80 italic mt-0.5">
                     {isKn ? "ಸಾಮಾನ್ಯ ಓದುಗರಿಗೆ ಸರಳ ಅರ್ಥವಿವರಣೆ"
                       : isMr ? "सामान्य वाचकांसाठी सोपे स्पष्टीकरण"
-                        : isHi ? "सरल बोधगम्य व्याख्या"
-                          : "Clear Plain-Language Insights"}
-                  </span>
+                      : isHi ? "सरल बोधगम्य व्याख्या"
+                      : "Clear Plain-Language Insights"}
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-3">
                   {/* Career */}
-                  <div className="p-4 rounded-xl bg-white/85 border border-amber-300 shadow-2xs space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-amber-950 text-sm flex items-center gap-1.5">
-                        <span>💼</span>
-                        <span>{isKn ? "ಉದ್ಯೋಗ & ವೃತ್ತಿ" : isMr ? "नोकरी व व्यवसाय" : isHi ? "कार्यक्षेत्र एवं व्यवसाय" : isTe ? "ఉద్యోగం & వృత్తి" : isTa ? "தொழில் & வேலை" : "Career & Work"}</span>
-                      </span>
-                      <span className={`text-[11px] px-2.5 py-0.5 rounded-full ${getStatusBadgeClass(data.currentLifeStatus.fourPillarsDashboard.career.status)}`}>
-                        {data.currentLifeStatus.fourPillarsDashboard.career.badgeText}
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-amber-950 leading-relaxed font-serif">
+                  <div className="border-l-2 border-amber-700/50 pl-4 py-1">
+                    <p className="text-sm font-black text-amber-950">
+                      💼 {isKn ? "ಉದ್ಯೋಗ & ವೃತ್ತಿ" : isMr ? "नोकरी व व्यवसाय" : isHi ? "कार्यक्षेत्र एवं व्यवसाय" : isTe ? "ఉద్యోగం & వృత్తి" : isTa ? "தொழில் & வேலை" : "Career & Work"}
+                      <span className="ml-2 font-normal text-amber-800">({data.currentLifeStatus.fourPillarsDashboard.career.badgeText})</span>
+                    </p>
+                    <p className="text-base text-amber-950 font-serif leading-relaxed mt-1">
                       {data.currentLifeStatus.fourPillarsDashboard.career.oneLiner}
                     </p>
                   </div>
 
                   {/* Wealth */}
-                  <div className="p-4 rounded-xl bg-white/85 border border-amber-300 shadow-2xs space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-amber-950 text-sm flex items-center gap-1.5">
-                        <span>💰</span>
-                        <span>{isKn ? "ಆರ್ಥಿಕತೆ & ಹಣಕಾಸು" : isMr ? "आर्थिक स्थिती व वित्त" : isHi ? "धन एवं आर्थिक स्थिति" : isTe ? "ఆర్థికం & నిధులు" : isTa ? "பொருளாதாரம் & சேமிப்பு" : "Wealth & Finance"}</span>
-                      </span>
-                      <span className={`text-[11px] px-2.5 py-0.5 rounded-full ${getStatusBadgeClass(data.currentLifeStatus.fourPillarsDashboard.wealth.status)}`}>
-                        {data.currentLifeStatus.fourPillarsDashboard.wealth.badgeText}
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-amber-950 leading-relaxed font-serif">
+                  <div className="border-l-2 border-amber-700/50 pl-4 py-1">
+                    <p className="text-sm font-black text-amber-950">
+                      💰 {isKn ? "ಆರ್ಥಿಕತೆ & ಹಣಕಾಸು" : isMr ? "आर्थिक स्थिती व वित्त" : isHi ? "धन एवं आर्थिक स्थिति" : isTe ? "ఆర్థికం & నిధులు" : isTa ? "பொருளாதாரம் & சேமிப்பு" : "Wealth & Finance"}
+                      <span className="ml-2 font-normal text-amber-800">({data.currentLifeStatus.fourPillarsDashboard.wealth.badgeText})</span>
+                    </p>
+                    <p className="text-base text-amber-950 font-serif leading-relaxed mt-1">
                       {data.currentLifeStatus.fourPillarsDashboard.wealth.oneLiner}
                     </p>
                   </div>
 
                   {/* Family */}
-                  <div className="p-4 rounded-xl bg-white/85 border border-amber-300 shadow-2xs space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-amber-950 text-sm flex items-center gap-1.5">
-                        <span>🏡</span>
-                        <span>{isKn ? "ಕುಟುಂಬ & ಮನಶ್ಶಾಂತಿ" : isMr ? "कुटुंब व मानसिक शांतता" : isHi ? "परिवार एवं मानसिक शांति" : isTe ? "కుటుంబం & ప్రశాంతత" : isTa ? "குடும்பம் & மன அமைதி" : "Family & Peace"}</span>
-                      </span>
-                      <span className={`text-[11px] px-2.5 py-0.5 rounded-full ${getStatusBadgeClass(data.currentLifeStatus.fourPillarsDashboard.family.status)}`}>
-                        {data.currentLifeStatus.fourPillarsDashboard.family.badgeText}
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-amber-950 leading-relaxed font-serif">
+                  <div className="border-l-2 border-amber-700/50 pl-4 py-1">
+                    <p className="text-sm font-black text-amber-950">
+                      🏡 {isKn ? "ಕುಟುಂಬ & ಮನಶ್ಶಾಂತಿ" : isMr ? "कुटुंब व मानसिक शांतता" : isHi ? "परिवार एवं मानसिक शांति" : isTe ? "కుటుంబం & ప్రశాంతత" : isTa ? "குடும்பம் & மன அமைதி" : "Family & Peace"}
+                      <span className="ml-2 font-normal text-amber-800">({data.currentLifeStatus.fourPillarsDashboard.family.badgeText})</span>
+                    </p>
+                    <p className="text-base text-amber-950 font-serif leading-relaxed mt-1">
                       {data.currentLifeStatus.fourPillarsDashboard.family.oneLiner}
                     </p>
                   </div>
 
                   {/* Health */}
-                  <div className="p-4 rounded-xl bg-white/85 border border-amber-300 shadow-2xs space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-amber-950 text-sm flex items-center gap-1.5">
-                        <span>🩺</span>
-                        <span>{isKn ? "ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ" : isMr ? "आरोग्य व ऊर्जा" : isHi ? "स्वास्थ्य एवं प्राणशक्ति" : isTe ? "ఆరోగ్యం & శక్తి" : isTa ? "ஆரோக்கியம் & பிராணன்" : "Health & Energy"}</span>
-                      </span>
-                      <span className={`text-[11px] px-2.5 py-0.5 rounded-full ${getStatusBadgeClass(data.currentLifeStatus.fourPillarsDashboard.health.status)}`}>
-                        {data.currentLifeStatus.fourPillarsDashboard.health.badgeText}
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-amber-950 leading-relaxed font-serif">
+                  <div className="border-l-2 border-amber-700/50 pl-4 py-1">
+                    <p className="text-sm font-black text-amber-950">
+                      🩺 {isKn ? "ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ" : isMr ? "आरोग्य व ऊर्जा" : isHi ? "स्वास्थ्य एवं प्राणशक्ति" : isTe ? "ఆరోగ్యం & శక్తి" : isTa ? "ஆரோக்கியம் & பிராணன்" : "Health & Energy"}
+                      <span className="ml-2 font-normal text-amber-800">({data.currentLifeStatus.fourPillarsDashboard.health.badgeText})</span>
+                    </p>
+                    <p className="text-base text-amber-950 font-serif leading-relaxed mt-1">
                       {data.currentLifeStatus.fourPillarsDashboard.health.oneLiner}
                     </p>
                   </div>
@@ -432,209 +412,130 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </div>
             )}
 
-            {/* Top Grid: Running Dasha-Bhukti vs Real-Time Gochara Transits */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* 1. Running Dasha & Antardasha Card */}
-              <div className="rounded-xl border-2 border-amber-600/60 bg-gradient-to-br from-amber-100/90 to-yellow-50/80 p-6 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between border-b border-amber-700/20 pb-3 mb-3">
-                    <span className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-                      <span>⏳</span>
-                      <span>
-                        {isKn ? "೧. ಚಾಲ್ತಿಯಲ್ಲಿರುವ ಮಹಾದಶೆ & ಅಂತರ್ದಶೆ" : isMr ? "१. चालू महादशा व अंतर्दशा" : isHi ? "१. चालू महादशा एवं अंतर्दशा" : isTe ? "1. నడుస్తున్న మహర్దశ & అంతర్దశ" : isTa ? "1. நடப்பு மகாதிசை & புத்தி" : "1. Active Mahadasha & Antardasha"}
-                      </span>
-                    </span>
-                    <span className="bg-amber-900 text-amber-100 font-bold text-[11px] px-2.5 py-0.5 rounded-full shadow-2xs">
-                      {data.currentLifeStatus.currentAgeFormatted}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 mb-3 font-serif">
-                    <p className="text-xl font-black text-amber-950">
-                      {data.currentLifeStatus.activeMahadasha} • {data.currentLifeStatus.activeBhukti}
-                    </p>
-                    <p className="text-xs font-bold text-amber-800">
-                      {data.currentLifeStatus.activeDashaPeriodText}
-                    </p>
-                  </div>
-
-                  <p className="text-sm text-amber-950 font-serif leading-relaxed">
-                    {data.currentLifeStatus.karmicFlowSummary}
-                  </p>
+            {/* Classical Q&A Flow: Running Dasha-Bhukti vs Real-Time Gochara Transits */}
+            <div className="space-y-5 font-serif border-b border-amber-700/20 pb-5">
+              {/* 1. Running Dasha & Antardasha */}
+              <div className="border-l-2 border-amber-700/50 pl-4 py-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-base font-black text-amber-950">
+                    ⏳ {isKn ? "೧. ಚಾಲ್ತಿಯಲ್ಲಿರುವ ಮಹಾದಶೆ & ಅಂತರ್ದಶೆ" : isMr ? "१. चालू महादशा व अंतर्दशा" : isHi ? "१. चालू महादशा एवं अंतर्दशा" : isTe ? "1. నడుస్తున్న మహర్దశ & అంతర్దశ" : isTa ? "1. நடப்பு மகாதிசை & புத்தி" : "1. Active Mahadasha & Antardasha"}
+                  </h4>
+                  <span className="text-xs font-bold text-amber-800 font-serif">({data.currentLifeStatus.currentAgeFormatted})</span>
                 </div>
+                <p className="text-sm font-bold text-amber-900 mt-1">
+                  {data.currentLifeStatus.activeMahadasha} • {data.currentLifeStatus.activeBhukti} ({data.currentLifeStatus.activeDashaPeriodText})
+                </p>
+                <p className="text-base text-amber-950 font-serif leading-relaxed mt-2">
+                  {data.currentLifeStatus.karmicFlowSummary}
+                </p>
               </div>
 
-              {/* 2. Real-Time Live Transits Card (Saturn, Jupiter, Rahu-Ketu) */}
-              <div className="rounded-xl border-2 border-amber-600/60 bg-gradient-to-br from-amber-100/90 to-orange-50/80 p-6 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between border-b border-amber-700/20 pb-3 mb-3">
-                    <span className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-                      <span>🪐</span>
-                      <span>
-                        {isKn ? "೨. ಲೈವ್ ಗ್ರಹ ಗೋಚಾರ ಸ್ಥಿತಿ" : isMr ? "२. थेट ग्रह गोचर स्थिती" : isHi ? "२. लाइव ग्रह गोचर स्थिति" : isTe ? "2. లైవ్ గ్రహ గోచార స్థితి" : isTa ? "2. நேரலை கிரக கோச்சார நிலை" : "2. Real-Time Planetary Transits"}
-                      </span>
-                    </span>
-                    <span className="bg-amber-800/80 text-amber-50 font-bold text-[11px] px-2.5 py-0.5 rounded-full shadow-2xs">
-                      {isKn ? "ಜನ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ" : isMr ? "चंद्र राशीनुसार" : isHi ? "चन्द्र राशि अनुसार" : "From Natal Moon"}
-                    </span>
-                  </div>
-
-                  <div className="space-y-3 font-serif text-sm">
-                    {/* Saturn Gochara */}
-                    <div className="p-2.5 rounded-lg bg-white/70 border border-amber-300">
-                      <span className="text-xs font-black text-amber-900 block mb-0.5">
-                        🪐 {data.currentLifeStatus.shaniGocharaStatus}
-                      </span>
-                      <p className="text-xs text-amber-950 leading-relaxed">
-                        {data.currentLifeStatus.shaniGocharaImpact}
-                      </p>
-                    </div>
-
-                    {/* Jupiter Gochara */}
-                    <div className="p-2.5 rounded-lg bg-white/70 border border-amber-300">
-                      <span className="text-xs font-black text-amber-900 block mb-0.5">
-                        ✨ {data.currentLifeStatus.guruGocharaStatus}
-                      </span>
-                      <p className="text-xs text-amber-950 leading-relaxed">
-                        {data.currentLifeStatus.guruGocharaImpact}
-                      </p>
-                    </div>
-
-                    {/* Rahu-Ketu Axis */}
-                    <div className="p-2.5 rounded-lg bg-white/70 border border-amber-300">
-                      <span className="text-xs font-black text-amber-900 block mb-0.5">
-                        🐉 {data.currentLifeStatus.rahuKetuStatus}
-                      </span>
-                      <p className="text-xs text-amber-950 leading-relaxed">
-                        {data.currentLifeStatus.rahuKetuImpact}
-                      </p>
-                    </div>
-                  </div>
+              {/* 2. Real-Time Live Transits (Saturn, Jupiter, Rahu-Ketu) */}
+              <div className="border-l-2 border-amber-700/50 pl-4 py-1">
+                <h4 className="text-base font-black text-amber-950">
+                  🪐 {isKn ? "೨. ಲೈವ್ ಗ್ರಹ ಗೋಚಾರ ಸ್ಥಿತಿ" : isMr ? "२. थेट ग्रह गोचर स्थिती" : isHi ? "२. लाइव ग्रह गोचर स्थिति" : isTe ? "2. లైవ్ గ్రహ గోచార స్థితి" : isTa ? "2. நேரலை கிரக கோச்சார நிலை" : "2. Real-Time Planetary Transits"}
+                  <span className="text-xs font-normal text-amber-800 ml-2">({isKn ? "ಜನ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ" : isMr ? "चंद्र राशीनुसार" : isHi ? "चन्द्र राशि अनुसार" : "From Natal Moon"})</span>
+                </h4>
+                <div className="mt-2 space-y-2 text-sm text-amber-950 font-serif leading-relaxed">
+                  <p>
+                    <strong className="font-black text-amber-900">🪐 {data.currentLifeStatus.shaniGocharaStatus}:</strong> {data.currentLifeStatus.shaniGocharaImpact}
+                  </p>
+                  <p>
+                    <strong className="font-black text-amber-900">✨ {data.currentLifeStatus.guruGocharaStatus}:</strong> {data.currentLifeStatus.guruGocharaImpact}
+                  </p>
+                  <p>
+                    <strong className="font-black text-amber-900">🐉 {data.currentLifeStatus.rahuKetuStatus}:</strong> {data.currentLifeStatus.rahuKetuImpact}
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Chandra Bala & Daily Energy Meter Card */}
-            <div className="rounded-xl border border-amber-700/30 bg-white/80 p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 font-serif">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl text-amber-700">🌙</span>
-                <div>
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 block">
-                    {isKn ? "ಚಂದ್ರಬಲ & ದೈನಂದಿನ ಪ್ರಾಣಶಕ್ತಿ ಮಾನ" : isMr ? "चंद्रबल व दैनंदिन प्राणशक्ती" : isHi ? "चंद्रबल एवं दैनिक प्राणशक्ति" : "Chandra Bala & Daily Prana Shakti"}
-                  </span>
-                  <p className="text-sm font-bold text-amber-950 mt-0.5">
-                    {data.currentLifeStatus.energyDesc}
-                  </p>
-                </div>
-              </div>
-              <div className="shrink-0 text-center px-4 py-2 rounded-lg bg-amber-100 border border-amber-300">
-                <span className="text-xl font-black text-amber-950 block">
-                  {formatNumber6L(data.currentLifeStatus.energyScore, lang)}%
-                </span>
-                <span className="text-[10px] font-bold text-amber-800 uppercase tracking-widest block">
-                  {data.currentLifeStatus.energyMeterLabel}
-                </span>
-              </div>
+            {/* Chandra Bala & Daily Energy Meter */}
+            <div className="border-l-2 border-amber-700/50 pl-4 py-1 font-serif">
+              <h4 className="text-base font-black text-amber-950">
+                🌙 {isKn ? "ಚಂದ್ರಬಲ & ದೈನಂದಿನ ಪ್ರಾಣಶಕ್ತಿ ಮಾನ" : isMr ? "चंद्रबल व दैनंदिन प्राणशक्ती" : isHi ? "चंद्रबल एवं दैनिक प्राणशक्ति" : "Chandra Bala & Daily Prana Shakti"}:
+                <span className="text-amber-900 font-bold ml-2">{formatNumber6L(data.currentLifeStatus.energyScore, lang)}% ({data.currentLifeStatus.energyMeterLabel})</span>
+              </h4>
+              <p className="text-base text-amber-950 font-serif leading-relaxed mt-1">
+                {data.currentLifeStatus.energyDesc}
+              </p>
             </div>
 
-            {/* Turning Point Timeline Card: Exact Date/Season */}
+            {/* Turning Point Timeline */}
             {data.currentLifeStatus.turningPointTimeline && (
-              <div className="rounded-xl border-2 border-amber-600/60 bg-gradient-to-r from-amber-100 via-yellow-100/90 to-amber-100 p-4 font-serif flex items-start gap-3 shadow-2xs">
-                <span className="text-2xl text-amber-800 leading-none pt-0.5">⏳</span>
-                <div>
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 block mb-0.5">
-                    {isKn ? "ಗ್ರಹಗಳ ಬದಲಾವಣೆ ಹಾಗೂ ಸುವರ್ಣ ತಿರುವು ಆರಂಭವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ:"
-                      : isMr ? "ग्रह बदल व सुवर्ण वळण सुरू होण्याचा निश्चित काळ:"
-                        : isHi ? "ग्रह परिवर्तन एवं स्वर्णिम मोड़ प्रारंभ होने का निश्चित समय:"
-                          : isTe ? "గ్రహ మార్పు & సువర్ణ మలుపు ప్రారంభమయ్యే ఖచ్చిత సమయం:"
-                            : isTa ? "கிரக மாற்றம் & பொற்கால தொடக்கத்தின் திட்டவட்டமான காலம்:"
-                              : "Exact Turning Point Timeline:"}
-                  </span>
-                  <p className="text-sm font-black text-amber-950 font-serif leading-relaxed">
-                    {data.currentLifeStatus.turningPointTimeline}
-                  </p>
-                </div>
+              <div className="border-l-2 border-amber-700/50 pl-4 py-1 font-serif">
+                <h4 className="text-base font-black text-amber-950">
+                  ⏳ {isKn ? "ಗ್ರಹಗಳ ಬದಲಾವಣೆ ಹಾಗೂ ಸುವರ್ಣ ತಿರುವು ಆರಂಭವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ:"
+                    : isMr ? "ग्रह बदल व सुवर्ण वळण सुरू होण्याचा निश्चित काळ:"
+                    : isHi ? "ग्रह परिवर्तन एवं स्वर्णिम मोड़ प्रारंभ होने का निश्चित समय:"
+                    : isTe ? "గ్రహ మార్పు & సువర్ణ మలుపు ప్రారంభమయ్యే ఖచ్చిత సమయం:"
+                    : isTa ? "கிரக மாற்றம் & பொற்கால தொடக்கத்தின் திட்டவட்டமான காலம்:"
+                    : "Exact Turning Point Timeline:"}
+                </h4>
+                <p className="text-base font-black text-amber-900 font-serif leading-relaxed mt-0.5">
+                  {data.currentLifeStatus.turningPointTimeline}
+                </p>
               </div>
             )}
 
             {/* Immediate 2-Minute Daily Action / Ritual (Zero Cost) */}
             {data.currentLifeStatus.immediateSimpleActionTitle && (
-              <div className="rounded-xl border-2 border-amber-600/50 bg-gradient-to-r from-amber-100/90 via-orange-50 to-amber-100/90 p-5 font-serif space-y-2 shadow-2xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl text-amber-800">🪔</span>
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-900">
-                    {data.currentLifeStatus.immediateSimpleActionTitle}
-                  </span>
-                </div>
-                <p className="text-sm font-bold text-amber-950 leading-relaxed italic bg-white/70 p-3.5 rounded-lg border border-amber-200">
+              <div className="border-l-2 border-amber-700/50 pl-4 py-1 font-serif space-y-1">
+                <h4 className="text-base font-black text-amber-950">
+                  🪔 {data.currentLifeStatus.immediateSimpleActionTitle}:
+                </h4>
+                <p className="text-base text-amber-950 font-serif leading-relaxed italic">
                   {data.currentLifeStatus.immediateSimpleActionText}
                 </p>
               </div>
             )}
 
-            {/* Immediate 6-12 Months Strategic Horizon Grid */}
-            <div className="border-t border-amber-700/20 pt-6 space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xl text-amber-800">🎯</span>
-                <h3 className="text-lg font-black text-amber-950 font-serif">
+            {/* Immediate 6-12 Months Strategic Horizon */}
+            <div className="border-t border-amber-700/20 pt-5 space-y-4 font-serif">
+              <h3 className="text-xl font-bold text-amber-950 font-serif flex items-center gap-2">
+                <span>🎯</span>
+                <span>
                   {isKn ? "೩. ಮುಂದಿನ ೬ ರಿಂದ ೧೨ ತಿಂಗಳ ತಕ್ಷಣದ ಜೀವನ ಮುನ್ನೋಟ" : isMr ? "३. आगामी ६ ते १२ महिन्यांचे तात्काळ जीवन चित्र" : isHi ? "३. आगामी ६ से १२ महीनों का तात्कालिक जीवन परिदृश्य" : isTe ? "3. రాబోయే 6 నుండి 12 నెలల తక్షణ జీవిత దృక్పథం" : isTa ? "3. அடுத்த 6 முதல் 12 மாதங்களுக்கான உடனடி வாழ்க்கை நோக்கு" : "3. Immediate 6 to 12-Month Strategic Life Horizon"}
-                </h3>
-              </div>
+                </span>
+              </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-3">
                 {/* Career */}
-                <div className="rounded-xl border border-amber-300 bg-amber-100/50 p-4 font-serif">
-                  <span className="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5 mb-1.5">
-                    <span>💼</span>
-                    <span>{isKn ? "ಉದ್ಯೋಗ & ವೃತ್ತಿ ಮುನ್ನೋಟ" : isMr ? "नोकरी व व्यवसाय" : isHi ? "कार्यक्षेत्र एवं व्यवसाय" : "Career & Profession"}</span>
-                  </span>
-                  <p className="text-sm text-amber-950 leading-relaxed">{data.currentLifeStatus.careerImmediateFocus}</p>
+                <div className="border-l-2 border-amber-700/40 pl-4 py-0.5">
+                  <strong className="text-sm font-black text-amber-950 block">💼 {isKn ? "ಉದ್ಯೋಗ & ವೃತ್ತಿ ಮುನ್ನೋಟ" : isMr ? "नोकरी व व्यवसाय" : isHi ? "कार्यक्षेत्र एवं व्यवसाय" : "Career & Profession"}:</strong>
+                  <p className="text-base text-amber-950 leading-relaxed font-serif mt-0.5">{data.currentLifeStatus.careerImmediateFocus}</p>
                 </div>
 
                 {/* Wealth */}
-                <div className="rounded-xl border border-amber-300 bg-amber-100/50 p-4 font-serif">
-                  <span className="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5 mb-1.5">
-                    <span>💰</span>
-                    <span>{isKn ? "ಆರ್ಥಿಕತೆ & ಉಳಿತಾಯ ಭದ್ರತೆ" : isMr ? "आर्थिक स्थिती व बचत" : isHi ? "धन एवं बचत सुरक्षा" : "Wealth & Asset Prudence"}</span>
-                  </span>
-                  <p className="text-sm text-amber-950 leading-relaxed">{data.currentLifeStatus.wealthImmediateFocus}</p>
+                <div className="border-l-2 border-amber-700/40 pl-4 py-0.5">
+                  <strong className="text-sm font-black text-amber-950 block">💰 {isKn ? "ಆರ್ಥಿಕತೆ & ಉಳಿತಾಯ ಭದ್ರತೆ" : isMr ? "आर्थिक स्थिती व बचत" : isHi ? "धन एवं बचत सुरक्षा" : "Wealth & Asset Prudence"}:</strong>
+                  <p className="text-base text-amber-950 leading-relaxed font-serif mt-0.5">{data.currentLifeStatus.wealthImmediateFocus}</p>
                 </div>
 
                 {/* Family */}
-                <div className="rounded-xl border border-amber-300 bg-amber-100/50 p-4 font-serif">
-                  <span className="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5 mb-1.5">
-                    <span>🏡</span>
-                    <span>{isKn ? "ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ & ನೆಮ್ಮದಿ" : isMr ? "कौटुंबिक सुख व शांतता" : isHi ? "पारिवारिक सुख एवं शांति" : "Family Harmony & Peace"}</span>
-                  </span>
-                  <p className="text-sm text-amber-950 leading-relaxed">{data.currentLifeStatus.familyImmediateFocus}</p>
+                <div className="border-l-2 border-amber-700/40 pl-4 py-0.5">
+                  <strong className="text-sm font-black text-amber-950 block">🏡 {isKn ? "ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ & ನೆಮ್ಮದಿ" : isMr ? "कौटुंबिक सुख व शांतता" : isHi ? "पारिवारिक सुख एवं शांति" : "Family Harmony & Peace"}:</strong>
+                  <p className="text-base text-amber-950 leading-relaxed font-serif mt-0.5">{data.currentLifeStatus.familyImmediateFocus}</p>
                 </div>
 
                 {/* Health */}
-                <div className="rounded-xl border border-amber-300 bg-amber-100/50 p-4 font-serif">
-                  <span className="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5 mb-1.5">
-                    <span>🩺</span>
-                    <span>{isKn ? "ಆರೋಗ್ಯ, ಮನೋಬಲ & ವಿಶ್ರಾಂತಿ" : isMr ? "आरोग्य व मनोबल" : isHi ? "स्वास्थ्य एवं मनोबल" : "Health, Vitality & Rest"}</span>
-                  </span>
-                  <p className="text-sm text-amber-950 leading-relaxed">{data.currentLifeStatus.healthImmediateFocus}</p>
+                <div className="border-l-2 border-amber-700/40 pl-4 py-0.5">
+                  <strong className="text-sm font-black text-amber-950 block">🩺 {isKn ? "ಆರೋಗ್ಯ, ಮನೋಬಲ & ವಿಶ್ರಾಂತಿ" : isMr ? "आरोग्य व मनोबल" : isHi ? "स्वास्थ्य एवं मनोबल" : "Health, Vitality & Rest"}:</strong>
+                  <p className="text-base text-amber-950 leading-relaxed font-serif mt-0.5">{data.currentLifeStatus.healthImmediateFocus}</p>
                 </div>
               </div>
 
               {/* Immediate Caution & Peace Mantra */}
-              <div className="rounded-xl border-2 border-amber-600/50 bg-gradient-to-r from-amber-100 via-yellow-100/80 to-amber-100 p-5 mt-4 font-serif space-y-3">
-                <div className="flex items-start gap-2.5">
-                  <span className="text-xl text-amber-800 leading-none pt-0.5">🛡️</span>
-                  <div>
-                    <span className="text-xs font-black text-amber-900 uppercase block mb-1">
-                      {isKn ? "ಪ್ರಸ್ತುತ ಹಂತದ ದೈನಂದಿನ ಶಾಂತಿ ಮಂತ್ರ & ಸನ್ನಿಧಾನದ ಸೇವೆ" : isMr ? "सध्याच्या काळातील शांती मंत्र व पूजा" : isHi ? "वर्तमान कालखंड का शांति मंत्र एवं पूजा" : "Immediate Peace Routine & Recommended Temple Seva"}
-                    </span>
-                    <p className="text-base font-bold text-amber-950 leading-relaxed">
-                      {data.currentLifeStatus.dailyMantraText}
-                    </p>
-                    <p className="text-xs text-amber-900 font-semibold mt-1">
-                      {data.currentLifeStatus.prescribedSevaText}
-                    </p>
-                  </div>
-                </div>
+              <div className="border-l-2 border-amber-700/50 pl-4 py-1 font-serif space-y-1 mt-4">
+                <span className="text-xs font-black text-amber-900 uppercase block mb-1">
+                  🛡️ {isKn ? "ಪ್ರಸ್ತುತ ಹಂತದ ದೈನಂದಿನ ಶಾಂತಿ ಮಂತ್ರ & ಸನ್ನಿಧಾನದ ಸೇವೆ" : isMr ? "सध्याच्या काळातील शांती मंत्र व पूजा" : isHi ? "वर्तमान कालखंड का शांति मंत्र एवं पूजा" : "Immediate Peace Routine & Recommended Temple Seva"}
+                </span>
+                <p className="text-base font-bold text-amber-950 leading-relaxed">
+                  {data.currentLifeStatus.dailyMantraText}
+                </p>
+                <p className="text-sm text-amber-900 font-semibold mt-1">
+                  {data.currentLifeStatus.prescribedSevaText}
+                </p>
               </div>
             </div>
           </div>
@@ -810,23 +711,33 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 </div>
               </div>
 
-              {/* Dhana Bhava Narrative Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-serif">
-                <div className="p-3.5 rounded-xl bg-white/80 border border-amber-300 shadow-2xs space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                    💎 {isKn ? "ಧನಭಾವ (೨ನೇ ಮನೆ) & ದ್ರವ್ಯ ಸಂಚಯ ಯೋಗ" : isMr ? "द्वितीय भाव व सुवर्ण संचय" : isHi ? "द्वितीय भाव एवं स्वर्ण संचय" : "Dhana Bhava & Treasury Protection"}
+              {/* Dhana Bhava Narrative in Clean Heritage Q&A Format */}
+              <div className="space-y-3 text-xs font-serif pt-1">
+                <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    {isKn ? "ಪ್ರಶ್ನೆ: ಜನ್ಮ ಕುಂಡಲಿಯ ಧನಭಾವ (೨ನೇ ಮನೆ) & ದ್ರವ್ಯ ಸಂಚಯ ಯೋಗದ ಸ್ಥಿತಿ ಏನು?"
+                      : isMr ? "प्रश्न: जन्मपत्रिकेतील द्वितीय भाव व सुवर्ण संचय योगाची स्थिती काय आहे?"
+                      : isHi ? "प्रश्न: जन्म कुंडली के द्वितीय भाव एवं स्वर्ण संचय योग की स्थिति क्या है?"
+                      : isTe ? "ప్రశ్న: ధనభావం (2వ ఇల్లు) మరియు ద్రవ్య సంచయ యోగ స్థితి ఏమిటి?"
+                      : isTa ? "கேள்வி: தனபாவம் (2-ம் வீடு) மற்றும் பொன் சேமிப்பு யோக நிலை என்ன?"
+                      : "Inquest: What is the Dhana Bhava (2nd House) & Treasury Accumulation Outlook?"}
                   </span>
-                  <p className="text-amber-950 leading-relaxed">
-                    {data.nagaluRoadmap.dhanaBhavaDisposition}
+                  <p className="text-amber-950 leading-relaxed font-sans">
+                    <strong className="text-amber-900">{isKn ? "ಧನಭಾವ (೨ನೇ ಮನೆ) & ದ್ರವ್ಯ ಸಂಚಯ ಯೋಗ:" : isMr ? "द्वितीय भाव व सुवर्ण संचय:" : isHi ? "द्वितीय भाव एवं स्वर्ण संचय:" : "Dhana Bhava & Treasury Protection:"}</strong> {data.nagaluRoadmap.dhanaBhavaDisposition}
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-white/80 border border-amber-300 shadow-2xs space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                    ✨ {isKn ? "೫ ವರ್ಷಗಳ ಒಟ್ಟು ಚಿನ್ನ-ಆಭರಣ ವೃದ್ಧಿ ಮುನ್ನೋಟ" : isMr ? "५ वर्षांचा एकूण सुवर्ण वृद्धी अहवाल" : isHi ? "५ वर्षीय स्वर्ण-आभूषण वृद्धि सारांश" : "5-Year Overall Jewelry Growth"}
+                <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    {isKn ? "ಪ್ರಶ್ನೆ: ಮುಂಬರುವ ೫ ವರ್ಷಗಳ ಒಟ್ಟು ಚಿನ್ನ-ಆಭರಣ ವೃದ್ಧಿ ಮುನ್ನೋಟ ಹೇಗಿದೆ?"
+                      : isMr ? "प्रश्न: आगामी ५ वर्षांचा एकूण सुवर्ण व दागिने वृद्धी अहवाल काय सांगतो?"
+                      : isHi ? "प्रश्न: आगामी ५ वर्षों का समग्र स्वर्ण-आभूषण वृद्धि फलादेश क्या है?"
+                      : isTe ? "ప్రశ్న: రాబోయే 5 సంవత్సరాల మొత్తం బంగారు-ఆభరణాల వృద్ధి నివేదిక ఏమిటి?"
+                      : isTa ? "கேள்வி: அடுத்த 5 ஆண்டுகளின் தங்கம்-ஆபரண வளர்ச்சி கண்ணோட்டம் என்ன?"
+                      : "Inquest: What is the 5-Year Overall Jewelry & Precious Assets Growth?"}
                   </span>
-                  <p className="text-amber-950 leading-relaxed">
-                    {data.nagaluRoadmap.overallYogaSummary}
+                  <p className="text-amber-950 leading-relaxed font-sans">
+                    <strong className="text-amber-900">{isKn ? "೫ ವರ್ಷಗಳ ಒಟ್ಟು ಚಿನ್ನ-ಆಭರಣ ವೃದ್ಧಿ ಮುನ್ನೋಟ:" : isMr ? "५ वर्षांचा एकूण सुवर्ण वृद्धी अहवाल:" : isHi ? "५ वर्षीय स्वर्ण-आभूषण वृद्धि सारांश:" : "5-Year Overall Jewelry Growth:"}</strong> {data.nagaluRoadmap.overallYogaSummary}
                   </p>
                 </div>
               </div>
@@ -892,51 +803,44 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </span>
             </div>
 
-            {/* 4 Golden Quick Metrics */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-serif">
-              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                  🌟 {isKn ? "ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ" : isMr ? "सुवर्ण भाग्योदय" : isHi ? "स्वर्णिम भाग्योदय" : isTe ? "సువర్ణ భాగ్యోదయం" : isTa ? "பொற்கால தொடக்கம்" : "Peak Opportunity"}
+            {/* Clean Heritage Question & Answer Executive Flow */}
+            <div className="space-y-3 text-xs font-serif pt-1">
+              <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  {isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ಮುಂಬರುವ ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ ಹಾಗೂ ಪ್ರಾಣಶಕ್ತಿ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
+                    : isMr ? "वर्षातील मुख्य प्रश्न: आगामी ५ वर्षांचा सुवर्ण भाग्योदय व प्राणशक्ती स्थिती कशी आहे?"
+                    : isHi ? "वर्ष का मुख्य प्रश्न: आगामी ५ वर्षों का स्वर्णिम भाग्योदय एवं प्राणशक्ति स्थिति कैसी है?"
+                    : "Inquest: What is the Peak Opportunity and Vitality Outlook?"}
                 </span>
-                <p className="text-base font-black text-amber-950 mt-1 font-serif">
-                  {data.macroSummary.peakGoldenYear}
+                <p className="text-amber-950 leading-relaxed font-sans">
+                  <strong className="text-amber-900">{isKn ? "ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ:" : isMr ? "सुवर्ण भाग्योदय:" : isHi ? "स्वर्णिम भाग्योदय:" : isTe ? "సువర్ణ భాగ్యోదయం:" : isTa ? "பொற்கால தொடக்கம்:" : "Peak Opportunity:"}</strong> {data.macroSummary.peakGoldenYear}
+                  <span className="mx-2 text-amber-700/60">•</span>
+                  <strong className="text-amber-900">{isKn ? "ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್:" : isMr ? "प्राणशक्ती गुणांक:" : isHi ? "प्राणशक्ति गुणांक:" : isTe ? "ప్రాణశక్తి స్కోరు:" : isTa ? "பிராணசக்தி மதிப்பெண்:" : "Vitality Score:"}</strong> {data.currentLifeStatus ? `${formatNumber6L(data.currentLifeStatus.energyScore, lang)}%` : "೮೮%"}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                  ⚡ {isKn ? "ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್" : isMr ? "प्राणशक्ती गुणांक" : isHi ? "प्राणशक्ति गुणांक" : isTe ? "ప్రాణశక్తి స్కోరు" : isTa ? "பிராணசக்தி மதிப்பெண்" : "Vitality Score"}
+              <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  {isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ಈ ಪಂಚವರ್ಷಕ್ಕೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಹಾಗೂ ಮುಖ್ಯ ಪರಿಹಾರವೇನು?"
+                    : isMr ? "वर्षातील मुख्य प्रश्न: या पंचवार्षिक काळासाठी मुख्य दैवी रक्षा कवच व उपाय काय?"
+                    : isHi ? "वर्ष का मुख्य प्रश्न: इस पंचवर्षीय काल हेतु मुख्य रक्षा कवच एवं परिहार क्या है?"
+                    : "Inquest: What is the Sacred Shield and Prescribed Seva?"}
                 </span>
-                <p className="text-base font-black text-amber-950 mt-1 font-serif">
-                  {data.currentLifeStatus ? `${formatNumber6L(data.currentLifeStatus.energyScore, lang)}%` : "೮೮%"}
+                <p className="text-amber-950 leading-relaxed font-sans">
+                  <strong className="text-amber-900">{isKn ? "ದೈವಿಕ ರಕ್ಷಾ ಕವಚ:" : isMr ? "दैवी रक्षा कवच:" : isHi ? "दैवीय रक्षा कवच:" : isTe ? "రక్షా కవచం:" : isTa ? "ரக்ஷா கவசம்:" : "Sacred Shield:"}</strong> {data.remedies.gemstoneRecommendation}
+                  <span className="mx-2 text-amber-700/60">•</span>
+                  <strong className="text-amber-900">{isKn ? "ಮುಖ್ಯ ಪರಿಹಾರ:" : isMr ? "मुख्य उपाय:" : isHi ? "मुख्य परिहार:" : isTe ? "ముఖ్య పరిహారం:" : isTa ? "முக்கிய பரிகாரம்:" : "Immediate Seva:"}</strong> {data.currentLifeStatus?.prescribedSevaText || data.remedies.gokarnaParihara}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                  💎 {isKn ? "ದೈವಿಕ ರಕ್ಷಾ ಕವಚ" : isMr ? "दैवी रक्षा कवच" : isHi ? "दैवीय रक्षा कवच" : isTe ? "రక్షా కవచం" : isTa ? "ரக்ஷா கவசம்" : "Sacred Shield"}
-                </span>
-                <p className="text-sm font-black text-amber-950 mt-1 font-serif line-clamp-1">
-                  {data.remedies.gemstoneRecommendation}
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                  ⏳ {isKn ? "ಮುಖ್ಯ ಪರಿಹಾರ" : isMr ? "मुख्य उपाय" : isHi ? "मुख्य परिहार" : isTe ? "ముఖ్య పరిహారం" : isTa ? "முக்கிய பரிகாரம்" : "Immediate Seva"}
-                </span>
-                <p className="text-xs font-bold text-amber-950 mt-1 font-serif line-clamp-2">
-                  {data.currentLifeStatus?.prescribedSevaText || data.remedies.gokarnaParihara}
-                </p>
-              </div>
-            </div>
-
-            {/* 5-Year Sovereign Guiding Destiny Quote */}
-            <div className="p-3.5 rounded-xl bg-amber-200/60 border border-amber-400/80 flex items-start gap-3">
-              <span className="text-xl text-amber-800 leading-none pt-0.5">📜</span>
-              <div>
-                <span className="text-[10px] font-black text-amber-900 uppercase tracking-widest block mb-0.5">
-                  {isKn ? "೫ ವರ್ಷಗಳ ದೈವಿಕ ಧ್ಯೇಯವಾಕ್ಯ" : isMr ? "५ वर्षांचे दिव्य जीवनसूत्र" : isHi ? "५-वर्षीय दिव्य जीवन सूत्र" : isTe ? "5 సంవత్సరాల దివ్య జీవన సూత్రం" : isTa ? "5 ஆண்டுகளின் தெய்வீக தாரக மந்திரம்" : "Sovereign 5-Year Destiny Axiom"}
+              <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  {isKn ? "೫ ವರ್ಷಗಳ ದೈವಿಕ ಧ್ಯೇಯವಾಕ್ಯ (ಆತ್ಮ ಚಿಂತನೆ):"
+                    : isMr ? "५ वर्षांचे दिव्य जीवनसूत्र (आत्मचिंतन):"
+                    : isHi ? "५-वर्षीय दिव्य जीवन सूत्र (आत्म चिंतन):"
+                    : isTe ? "5 సంవత్సరాల దివ్య జీవన సూత్రం:"
+                    : isTa ? "5 ஆண்டுகளின் தெய்வீக தாரக மந்திரம்:"
+                    : "Sovereign 5-Year Destiny Axiom:"}
                 </span>
                 <p className="text-sm font-bold text-amber-950 font-serif italic leading-relaxed">
                   "{data.macroSummary.destinyTheme}"
@@ -986,16 +890,15 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             </p>
           )}
 
-          {/* Golden Highlight Peak & Caution Windows */}
-          <div className="grid grid-cols-2 gap-6 pt-4">
-            <div className="rounded-xl border-2 border-amber-600/70 bg-gradient-to-br from-amber-100/90 to-yellow-50/80 p-5 shadow-xs">
-              <span className="text-xs font-black text-amber-900 uppercase tracking-widest flex items-center gap-2 mb-2">
+          {/* Golden Highlight Peak & Caution Inquests in Clean Q&A Heritage Layout */}
+          <div className="space-y-4 pt-4 border-t border-amber-700/20 text-xs font-serif">
+            <div className="border-l-2 border-amber-700/50 pl-4 py-1 space-y-1">
+              <span className="text-xs font-black text-amber-900 uppercase tracking-widest flex items-center gap-2 mb-1">
                 <span>⭐</span>
-                <span>{isKn ? "ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ ಪರ್ವ" : isMr ? "सुवर्ण भाग्योदय पर्व" : isHi ? "स्वर्णिम भाग्योदय काल" : "Golden Peak Opportunity Window"}</span>
+                <span>{isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ ಪರ್ವ ಕಾಲ ಯಾವುದು?" : isMr ? "वर्षातील मुख्य प्रश्न: सुवर्ण भाग्योदय पर्व काळ कोणता?" : isHi ? "वर्ष का मुख्य प्रश्न: स्वर्णिम भाग्योदय काल कौन सा है?" : "Annual Inquest: Which is the Golden Peak Opportunity Window?"}</span>
               </span>
-              <p className="text-xl font-black text-amber-950 font-serif mb-2">{data.macroSummary.peakGoldenYear}</p>
-              <p className="text-sm text-amber-900/90 font-serif leading-relaxed">
-                {isKn
+              <p className="text-amber-950 font-serif leading-relaxed text-sm">
+                <strong className="font-black text-amber-900 mr-2">{isKn ? "ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ ಪರ್ವ:" : isMr ? "सुवर्ण भाग्योदय पर्व:" : isHi ? "स्वर्णिम भाग्योदय काल:" : "Golden Peak Opportunity:"} {data.macroSummary.peakGoldenYear}</strong> — {isKn
                   ? "ಈ ಅವಧಿಯಲ್ಲಿ ಗುರುಬಲ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿ ಅನುಕೂಲತೆಯಿಂದ ನೂತನ ಉದ್ಯೋಗ, ಗೃಹಪ್ರವೇಶ, ಹೂಡಿಕೆಯಲ್ಲಿ ಗರಿಷ್ಠ ಲಾಭ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವ ಲಭಿಸಲಿದೆ."
                   : isMr
                     ? "या काळात गुरूचे पाठबळ व दशा-भुक्तीच्या शुभ प्रभावाने मोठे यश, घर खरेदी व आर्थिक समृद्धीचे योग आहेत."
@@ -1005,14 +908,13 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </p>
             </div>
 
-            <div className="rounded-xl border-2 border-orange-600/60 bg-gradient-to-br from-orange-100/80 to-amber-50/80 p-5 shadow-xs">
-              <span className="text-xs font-black text-orange-950 uppercase tracking-widest flex items-center gap-2 mb-2">
+            <div className="border-l-2 border-amber-700/50 pl-4 py-1 space-y-1">
+              <span className="text-xs font-black text-amber-900 uppercase tracking-widest flex items-center gap-2 mb-1">
                 <span>🛡️</span>
-                <span>{isKn ? "ತಾಳ್ಮೆ ಹಾಗೂ ಎಚ್ಚರಿಕೆಯ ಅವಧಿ" : isMr ? "संयम व सावधगिरीचा काळ" : isHi ? "धैर्य एवं सावधानी का काल" : "Patience & Deliberation Window"}</span>
+                <span>{isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ತಾಳ್ಮೆ ಹಾಗೂ ಎಚ್ಚರಿಕೆಯ ಅವಧಿ ಯಾವುದು?" : isMr ? "वर्षातील मुख्य प्रश्न: संयम व सावधगिरीचा काळ कोणता?" : isHi ? "वर्ष का मुख्य प्रश्न: धैर्य एवं सावधानी का काल कौन सा है?" : "Annual Inquest: Which is the Patience & Deliberation Window?"}</span>
               </span>
-              <p className="text-xl font-black text-amber-950 font-serif mb-2">{data.macroSummary.cautionPeriodYear}</p>
-              <p className="text-sm text-amber-900/90 font-serif leading-relaxed">
-                {isKn
+              <p className="text-amber-950 font-serif leading-relaxed text-sm">
+                <strong className="font-black text-amber-900 mr-2">{isKn ? "ತಾಳ್ಮೆ ಹಾಗೂ ಎಚ್ಚರಿಕೆಯ ಅವಧಿ:" : isMr ? "संयम व सावधगिरीचा काळ:" : isHi ? "धैर्य एवं सावधानी का काल:" : "Patience & Deliberation Window:"} {data.macroSummary.cautionPeriodYear}</strong> — {isKn
                   ? "ಶನಿ ಗೋಚಾರದ ಪ್ರಭಾವವಿರುವುದರಿಂದ ಆತುರದ ಹೂಡಿಕೆ ನಿರ್ಧಾರಗಳನ್ನು ತಪ್ಪಿಸಿ, ಹಿರಿಯರ ಸಲಹೆ ಪಡೆದು ವಿವೇಕದಿಂದ ಹೆಜ್ಜೆ ಇಡುವುದು ಕ್ಷೇಮಕರ."
                   : isMr
                     ? "शनि गोचराचा प्रभाव असल्याने घाईघाईने मोठे आर्थिक निर्णय घेणे टाळावे व शांततेने विचार करून पाऊल उचलावे."
@@ -1327,208 +1229,146 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               "ஆண்டின் முக்கிய கேள்வி"
             )}
 
-            {/* Astronomical Ribbon: Dasha, Muntha, Moorthy Nirnaya, SAV */}
-            <div className="rounded-xl border border-amber-700/30 bg-amber-100/60 p-5 mb-8 shadow-xs">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-serif">
-                <div>
-                  <span className="text-amber-800 font-extrabold uppercase text-[10px] tracking-wider block">
-                    {isKn ? "ಸಂವತ್ಸರ & ಶಕ" : isMr ? "संवत्सर व शक" : isHi ? "संवत्सर एवं शक" : "Samvatsara & Shaka"}
-                  </span>
-                  <p className="font-black text-amber-950 text-sm mt-0.5">
-                    {isKn ? yr.samvatsaraKn : isMr ? yr.samvatsaraKn : yr.samvatsaraEn} ({formatNumber6L(yr.shakaYear, lang)})
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-amber-800 font-extrabold uppercase text-[10px] tracking-wider block">
-                    {isKn ? "ದಶಾ & ಭುಕ್ತಿ" : isMr ? "दशा व भुक्ती" : isHi ? "दशा एवं भुक्ति" : "Active Dasha"}
-                  </span>
-                  <p className="font-black text-amber-950 text-sm mt-0.5">
-                    {yr.activeDashaPeriodText}
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-amber-800 font-extrabold uppercase text-[10px] tracking-wider block">
-                    {t("munthaBadge")}
-                  </span>
-                  <p className="font-black text-amber-950 text-sm mt-0.5">
-                    {yr.munthaHouse ? `${formatNumber6L(yr.munthaHouse, lang)}ನೇ ಭಾವ (${yr.munthaRashi || ""})` : "—"}
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-amber-800 font-extrabold uppercase text-[10px] tracking-wider block">
-                    {isKn ? "ಮೂರ್ತಿ & ಸರ್ವಾಷ್ಟಕವರ್ಗ" : isMr ? "मूर्ती व SAV गुण" : isHi ? "मूर्ति एवं SAV अंक" : "Moorthy & SAV"}
-                  </span>
-                  <p className="font-black text-amber-950 text-sm mt-0.5">
-                    {yr.savPoints !== undefined
-                      ? typeof yr.savPoints === "number"
-                        ? `${formatNumber6L(yr.savPoints, lang)}/೫೬ SAV`
-                        : `${formatNumber6L(yr.savPoints.saturnHousePoints, lang)}/೫೬ SAV`
-                      : "—"}
-                  </p>
-                </div>
+            {/* Astronomical Details: Dasha, Muntha, Moorthy Nirnaya, SAV in Clean Q&A Ribbon */}
+            <div className="rounded-xl border border-amber-700/30 bg-amber-100/60 p-4 mb-6 shadow-xs font-serif text-xs">
+              <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5 space-y-1">
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  {isKn ? "ಜ್ಯೋತಿಷ್ಯ ಪಂಚಾಂಗ ಗಣನೆ (ಸಂವತ್ಸರ, ದಶಾ, ಮುಂಥಾ & ಮೂರ್ತಿ ನಿರ್ಣಯ):"
+                    : isMr ? "ज्योतिष पंचांग गणना (संवत्सर, दशा, मुंथा व मूर्ती निर्णय):"
+                    : isHi ? "ज्योतिष पंचांग गणना (संवत्सर, दशा, मुंथा एवं मूर्ति निर्णय):"
+                    : "Astronomical & Panchanga Computation (Samvatsara, Dasha, Muntha & Moorthy):"}
+                </span>
+                <p className="text-amber-950 leading-relaxed font-sans">
+                  <strong className="text-amber-900">{isKn ? "ಸಂವತ್ಸರ & ಶಕ:" : isMr ? "संवत्सर व शक:" : isHi ? "संवत्सर एवं शक:" : "Samvatsara & Shaka:"}</strong> {isKn ? yr.samvatsaraKn : isMr ? yr.samvatsaraKn : yr.samvatsaraEn} ({formatNumber6L(yr.shakaYear, lang)})
+                  <span className="mx-2 text-amber-700/60">•</span>
+                  <strong className="text-amber-900">{isKn ? "ದಶಾ & ಭುಕ್ತಿ:" : isMr ? "दशा व भुक्ती:" : isHi ? "दशा एवं भुक्ति:" : "Active Dasha:"}</strong> {yr.activeDashaPeriodText}
+                  <span className="mx-2 text-amber-700/60">•</span>
+                  <strong className="text-amber-900">{t("munthaBadge")}:</strong> {yr.munthaHouse ? `${formatNumber6L(yr.munthaHouse, lang)}ನೇ ಭಾವ (${yr.munthaRashi || ""})` : "—"}
+                  <span className="mx-2 text-amber-700/60">•</span>
+                  <strong className="text-amber-900">{isKn ? "ಮೂರ್ತಿ & ಸರ್ವಾಷ್ಟಕವರ್ಗ:" : isMr ? "मूर्ती व SAV गुण:" : isHi ? "मूर्ति एवं SAV अंक:" : "Moorthy & SAV:"}</strong> {yr.savPoints !== undefined ? (typeof yr.savPoints === "number" ? `${formatNumber6L(yr.savPoints, lang)}/೫೬ SAV` : `${formatNumber6L(yr.savPoints.saturnHousePoints, lang)}/೫೬ SAV`) : "—"}
+                </p>
               </div>
             </div>
 
             {/* Main Narrative Card for the Year */}
             <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
-              {/* Visual Year Dashboard Card: Accessible to Every Reader */}
-              <div className="rounded-2xl border-2 border-amber-600/70 bg-gradient-to-br from-amber-100/95 via-yellow-50/90 to-amber-100/90 p-6 shadow-xs font-serif space-y-4">
-                {/* Header: Star display + theme badge + vitality */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-amber-700/25 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-lg tracking-wider" aria-label="Star Rating">
-                      {yr.starDisplay || "⭐⭐⭐⭐"}
-                    </span>
-                    {yr.vitalityScore && (
-                      <span className="bg-amber-900 text-amber-100 text-xs font-black px-2.5 py-0.5 rounded-full shadow-2xs">
-                        {formatNumber6L(yr.vitalityScore, lang)}% {isKn ? "ಭಾಗ್ಯೋದಯ ಬಲ" : isMr ? "भाग्योदय बळ" : isHi ? "भाग्योदय बल" : isTe ? "భాగ్యోదయ బలం" : isTa ? "பாக்யோதய பலம்" : "Auspicious Force"}
-                      </span>
-                    )}
-                  </div>
-                  {yr.yearThemeBadge && (
-                    <span className="bg-amber-200/90 text-amber-950 font-black text-xs px-3 py-1 rounded-full border border-amber-500/60 shadow-2xs">
-                      🌟 {yr.yearThemeBadge}
-                    </span>
-                  )}
-                </div>
-
-                {/* 1-Sentence Crystal Clear Takeaway Quote Callout */}
+              {/* Year Inquest & Verdict in Clean Question & Answer Heritage Layout */}
+              <div className="rounded-xl border border-amber-700/30 bg-amber-100/40 p-5 shadow-xs font-serif space-y-3.5">
+                {/* Core Takeaway Inquest */}
                 {yr.yearTakeawayOneLiner && (
-                  <div className="p-4 rounded-xl bg-white/90 border-2 border-amber-500/60 shadow-2xs">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block mb-1">
-                      💬 {isKn ? "ಈ ವರ್ಷದ ಮುಖ್ಯಾಂಶ (ಏಕವಾಕ್ಯ ಸಾರಾಂಶ)"
-                        : isMr ? "या वर्षाचा मुख्य निष्कर्ष (एका ओळीत सारांश)"
-                          : isHi ? "इस वर्ष का मुख्य निष्कर्ष (एक पंक्ति में सार)"
-                            : isTe ? "ఈ సంవత్సరపు ముఖ్యాంశం (ఒకే వాక్య సారాంశం)"
-                              : isTa ? "இந்த ஆண்டின் முக்கிய சுருக்கம் (ஒரே வரி சுருக்கம்)"
-                                : "Year's Core Takeaway (One-Line Summary)"}
+                  <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-1">
+                      {isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ಈ ವರ್ಷದ ಮುಖ್ಯಾಂಶ (ಏಕವಾಕ್ಯ ಸಾರಾಂಶ) ಹಾಗೂ ಪ್ರಮುಖ ತಿರುವು ಏನು?"
+                        : isMr ? "वर्षातील मुख्य प्रश्न: या वर्षाचा मुख्य निष्कर्ष (एका ओळीत सारांश) काय आहे?"
+                        : isHi ? "वर्ष का मुख्य प्रश्न: इस वर्ष का मुख्य निष्कर्ष (एक पंक्ति में सार) क्या है?"
+                        : isTe ? "సంవత్సరపు ప్రధాన ప్రశ్న: ఈ సంవత్సరపు ముఖ్యాంశం (ఒకే వాక్య సారాంశం) ఏమిటి?"
+                        : isTa ? "ஆண்டின் முக்கிய கேள்வி: இந்த ஆண்டின் முக்கிய சுருக்கம் (ஒரே வரி சுருக்கம்) என்ன?"
+                        : "Annual Inquest: What is the Year's Core Takeaway (One-Line Summary)?"}
                     </span>
-                    <p className="text-base font-black text-amber-950 leading-relaxed font-serif italic">
+                    <p className="text-base font-black text-amber-950 font-serif italic leading-relaxed">
                       "{yr.yearTakeawayOneLiner}"
+                    </p>
+                    <div className="flex items-center gap-2 mt-1.5 text-xs text-amber-900">
+                      <span>{yr.starDisplay || "⭐⭐⭐⭐"}</span>
+                      {yr.vitalityScore && (
+                        <span>• <strong className="text-amber-950">{formatNumber6L(yr.vitalityScore, lang)}% {isKn ? "ಭಾಗ್ಯೋದಯ ಬಲ" : isMr ? "भाग्योदय बळ" : isHi ? "भाग्योदय बल" : isTe ? "భాగ్యోదయ బలం" : isTa ? "பாக்யோதய பலம்" : "Auspicious Force"}</strong></span>
+                      )}
+                      {yr.yearThemeBadge && (
+                        <span>• 🌟 {yr.yearThemeBadge}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 4 Pillars Annual Verdict in Q&A Flow */}
+                {yr.fourPillarsAnnualVerdict && (
+                  <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5 space-y-1">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                      {isKn ? "ಪ್ರಶ್ನೆ: ಜೀವನದ ೪ ಸ್ತಂಭಗಳ (ವೃತ್ತಿ, ಧನ, ಕುಟುಂಬ, ಆರೋಗ್ಯ) ವಾರ್ಷಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
+                        : isMr ? "प्रश्न: जीवनाचे ४ स्तंभ (व्यवसाय, वित्त, कुटुंब, आरोग्य) या वर्षात कसे राहतील?"
+                        : isHi ? "प्रश्न: जीवन के ४ स्तंभ (कार्यक्षेत्र, धन, परिवार, स्वास्थ्य) का इस वर्ष क्या फलादेश है?"
+                        : "Inquest: How do the 4 Life Pillars (Career, Wealth, Family, Health) perform this year?"}
+                    </span>
+                    <div className="text-xs text-amber-950 leading-relaxed font-sans">
+                      <p>
+                        <strong className="text-amber-900">{isKn ? "ವೃತ್ತಿ:" : isMr ? "व्यवसाय:" : isHi ? "कार्यक्षेत्र:" : isTe ? "వృత్తి:" : isTa ? "தொழில்:" : "Career:"}</strong> {yr.fourPillarsAnnualVerdict.career.text}
+                        <span className="mx-2 text-amber-700/60">•</span>
+                        <strong className="text-amber-900">{isKn ? "ಧನ:" : isMr ? "वित्त:" : isHi ? "धन:" : isTe ? "ధనం:" : isTa ? "தனம்:" : "Wealth:"}</strong> {yr.fourPillarsAnnualVerdict.wealth.text}
+                        <span className="mx-2 text-amber-700/60">•</span>
+                        <strong className="text-amber-900">{isKn ? "ಕುಟುಂಬ:" : isMr ? "कुटुंब:" : isHi ? "परिवार:" : isTe ? "కుటుంబం:" : isTa ? "குடும்பம்:" : "Family:"}</strong> {yr.fourPillarsAnnualVerdict.family.text}
+                        <span className="mx-2 text-amber-700/60">•</span>
+                        <strong className="text-amber-900">{isKn ? "ಆರೋಗ್ಯ:" : isMr ? "आरोग्य:" : isHi ? "स्वास्थ्य:" : isTe ? "ఆరోగ్యం:" : isTa ? "ஆரோக்கியம்:" : "Health:"}</strong> {yr.fourPillarsAnnualVerdict.health.text}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Golden Months & Caution Month in Q&A */}
+                {(yr.goldenMonthsHighlight || yr.cautionMonthHighlight) && (
+                  <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                      {isKn ? "ಪ್ರಶ್ನೆ: ಯಾವ ತಿಂಗಳುಗಳು ಅತ್ಯಂತ ಸುವರ್ಣ ಫಲಪ್ರದ ಹಾಗೂ ಯಾವಾಗ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ?"
+                        : isMr ? "प्रश्न: कोणते महिने सर्वाधिक सुवर्ण फलदायी व कधी सावधगिरी आवश्यक?"
+                        : isHi ? "प्रश्न: कौन से महीने सर्वाधिक स्वर्णिम फलदायी एवं कब सावधानी आवश्यक है?"
+                        : "Inquest: What are the Golden Months and Cautionary Periods?"}
+                    </span>
+                    <p className="text-xs text-amber-950 leading-relaxed font-sans">
+                      {yr.goldenMonthsHighlight && (
+                        <span>
+                          <strong className="text-amber-900">{isKn ? "ಸುವರ್ಣ ಫಲಪ್ರದ ತಿಂಗಳುಗಳು:" : isMr ? "सुवर्ण फलदायी महिने:" : isHi ? "स्वर्णिम फलदायी माह:" : isTe ? "సువర్ణ మాసాలు:" : isTa ? "பொற்கால மாதங்கள்:" : "Golden Months:"}</strong> {yr.goldenMonthsHighlight}
+                        </span>
+                      )}
+                      {yr.goldenMonthsHighlight && yr.cautionMonthHighlight && <span className="mx-2 text-amber-700/60">•</span>}
+                      {yr.cautionMonthHighlight && (
+                        <span>
+                          <strong className="text-amber-900">{isKn ? "ತಾಳ್ಮೆಯ ಎಚ್ಚರಿಕೆಯ ತಿಂಗಳು:" : isMr ? "सावधगिरीचा महिना:" : isHi ? "सावधानी का माह:" : isTe ? "జాగ్రత్త మాసం:" : isTa ? "எச்சரிக்கை மாதம்:" : "Caution Month:"}</strong> {yr.cautionMonthHighlight}
+                        </span>
+                      )}
                     </p>
                   </div>
                 )}
+              </div>
 
-                {/* 4 Pillars Annual Verdict Pills */}
-                {yr.fourPillarsAnnualVerdict && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                    <div className="p-2.5 rounded-lg bg-white/80 border border-amber-200 text-center space-y-1">
-                      <span className="text-[10px] font-black text-amber-900 uppercase block">
-                        💼 {isKn ? "ವೃತ್ತಿ" : isMr ? "व्यवसाय" : isHi ? "कार्यक्षेत्र" : isTe ? "వృత్తి" : isTa ? "தொழில்" : "Career"}
-                      </span>
-                      <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${getStatusBadgeClass(yr.fourPillarsAnnualVerdict.career.status)}`}>
-                        {yr.fourPillarsAnnualVerdict.career.text}
-                      </span>
-                    </div>
+              {/* Gochara Confluence & Astronomical Analysis in Clean Q&A */}
+              <div className="space-y-3 pb-4 border-b border-amber-700/20 text-xs font-serif">
+                <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5 space-y-1">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    {isKn ? "ಪ್ರಶ್ನೆ: ಶನಿ ಹಾಗೂ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಗೋಚಾರ ಫಲ ಹೇಗಿದೆ?"
+                      : isMr ? "प्रश्न: शनि व देवगुरूंचे गोचर फळ काय सांगते?"
+                      : isHi ? "प्रश्न: शनि एवं देवगुरु बृहस्पति का गोचर फल कैसा है?"
+                      : "Inquest: How do Saturn and Jupiter Transits impact this year?"}
+                  </span>
+                  <p className="text-amber-950 leading-relaxed font-sans">
+                    <strong className="text-amber-900">{isKn ? "ಶನಿ ಮಹಾರಾಜರ ಗೋಚಾರ:" : isMr ? "शनि महाराजांचे गोचर:" : isHi ? "शनि देव का गोचर:" : "Saturn Transit:"}</strong> {yr.shaniGocharaText}
+                    <span className="mx-2 text-amber-700/60">•</span>
+                    <strong className="text-amber-900">{isKn ? "ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಗೋಚಾರ:" : isMr ? "देवगुरूंचे गोचर:" : isHi ? "देवगुरु बृहस्पति गोचर:" : "Jupiter Transit:"}</strong> {yr.guruGocharaText}
+                  </p>
+                </div>
 
-                    <div className="p-2.5 rounded-lg bg-white/80 border border-amber-200 text-center space-y-1">
-                      <span className="text-[10px] font-black text-amber-900 uppercase block">
-                        💰 {isKn ? "ಧನ" : isMr ? "वित्त" : isHi ? "धन" : isTe ? "ధనం" : isTa ? "தனம்" : "Wealth"}
-                      </span>
-                      <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${getStatusBadgeClass(yr.fourPillarsAnnualVerdict.wealth.status)}`}>
-                        {yr.fourPillarsAnnualVerdict.wealth.text}
-                      </span>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-white/80 border border-amber-200 text-center space-y-1">
-                      <span className="text-[10px] font-black text-amber-900 uppercase block">
-                        🏡 {isKn ? "ಕುಟುಂಬ" : isMr ? "कुटुंब" : isHi ? "परिवार" : isTe ? "కుటుంబం" : isTa ? "குடும்பம்" : "Family"}
-                      </span>
-                      <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${getStatusBadgeClass(yr.fourPillarsAnnualVerdict.family.status)}`}>
-                        {yr.fourPillarsAnnualVerdict.family.text}
-                      </span>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-white/80 border border-amber-200 text-center space-y-1">
-                      <span className="text-[10px] font-black text-amber-900 uppercase block">
-                        🩺 {isKn ? "ಆರೋಗ್ಯ" : isMr ? "आरोग्य" : isHi ? "स्वास्थ्य" : isTe ? "ఆరోగ్యం" : isTa ? "ஆரோக்கியம்" : "Health"}
-                      </span>
-                      <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${getStatusBadgeClass(yr.fourPillarsAnnualVerdict.health.status)}`}>
-                        {yr.fourPillarsAnnualVerdict.health.text}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Golden Months & Caution Month Pills */}
-                {(yr.goldenMonthsHighlight || yr.cautionMonthHighlight) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs pt-1">
-                    {yr.goldenMonthsHighlight && (
-                      <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-950 flex items-center gap-2">
-                        <span className="text-base">🌟</span>
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-emerald-900 block">
-                            {isKn ? "ಸುವರ್ಣ ಫಲಪ್ರದ ತಿಂಗಳುಗಳು" : isMr ? "सुवर्ण फलदायी महिने" : isHi ? "स्वर्णिम फलदायी माह" : isTe ? "సువర్ణ మాసాలు" : isTa ? "பொற்கால மாதங்கள்" : "Golden Months"}
-                          </span>
-                          <span className="font-black text-emerald-950 text-xs">
-                            {yr.goldenMonthsHighlight}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {yr.cautionMonthHighlight && (
-                      <div className="p-2.5 rounded-lg bg-amber-100/80 border border-amber-400 text-amber-950 flex items-center gap-2">
-                        <span className="text-base">⚠️</span>
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-amber-900 block">
-                            {isKn ? "ತಾಳ್ಮೆಯ ಎಚ್ಚರಿಕೆಯ ತಿಂಗಳು" : isMr ? "सावधगिरीचा महिना" : isHi ? "सावधानी का माह" : isTe ? "జాగ్రత్త మాసం" : isTa ? "எச்சரிக்கை மாதம்" : "Caution Month"}
-                          </span>
-                          <span className="font-bold text-amber-950 text-xs">
-                            {yr.cautionMonthHighlight}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                {(yr.taraBala || yr.vedhaAnalysis) && (
+                  <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5 space-y-1">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                      {isKn ? "ಪ್ರಶ್ನೆ: ನವತಾರಾ ಬಲ ಹಾಗೂ ಗೋಚಾರ ನಿರ್ವೇಧ ಸ್ಥಿತಿಯ ಫಲವೇನು?"
+                        : isMr ? "प्रश्न: नवतारा बळ व गोचर वेध स्थितीचा काय प्रभाव आहे?"
+                        : isHi ? "प्रश्न: नवतारा बल एवं गोचर वेध स्थिति का क्या प्रभाव है?"
+                        : "Inquest: What is the Navatara Bala and Gochara Vedha Analysis?"}
+                    </span>
+                    <p className="text-amber-950 leading-relaxed font-sans">
+                      {yr.taraBala && (
+                        <span>
+                          <strong className="text-amber-900">{isKn ? "ನವತಾರಾ ಬಲ ನಿರ್ಣಯ:" : isMr ? "नवतारा / ताराबळ निर्णय:" : isHi ? "नवतारा बल निर्णय:" : isTe ? "నవతార బలం:" : isTa ? "நவதாரா பலன்:" : "Navatara Bala:"} ({yr.taraBala.taraName})</strong> {yr.taraBala.analysisText}
+                        </span>
+                      )}
+                      {yr.taraBala && yr.vedhaAnalysis && <span className="mx-2 text-amber-700/60">•</span>}
+                      {yr.vedhaAnalysis && (
+                        <span>
+                          <strong className="text-amber-900">{isKn ? "ಗೋಚಾರ ನಿರ್ವೇಧ ಸ್ಥಿತಿ:" : isMr ? "गोचर वेध निर्णय:" : isHi ? "गोचर वेध निर्णय:" : isTe ? "గోచార వేధ నిర్ణయం:" : isTa ? "கோசார வேத நிலை:" : "Gochara Vedha:"}</strong> {yr.vedhaAnalysis.vedhaDetails}
+                        </span>
+                      )}
+                    </p>
                   </div>
                 )}
               </div>
-
-              {/* Gochara Confluence Strip */}
-              <div className="grid grid-cols-2 gap-4 pb-4 border-b border-amber-700/20 text-sm font-serif">
-                <div className="space-y-1">
-                  <span className="font-bold text-amber-900 flex items-center gap-1.5">
-                    <span>🪐</span>
-                    <span>{isKn ? "ಶನಿ ಮಹಾರಾಜರ ಗೋಚಾರ:" : isMr ? "शनि महाराजांचे गोचर:" : isHi ? "शनि देव का गोचर:" : "Saturn Transit:"}</span>
-                  </span>
-                  <p className="text-amber-950 font-medium">{yr.shaniGocharaText}</p>
-                </div>
-                <div className="space-y-1">
-                  <span className="font-bold text-amber-900 flex items-center gap-1.5">
-                    <span>✨</span>
-                    <span>{isKn ? "ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಗೋಚಾರ:" : isMr ? "देवगुरूंचे गोचर:" : isHi ? "देवगुरु बृहस्पति गोचर:" : "Jupiter Transit:"}</span>
-                  </span>
-                  <p className="text-amber-950 font-medium">{yr.guruGocharaText}</p>
-                </div>
-              </div>
-
-              {/* Authenticated Classical Vedic Predictive Accuracy: Tara Bala, Gochara Vedha & Jaimini Karaka */}
-              {(yr.taraBala || yr.vedhaAnalysis) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4 border-b border-amber-700/20 text-xs font-serif">
-                  {yr.taraBala && (
-                    <div className="p-3 rounded-xl bg-amber-100/60 border border-amber-300 space-y-1 shadow-2xs">
-                      <span className="font-black text-amber-950 block text-xs flex items-center gap-1.5">
-                        <span>⭐</span>
-                        <span>{isKn ? "ನವತಾರಾ ಬಲ ನಿರ್ಣಯ:" : isMr ? "नवतारा / ताराबळ निर्णय:" : isHi ? "नवतारा बल निर्णय:" : isTe ? "నవతార బలం:" : isTa ? "நவதாரா பலன்:" : "Navatara Bala:"}</span>
-                        <span className="text-amber-800 font-bold">({yr.taraBala.taraName})</span>
-                      </span>
-                      <p className="text-amber-900 leading-relaxed font-serif text-[11px]">{yr.taraBala.analysisText}</p>
-                    </div>
-                  )}
-                  {yr.vedhaAnalysis && (
-                    <div className="p-3 rounded-xl bg-amber-100/60 border border-amber-300 space-y-1 shadow-2xs">
-                      <span className="font-black text-amber-950 block text-xs flex items-center gap-1.5">
-                        <span>🛡️</span>
-                        <span>{isKn ? "ಗೋಚಾರ ನಿರ್ವೇಧ ಸ್ಥಿತಿ:" : isMr ? "गोचर वेध निर्णय:" : isHi ? "गोचर वेध निर्णय:" : isTe ? "గోచార వేధ నిర్ణయం:" : isTa ? "கோசார வேத நிலை:" : "Gochara Vedha:"}</span>
-                      </span>
-                      <p className="text-amber-900 leading-relaxed font-serif text-[11px]">{yr.vedhaAnalysis.vedhaDetails}</p>
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* Substantive Paragraphs: 3 Detailed Paragraphs with Friendly Subheadings */}
               <div className="space-y-5">
@@ -1563,64 +1403,65 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 )}
               </div>
 
-              {/* 4 Quarterly Seasons Matrix (for future timing curiosity) */}
+              {/* 4 Quarterly Seasons Inquest & Forecast (Linear Heritage Flow) */}
               {yr.seasons && yr.seasons.length > 0 && (
-                <div className="pt-6 border-t border-amber-700/20 space-y-4">
-                  <span className="text-base font-black text-amber-950 font-serif flex items-center gap-2">
-                    <span>🌸</span>
-                    <span>{t("quarterlyForecastHeader")}</span>
-                  </span>
+                <div className="pt-4 border-t border-amber-700/20 space-y-3 font-serif">
+                  <div className="flex items-center gap-2 border-b border-amber-700/20 pb-1.5">
+                    <span className="text-base">🌸</span>
+                    <span className="text-base font-black text-amber-950">
+                      {t("quarterlyForecastHeader")}
+                    </span>
+                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2.5 text-xs">
                     {yr.seasons.map((q, qIdx) => (
                       <div
                         key={`season-${idx}-${q.quarterIndex ?? qIdx}`}
-                        className="rounded-xl border border-amber-700/30 bg-amber-100/40 p-4 space-y-2 shadow-2xs flex flex-col justify-between"
+                        className="border-l-2 border-amber-700/50 pl-3.5 py-1"
                       >
-                        <div>
-                          <div className="flex items-center justify-between border-b border-amber-700/20 pb-1 mb-2">
-                            <span className="font-black text-amber-950 text-sm">{q.seasonName}</span>
-                            <span className="text-xs font-bold text-amber-900">{q.gregorianMonths}</span>
-                          </div>
-                          <p className="text-xs text-amber-950 leading-relaxed font-serif">
-                            {q.predictedOutcome}
-                          </p>
-                        </div>
-                        <div className="pt-2">
-                          <span className="inline-block bg-amber-200/80 text-amber-950 font-bold px-2.5 py-0.5 rounded text-xs border border-amber-400/60">
-                            ✨ {q.opportunityBadge}
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-black text-amber-950 text-xs">
+                            {q.seasonName} ({q.gregorianMonths})
+                          </span>
+                          <span className="text-amber-800 text-[11px] font-bold">
+                            — ✨ {q.opportunityBadge}
                           </span>
                         </div>
+                        <p className="text-amber-900 leading-relaxed font-sans text-xs">
+                          {q.predictedOutcome}
+                        </p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Turning Point, Opportunity & Caution Cards */}
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-amber-700/20 text-xs font-serif">
-                <div className="p-3.5 rounded-xl bg-amber-100/70 border border-amber-300">
-                  <span className="font-black text-amber-950 block mb-1">🔄 {t("turningPointLabel")}</span>
-                  <p className="text-amber-900 leading-normal">{yr.turningPointSeason}</p>
-                </div>
-                <div className="p-3.5 rounded-xl bg-amber-100/70 border border-amber-300">
-                  <span className="font-black text-amber-950 block mb-1">✨ {t("goldenWindowLabel")}</span>
-                  <p className="text-amber-900 leading-normal">{yr.goldenOpportunityWindow}</p>
-                </div>
-                <div className="p-3.5 rounded-xl bg-amber-100/70 border border-amber-300">
-                  <span className="font-black text-amber-950 block mb-1">🛡️ {t("cautionLabel")}</span>
-                  <p className="text-amber-900 leading-normal">{yr.cautionAndGuidance}</p>
-                </div>
-              </div>
-
-              {/* Annual Remedial Shield */}
-              <div className="rounded-xl border border-amber-800/30 bg-gradient-to-r from-amber-100/90 to-orange-100/70 p-4 flex items-start gap-3 shadow-xs">
-                <span className="text-xl text-amber-800 leading-none pt-0.5">🛕</span>
-                <div className="flex-1">
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 block mb-0.5">
-                    {isKn ? "ವಾರ್ಷಿಕ ಪರಿಹಾರ ಹಾಗೂ ಅನುಷ್ಠಾನ" : isMr ? "वार्षिक उपाय व अनुष्ठान" : isHi ? "वार्षिक परिहार एवं अनुष्ठान" : "Annual Remedial Shield"}
+              {/* Turning Point, Opportunity & Caution Inquests in Clean Q&A Heritage Layout */}
+              <div className="space-y-3 pt-4 border-t border-amber-700/20 text-xs font-serif">
+                <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    {isKn ? "ಪ್ರಶ್ನೆ: ಈ ವರ್ಷದ ಪ್ರಮುಖ ತಿರುವು, ಸುವರ್ಣಾವಕಾಶ ಹಾಗೂ ಎಚ್ಚರಿಕೆ ಏನು?"
+                      : isMr ? "प्रश्न: या वर्षाचे मुख्य वळण, सुवर्णसंधी व काय दक्षता घ्यावी?"
+                      : isHi ? "प्रश्न: इस वर्ष का मुख्य मोड़, स्वर्णिम अवसर एवं क्या सावधानी रखें?"
+                      : "Inquest: What is the Turning Point, Golden Window and Caution?"}
                   </span>
-                  <p className="text-sm font-bold text-amber-950 font-serif leading-relaxed">
+                  <div className="text-amber-950 leading-relaxed font-sans space-y-1">
+                    <p>
+                      <strong className="text-amber-900">🔄 {t("turningPointLabel")}:</strong> {yr.turningPointSeason}
+                      <span className="mx-2 text-amber-700/60">•</span>
+                      <strong className="text-amber-900">✨ {t("goldenWindowLabel")}:</strong> {yr.goldenOpportunityWindow}
+                    </p>
+                    <p>
+                      <strong className="text-amber-900">🛡️ {t("cautionLabel")}:</strong> {yr.cautionAndGuidance}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    🛕 {isKn ? "ವಾರ್ಷಿಕ ಪರಿಹಾರ ಹಾಗೂ ಅನುಷ್ಠಾನ" : isMr ? "वार्षिक उपाय व अनुष्ठान" : isHi ? "वार्षिक परिहार एवं अनुष्ठान" : "Annual Remedial Shield"}
+                  </span>
+                  <p className="text-xs font-bold text-amber-950 leading-relaxed font-sans">
                     {yr.cautionAndGuidance}
                   </p>
                 </div>
@@ -1661,19 +1502,19 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs font-serif">
+            <div className="space-y-3 text-xs font-serif pt-1">
               {data.muhurtaWindows.map((m, idx) => (
-                <div key={`muhurta-${idx}`} className="p-4 rounded-xl bg-amber-100/50 border border-amber-300 space-y-1.5 shadow-2xs">
-                  <div className="flex items-center justify-between">
+                <div key={`muhurta-${idx}`} className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                  <div className="flex items-center gap-2 mb-0.5">
                     <span className="font-extrabold text-amber-950 text-sm flex items-center gap-1.5">
                       <span>{m.icon}</span>
                       <span>{m.category}</span>
                     </span>
-                    <span className="bg-amber-200 text-amber-950 font-black px-2.5 py-0.5 rounded text-xs border border-amber-400">
-                      {m.timingWindow}
+                    <span className="text-amber-800 text-xs font-bold">
+                      — {m.timingWindow}
                     </span>
                   </div>
-                  <p className="text-xs text-amber-900 leading-relaxed font-medium">
+                  <p className="text-xs text-amber-900 leading-relaxed font-sans">
                     {m.description}
                   </p>
                 </div>
@@ -1783,68 +1624,56 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             </p>
           </div>
 
-          {/* Chanting Protocol */}
-          <div className="grid grid-cols-3 gap-4 pt-2 text-xs font-serif">
-            <div className="p-3.5 rounded-xl bg-amber-100/60 border border-amber-300">
-              <span className="font-black text-amber-950 block mb-0.5">⏰ {isKn ? "ಪಾರಾಯಣ ಸಮಯ:" : isMr ? "पठणाची वेळ:" : isHi ? "पाठ का समय:" : "Best Time:"}</span>
-              <p className="text-amber-900">{data.prescribedStotra.bestTimeOfDay}</p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-amber-100/60 border border-amber-300">
-              <span className="font-black text-amber-950 block mb-0.5">🧭 {isKn ? "ಕುಳಿತುಕೊಳ್ಳುವ ದಿಕ್ಕು:" : isMr ? "बसण्याची दिशा:" : isHi ? "मुख की दिशा:" : "Facing Direction:"}</span>
-              <p className="text-amber-900">{data.prescribedStotra.facingDirection}</p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-amber-100/60 border border-amber-300">
-              <span className="font-black text-amber-950 block mb-0.5">🪔 {isKn ? "ವಿಶೇಷ ಸಮರ್ಪಣೆ:" : isMr ? "विशेष उपाय:" : isHi ? "विशेष समर्पण:" : "Special Offering:"}</span>
-              <p className="text-amber-900">{data.prescribedStotra.specialOffering}</p>
+          {/* Chanting Protocol in Clean Q&A Flow */}
+          <div className="border-t border-amber-700/20 pt-3 text-xs font-serif">
+            <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                {isKn ? "ಪ್ರಶ್ನೆ: ಸ್ತೋತ್ರ ಪಾರಾಯಣದ ಸಮಯ, ದಿಕ್ಕು ಹಾಗೂ ವಿಶೇಷ ಸಮರ್ಪಣೆ ಏನು?"
+                  : isMr ? "प्रश्न: स्तोत्र पठणाची वेळ, दिशा व विशेष उपाय काय?"
+                  : isHi ? "प्रश्न: स्तोत्र पाठ का समय, दिशा एवं विशेष समर्पण क्या है?"
+                  : "Inquest: What is the Sacred Chanting Protocol?"}
+              </span>
+              <p className="text-amber-950 font-sans leading-relaxed text-xs">
+                <strong className="text-amber-900">⏰ {isKn ? "ಪಾರಾಯಣ ಸಮಯ:" : isMr ? "पठणाची वेळ:" : isHi ? "पाठ का समय:" : "Best Time:"}</strong> {data.prescribedStotra.bestTimeOfDay}
+                <span className="mx-2 text-amber-700/60">•</span>
+                <strong className="text-amber-900">🧭 {isKn ? "ಕುಳಿತುಕೊಳ್ಳುವ ದಿಕ್ಕು:" : isMr ? "बसण्याची दिशा:" : isHi ? "मुख की दिशा:" : "Facing Direction:"}</strong> {data.prescribedStotra.facingDirection}
+                <span className="mx-2 text-amber-700/60">•</span>
+                <strong className="text-amber-900">🪔 {isKn ? "ವಿಶೇಷ ಸಮರ್ಪಣೆ:" : isMr ? "विशेष उपाय:" : isHi ? "विशेष समर्पण:" : "Special Offering:"}</strong> {data.prescribedStotra.specialOffering}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Part C: Sri Gokarna Parihara, Gemstone & Year-Specific Remedies */}
-        <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
-          <div className="grid grid-cols-2 gap-6 text-sm font-serif">
-            <div className="p-5 rounded-xl bg-amber-100/50 border border-amber-300 space-y-2">
-              <span className="font-black text-amber-950 text-base flex items-center gap-2">
-                <span>🛕</span>
-                <span>{isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾ ಸಂಕಲ್ಪ" : isMr ? "श्री गोकर्ण क्षेत्र महा संकल्प" : isHi ? "श्री गोकर्ण क्षेत्र महा संकल्प" : "Gokarna Kshetra Shanti Sankalpa"}</span>
+        {/* Part C: Sri Gokarna Parihara, Gemstone & Year-Specific Remedies in Clean Heritage Q&A */}
+        <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6 font-serif">
+          <div className="space-y-4 text-xs font-serif">
+            <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                {isKn ? "ಪ್ರಶ್ನೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾ ಸಂಕಲ್ಪ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಾ ಕವಚಗಳು ಯಾವುವು?"
+                  : isMr ? "प्रश्न: श्री गोकर्ण क्षेत्र महा संकल्प व मुख्य दैवी उपाय काय आहेत?"
+                  : isHi ? "प्रश्न: श्री गोकर्ण क्षेत्र महा संकल्प एवं मुख्य दैवीय परिहार क्या हैं?"
+                  : "Inquest: What is the Gokarna Kshetra Shanti Sankalpa & Sacred Remedies?"}
               </span>
-              <p className="text-amber-900 leading-relaxed font-serif">
-                {data.remedies.gokarnaParihara}
-              </p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-amber-100/50 border border-amber-300 space-y-2">
-              <span className="font-black text-amber-950 text-base flex items-center gap-2">
-                <span>💎</span>
-                <span>{t("luckyGemLabel")}</span>
-              </span>
-              <p className="text-amber-950 font-black text-lg">{data.remedies.gemstoneRecommendation}</p>
-              <p className="text-xs text-amber-800 italic leading-normal border-t border-amber-300/60 pt-2">
-                ⚠️ {data.remedies.gemstoneCaveat}
-              </p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-amber-100/50 border border-amber-300 space-y-1.5">
-              <span className="font-black text-amber-950 text-base flex items-center gap-2">
-                <span>📿</span>
-                <span>{t("rudrakshaLabel")}</span>
-              </span>
-              <p className="text-amber-950 font-bold">{data.remedies.rudrakshaRecommendation}</p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-amber-100/50 border border-amber-300 space-y-2">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="font-bold text-amber-900 text-xs block">{t("luckyColorLabel")}</span>
-                  <p className="text-amber-950 font-bold mt-1">{data.remedies.luckyColors}</p>
-                </div>
-                <div>
-                  <span className="font-bold text-amber-900 text-xs block">{t("luckyNumberLabel")}</span>
-                  <p className="text-amber-950 font-black text-base mt-1">{data.remedies.luckyNumbers}</p>
-                </div>
+              <div className="text-amber-950 font-sans leading-relaxed space-y-1.5 pt-0.5">
+                <p>
+                  <strong className="text-amber-900">🛕 {isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾ ಸಂಕಲ್ಪ:" : isMr ? "श्री गोकर्ण क्षेत्र महा संकल्प:" : isHi ? "श्री गोकर्ण क्षेत्र महा संकल्प:" : "Gokarna Kshetra Shanti Sankalpa:"}</strong> {data.remedies.gokarnaParihara}
+                </p>
+                <p>
+                  <strong className="text-amber-900">💎 {t("luckyGemLabel")}:</strong> {data.remedies.gemstoneRecommendation}
+                  {data.remedies.gemstoneCaveat && <span className="text-amber-800 text-[11px] italic ml-1">({data.remedies.gemstoneCaveat})</span>}
+                  <span className="mx-2 text-amber-700/60">•</span>
+                  <strong className="text-amber-900">📿 {t("rudrakshaLabel")}:</strong> {data.remedies.rudrakshaRecommendation}
+                </p>
+                <p>
+                  <strong className="text-amber-900">{t("luckyColorLabel")}:</strong> {data.remedies.luckyColors}
+                  <span className="mx-2 text-amber-700/60">•</span>
+                  <strong className="text-amber-900">{t("luckyNumberLabel")}:</strong> {data.remedies.luckyNumbers}
+                </p>
               </div>
             </div>
+          </div>
 
+          <div className="pt-4 border-t border-amber-700/20 space-y-3">
             {/* Year-Specific Gokarna Remedies Table */}
             {data.yearSpecificRemedies && data.yearSpecificRemedies.length > 0 && (
               <div className="col-span-2 pt-4 space-y-3 border-t border-amber-700/20">
@@ -1889,15 +1718,12 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                     {data.nakshatraVriksha.vrikshaName}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-xs pt-1">
-                  <div>
-                    <span className="text-amber-900 font-bold block">{isKn ? "ವೃಕ್ಷ ಬೀಜ ಮಂತ್ರ:" : isMr ? "वृक्ष बीज मंत्र:" : isHi ? "वृक्ष बीज मंत्र:" : "Bija Mantra:"}</span>
-                    <p className="text-amber-950 font-bold mt-0.5">{data.nakshatraVriksha.bijaMantra}</p>
-                  </div>
-                  <div>
-                    <span className="text-amber-900 font-bold block">{isKn ? "ಆರಾಧನಾ ವಿಧಿ:" : isMr ? "आराधना पद्धती:" : isHi ? "आराधना विधि:" : "Protocol:"}</span>
-                    <p className="text-amber-950 mt-0.5 leading-relaxed">{data.nakshatraVriksha.aradhanaProtocol}</p>
-                  </div>
+                <div className="text-xs pt-1 font-sans text-amber-950 leading-relaxed">
+                  <p>
+                    <strong className="text-amber-900">{isKn ? "ವೃಕ್ಷ ಬೀಜ ಮಂತ್ರ:" : isMr ? "वृक्ष बीज मंत्र:" : isHi ? "वृक्ष बीज मंत्र:" : "Bija Mantra:"}</strong> {data.nakshatraVriksha.bijaMantra}
+                    <span className="mx-2 text-amber-700/60">•</span>
+                    <strong className="text-amber-900">{isKn ? "ಆರಾಧನಾ ವಿಧಿ:" : isMr ? "आराधना पद्धती:" : isHi ? "आराधना विधि:" : "Protocol:"}</strong> {data.nakshatraVriksha.aradhanaProtocol}
+                  </p>
                 </div>
               </div>
             )}
@@ -1936,18 +1762,25 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-serif">
-                <div className="p-4 rounded-xl bg-amber-100/60 border border-amber-300 space-y-1.5 shadow-2xs">
-                  <span className="font-black text-amber-950 block text-sm">💑 {isKn ? "ಸಂಗಾತಿಯ ಭಾಗ್ಯೋದಯ:" : isMr ? "जोडीदाराचा भाग्योदय:" : isHi ? "जीवनसाथी का भाग्योदय:" : "Spouse Destiny:"}</span>
-                  <p className="text-amber-900 leading-relaxed font-serif">{data.familyDestinyInterlocking.impactOnSpouse}</p>
-                </div>
-                <div className="p-4 rounded-xl bg-amber-100/60 border border-amber-300 space-y-1.5 shadow-2xs">
-                  <span className="font-black text-amber-950 block text-sm">👶 {isKn ? "ಸಂತಾನ & ಮಕ್ಕಳ ಭವಿಷ್ಯ:" : isMr ? "संतती व मुलांचे भविष्य:" : isHi ? "संतान एवं बच्चों का भविष्य:" : "Children's Grace:"}</span>
-                  <p className="text-amber-900 leading-relaxed font-serif">{data.familyDestinyInterlocking.impactOnChildren}</p>
-                </div>
-                <div className="p-4 rounded-xl bg-amber-100/60 border border-amber-300 space-y-1.5 shadow-2xs">
-                  <span className="font-black text-amber-950 block text-sm">👵 {isKn ? "ತಂದೆ-ತಾಯಿಯ ಆಯುರಾರೋಗ್ಯ:" : isMr ? "आई-वडिलांचे आरोग्य:" : isHi ? "माता-पिता का स्वास्थ्य:" : "Parental Wellbeing:"}</span>
-                  <p className="text-amber-900 leading-relaxed font-serif">{data.familyDestinyInterlocking.impactOnParents}</p>
+              <div className="space-y-3 text-xs font-serif pt-1">
+                <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    {isKn ? "ಪ್ರಶ್ನೆ: ಕುಟುಂಬದ ಸದಸ್ಯರ ಜಾತಕ ಹಾಗೂ ಪರಸ್ಪರ ಸಮನ್ವಯದ ಫಲವೇನು?"
+                      : isMr ? "प्रश्न: कौटुंबिक सदस्यांच्या पत्रिका व परस्पर समन्वयाचे काय फळ आहे?"
+                      : isHi ? "प्रश्न: पारिवारिक सदस्यों की कुंडलियों एवं परस्पर समन्वय का क्या प्रभाव है?"
+                      : "Inquest: How do family charts and destiny bonds harmonize?"}
+                  </span>
+                  <div className="space-y-1.5 font-sans leading-relaxed text-amber-950 pt-1">
+                    <p>
+                      <strong className="text-amber-900">💑 {isKn ? "ಸಂಗಾತಿಯ ಭಾಗ್ಯೋದಯ:" : isMr ? "जोडीदाराचा भाग्योदय:" : isHi ? "जीवनसाथी का भाग्योदय:" : "Spouse Destiny:"}</strong> {data.familyDestinyInterlocking.impactOnSpouse}
+                    </p>
+                    <p>
+                      <strong className="text-amber-900">👶 {isKn ? "ಸಂತಾನ & ಮಕ್ಕಳ ಭವಿಷ್ಯ:" : isMr ? "संतती व मुलांचे भविष्य:" : isHi ? "संतान एवं बच्चों का भविष्य:" : "Children's Grace:"}</strong> {data.familyDestinyInterlocking.impactOnChildren}
+                    </p>
+                    <p>
+                      <strong className="text-amber-900">👵 {isKn ? "ತಂದೆ-ತಾಯಿಯ ಆಯುರಾರೋಗ್ಯ:" : isMr ? "आई-वडिलांचे आरोग्य:" : isHi ? "माता-पिता का स्वास्थ्य:" : "Parental Wellbeing:"}</strong> {data.familyDestinyInterlocking.impactOnParents}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -2023,45 +1856,28 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 </span>
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-serif">
-                <div className="rounded-xl border border-amber-700/30 bg-amber-100/60 p-4 space-y-1.5 shadow-2xs">
-                  <span className="font-black text-amber-950 block text-sm flex items-center gap-1.5">
-                    <span>💼</span>
-                    <span>{isKn ? "ವೃತ್ತಿ & ಆರ್ಥಿಕ ತಿರುವು:" : isMr ? "करिअर व आर्थिक वळण:" : isHi ? "करियर एवं आर्थिक मोड़:" : "Career & Financial Pivot:"}</span>
+              <div className="space-y-3 text-xs font-serif pt-1">
+                <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    {isKn ? "ಪ್ರಶ್ನೆ: ದೈವಜ್ಞ ಚತುರ್ವಿಧ ಜೀವನ ರಕ್ಷಾ ಸೂತ್ರಗಳ ಮಾರ್ಗದರ್ಶನವೇನು?"
+                      : isMr ? "प्रश्न: दैवज्ञ चार जीवन आधारस्तंभांचे मार्गदर्शन काय आहे?"
+                      : isHi ? "प्रश्न: दैवज्ञ चतुर्विध जीवन सुरक्षा सूत्रों का क्या मार्गदर्शन है?"
+                      : "Inquest: What are the 4 Daivajna Wisdom Life Anchors?"}
                   </span>
-                  <p className="text-amber-900 leading-relaxed font-serif text-left">
-                    {data.daivajnaSummary.careerFinancialPivot}
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-amber-700/30 bg-amber-100/60 p-4 space-y-1.5 shadow-2xs">
-                  <span className="font-black text-amber-950 block text-sm flex items-center gap-1.5">
-                    <span>🛡️</span>
-                    <span>{isKn ? "ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ ಕವಚ:" : isMr ? "आरोग्य व ऊर्जा कवच:" : isHi ? "स्वास्थ्य एवं प्राणशक्ति कवच:" : "Health & Vitality Shield:"}</span>
-                  </span>
-                  <p className="text-amber-900 leading-relaxed font-serif text-left">
-                    {data.daivajnaSummary.healthVitalityShield}
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-amber-700/30 bg-amber-100/60 p-4 space-y-1.5 shadow-2xs">
-                  <span className="font-black text-amber-950 block text-sm flex items-center gap-1.5">
-                    <span>🕉️</span>
-                    <span>{isKn ? "ಆಧ್ಯಾತ್ಮಿಕ ಪರಿಹಾರ ಸಾಧನೆ:" : isMr ? "आध्यात्मिक उपाय व साधना:" : isHi ? "आध्यात्मिक उपाय एवं साधना:" : "Spiritual Remedy Fulfillment:"}</span>
-                  </span>
-                  <p className="text-amber-900 leading-relaxed font-serif text-left">
-                    {data.daivajnaSummary.spiritualRemedyFulfillment}
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-amber-700/30 bg-amber-100/60 p-4 space-y-1.5 shadow-2xs">
-                  <span className="font-black text-amber-950 block text-sm flex items-center gap-1.5">
-                    <span>💖</span>
-                    <span>{isKn ? "ಸಂಬಂಧ & ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯ:" : isMr ? "कौटुंबिक सौख्य व नातेसंबंध:" : isHi ? "पारिवारिक सौहार्द एवं संबंध:" : "Family & Relationship Harmony:"}</span>
-                  </span>
-                  <p className="text-amber-900 leading-relaxed font-serif text-left">
-                    {data.daivajnaSummary.relationshipFamilyHarmony}
-                  </p>
+                  <div className="space-y-2 font-sans leading-relaxed text-amber-950 pt-1">
+                    <p>
+                      <strong className="text-amber-900">💼 {isKn ? "ವೃತ್ತಿ & ಆರ್ಥಿಕ ತಿರುವು:" : isMr ? "करिअर व आर्थिक वळण:" : isHi ? "करियर एवं आर्थिक मोड़:" : "Career & Financial Pivot:"}</strong> {data.daivajnaSummary.careerFinancialPivot}
+                    </p>
+                    <p>
+                      <strong className="text-amber-900">🛡️ {isKn ? "ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ ಕವಚ:" : isMr ? "आरोग्य व ऊर्जा कवच:" : isHi ? "स्वास्थ्य एवं प्राणशक्ति कवच:" : "Health & Vitality Shield:"}</strong> {data.daivajnaSummary.healthVitalityShield}
+                    </p>
+                    <p>
+                      <strong className="text-amber-900">🕉️ {isKn ? "ಆಧ್ಯಾತ್ಮಿಕ ಪರಿಹಾರ ಸಾಧನೆ:" : isMr ? "आध्यात्मिक उपाय व साधना:" : isHi ? "आध्यात्मिक उपाय एवं साधना:" : "Spiritual Remedy Fulfillment:"}</strong> {data.daivajnaSummary.spiritualRemedyFulfillment}
+                    </p>
+                    <p>
+                      <strong className="text-amber-900">💖 {isKn ? "ಸಂಬಂಧ & ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯ:" : isMr ? "कौटुंबिक सौख्य व नातेसंबंध:" : isHi ? "पारिवारिक सौहार्द एवं संबंध:" : "Family & Relationship Harmony:"}</strong> {data.daivajnaSummary.relationshipFamilyHarmony}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2147,42 +1963,24 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 </p>
               </div>
 
-              {/* Chanting Protocols Grid in Gold/Amber Styling */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2 border-t border-amber-700/20">
-                <div className="p-3 rounded-lg bg-amber-100/70 border border-amber-300 text-left">
-                  <span className="text-[10px] font-bold text-amber-800 uppercase block">
-                    {isKn ? "ಜಪ ಸಂಖ್ಯೆ" : isMr ? "जप संख्या" : isHi ? "जप संख्या" : isTe ? "జప సంఖ్య" : isTa ? "ஜப எண்ணிக்கை" : "Chant Count"}
+              {/* Chanting Protocols in Clean Q&A Flow */}
+              <div className="border-t border-amber-700/20 pt-3 text-xs font-serif">
+                <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    {isKn ? "ಪ್ರಶ್ನೆ: ಶ್ಲೋಕ ಜಪಾನುಷ್ಠಾನದ ವಿಧಿ ಹಾಗೂ ಶುಭ ಸಮಯವೇನು?"
+                      : isMr ? "प्रश्न: श्लोक पठणाची पद्धती व शुभ वेळ कोणती?"
+                      : isHi ? "प्रश्न: श्लोक जप विधि एवं शुभ समय क्या है?"
+                      : "Inquest: What is the Chanting Protocol and Auspicious Timing?"}
                   </span>
-                  <span className="font-black text-amber-950 mt-0.5 block">
-                    📿 {data.personalizedDynamicShloka.chantCount}
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-lg bg-amber-100/70 border border-amber-300 text-left">
-                  <span className="text-[10px] font-bold text-amber-800 uppercase block">
-                    {isKn ? "ಶುಭ ಸಮಯ" : isMr ? "शुभ वेळ" : isHi ? "शुभ समय" : isTe ? "శుభ సమయం" : isTa ? "சுப நேரம்" : "Auspicious Time"}
-                  </span>
-                  <span className="font-black text-amber-950 mt-0.5 block">
-                    🌅 {data.personalizedDynamicShloka.auspiciousTime}
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-lg bg-amber-100/70 border border-amber-300 text-left">
-                  <span className="text-[10px] font-bold text-amber-800 uppercase block">
-                    {isKn ? "ಶುಭ ದಿಕ್ಕು" : isMr ? "शुभ दिशा" : isHi ? "शुभ दिशा" : isTe ? "శుభ దిశ" : isTa ? "சுப திசை" : "Auspicious Direction"}
-                  </span>
-                  <span className="font-black text-amber-950 mt-0.5 block">
-                    🧭 {data.personalizedDynamicShloka.auspiciousDirection}
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-lg bg-amber-100/70 border border-amber-300 text-left">
-                  <span className="text-[10px] font-bold text-amber-800 uppercase block">
-                    {isKn ? "ಸಿದ್ಧಿ ಫಲ" : isMr ? "सिद्धि फल" : isHi ? "सिद्धि फल" : isTe ? "సిద్ధి ఫలం" : isTa ? "சித்தி பலன்" : "Spiritual Fruit"}
-                  </span>
-                  <span className="font-black text-amber-950 mt-0.5 block">
-                    🌺 {data.personalizedDynamicShloka.spiritualFruit}
-                  </span>
+                  <p className="text-amber-950 font-sans leading-relaxed text-xs">
+                    <strong className="text-amber-900">📿 {isKn ? "ಜಪ ಸಂಖ್ಯೆ:" : isMr ? "जप संख्या:" : isHi ? "जप संख्या:" : "Chant Count:"}</strong> {data.personalizedDynamicShloka.chantCount}
+                    <span className="mx-2 text-amber-700/60">•</span>
+                    <strong className="text-amber-900">🌅 {isKn ? "ಶುಭ ಸಮಯ:" : isMr ? "शुभ वेळ:" : isHi ? "शुभ समय:" : "Auspicious Time:"}</strong> {data.personalizedDynamicShloka.auspiciousTime}
+                    <span className="mx-2 text-amber-700/60">•</span>
+                    <strong className="text-amber-900">🧭 {isKn ? "ಶುಭ ದಿಕ್ಕು:" : isMr ? "शुभ दिशा:" : isHi ? "शुभ दिशा:" : "Direction:"}</strong> {data.personalizedDynamicShloka.auspiciousDirection}
+                    <span className="mx-2 text-amber-700/60">•</span>
+                    <strong className="text-amber-900">🌺 {isKn ? "ಸಿದ್ಧಿ ಫಲ:" : isMr ? "सिद्धि फल:" : isHi ? "सिद्धि फल:" : "Fruit:"}</strong> {data.personalizedDynamicShloka.spiritualFruit}
+                  </p>
                 </div>
               </div>
 
@@ -2311,15 +2109,14 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 </span>
               </div>
 
-              {/* Amenities Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {/* Amenities in Clean Linear Heritage Flow */}
+              <div className="space-y-2 text-xs font-serif">
                 {data.hotelPrivilegeCard.amenities.map((item, idx) => (
-                  <div key={`hotel-amenity-${idx}`} className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
-                    <span className="text-2xl pt-0.5 leading-none">{item.icon}</span>
-                    <div className="flex-1">
-                      <span className="text-sm font-black text-amber-950 block">{item.title}</span>
-                      <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">{item.desc}</span>
-                    </div>
+                  <div key={`hotel-amenity-${idx}`} className="border-l-2 border-amber-700/50 pl-3.5 py-1">
+                    <p className="text-amber-950 font-sans leading-relaxed">
+                      <span className="text-base mr-1.5">{item.icon}</span>
+                      <strong className="text-amber-900">{item.title}:</strong> {item.desc}
+                    </p>
                   </div>
                 ))}
               </div>

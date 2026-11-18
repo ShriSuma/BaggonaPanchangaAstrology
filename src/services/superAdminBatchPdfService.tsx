@@ -47,6 +47,8 @@ import {
 } from "../components/seva/pdf/SevaPrintTemplates";
 import { PdfTemplate, type PdfTranslations } from "../components/RamanBhavishya/PdfTemplate";
 import { MultiQuestionPdfTemplate, type MultiQuestionItem } from "../components/RamanBhavishya/MultiQuestionPdfTemplate";
+import { FiveYearPredictionPdfTemplate } from "../components/fiveYearPrediction/FiveYearPredictionPdfTemplate";
+import { compute5YearMasterPrediction } from "../features/fiveYearPrediction/fiveYearPredictionEngine";
 import { askGemini } from "../core/GeminiEngine";
 
 function buildPdfTranslationsForMultiQuestion(session: KundliViewerSession, lang: string): PdfTranslations {
@@ -640,6 +642,52 @@ export async function generateSuperAdminBatchPdfs(
           title: params.language === "kn"
             ? (isSingle ? "ಪ್ರಶ್ನೋತ್ತರ ಜ್ಯೋತಿಷ್ಯ ವರದಿ" : "ಬಹುಪ್ರಶ್ನೆ ಜಾತಕ ಫಲ & ಪರಿಹಾರ ವರದಿ")
             : (isSingle ? "Single Question Consultation Report" : "Multi-Question Astrology Report"),
+          fileName,
+          blob,
+          sizeBytes: blob.size
+        });
+        break;
+      }
+
+      // ── 7. 5-YEAR MASTER DESTINY BLUEPRINT REPORT ─────────────────────────
+      case "five_year": {
+        onProgress?.(
+          stageStartPercent,
+          params.language === "kn"
+            ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಮಾಸ್ಟರ್ ಜಾತಕ ಮುದ್ರಣ..."
+            : "Generating 5-Year Master Destiny Blueprint PDF..."
+        );
+        const fileName = `Baggona_5_Year_Master_Destiny_${cleanName}_${langUpper}.pdf`;
+        const fiveYearPayload = compute5YearMasterPrediction(
+          localizedSession.result,
+          localizedSession.birthDateYmd || localizedSession.input.birthDate,
+          localizedSession.birthTimeHm || localizedSession.input.birthTime,
+          (params.language as any) || "kn",
+          localizedDevoteeName,
+          2026,
+          {
+            gender: localizedSession.input.gender,
+            maritalStatus: (localizedSession.input as any)?.maritalStatus,
+            childrenStatus: (localizedSession.input as any)?.childrenStatus,
+            latitude: localizedSession.input.latitude,
+            longitude: localizedSession.input.longitude,
+            ayanamsa: (localizedSession.input as any)?.ayanamsa || "lahiri"
+          }
+        );
+
+        const component = (
+          <div style={{ width: "900px", background: "#FFFDF7" }}>
+            <FiveYearPredictionPdfTemplate data={fiveYearPayload} />
+          </div>
+        );
+
+        const pdf = await renderOffscreenToPdf(component, fileName);
+        const blob = pdf.output("blob");
+        reports.push({
+          id: "five_year",
+          title: params.language === "kn"
+            ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಸಮಗ್ರ ಭವಿಷ್ಯ ವರದಿ"
+            : "5-Year Master Destiny Blueprint Report",
           fileName,
           blob,
           sizeBytes: blob.size

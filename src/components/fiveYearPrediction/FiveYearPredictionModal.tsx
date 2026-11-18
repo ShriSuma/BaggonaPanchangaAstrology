@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import { useWalletStore } from "../../features/wallet/walletStore";
+import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../../features/auth/authStore";
 import {
   type SixLang,
   SIX_LANGS,
@@ -57,10 +58,23 @@ export const FiveYearPredictionModal: React.FC<Props> = ({
   const packagePrice = selectedPackage === "remedy_450" ? 450 : 350;
   const packageCoins = selectedPackage === "remedy_450" ? 4500 : 3500;
 
+  // Auth & Super Admin Privileges
+  const { currentUser, role } = useAuthStore();
+  const isMasterOrSuperAdmin =
+    role === "superadmin" ||
+    Boolean(
+      currentUser &&
+      SUPER_ADMIN_USERNAMES.some(
+        (u) => u.toLowerCase() === currentUser.toLowerCase() || u === currentUser
+      )
+    );
+
   // Payment & Verification States
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "wallet">("upi");
-  const [isPaymentVerified, setIsPaymentVerified] = useState(false);
-  const [verifiedReference, setVerifiedReference] = useState("");
+  const [isPaymentVerified, setIsPaymentVerified] = useState(isMasterOrSuperAdmin);
+  const [verifiedReference, setVerifiedReference] = useState(
+    isMasterOrSuperAdmin ? "SUPER_ADMIN_VIP_PASS" : ""
+  );
   const [utrInput, setUtrInput] = useState("");
   const [utrError, setUtrError] = useState("");
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
@@ -68,6 +82,14 @@ export const FiveYearPredictionModal: React.FC<Props> = ({
   const [coinsError, setCoinsError] = useState("");
 
   const { wallet, deductForService } = useWalletStore();
+
+  // Ensure Super Admin is never held or gated by payment verification
+  useEffect(() => {
+    if (isMasterOrSuperAdmin) {
+      setIsPaymentVerified(true);
+      setVerifiedReference("SUPER_ADMIN_VIP_PASS");
+    }
+  }, [isMasterOrSuperAdmin]);
 
   useEffect(() => {
     if (session) {
@@ -172,9 +194,20 @@ export const FiveYearPredictionModal: React.FC<Props> = ({
   };
 
   const handleDownloadClick = async () => {
-    if (!isPaymentVerified) {
+    if (!isPaymentVerified && !isMasterOrSuperAdmin) {
       return;
     }
+
+    const effectiveAmount = isMasterOrSuperAdmin ? 0 : packagePrice;
+    const effectiveCoins = isMasterOrSuperAdmin ? 0 : packageCoins;
+    const effectiveReference = isMasterOrSuperAdmin
+      ? "SUPER_ADMIN_VIP_PASS"
+      : verifiedReference || "VERIFIED";
+    const effectiveMethod = isMasterOrSuperAdmin
+      ? "super_admin_pass"
+      : paymentMethod === "wallet"
+      ? "wallet_coins"
+      : "upi_qr";
 
     // 1. Log download to Firestore for daily summary aggregation & audit
     try {
@@ -184,13 +217,13 @@ export const FiveYearPredictionModal: React.FC<Props> = ({
         priestName: "Shreeram Pandit",
         portalSource: "Baggona Bhavishya",
         language: selectedLang,
-        coinsSpent: packageCoins,
-        amountInr: packagePrice,
+        coinsSpent: effectiveCoins,
+        amountInr: effectiveAmount,
         timestamp: new Date().toISOString(),
         dateKey: getIndianStandardDateStr(),
         packageType: selectedPackage,
-        paymentUtr: verifiedReference,
-        paymentMethod: paymentMethod === "wallet" ? "wallet_coins" : "upi_qr"
+        paymentUtr: effectiveReference,
+        paymentMethod: effectiveMethod
       });
     } catch (logErr) {
       console.warn("[FiveYearPredictionModal] Log download error:", logErr);
@@ -200,15 +233,15 @@ export const FiveYearPredictionModal: React.FC<Props> = ({
     try {
       await notifyPremiumPdfDownloaded({
         clientName: session.input.name || "Devotee",
-        pdfType: `5-Year Master Destiny Blueprint (${selectedPackage === "remedy_450" ? "With Remedies" : "Standard"})`,
+        pdfType: `5-Year Master Destiny Blueprint (${selectedPackage === "remedy_450" ? "With Remedies" : "Standard"})${isMasterOrSuperAdmin ? " [SUPER ADMIN PASS]" : ""}`,
         language: selectedLang,
         pageCount: 16,
         priestName: "Shreeram Pandit",
-        amountInr: packagePrice,
-        coinsSpent: packageCoins,
+        amountInr: effectiveAmount,
+        coinsSpent: effectiveCoins,
         packageType: selectedPackage,
-        paymentMethod: paymentMethod === "wallet" ? "Wallet Coins" : "UPI QR Code",
-        paymentUtr: verifiedReference
+        paymentMethod: isMasterOrSuperAdmin ? "Super Admin VIP Pass" : paymentMethod === "wallet" ? "Wallet Coins" : "UPI QR Code",
+        paymentUtr: effectiveReference
       });
     } catch (mailErr) {
       console.warn("[FiveYearPredictionModal] Notification email error:", mailErr);
@@ -505,218 +538,255 @@ export const FiveYearPredictionModal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Payment & Verification Gateway Section (₹350 or ₹450 / 3,500 or 4,500 Coins) */}
-          <div className="bg-gradient-to-br from-slate-900 via-amber-950/40 to-slate-900 border-2 border-amber-500/50 rounded-2xl p-4 sm:p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/30 pb-3">
-              <div>
-                <span className="text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <span>💳</span>
-                  <span>
-                    {isKn ? `೨. ಅಧಿಕೃತ ಮುದ್ರಣ PDF ಪಾವತಿ & ಅನ್‌ಲಾಕ್ ಗೇಟ್‌ವೇ (₹${formatNumber6L(packagePrice, selectedLang)} / ${formatNumber6L(packageCoins, selectedLang)} ನಾಣ್ಯಗಳು)`
-                      : isMr ? `२. अधिकृत प्रिंट PDF देयक व अनलॉक (₹${formatNumber6L(packagePrice, selectedLang)} / ${formatNumber6L(packageCoins, selectedLang)} नाणी)`
-                      : isHi ? `२. आधिकारिक प्रिंट PDF भुगतान एवं अनलॉक (₹${formatNumber6L(packagePrice, selectedLang)} / ${formatNumber6L(packageCoins, selectedLang)} सिक्के)`
-                      : `2. Official Printable PDF Payment & Verification (₹${packagePrice} / ${packageCoins.toLocaleString()} Coins)`}
-                  </span>
+          {/* Payment & Verification Gateway Section (or Super Admin VIP Free Access) */}
+          {isMasterOrSuperAdmin ? (
+            <div className="bg-gradient-to-r from-amber-500/25 via-yellow-500/20 to-amber-500/25 border-2 border-yellow-400/90 rounded-2xl p-5 space-y-2.5 shadow-xl text-center">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-yellow-400/30 border border-yellow-300 rounded-full text-xs font-black text-yellow-200 uppercase tracking-widest shadow-xs">
+                <span>👑</span>
+                <span>
+                  {isKn ? "ಸೂಪರ್ ಅಡ್ಮಿನ್ ವಿಶೇಷ ಪ್ರವೇಶ (Super Admin VIP Access)"
+                    : isMr ? "सुपर ॲडमिन विशेष प्रवेश (Super Admin VIP)"
+                    : isHi ? "सुपर एडमिन विशेष अधिकार (Super Admin VIP)"
+                    : isTe ? "సూపర్ అడ్మిన్ ప్రత్యేక ప్రవేశం (Super Admin VIP)"
+                    : isTa ? "சூப்பர் அட்மின் விஐபி அணுகல் (Super Admin VIP)"
+                    : "Super Admin Sovereign VIP Access"}
                 </span>
-                <p className="text-[11px] text-amber-200/80 mt-0.5">
-                  {isKn ? "ಪಾವತಿ ದೃಢೀಕರಣದ ನಂತರವೇ ಅಧಿಕೃತ ೫ ವರ್ಷಗಳ ಜಾತಕ PDF ಡೌನ್‌ಲೋಡ್ ಲಭ್ಯವಾಗುತ್ತದೆ."
-                    : isMr ? "देयक पडताळणीनंतरच ५ वर्षांचा अधिकृत कुंडली अहवाल PDF उपलब्ध होईल."
-                    : isHi ? "भुगतान सत्यापन के उपरांत ही ५-वर्षीय आधिकारिक कुंडली PDF डाउनलोड उपलब्ध होगी।"
-                    : "The 5-Year Destiny Blueprint PDF download unlocks immediately upon payment verification."}
-                </p>
               </div>
-
-              {isPaymentVerified ? (
-                <div className="inline-flex items-center gap-1.5 bg-emerald-900/80 border border-emerald-400 text-emerald-300 px-3 py-1 rounded-full text-xs font-black shadow-xs">
-                  <span>✓</span>
-                  <span>{isKn ? "ಪಾವತಿ ದೃಢಪಟ್ಟಿದೆ" : isMr ? "देयक पडताळले" : isHi ? "भुगतान सत्यापित" : "Payment Verified"}</span>
-                </div>
-              ) : (
-                <div className="inline-flex items-center gap-1.5 bg-amber-900/60 border border-amber-400/60 text-amber-200 px-3 py-1 rounded-full text-xs font-bold">
-                  <span>🔒</span>
-                  <span>{isKn ? "ಪಾವತಿ ಬಾಕಿ ಇದೆ" : isMr ? "देयक प्रलंबित" : isHi ? "भुगतान लंबित" : "Payment Required"}</span>
-                </div>
-              )}
+              <h4 className="text-base sm:text-lg font-black text-yellow-100 font-serif">
+                {isKn ? "ಅನಿಯಮಿತ ಉಚಿತ ಡೌನ್‌ಲೋಡ್ ಸೌಲಭ್ಯ ಸಕ್ರಿಯವಾಗಿದೆ"
+                  : isMr ? "अमर्यादित मोफत डाउनलोड सुविधा सक्रिय आहे"
+                  : isHi ? "असीमित निःशुल्क डाउनलोड सुविधा सक्रिय है"
+                  : isTe ? "అపరిమిత ఉచిత డౌన్‌లోడ్ సదుపాయం ప్రారంభించబడింది"
+                  : isTa ? "வரம்பற்ற இலவச பதிவிறக்க வசதி செயல்படுத்தப்பட்டுள்ளது"
+                  : "Unrestricted Free 5-Year Report Download Unlocked"}
+              </h4>
+              <p className="text-xs text-amber-200/90 max-w-xl mx-auto leading-relaxed">
+                {isKn
+                  ? "ಸೂಪರ್ ಅಡ್ಮಿನ್ ಖಾತೆಗೆ ಯಾವುದೇ ಪಾವತಿ ಶುಲ್ಕ ಅಥವಾ ವ್ಯಾಲೆಟ್ ನಾಣ್ಯಗಳ ಕಡಿತ ಇರುವುದಿಲ್ಲ. ನೀವು ೫ ವರ್ಷಗಳ ಸಂಪೂರ್ಣ ಮಹಾ ಜಾತಕವನ್ನು ತಕ್ಷಣವೇ ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು."
+                  : isMr
+                  ? "सुपर ॲडमिनसाठी कोणतेही शुल्क अथवा नाणी कपात केली जाणार नाही. आपण ५ वर्षांचा संपूर्ण महा अहवाल त्वरित डाउनलोड करू शकता."
+                  : isHi
+                  ? "सुपर एडमिन हेतु कोई शुल्क अथवा सिक्का कटौती नहीं होगी। आप ५-वर्षीय संपूर्ण महा कुंडली तत्काल डाउनलोड कर सकते हैं।"
+                  : isTe
+                  ? "సూపర్ అడ్మిన్ ఖాతాకు ఎలాంటి చెల్లింపు లేదా నాణేల కోత ఉండదు. మీరు పూర్తి 5 సంవత్సరాల మహా జాతకాన్ని వెంటనే డౌన్‌లోడ్ చేసుకోవచ్చు."
+                  : isTa
+                  ? "சூப்பர் அட்மின் கணக்கிற்கு கட்டணம் அல்லது நாணயக் கழிப்பு இல்லை. முழுமையான 5 ஆண்டு ஜாதகத்தை உடனடியாகப் பதிவிறக்கலாம்."
+                  : "Zero fees and zero wallet coin deductions for Super Admin. You can download the complete 5-Year Master Destiny Report immediately."}
+              </p>
             </div>
-
-            {/* Payment Method Selector Tabs */}
-            {!isPaymentVerified && (
-              <div className="grid grid-cols-2 gap-2 bg-slate-950/80 p-1 rounded-xl border border-amber-500/30">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("upi")}
-                  className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    paymentMethod === "upi"
-                      ? "bg-amber-500 text-slate-950 font-black shadow-sm"
-                      : "text-amber-200 hover:text-white"
-                  }`}
-                >
-                  <span>📱</span>
-                  <span>{isKn ? `UPI QR ಕೋಡ್ / UPI ಆ್ಯಪ್‌ಗಳು (₹${formatNumber6L(packagePrice, selectedLang)})` : isMr ? `UPI QR कोड / ॲप्स (₹${formatNumber6L(packagePrice, selectedLang)})` : isHi ? `UPI QR कोड / ऐप्स (₹${formatNumber6L(packagePrice, selectedLang)})` : `UPI QR Code / Apps (₹${packagePrice})`}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("wallet")}
-                  className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    paymentMethod === "wallet"
-                      ? "bg-amber-500 text-slate-950 font-black shadow-sm"
-                      : "text-amber-200 hover:text-white"
-                  }`}
-                >
-                  <span>🪙</span>
-                  <span>{isKn ? `ವ್ಯಾಲೆಟ್ ನಾಣ್ಯಗಳು (${formatNumber6L(packageCoins, selectedLang)} Coins)` : isMr ? `वॉलेट नाणी (${formatNumber6L(packageCoins, selectedLang)} Coins)` : isHi ? `वॉलेट सिक्के (${formatNumber6L(packageCoins, selectedLang)} Coins)` : `Wallet Coins (${packageCoins.toLocaleString()} Coins)`}</span>
-                </button>
-              </div>
-            )}
-
-            {/* Verified Banner */}
-            {isPaymentVerified && (
-              <div className="bg-emerald-950/70 border-2 border-emerald-400/70 rounded-xl p-4 flex items-center gap-3">
-                <span className="text-3xl text-emerald-400">✓</span>
-                <div className="space-y-0.5">
-                  <h4 className="text-sm font-black text-emerald-200">
-                    {isKn ? "ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢಪಟ್ಟಿದೆ!" : isMr ? "देयक यशस्वीपणे पडताळले गेले आहे!" : isHi ? "भुगतान सफलतापूर्वक सत्यापित हो गया है!" : "Payment Successfully Verified!"}
-                  </h4>
-                  <p className="text-xs text-emerald-300/80">
-                    {verifiedReference} • {isKn ? "ನಿಮ್ಮ ೫ ವರ್ಷಗಳ ಅಧಿಕೃತ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಕೆಳಗಿನ ಹಳದಿ ಬಟನ್ ಒತ್ತಿರಿ." : isMr ? "आपली ५ वर्षांची अधिकृत PDF डाउनलोड करण्यासाठी खालील बटण दाबा." : isHi ? "अपनी ५-वर्षीय आधिकारिक PDF डाउनलोड करने के लिए नीचे दिए गए बटन पर क्लिक करें।" : "Click the button below to download your consecrated 5-year destiny blueprint PDF."}
+          ) : (
+            <div className="bg-gradient-to-br from-slate-900 via-amber-950/40 to-slate-900 border-2 border-amber-500/50 rounded-2xl p-4 sm:p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/30 pb-3">
+                <div>
+                  <span className="text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>💳</span>
+                    <span>
+                      {isKn ? `೨. ಅಧಿಕೃತ ಮುದ್ರಣ PDF ಪಾವತಿ & ಅನ್‌ಲಾಕ್ ಗೇಟ್‌ವೇ (₹${formatNumber6L(packagePrice, selectedLang)} / ${formatNumber6L(packageCoins, selectedLang)} ನಾಣ್ಯಗಳು)`
+                        : isMr ? `२. अधिकृत प्रिंट PDF देयक व अनलॉक (₹${formatNumber6L(packagePrice, selectedLang)} / ${formatNumber6L(packageCoins, selectedLang)} नाणी)`
+                        : isHi ? `२. आधिकारिक प्रिंट PDF भुगतान एवं अनलॉक (₹${formatNumber6L(packagePrice, selectedLang)} / ${formatNumber6L(packageCoins, selectedLang)} सिक्के)`
+                        : `2. Official Printable PDF Payment & Verification (₹${packagePrice} / ${packageCoins.toLocaleString()} Coins)`}
+                    </span>
+                  </span>
+                  <p className="text-[11px] text-amber-200/80 mt-0.5">
+                    {isKn ? "ಪಾವತಿ ದೃಢೀಕರಣದ ನಂತರವೇ ಅಧಿಕೃತ ೫ ವರ್ಷಗಳ ಜಾತಕ PDF ಡೌನ್‌ಲೋಡ್ ಲಭ್ಯವಾಗುತ್ತದೆ."
+                      : isMr ? "देयक पडताळणीनंतरच ५ वर्षांचा अधिकृत कुंडली अहवाल PDF उपलब्ध होईल."
+                      : isHi ? "भुगतान सत्यापन के उपरांत ही ५-वर्षीय आधिकारिक कुंडली PDF डाउनलोड उपलब्ध होगी।"
+                      : "The 5-Year Destiny Blueprint PDF download unlocks immediately upon payment verification."}
                   </p>
                 </div>
-              </div>
-            )}
 
-            {/* UPI QR Payment Pane */}
-            {!isPaymentVerified && paymentMethod === "upi" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                {/* QR Code Container */}
-                <div className="flex flex-col items-center justify-center bg-white p-3 rounded-xl border-2 border-amber-400 shadow-md">
-                  {qrDataUrl ? (
-                    <img
-                      src={qrDataUrl}
-                      alt={`UPI QR Code - ₹${packagePrice}`}
-                      className="w-48 h-48 object-contain rounded-lg"
-                    />
-                  ) : (
-                    <div className="w-48 h-48 bg-slate-100 flex items-center justify-center text-xs text-slate-500 font-bold">
-                      QR Code Loading...
-                    </div>
-                  )}
-                  <div className="mt-2 text-center text-slate-900">
-                    <span className="text-xs font-black block">ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Shreeram Pandit)</span>
-                    <span className="text-[11px] font-mono font-bold text-amber-800 block">9108135387@ybl</span>
-                    <span className="text-[11px] font-bold text-emerald-700 block">
-                      ₹{formatNumber6L(packagePrice, selectedLang)} ({selectedPackage === "remedy_450" ? "With Remedies" : "Standard"})
-                    </span>
+                {isPaymentVerified ? (
+                  <div className="inline-flex items-center gap-1.5 bg-emerald-900/80 border border-emerald-400 text-emerald-300 px-3 py-1 rounded-full text-xs font-black shadow-xs">
+                    <span>✓</span>
+                    <span>{isKn ? "ಪಾವತಿ ದೃಢಪಟ್ಟಿದೆ" : isMr ? "देयक पडताळले" : isHi ? "भुगतान सत्यापित" : "Payment Verified"}</span>
                   </div>
-                </div>
-
-                {/* UPI Intent Apps & UTR Entry */}
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-bold text-amber-300 block">
-                      {isKn ? "೧. ಮೊಬೈಲ್ UPI ಆ್ಯಪ್ ಮೂಲಕ ತ್ವರಿತವಾಗಿ ಪಾವತಿಸಿ:" : isMr ? "१. मोबाईल UPI ॲपद्वारे त्वरित भरा:" : isHi ? "१. मोबाइल UPI ऐप द्वारा तुरंत भुगतान करें:" : "1. Quick Pay via Mobile UPI App:"}
-                    </span>
-                    <div className="grid grid-cols-3 gap-2">
-                      <a
-                        href={phonePeUri}
-                        className="px-2 py-1.5 bg-purple-900/80 hover:bg-purple-800 border border-purple-400/50 rounded-lg text-center text-[11px] font-bold text-purple-200 transition-all"
-                      >
-                        PhonePe
-                      </a>
-                      <a
-                        href={gPayUri}
-                        className="px-2 py-1.5 bg-blue-900/80 hover:bg-blue-800 border border-blue-400/50 rounded-lg text-center text-[11px] font-bold text-blue-200 transition-all"
-                      >
-                        Google Pay
-                      </a>
-                      <a
-                        href={paytmUri}
-                        className="px-2 py-1.5 bg-cyan-900/80 hover:bg-cyan-800 border border-cyan-400/50 rounded-lg text-center text-[11px] font-bold text-cyan-200 transition-all"
-                      >
-                        Paytm
-                      </a>
-                    </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 bg-amber-900/60 border border-amber-400/60 text-amber-200 px-3 py-1 rounded-full text-xs font-bold">
+                    <span>🔒</span>
+                    <span>{isKn ? "ಪಾವತಿ ಬಾಕಿ ಇದೆ" : isMr ? "देयक प्रलंबित" : isHi ? "भुगतान लंबित" : "Payment Required"}</span>
                   </div>
-
-                  <div className="space-y-1.5 pt-1 border-t border-amber-500/20">
-                    <label className="text-[11px] font-bold text-amber-300 block">
-                      {isKn ? "೨. ಪಾವತಿಸಿದ ನಂತರ ೧೨ ಅಂಕಿಗಳ UTR / Ref ನಂಬರ್ ನಮೂದಿಸಿ:"
-                        : isMr ? "२. देयकानंतर १२ अंकी UTR / संदर्भ क्रमांक टाका:"
-                        : isHi ? "२. भुगतान पश्चात १२ अंकों का UTR / संदर्भ क्रमांक दर्ज करें:"
-                        : "2. Enter 12-Digit UPI UTR / Reference Number:"}
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={utrInput}
-                        onChange={(e) => setUtrInput(e.target.value)}
-                        placeholder="e.g. 412389123456"
-                        className="flex-1 bg-slate-950 border border-amber-500/40 rounded-xl px-3 py-2 text-xs font-mono text-amber-100 placeholder-amber-400/40 focus:outline-none focus:border-yellow-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleVerifyUtr}
-                        className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs rounded-xl shadow-md cursor-pointer transition-all shrink-0"
-                      >
-                        {isKn ? "ದೃಢೀಕರಿಸಿ" : isMr ? "पडताळा" : isHi ? "सत्यापित करें" : "Verify"}
-                      </button>
-                    </div>
-                    {utrError && (
-                      <p className="text-[11px] text-red-400 font-semibold">{utrError}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Wallet Coins Payment Pane */}
-            {!isPaymentVerified && paymentMethod === "wallet" && (
-              <div className="bg-slate-950/70 border border-amber-500/30 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-300">
-                    🪙 {isKn ? "ನಿಮ್ಮ ಹಾಲಿ ವ್ಯಾಲೆಟ್ ಬ್ಯಾಲೆನ್ಸ್:" : isMr ? "आपली शिल्लक नाणी:" : isHi ? "आपका वर्तमान वॉलेट बैलेंस:" : "Your Current Coin Balance:"}
-                  </span>
-                  <span className="text-sm font-black text-yellow-300 bg-amber-500/20 px-3 py-1 rounded-full border border-amber-400/40">
-                    {formatNumber6L(wallet?.coinBalance || 0, selectedLang)} Coins
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-amber-200/90 border-t border-amber-500/20 pt-2">
-                  <span>{isKn ? "೫ ವರ್ಷಗಳ PDF ಸೇವಾ ಶುಲ್ಕ:" : isMr ? "५ वर्षांचे PDF सेवा शुल्क:" : isHi ? "५-वर्षीय PDF सेवा शुल्क:" : "5-Year PDF Service Cost:"}</span>
-                  <span className="font-bold text-amber-300">
-                    {formatNumber6L(packageCoins, selectedLang)} Coins (₹{formatNumber6L(packagePrice, selectedLang)})
-                  </span>
-                </div>
-
-                {coinsError && (
-                  <p className="text-xs text-red-400 font-semibold bg-red-950/50 p-2 rounded-lg border border-red-500/30">
-                    {coinsError}
-                  </p>
                 )}
+              </div>
 
-                <div className="pt-1">
+              {/* Payment Method Selector Tabs */}
+              {!isPaymentVerified && (
+                <div className="grid grid-cols-2 gap-2 bg-slate-950/80 p-1 rounded-xl border border-amber-500/30">
                   <button
                     type="button"
-                    onClick={handleDeductCoins}
-                    disabled={isDeductingCoins}
-                    className={`w-full py-2.5 px-4 rounded-xl font-black text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${
-                      wallet && wallet.coinBalance >= packageCoins
-                        ? "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950"
-                        : "bg-slate-800 text-amber-400/60 border border-slate-700 cursor-not-allowed"
+                    onClick={() => setPaymentMethod("upi")}
+                    className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      paymentMethod === "upi"
+                        ? "bg-amber-500 text-slate-950 font-black shadow-sm"
+                        : "text-amber-200 hover:text-white"
+                    }`}
+                  >
+                    <span>📱</span>
+                    <span>{isKn ? `UPI QR ಕೋಡ್ / UPI ಆ್ಯಪ್‌ಗಳು (₹${formatNumber6L(packagePrice, selectedLang)})` : isMr ? `UPI QR कोड / ॲप्स (₹${formatNumber6L(packagePrice, selectedLang)})` : isHi ? `UPI QR कोड / ऐप्स (₹${formatNumber6L(packagePrice, selectedLang)})` : `UPI QR Code / Apps (₹${packagePrice})`}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("wallet")}
+                    className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      paymentMethod === "wallet"
+                        ? "bg-amber-500 text-slate-950 font-black shadow-sm"
+                        : "text-amber-200 hover:text-white"
                     }`}
                   >
                     <span>🪙</span>
-                    <span>
-                      {isDeductingCoins
-                        ? (isKn ? "ನಾಣ್ಯಗಳನ್ನು ಕಡಿತಗೊಳಿಸಲಾಗುತ್ತಿದೆ..." : "Deducting Coins...")
-                        : wallet && wallet.coinBalance >= packageCoins
-                        ? (isKn ? `${formatNumber6L(packageCoins, selectedLang)} ನಾಣ್ಯಗಳನ್ನು ಕಡಿತಗೊಳಿಸಿ PDF ಅನ್‌ಲಾಕ್ ಮಾಡಿ` : isMr ? `${formatNumber6L(packageCoins, selectedLang)} नाणी वजा करून PDF अनलॉक करा` : isHi ? `${formatNumber6L(packageCoins, selectedLang)} सिक्के काटकर PDF अनलॉक करें` : `Deduct ${packageCoins.toLocaleString()} Coins & Unlock PDF`)
-                        : (isKn ? "ನಾಣ್ಯಗಳ ಕೊರತೆ (ದಯವಿಟ್ಟು UPI QR ಬಳಸಿ)" : isMr ? "नाणी अपुरी आहेत (कृपया UPI QR वापरा)" : isHi ? "सिक्के अपर्याप्त (कृपया UPI QR का उपयोग करें)" : "Insufficient Coins (Please use UPI QR)")}
-                    </span>
+                    <span>{isKn ? `ವ್ಯಾಲೆಟ್ ನಾಣ್ಯಗಳು (${formatNumber6L(packageCoins, selectedLang)} Coins)` : isMr ? `वॉलेट नाणी (${formatNumber6L(packageCoins, selectedLang)} Coins)` : isHi ? `वॉलेट सिक्के (${formatNumber6L(packageCoins, selectedLang)} Coins)` : `Wallet Coins (${packageCoins.toLocaleString()} Coins)`}</span>
                   </button>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+
+              {/* Verified Banner */}
+              {isPaymentVerified && (
+                <div className="bg-emerald-950/70 border-2 border-emerald-400/70 rounded-xl p-4 flex items-center gap-3">
+                  <span className="text-3xl text-emerald-400">✓</span>
+                  <div className="space-y-0.5">
+                    <h4 className="text-sm font-black text-emerald-200">
+                      {isKn ? "ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢಪಟ್ಟಿದೆ!" : isMr ? "देयक यशस्वीपणे पडताळले गेले आहे!" : isHi ? "भुगतान सफलतापूर्वक सत्यापित हो गया है!" : "Payment Successfully Verified!"}
+                    </h4>
+                    <p className="text-xs text-emerald-300/80">
+                      {verifiedReference} • {isKn ? "ನಿಮ್ಮ ೫ ವರ್ಷಗಳ ಅಧಿಕೃತ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಕೆಳಗಿನ ಹಳದಿ ಬಟನ್ ಒತ್ತಿರಿ." : isMr ? "आपली ५ वर्षांची अधिकृत PDF डाउनलोड करण्यासाठी खालील बटण दाबा." : isHi ? "अपनी ५-वर्षीय आधिकारिक PDF डाउनलोड करने के लिए नीचे दिए गए बटन पर क्लिक करें।" : "Click the button below to download your consecrated 5-year destiny blueprint PDF."}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* UPI QR Payment Pane */}
+              {!isPaymentVerified && paymentMethod === "upi" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                  {/* QR Code Container */}
+                  <div className="flex flex-col items-center justify-center bg-white p-3 rounded-xl border-2 border-amber-400 shadow-md">
+                    {qrDataUrl ? (
+                      <img
+                        src={qrDataUrl}
+                        alt={`UPI QR Code - ₹${packagePrice}`}
+                        className="w-48 h-48 object-contain rounded-lg"
+                      />
+                    ) : (
+                      <div className="w-48 h-48 bg-slate-100 flex items-center justify-center text-xs text-slate-500 font-bold">
+                        QR Code Loading...
+                      </div>
+                    )}
+                    <div className="mt-2 text-center text-slate-900">
+                      <span className="text-xs font-black block">ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Shreeram Pandit)</span>
+                      <span className="text-[11px] font-mono font-bold text-amber-800 block">9108135387@ybl</span>
+                      <span className="text-[11px] font-bold text-emerald-700 block">
+                        ₹{formatNumber6L(packagePrice, selectedLang)} ({selectedPackage === "remedy_450" ? "With Remedies" : "Standard"})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* UPI Intent Apps & UTR Entry */}
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-amber-300 block">
+                        {isKn ? "೧. ಮೊಬೈಲ್ UPI ಆ್ಯಪ್ ಮೂಲಕ ತ್ವರಿತವಾಗಿ ಪಾವತಿಸಿ:" : isMr ? "१. मोबाईल UPI ॲपद्वारे त्वरित भरा:" : isHi ? "१. मोबाइल UPI ऐप द्वारा तुरंत भुगतान करें:" : "1. Quick Pay via Mobile UPI App:"}
+                      </span>
+                      <div className="grid grid-cols-3 gap-2">
+                        <a
+                          href={phonePeUri}
+                          className="px-2 py-1.5 bg-purple-900/80 hover:bg-purple-800 border border-purple-400/50 rounded-lg text-center text-[11px] font-bold text-purple-200 transition-all"
+                        >
+                          PhonePe
+                        </a>
+                        <a
+                          href={gPayUri}
+                          className="px-2 py-1.5 bg-blue-900/80 hover:bg-blue-800 border border-blue-400/50 rounded-lg text-center text-[11px] font-bold text-blue-200 transition-all"
+                        >
+                          Google Pay
+                        </a>
+                        <a
+                          href={paytmUri}
+                          className="px-2 py-1.5 bg-cyan-900/80 hover:bg-cyan-800 border border-cyan-400/50 rounded-lg text-center text-[11px] font-bold text-cyan-200 transition-all"
+                        >
+                          Paytm
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 pt-1 border-t border-amber-500/20">
+                      <label className="text-[11px] font-bold text-amber-300 block">
+                        {isKn ? "೨. ಪಾವತಿಸಿದ ನಂತರ ೧೨ ಅಂಕಿಗಳ UTR / Ref ನಂಬರ್ ನಮೂದಿಸಿ:"
+                          : isMr ? "२. देयकानंतर १२ अंकी UTR / संदर्भ क्रमांक टाका:"
+                          : isHi ? "२. भुगतान पश्चात १२ अंकों का UTR / संदर्भ क्रमांक दर्ज करें:"
+                          : "2. Enter 12-Digit UPI UTR / Reference Number:"}
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={utrInput}
+                          onChange={(e) => setUtrInput(e.target.value)}
+                          placeholder="e.g. 412389123456"
+                          className="flex-1 bg-slate-950 border border-amber-500/40 rounded-xl px-3 py-2 text-xs font-mono text-amber-100 placeholder-amber-400/40 focus:outline-none focus:border-yellow-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyUtr}
+                          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs rounded-xl shadow-md cursor-pointer transition-all shrink-0"
+                        >
+                          {isKn ? "ದೃಢೀಕರಿಸಿ" : isMr ? "पडताळा" : isHi ? "सत्यापित करें" : "Verify"}
+                        </button>
+                      </div>
+                      {utrError && (
+                        <p className="text-[11px] text-red-400 font-semibold">{utrError}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Wallet Coins Payment Pane */}
+              {!isPaymentVerified && paymentMethod === "wallet" && (
+                <div className="bg-slate-950/70 border border-amber-500/30 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-300">
+                      🪙 {isKn ? "ನಿಮ್ಮ ಹಾಲಿ ವ್ಯಾಲೆಟ್ ಬ್ಯಾಲೆನ್ಸ್:" : isMr ? "आपली शिल्लक नाणी:" : isHi ? "आपका वर्तमान वॉलेट बैलेंस:" : "Your Current Coin Balance:"}
+                    </span>
+                    <span className="text-sm font-black text-yellow-300 bg-amber-500/20 px-3 py-1 rounded-full border border-amber-400/40">
+                      {formatNumber6L(wallet?.coinBalance || 0, selectedLang)} Coins
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-amber-200/90 border-t border-amber-500/20 pt-2">
+                    <span>{isKn ? "೫ ವರ್ಷಗಳ PDF ಸೇವಾ ಶುಲ್ಕ:" : isMr ? "५ वर्षांचे PDF सेवा शुल्क:" : isHi ? "५-वर्षीय PDF सेवा शुल्क:" : "5-Year PDF Service Cost:"}</span>
+                    <span className="font-bold text-amber-300">
+                      {formatNumber6L(packageCoins, selectedLang)} Coins (₹{formatNumber6L(packagePrice, selectedLang)})
+                    </span>
+                  </div>
+
+                  {coinsError && (
+                    <p className="text-xs text-red-400 font-semibold bg-red-950/50 p-2 rounded-lg border border-red-500/30">
+                      {coinsError}
+                    </p>
+                  )}
+
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={handleDeductCoins}
+                      disabled={isDeductingCoins}
+                      className={`w-full py-2.5 px-4 rounded-xl font-black text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${
+                        wallet && wallet.coinBalance >= packageCoins
+                          ? "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950"
+                          : "bg-slate-800 text-amber-400/60 border border-slate-700 cursor-not-allowed"
+                      }`}
+                    >
+                      <span>🪙</span>
+                      <span>
+                        {isDeductingCoins
+                          ? (isKn ? "ನಾಣ್ಯಗಳನ್ನು ಕಡಿತಗೊಳಿಸಲಾಗುತ್ತಿದೆ..." : "Deducting Coins...")
+                          : wallet && wallet.coinBalance >= packageCoins
+                          ? (isKn ? `${formatNumber6L(packageCoins, selectedLang)} ನಾಣ್ಯಗಳನ್ನು ಕಡಿತಗೊಳಿಸಿ PDF ಅನ್‌ಲಾಕ್ ಮಾಡಿ` : isMr ? `${formatNumber6L(packageCoins, selectedLang)} नाणी वजा करून PDF अनलॉक करा` : isHi ? `${formatNumber6L(packageCoins, selectedLang)} सिक्के काटकर PDF अनलॉक करें` : `Deduct ${packageCoins.toLocaleString()} Coins & Unlock PDF`)
+                          : (isKn ? "ನಾಣ್ಯಗಳ ಕೊರತೆ (ದಯವಿಟ್ಟು UPI QR ಬಳಸಿ)" : isMr ? "नाणी अपुरी आहेत (कृपया UPI QR वापरा)" : isHi ? "सिक्के अपर्याप्त (कृपया UPI QR का उपयोग करें)" : "Insufficient Coins (Please use UPI QR)")}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* In-Flight Progress Loader */}
           {isGeneratingPdf && (
@@ -797,19 +867,26 @@ export const FiveYearPredictionModal: React.FC<Props> = ({
             <button
               type="button"
               onClick={handleDownloadClick}
-              disabled={!isPaymentVerified || isGeneratingPdf}
+              disabled={(!isPaymentVerified && !isMasterOrSuperAdmin) || isGeneratingPdf}
               className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-black text-xs sm:text-sm transition-all duration-300 shadow-xl border-2 ${
-                !isPaymentVerified
+                !isPaymentVerified && !isMasterOrSuperAdmin
                   ? "bg-slate-800 text-amber-400/50 border-slate-700 cursor-not-allowed opacity-60"
                   : isGeneratingPdf
                   ? "bg-amber-500 text-slate-950 border-yellow-200 cursor-not-allowed opacity-75"
                   : "bg-gradient-to-r from-amber-500 via-yellow-400 to-orange-500 hover:from-amber-400 hover:via-yellow-300 hover:to-orange-400 text-slate-950 border-yellow-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               }`}
             >
-              <span className="text-base">{!isPaymentVerified ? "🔒" : "📜✨"}</span>
+              <span className="text-base">{(!isPaymentVerified && !isMasterOrSuperAdmin) ? "🔒" : isMasterOrSuperAdmin ? "👑" : "📜✨"}</span>
               <span>
                 {isGeneratingPdf
                   ? (isKn ? "ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : isMr ? "तयार होत आहे..." : isHi ? "तैयार हो रहा है..." : isTe ? "సిద్ధమవుతోంది..." : isTa ? "தயாராகிறது..." : "Crafting...")
+                  : isMasterOrSuperAdmin
+                  ? (isKn ? "👑 ೫ ವರ್ಷಗಳ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (ಉಚಿತ ಸೂಪರ್ ಅಡ್ಮಿನ್)"
+                    : isMr ? "👑 ५ वर्षांची PDF डाउनलोड करा (मोफत ॲडमिन)"
+                    : isHi ? "👑 ५-वर्षीय PDF डाउनलोड करें (निःशुल्क एडमिन)"
+                    : isTe ? "👑 5 సంవత్సరాల PDF డౌన్‌లోడ్ చేసుకోండి (సూపర్ అడ్మిన్)"
+                    : isTa ? "👑 5 ஆண்டு PDF பதிவிறக்குக (சூப்பர் அட்மின்)"
+                    : "👑 Download 5-Year PDF (Super Admin Pass)")
                   : !isPaymentVerified
                   ? (isKn ? `🔒 ಮೊದಲು ಪಾವತಿ ದೃಢೀಕರಿಸಿ (₹${formatNumber6L(packagePrice, selectedLang)} / ${formatNumber6L(packageCoins, selectedLang)} ನಾಣ್ಯ)`
                     : isMr ? `🔒 देयकाची पडताळणी करा (₹${formatNumber6L(packagePrice, selectedLang)} / ${formatNumber6L(packageCoins, selectedLang)} नाणी)`

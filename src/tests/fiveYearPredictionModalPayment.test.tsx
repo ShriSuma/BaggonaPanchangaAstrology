@@ -5,6 +5,7 @@ import { FiveYearPredictionModal } from "../components/fiveYearPrediction/FiveYe
 import type { KundliViewerSession } from "../stores/kundliViewerStore";
 import { PlanetName } from "../core/AstroTypes";
 import { useWalletStore } from "../features/wallet/walletStore";
+import { useAuthStore } from "../features/auth/authStore";
 
 describe("FiveYearPredictionModal Payment Gateway & Verification Guard Audit", () => {
   beforeEach(() => {
@@ -177,5 +178,48 @@ describe("FiveYearPredictionModal Payment Gateway & Verification Guard Audit", (
     // Verify Download Button unlocked
     const unlockedDownloadBtn = screen.getByRole("button", { name: /ದೃಢಪಟ್ಟಿದೆ/i });
     expect(unlockedDownloadBtn).not.toBeDisabled();
+  });
+
+  it("provides Super Admin unrestricted VIP access without requiring payment verification or coin deductions", async () => {
+    // Authenticate as Super Admin
+    useAuthStore.setState({
+      currentUser: "ShriSuma",
+      role: "superadmin",
+      isAuthenticated: true
+    });
+
+    const onDownloadPdf = vi.fn().mockResolvedValue(undefined);
+    const onClose = vi.fn();
+
+    render(
+      <FiveYearPredictionModal
+        isOpen={true}
+        onClose={onClose}
+        session={mockSession}
+        onDownloadPdf={onDownloadPdf}
+        isGeneratingPdf={false}
+        pdfProgress={0}
+        pdfStageText=""
+      />
+    );
+
+    // Verify Super Admin VIP Banner is displayed
+    expect(screen.getByText(/ಸೂಪರ್ ಅಡ್ಮಿನ್ ವಿಶೇಷ ಪ್ರವೇಶ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಅನಿಯಮಿತ ಉಚಿತ ಡೌನ್‌ಲೋಡ್/i)).toBeInTheDocument();
+
+    // Verify Download Button is immediately unlocked (with 👑 icon and instant download text)
+    const vipDownloadBtn = screen.getByRole("button", { name: /👑/i });
+    expect(vipDownloadBtn).toBeInTheDocument();
+    expect(vipDownloadBtn).not.toBeDisabled();
+
+    // Clicking downloads immediately with zero barriers
+    fireEvent.click(vipDownloadBtn);
+    await waitFor(() => {
+      expect(onDownloadPdf).toHaveBeenCalledTimes(1);
+      expect(onDownloadPdf).toHaveBeenCalledWith("kn");
+    });
+
+    // Reset Auth Store
+    useAuthStore.setState({ currentUser: "baggona", role: "priest", isAuthenticated: true });
   });
 });
