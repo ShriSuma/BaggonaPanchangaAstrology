@@ -388,4 +388,52 @@ describe("FiveYearPredictionPdfTemplate Visual Architecture & Content Audit", ()
       expect(yearSection?.textContent).toContain("೩. ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಹಾಗೂ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ");
     }
   });
+
+  it("renders Opening Hook card at the top with emotionally resonant opening line and narrated first paragraph", () => {
+    const data = getTestPayload("kn");
+    const { container } = render(<FiveYearPredictionPdfTemplate data={data} />);
+
+    const openingSection = container.querySelector('[data-section="opening-hook"]');
+    expect(openingSection).not.toBeNull();
+    expect(openingSection?.textContent).toContain("ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಮನಸ್ಸನ್ನು ಆವರಿಸಿರುವ ಮುಖ್ಯ ಚಿಂತೆ & ಜ್ಯೋತಿಷ್ಯ ದರ್ಶನ");
+    expect(openingSection?.textContent).toContain(data.openingHook?.coreFocusTheme);
+    expect(openingSection?.textContent).toContain(data.openingHook?.openingLine);
+    expect(openingSection?.textContent).toContain(data.openingHook?.firstParagraph);
+    expect(openingSection?.textContent).toContain(data.openingHook?.emotionalValidationQuote);
+  });
+
+  it("renders 9-Graha Sphuta and Bhava Calculation Matrix inside user-details card", () => {
+    const data = getTestPayload("kn");
+    const { container } = render(<FiveYearPredictionPdfTemplate data={data} />);
+
+    const userDetails = container.querySelector('[data-section="user-details"]');
+    expect(userDetails).not.toBeNull();
+    expect(userDetails?.textContent).toContain("ಜನ್ಮ ಕುಂಡಲಿ ನವಗ್ರಹ ಸ್ಪಷ್ಟ ಗಣಿತ & ಭಾವ ಲೆಕ್ಕಾಚಾರಗಳು");
+    expect(userDetails?.textContent).toContain("ಸೂರ್ಯ");
+    expect(userDetails?.textContent).toContain("ಚಂದ್ರ");
+    expect(userDetails?.textContent).toContain("ಗುರು (ಬೃಹಸ್ಪತಿ)");
+    expect(userDetails?.textContent).toContain("ಶನಿ");
+
+    const table = userDetails?.querySelector("table");
+    expect(table).not.toBeNull();
+    const rows = table?.querySelectorAll("tbody tr");
+    expect(rows?.length).toBe(9); // 9 Grahas
+  });
+
+  it("renders Collection Nagalu 5-Year Gold, Jewelry & Ornament Accumulation Forecast", () => {
+    const data = getTestPayload("kn");
+    const { container } = render(<FiveYearPredictionPdfTemplate data={data} />);
+
+    const nagaluSection = container.querySelector('[data-section="collection-nagalu"]');
+    expect(nagaluSection).not.toBeNull();
+    expect(nagaluSection?.textContent).toContain("೫ ವರ್ಷಗಳ ಚಿನ್ನಾಭರಣ, ನಗನಾಣ್ಯ & ದ್ರವ್ಯ ಸಂಗ್ರಹ ಯೋಗ");
+    expect(nagaluSection?.textContent).toContain("ಧನಭಾವ (೨ನೇ ಮನೆ) & ದ್ರವ್ಯ ಸಂಚಯ ಯೋಗ");
+    expect(nagaluSection?.textContent).toContain("೫ ವರ್ಷಗಳ ಒಟ್ಟು ಚಿನ್ನ-ಆಭರಣ ವೃದ್ಧಿ ಮುನ್ನೋಟ");
+    expect(nagaluSection?.textContent).toContain("ಚಿನ್ನಾಭರಣ ಖರೀದಿ ಭವಿಷ್ಯ & ಮಾರ್ಗದರ್ಶನ");
+
+    const table = nagaluSection?.querySelector("table");
+    expect(table).not.toBeNull();
+    const rows = table?.querySelectorAll("tbody tr");
+    expect(rows?.length).toBe(5); // 5 Years
+  });
 });

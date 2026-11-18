@@ -157,15 +157,62 @@ export async function notifyPremiumPdfDownloaded(data: {
   language: string;
   pageCount: number;
   priestName?: string;
+  amountInr?: number;
+  coinsSpent?: number;
+  packageType?: string;
+  paymentMethod?: string;
+  paymentUtr?: string;
 }): Promise<void> {
-  const timestamp = new Date().toLocaleString("en-IN");
+  const timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
   const html = renderPremiumPdfDownloadedEmail({ ...data, timestamp });
+  const amountStr = typeof data.amountInr === "number" ? ` - ₹${data.amountInr}` : "";
   await sendEmailNotification({
-    subject: `[Baggona Panchanga] 📥 Premium PDF Downloaded: ${data.clientName} (${data.language.toUpperCase()})`,
+    subject: `[Baggona Panchanga] 💰 Premium PDF Downloaded: ${data.clientName}${amountStr} (${data.language.toUpperCase()})`,
     html,
     type: "pdf_downloaded",
     data: { ...data, timestamp }
   });
+}
+
+/**
+ * Summarizes how many PDFs were sent on that day, with total INR collected and full itemized details.
+ * Dispatches an automated summary email to spshreepandit@gmail.com whenever at least 1 copy has been sent on that day.
+ */
+export async function triggerDailyPdfSummaryIfActive(targetDate?: string): Promise<{ success: boolean; count: number; totalInr: number }> {
+  const dateKey = targetDate || getIndianStandardDateStr();
+  try {
+    const todayList = await getTodayPremiumPdfDownloads(dateKey);
+    if (!todayList || todayList.length === 0) {
+      return { success: true, count: 0, totalInr: 0 };
+    }
+
+    const totalAmountInr = todayList.reduce((acc, d) => acc + (d.amountInr || 0), 0);
+    const totalCoinsSpent = todayList.reduce((acc, d) => acc + (d.coinsSpent || 0), 0);
+
+    const mappedDownloads = todayList.map((d) => ({
+      devoteeName: d.devoteeName,
+      username: d.username,
+      priestName: d.priestName || "Shreeram Pandit",
+      portalSource: d.portalSource,
+      language: d.language,
+      coinsSpent: d.coinsSpent,
+      amountInr: d.amountInr,
+      time: new Date(d.timestamp).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" })
+    }));
+
+    const res = await sendDailyPremiumPdfSummaryNotification({
+      date: dateKey,
+      totalDownloadsCount: todayList.length,
+      totalCoinsSpent,
+      totalAmountInr,
+      downloads: mappedDownloads
+    });
+
+    return { success: res.success, count: todayList.length, totalInr: totalAmountInr };
+  } catch (err) {
+    console.warn("[triggerDailyPdfSummaryIfActive] Error:", err);
+    return { success: false, count: 0, totalInr: 0 };
+  }
 }
 
 /**

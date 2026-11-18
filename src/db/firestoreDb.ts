@@ -176,12 +176,15 @@ export interface PremiumPdfDownloadDoc {
   devoteeName: string;
   username: string;
   priestName?: string;
-  portalSource: "Baggona Bhavishya" | "Priest Mobile Portal" | "Direct Download";
-  language: string; // "kn" | "en" | "hi" | "te" | "ta"
-  coinsSpent: number; // e.g. 3500
-  amountInr: number; // e.g. 350
+  portalSource: "Baggona Bhavishya" | "Priest Mobile Portal" | "Direct Download" | "Antaranga Secret" | "Five-Year Horizon" | string;
+  language: string; // "kn" | "en" | "hi" | "te" | "ta" | "mr"
+  coinsSpent: number; // e.g. 3500 or 4500
+  amountInr: number; // e.g. 350 or 450
   timestamp: string;
   dateKey: string; // "YYYY-MM-DD"
+  packageType?: "standard_350" | "remedy_450" | string;
+  paymentUtr?: string;
+  paymentMethod?: "upi_qr" | "wallet_coins" | string;
 }
 
 export interface PurohitaProfileDoc {

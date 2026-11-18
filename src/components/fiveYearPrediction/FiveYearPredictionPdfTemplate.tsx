@@ -258,180 +258,56 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
         </div>
       </div>
 
-      {/* ── EXECUTIVE GOLDEN HERO BOX: 5-YEAR DESTINY AT A GLANCE ────────── */}
-      <div data-section="executive-glance" className="pdf-section w-full px-12 mb-5 relative z-10">
-        <div className="relative rounded-2xl border-2 border-amber-600/80 bg-gradient-to-br from-amber-100/95 via-yellow-50/90 to-amber-100/95 p-6 shadow-md overflow-hidden">
-          {/* Inner decorative border */}
-          <div className="absolute inset-2 border border-amber-700/30 rounded-xl pointer-events-none" />
-          <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-xl pointer-events-none" />
+      {/* ── 1. OPENING HOOK & CURRENT PSYCHOLOGICAL SOUL INQUEST ────────────── */}
+      {data.openingHook && (
+        <div data-section="opening-hook" className="pdf-section w-full px-12 mb-5 relative z-10">
+          <div className="relative rounded-2xl border-2 border-amber-600/90 bg-gradient-to-br from-amber-100/95 via-yellow-50/95 to-amber-100/95 p-7 shadow-lg overflow-hidden">
+            {/* Ornate double border */}
+            <div className="absolute inset-2 border border-amber-700/40 rounded-xl pointer-events-none" />
+            <div className="absolute inset-3 border border-dashed border-amber-700/25 rounded-xl pointer-events-none" />
 
-          <div className="relative z-10 space-y-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-amber-700/30 pb-3">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/15 border border-amber-800/30 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest">
-                <span>✨</span>
-                <span>
-                  {isKn ? "೫ ವರ್ಷಗಳ ಜೀವಮಾನದ ಸುವರ್ಣ ತಿರುವು • ತ್ವರಿತ ದರ್ಶನ"
-                    : isMr ? "५ वर्षांचे सुवर्ण वळण • संक्षिप्त दृष्टीक्षेप"
-                      : isHi ? "५ वर्षों का स्वर्णिम मोड़ • त्वरित दर्शन"
-                        : isTe ? "5 సంవత్సరాల సువర్ణ మలుపు • సంక్షిప్త దర్శనం"
-                          : isTa ? "5 ஆண்டுகளின் பொற்கால திருப்புமுனை • விரைவுப் பார்வை"
-                            : "5-Year Sovereign Turnaround • At A Glance"}
+            <div className="relative z-10 space-y-4">
+              {/* Badge & Focus Theme */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-amber-700/30 pb-3">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-800/20 border border-amber-800/40 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest shadow-2xs">
+                  <span className="text-amber-800 text-sm">✨</span>
+                  <span>
+                    {isKn ? "ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಮನಸ್ಸನ್ನು ಆವರಿಸಿರುವ ಮುಖ್ಯ ಚಿಂತೆ & ಜ್ಯೋತಿಷ್ಯ ದರ್ಶನ"
+                      : isMr ? "सध्या आपल्या मनातील मुख्य विचार व ज्योतिषीय दर्शन"
+                        : isHi ? "वर्तमान में आपके मन का मुख्य चिंतन एवं ज्योतिषीय दर्शन"
+                          : isTe ? "ప్రస్తుతం మీ మనస్సులోని ప్రధాన చింత & జ్యోతిష్య దర్శనం"
+                            : isTa ? "தற்போது உங்கள் மனதில் உள்ள முதன்மை சிந்தனை & ஜோதிட தரிசனம்"
+                              : "Current Soul Inquest & Astronomical Focus"}
+                  </span>
+                </div>
+                <span className="text-xs font-black text-amber-900 bg-amber-200/80 px-3 py-1 rounded-lg border border-amber-600/40">
+                  🎯 {data.openingHook.coreFocusTheme}
                 </span>
               </div>
-              <span className="text-xs font-bold text-amber-900 font-serif italic">
-                {data.devoteeName} • {formatNumber6L(data.startYear, lang)}–{formatNumber6L(data.endYear, lang)}
-              </span>
-            </div>
 
-            {/* 4 Golden Quick Metrics */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-serif">
-              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                  🌟 {isKn ? "ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ" : isMr ? "सुवर्ण भाग्योदय" : isHi ? "स्वर्णिम भाग्योदय" : isTe ? "సువర్ణ భాగ్యోదయం" : isTa ? "பொற்கால தொடக்கம்" : "Peak Opportunity"}
-                </span>
-                <p className="text-base font-black text-amber-950 mt-1 font-serif">
-                  {data.macroSummary.peakGoldenYear}
+              {/* Mind-Reading Opening Line in Royal Highlight Card */}
+              <div className="p-4 rounded-xl bg-amber-900/10 border-2 border-amber-600/60 shadow-xs">
+                <p className="text-xl font-black text-amber-950 font-serif italic leading-relaxed text-justify">
+                  "{data.openingHook.openingLine}"
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                  ⚡ {isKn ? "ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್" : isMr ? "प्राणशक्ती गुणांक" : isHi ? "प्राणशक्ति गुणांक" : isTe ? "ప్రాణశక్తి స్కోరు" : isTa ? "பிராணசக்தி மதிப்பெண்" : "Vitality Score"}
-                </span>
-                <p className="text-base font-black text-amber-950 mt-1 font-serif">
-                  {data.currentLifeStatus ? `${formatNumber6L(data.currentLifeStatus.energyScore, lang)}%` : "೮೮%"}
-                </p>
-              </div>
+              {/* Beautifully Narrated First Paragraph */}
+              <p className="text-base font-medium text-amber-950 font-serif leading-relaxed text-justify indent-6">
+                {data.openingHook.firstParagraph}
+              </p>
 
-              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                  💎 {isKn ? "ದೈವಿಕ ರಕ್ಷಾ ಕವಚ" : isMr ? "दैवी रक्षा कवच" : isHi ? "दैवीय रक्षा कवच" : isTe ? "రక్షా కవచం" : isTa ? "ரக்ஷா கவசம்" : "Sacred Shield"}
-                </span>
-                <p className="text-sm font-black text-amber-950 mt-1 font-serif line-clamp-1">
-                  {data.remedies.gemstoneRecommendation}
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
-                  ⏳ {isKn ? "ಮುಖ್ಯ ಪರಿಹಾರ" : isMr ? "मुख्य उपाय" : isHi ? "मुख्य परिहार" : isTe ? "ముఖ్య పరిహారం" : isTa ? "முக்கிய பரிகாரம்" : "Immediate Seva"}
-                </span>
-                <p className="text-xs font-bold text-amber-950 mt-1 font-serif line-clamp-2">
-                  {data.currentLifeStatus?.prescribedSevaText || data.remedies.gokarnaParihara}
-                </p>
-              </div>
-            </div>
-
-            {/* 5-Year Sovereign Guiding Destiny Quote */}
-            <div className="p-3.5 rounded-xl bg-amber-200/60 border border-amber-400/80 flex items-start gap-3">
-              <span className="text-xl text-amber-800 leading-none pt-0.5">📜</span>
-              <div>
-                <span className="text-[10px] font-black text-amber-900 uppercase tracking-widest block mb-0.5">
-                  {isKn ? "೫ ವರ್ಷಗಳ ದೈವಿಕ ಧ್ಯೇಯವಾಕ್ಯ" : isMr ? "५ वर्षांचे दिव्य जीवनसूत्र" : isHi ? "५-वर्षीय दिव्य जीवन सूत्र" : isTe ? "5 సంవత్సరాల దివ్య జీవన సూత్రం" : isTa ? "5 ஆண்டுகளின் தெய்வீக தாரக மந்திரம்" : "Sovereign 5-Year Destiny Axiom"}
-                </span>
-                <p className="text-sm font-bold text-amber-950 font-serif italic leading-relaxed">
-                  "{data.macroSummary.destinyTheme}"
+              {/* Emotional Validation & Turnaround Promise Quote */}
+              <div className="p-3.5 rounded-xl bg-amber-200/70 border border-amber-500/60 flex items-center gap-3">
+                <span className="text-2xl text-amber-800">🪔</span>
+                <p className="text-sm font-bold text-amber-950 font-serif italic leading-normal">
+                  {data.openingHook.emotionalValidationQuote}
                 </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* ── USER DETAILS BOX (Ultra-Premium Royal Gold Parchment Card) ──────── */}
-      <div data-section="user-details" className="pdf-section w-full px-12 mb-5 relative z-10">
-        <div className="relative rounded-xl border-2 border-amber-600/60 bg-amber-100/50 p-6 shadow-md overflow-hidden">
-          {/* Ornate Inner Frame */}
-          <div className="absolute inset-2 border border-amber-700/30 rounded-lg pointer-events-none" />
-          <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-lg pointer-events-none" />
-
-          {/* Decorative corner emblems */}
-          <div className="absolute top-4 left-4 text-sm text-amber-800/50 font-serif">❖</div>
-          <div className="absolute top-4 right-4 text-sm text-amber-800/50 font-serif">❖</div>
-          <div className="absolute bottom-4 left-4 text-sm text-amber-800/50 font-serif">❖</div>
-          <div className="absolute bottom-4 right-4 text-sm text-amber-800/50 font-serif">❖</div>
-
-          <div className="grid grid-cols-2 gap-y-6 gap-x-10 relative z-10 px-4 py-2">
-            {/* Devotee Name & Age */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-3">
-              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {isKn ? "ಜಾತಕರ ಹೆಸರು" : isMr ? "नाव" : isHi ? "नाम" : isTe ? "పేరు" : isTa ? "பெயர்" : "Devotee Name"}
-              </span>
-              <span className="text-2xl font-black text-amber-950 font-serif tracking-normal leading-relaxed">
-                {data.devoteeName}
-              </span>
-            </div>
-
-            <div className="flex flex-col border-b border-amber-800/20 pb-3">
-              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {isKn ? "ವಯಸ್ಸು & ಜನ್ಮ ವಿವರ" : isMr ? "वय व जन्म तपशील" : isHi ? "आयु एवं जन्म विवरण" : isTe ? "వయస్సు & జన్మ వివరాలు" : isTa ? "வயது & பிறப்பு விவரம்" : "Age & Birth Window"}
-              </span>
-              <span className="text-2xl font-bold text-amber-950 font-serif tracking-normal leading-relaxed">
-                {formatNumber6L(Math.round(data.ageYears), lang)} {isKn ? "ವರ್ಷ" : isMr ? "वर्षे" : isHi ? "वर्ष" : "Yrs"} ({data.birthDateFormatted} • {data.birthTimeFormatted})
-              </span>
-            </div>
-
-            {/* Janma Lagna & Moon Sign */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-3">
-              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {isKn ? "ಜನ್ಮ ಲಗ್ನ" : isMr ? "जन्म लग्न" : isHi ? "जन्म लग्न" : isTe ? "జన్మ లగ్నం" : isTa ? "ஜென்ம லக்னம்" : "Natal Lagna"}
-              </span>
-              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {data.lagnaRashi} ({isKn ? "ಲಗ್ನಾಧಿಪತಿ" : isMr ? "लग्नेश" : isHi ? "लग्नेश" : isTe ? "లగ్నాధిపతి" : isTa ? "லக்னாதிபதி" : "Lagna Lord"}: {data.lagnaLord})
-              </span>
-            </div>
-
-            <div className="flex flex-col border-b border-amber-800/20 pb-3">
-              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {isKn ? "ಚಂದ್ರ ರಾಶಿ" : isMr ? "चंद्र राशी" : isHi ? "चन्द्र राशि" : isTe ? "చంద్ర రాశి" : isTa ? "சந்திர ராசி" : "Moon Sign (Rashi)"}
-              </span>
-              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {data.moonRashi} ({isKn ? "ರಾಶ್ಯಾಧಿಪತಿ" : isMr ? "राशीश" : isHi ? "राशीश" : isTe ? "రాశ్యాధిపతి" : isTa ? "ராசியாதிபதி" : "Rashi Lord"}: {data.moonLord})
-              </span>
-            </div>
-
-            {/* Janma Nakshatra & Pada */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-3">
-              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ & ಪಾದ" : isMr ? "जन्म नक्षत्र व चरण" : isHi ? "जन्म नक्षत्र एवं चरण" : isTe ? "జన్మ నక్షత్రం & పాదం" : isTa ? "ஜென்ம நட்சத்திரம் & பாதம்" : "Nakshatra & Pada"}
-              </span>
-              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {data.nakshatra} ({data.padaWord || (isKn ? "ಪಾದ" : isMr ? "चरण" : isHi ? "पाद" : isTe ? "పాదం" : isTa ? "பாதம்" : "Pada")} {data.nakshatraPada})
-              </span>
-            </div>
-
-            {/* Janana Tithi & Vaara */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-3">
-              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {isKn ? "ಜನ್ಮ ತಿಥಿ & ವಾರ" : isMr ? "जन्म तिथी व वार" : isHi ? "जन्म तिथि एवं वार" : isTe ? "జన్మ తిథి & వారం" : isTa ? "ஜென்ம திதி & வாரம்" : "Birth Tithi & Weekday"}
-              </span>
-              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {[data.jananaPanchanga?.tithi, data.birthWeekday].filter(Boolean).join(" • ") || "—"}
-              </span>
-            </div>
-
-            {/* Nitya Yoga & Karana */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-3">
-              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {isKn ? "ನಿತ್ಯ ಯೋಗ & ಕರಣ" : isMr ? "नित्य योग व करण" : isHi ? "नित्य योग एवं करण" : isTe ? "నిత్య యోగం & కరణం" : isTa ? "நித்ய யோகம் & கரணம்" : "Nitya Yoga & Karana"}
-              </span>
-              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {[data.jananaPanchanga?.yoga, data.jananaPanchanga?.karana].filter(Boolean).join(" • ") || "—"}
-              </span>
-            </div>
-
-            {/* Janma Hora & Ayanamsha */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-3">
-              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {isKn ? "ಜನ್ಮ ಹೋರೆ & ಅಯನಾಂಶ" : isMr ? "जन्म होरा व अयनांश" : isHi ? "जन्म होरा एवं अयनांश" : isTe ? "జన్మ హోర & అయనాంశ" : isTa ? "ஜென்ம ஓரை & அயனாம்சம்" : "Birth Hora & Ayanamsa"}
-              </span>
-              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {[data.janmaHora, data.jananaPanchanga?.ayanamsha].filter(Boolean).join(" • ") || "—"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* ── CURRENT LIFE REALITY & LIVE TRANSITS SECTION (ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ & ಗೋಚಾರ ದರ್ಶನ) ── */}
       {data.currentLifeStatus && (
@@ -764,6 +640,312 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           </div>
         </div>
       )}
+
+      {/* ── USER DETAILS BOX (Ultra-Premium Royal Gold Parchment Card) ──────── */}
+      <div data-section="user-details" className="pdf-section w-full px-12 mb-5 relative z-10">
+        <div className="relative rounded-xl border-2 border-amber-600/60 bg-amber-100/50 p-6 shadow-md overflow-hidden">
+          {/* Ornate Inner Frame */}
+          <div className="absolute inset-2 border border-amber-700/30 rounded-lg pointer-events-none" />
+          <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-lg pointer-events-none" />
+
+          {/* Decorative corner emblems */}
+          <div className="absolute top-4 left-4 text-sm text-amber-800/50 font-serif">❖</div>
+          <div className="absolute top-4 right-4 text-sm text-amber-800/50 font-serif">❖</div>
+          <div className="absolute bottom-4 left-4 text-sm text-amber-800/50 font-serif">❖</div>
+          <div className="absolute bottom-4 right-4 text-sm text-amber-800/50 font-serif">❖</div>
+
+          <div className="grid grid-cols-2 gap-y-6 gap-x-10 relative z-10 px-4 py-2">
+            {/* Devotee Name & Age */}
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {isKn ? "ಜಾತಕರ ಹೆಸರು" : isMr ? "नाव" : isHi ? "नाम" : isTe ? "పేరు" : isTa ? "பெயர்" : "Devotee Name"}
+              </span>
+              <span className="text-2xl font-black text-amber-950 font-serif tracking-normal leading-relaxed">
+                {data.devoteeName}
+              </span>
+            </div>
+
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {isKn ? "ವಯಸ್ಸು & ಜನ್ಮ ವಿವರ" : isMr ? "वय व जन्म तपशील" : isHi ? "आयु एवं जन्म विवरण" : isTe ? "వయస్సు & జన్మ వివరాలు" : isTa ? "வயது & பிறப்பு விவரம்" : "Age & Birth Window"}
+              </span>
+              <span className="text-2xl font-bold text-amber-950 font-serif tracking-normal leading-relaxed">
+                {formatNumber6L(Math.round(data.ageYears), lang)} {isKn ? "ವರ್ಷ" : isMr ? "वर्षे" : isHi ? "वर्ष" : "Yrs"} ({data.birthDateFormatted} • {data.birthTimeFormatted})
+              </span>
+            </div>
+
+            {/* Janma Lagna & Moon Sign */}
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {isKn ? "ಜನ್ಮ ಲಗ್ನ" : isMr ? "जन्म लग्न" : isHi ? "जन्म लग्न" : isTe ? "జన్మ లగ్నం" : isTa ? "ஜென்ம லக்னம்" : "Natal Lagna"}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {data.lagnaRashi} ({isKn ? "ಲಗ್ನಾಧಿಪತಿ" : isMr ? "लग्नेश" : isHi ? "लग्नेश" : isTe ? "లగ్నాధిపతి" : isTa ? "லக்னாதிபதி" : "Lagna Lord"}: {data.lagnaLord})
+              </span>
+            </div>
+
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {isKn ? "ಚಂದ್ರ ರಾಶಿ" : isMr ? "चंद्र राशी" : isHi ? "चन्द्र राशि" : isTe ? "చంద్ర రాశి" : isTa ? "சந்திர ராசி" : "Moon Sign (Rashi)"}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {data.moonRashi} ({isKn ? "ರಾಶ್ಯಾಧಿಪತಿ" : isMr ? "राशीश" : isHi ? "राशीश" : isTe ? "రాశ్యాధిపతి" : isTa ? "ராசியாதிபதி" : "Rashi Lord"}: {data.moonLord})
+              </span>
+            </div>
+
+            {/* Janma Nakshatra & Pada */}
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ & ಪಾದ" : isMr ? "जन्म नक्षत्र व चरण" : isHi ? "जन्म नक्षत्र एवं चरण" : isTe ? "జన్మ నక్షత్రం & పాదం" : isTa ? "ஜென்ம நட்சத்திரம் & பாதம்" : "Nakshatra & Pada"}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {data.nakshatra} ({data.padaWord || (isKn ? "ಪಾದ" : isMr ? "चरण" : isHi ? "पाद" : isTe ? "పాదం" : isTa ? "பாதம்" : "Pada")} {data.nakshatraPada})
+              </span>
+            </div>
+
+            {/* Janana Tithi & Vaara */}
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {isKn ? "ಜನ್ಮ ತಿಥಿ & ವಾರ" : isMr ? "जन्म तिथी व वार" : isHi ? "जन्म तिथि एवं वार" : isTe ? "జన్మ తిథి & వారం" : isTa ? "ஜென்ம திதி & வாரம்" : "Birth Tithi & Weekday"}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {[data.jananaPanchanga?.tithi, data.birthWeekday].filter(Boolean).join(" • ") || "—"}
+              </span>
+            </div>
+
+            {/* Nitya Yoga & Karana */}
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {isKn ? "ನಿತ್ಯ ಯೋಗ & ಕರಣ" : isMr ? "नित्य योग व करण" : isHi ? "नित्य योग एवं करण" : isTe ? "నిత్య యోగం & కరణం" : isTa ? "நித்ய யோகம் & கரணம்" : "Nitya Yoga & Karana"}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {[data.jananaPanchanga?.yoga, data.jananaPanchanga?.karana].filter(Boolean).join(" • ") || "—"}
+              </span>
+            </div>
+
+            {/* Janma Hora & Ayanamsha */}
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {isKn ? "ಜನ್ಮ ಹೋರೆ & ಅಯನಾಂಶ" : isMr ? "जन्म होरा व अयनांश" : isHi ? "जन्म होरा एवं अयनांश" : isTe ? "జన్మ హోర & అయనాంశ" : isTa ? "ஜென்ம ஓரை & அயனாம்சம்" : "Birth Hora & Ayanamsa"}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {[data.janmaHora, data.jananaPanchanga?.ayanamsha].filter(Boolean).join(" • ") || "—"}
+              </span>
+            </div>
+          </div>
+
+          {/* ── 9-GRAHA SPHUTA & BHAVA CALCULATION MATRIX ──────── */}
+          {data.planetaryCalculations && data.planetaryCalculations.length > 0 && (
+            <div className="mt-6 pt-5 border-t-2 border-amber-800/30 relative z-10 px-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg text-amber-800">🪐</span>
+                  <h3 className="text-lg font-black text-amber-950 font-serif tracking-normal">
+                    {isKn ? "ಜನ್ಮ ಕುಂಡಲಿ ನವಗ್ರಹ ಸ್ಪಷ್ಟ ಗಣಿತ & ಭಾವ ಲೆಕ್ಕಾಚಾರಗಳು"
+                      : isMr ? "जन्म कुंडली नवग्रह स्पष्ट गणित व भाव हिशोब"
+                        : isHi ? "जन्म कुंडली नवग्रह स्पष्ट गणित एवं भाव गणना"
+                          : isTe ? "జన్మ కుండలి నవగ్రహ స్పష్ట గణితం & భావ లెక్కింపు"
+                            : isTa ? "ஜென்ம ஜாதக நவகிரக ஸ்பஷ்ட கணிதம் & பாவக் கணக்கீடு"
+                              : "Natal 9-Graha Sphuta & Bhava Calculations Matrix"}
+                  </h3>
+                </div>
+                <span className="text-xs font-bold text-amber-900/80 bg-amber-200/60 px-2.5 py-0.5 rounded-md border border-amber-700/30">
+                  {data.jananaPanchanga?.ayanamsha || "Lahiri Ayanamsa"}
+                </span>
+              </div>
+
+              <div className="overflow-x-auto rounded-xl border border-amber-700/40 bg-white/70 shadow-xs">
+                <table className="w-full text-xs font-serif border-collapse">
+                  <thead>
+                    <tr className="bg-amber-200/80 text-amber-950 border-b border-amber-700/40 text-left font-bold">
+                      <th className="p-2.5 pl-3">{isKn ? "ಗ್ರಹ" : isMr ? "ग्रह" : isHi ? "ग्रह" : isTe ? "గ్రహం" : isTa ? "கிரகம்" : "Graha"}</th>
+                      <th className="p-2.5">{isKn ? "ಸ್ಪಷ್ಟಾಂಶ (ಅಂಶ)" : isMr ? "अंश (स्पष्ट)" : isHi ? "अंश (डिग्री)" : isTe ? "అంశలు" : isTa ? "பாகை" : "Degree"}</th>
+                      <th className="p-2.5">{isKn ? "ರಾಶಿ" : isMr ? "राशी" : isHi ? "राशि" : isTe ? "రాశి" : isTa ? "ராசி" : "Rashi"}</th>
+                      <th className="p-2.5">{isKn ? "ಭಾವ (ಸ್ಥಾನ)" : isMr ? "भाव" : isHi ? "भाव" : isTe ? "భావం" : isTa ? "பாவம்" : "House"}</th>
+                      <th className="p-2.5">{isKn ? "ನಕ್ಷತ್ರ & ಪಾದ" : isMr ? "नक्षत्र व चरण" : isHi ? "नक्षत्र एवं पाद" : isTe ? "నక్షత్రం & పాదం" : isTa ? "நட்சத்திரம் & பாதம்" : "Nakshatra & Pada"}</th>
+                      <th className="p-2.5 pr-3">{isKn ? "ಅವಸ್ಥೆ & ಬಲ" : isMr ? "अवस्था व बल" : isHi ? "अवस्था एवं बल" : isTe ? "అవస్థ & బలం" : isTa ? "அவஸ்தை & பலம்" : "Dignity"}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-700/20 text-amber-950">
+                    {data.planetaryCalculations.map((p, pIdx) => (
+                      <tr key={p.planetName || pIdx} className={pIdx % 2 === 0 ? "bg-amber-50/40" : "bg-white/50"}>
+                        <td className="p-2 pl-3 font-black text-amber-900">{p.localizedName}</td>
+                        <td className="p-2 font-mono font-bold">{p.degreeFormatted}</td>
+                        <td className="p-2 font-bold">{p.localizedRashi}</td>
+                        <td className="p-2 font-bold">{formatNumber6L(p.house, lang)} {isKn ? "ನೇ ಭಾವ" : isMr ? "वे भाव" : isHi ? "वें भाव" : "H"}</td>
+                        <td className="p-2">{p.nakshatra}</td>
+                        <td className="p-2 pr-3 font-semibold text-amber-900">{p.dignity}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── COLLECTION NAGALU & JEWELRY FORECAST (೫ ವರ್ಷಗಳ ಚಿನ್ನಾಭರಣ, ನಗನಾಣ್ಯ & ದ್ರವ್ಯ ಸಂಗ್ರಹ ಯೋಗ) ── */}
+      {data.nagaluRoadmap && (
+        <div data-section="collection-nagalu" className="pdf-section w-full px-12 mb-6 relative z-10">
+          <div className="relative rounded-2xl border-2 border-amber-600/80 bg-gradient-to-br from-amber-100/95 via-yellow-50/90 to-amber-100/95 p-6 shadow-md overflow-hidden">
+            {/* Ornate Inner Frame */}
+            <div className="absolute inset-2 border border-amber-700/30 rounded-xl pointer-events-none" />
+            <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-xl pointer-events-none" />
+
+            <div className="relative z-10 space-y-4">
+              {/* Header Title */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-amber-700/30 pb-3">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-800/15 border border-amber-800/30 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest mb-1.5">
+                    <span>🪙💍</span>
+                    <span>{data.nagaluRoadmap.title}</span>
+                  </div>
+                  <p className="text-xs text-amber-900/80 font-serif italic">
+                    {data.nagaluRoadmap.subtitle}
+                  </p>
+                </div>
+                <div className="px-3 py-1.5 bg-amber-200/80 rounded-xl border border-amber-600/40 text-xs font-black text-amber-950">
+                  {data.nagaluRoadmap.favorableGemstoneMetals}
+                </div>
+              </div>
+
+              {/* Dhana Bhava Narrative Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-serif">
+                <div className="p-3.5 rounded-xl bg-white/80 border border-amber-300 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
+                    💎 {isKn ? "ಧನಭಾವ (೨ನೇ ಮನೆ) & ದ್ರವ್ಯ ಸಂಚಯ ಯೋಗ" : isMr ? "द्वितीय भाव व सुवर्ण संचय" : isHi ? "द्वितीय भाव एवं स्वर्ण संचय" : "Dhana Bhava & Treasury Protection"}
+                  </span>
+                  <p className="text-amber-950 leading-relaxed">
+                    {data.nagaluRoadmap.dhanaBhavaDisposition}
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-white/80 border border-amber-300 shadow-2xs space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
+                    ✨ {isKn ? "೫ ವರ್ಷಗಳ ಒಟ್ಟು ಚಿನ್ನ-ಆಭರಣ ವೃದ್ಧಿ ಮುನ್ನೋಟ" : isMr ? "५ वर्षांचा एकूण सुवर्ण वृद्धी अहवाल" : isHi ? "५ वर्षीय स्वर्ण-आभूषण वृद्धि सारांश" : "5-Year Overall Jewelry Growth"}
+                  </span>
+                  <p className="text-amber-950 leading-relaxed">
+                    {data.nagaluRoadmap.overallYogaSummary}
+                  </p>
+                </div>
+              </div>
+
+              {/* 5-Year Year-by-Year Nagalu Timeline Table */}
+              <div className="overflow-x-auto rounded-xl border border-amber-700/40 bg-white/80 shadow-xs">
+                <table className="w-full text-xs font-serif border-collapse">
+                  <thead>
+                    <tr className="bg-amber-200/80 text-amber-950 border-b border-amber-700/40 text-left font-bold">
+                      <th className="p-2.5 pl-3">{isKn ? "ವರ್ಷ & ಸಂವತ್ಸರ" : isMr ? "वर्ष व संवत्सर" : isHi ? "वर्ष एवं संवत्सर" : "Year & Samvatsara"}</th>
+                      <th className="p-2.5">{isKn ? "ನಗನಾಣ್ಯ ಯೋಗ ಬಲ" : isMr ? "सुवर्ण संचय योग" : isHi ? "स्वर्णिम योग" : "Suitability"}</th>
+                      <th className="p-2.5">{isKn ? "ಚಿನ್ನಾಭರಣ ಖರೀದಿ ಭವಿಷ್ಯ & ಮಾರ್ಗದರ್ಶನ" : isMr ? "दागिने खरेदी भविष्य व मार्गदर्शन" : isHi ? "स्वर्ण क्रय फलादेश एवं मार्गदर्शन" : "Gold & Jewelry Forecast"}</th>
+                      <th className="p-2.5 pr-3">{isKn ? "ಶುಭ ಮುಹೂರ್ತ & ನಕ್ಷತ್ರ" : isMr ? "शुभ मुहूर्त व नक्षत्र" : isHi ? "शुभ मुहूर्त एवं नक्षत्र" : "Auspicious Muhurta"}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-700/20 text-amber-950">
+                    {data.nagaluRoadmap.yearlyTimeline.map((yrItem, idx) => (
+                      <tr key={yrItem.yearIndex || idx} className={idx % 2 === 0 ? "bg-amber-50/40" : "bg-white/50"}>
+                        <td className="p-2.5 pl-3 font-bold text-amber-900 whitespace-nowrap">
+                          {yrItem.yearRange}
+                          <span className="block text-[10px] text-amber-700 font-normal">{yrItem.samvatsara}</span>
+                        </td>
+                        <td className="p-2.5 whitespace-nowrap">
+                          <span className="text-amber-600 font-bold">{yrItem.starRating}</span>
+                          <span className="ml-1.5 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900">
+                            {formatNumber6L(yrItem.suitabilityScore, lang)}%
+                          </span>
+                        </td>
+                        <td className="p-2.5 leading-relaxed">{yrItem.prediction}</td>
+                        <td className="p-2.5 pr-3 font-semibold text-amber-900 whitespace-nowrap">{yrItem.auspiciousMuhurta}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EXECUTIVE GOLDEN HERO BOX: 5-YEAR DESTINY AT A GLANCE ────────── */}
+      <div data-section="executive-glance" className="pdf-section w-full px-12 mb-6 relative z-10">
+        <div className="relative rounded-2xl border-2 border-amber-600/80 bg-gradient-to-br from-amber-100/95 via-yellow-50/90 to-amber-100/95 p-6 shadow-md overflow-hidden">
+          {/* Inner decorative border */}
+          <div className="absolute inset-2 border border-amber-700/30 rounded-xl pointer-events-none" />
+          <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-xl pointer-events-none" />
+
+          <div className="relative z-10 space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-amber-700/30 pb-3">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/15 border border-amber-800/30 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest">
+                <span>✨</span>
+                <span>
+                  {isKn ? "೫ ವರ್ಷಗಳ ಜೀವಮಾನದ ಸುವರ್ಣ ತಿರುವು • ತ್ವರಿತ ದರ್ಶನ"
+                    : isMr ? "५ वर्षांचे सुवर्ण वळण • संक्षिप्त दृष्टीक्षेप"
+                      : isHi ? "५ वर्षों का स्वर्णिम मोड़ • त्वरित दर्शन"
+                        : isTe ? "5 సంవత్సరాల సువర్ణ మలుపు • సంక్షిప్త దర్శనం"
+                          : isTa ? "5 ஆண்டுகளின் பொற்கால திருப்புமுனை • விரைவுப் பார்வை"
+                            : "5-Year Sovereign Turnaround • At A Glance"}
+                </span>
+              </div>
+              <span className="text-xs font-bold text-amber-900 font-serif italic">
+                {data.devoteeName} • {formatNumber6L(data.startYear, lang)}–{formatNumber6L(data.endYear, lang)}
+              </span>
+            </div>
+
+            {/* 4 Golden Quick Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-serif">
+              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
+                  🌟 {isKn ? "ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ" : isMr ? "सुवर्ण भाग्योदय" : isHi ? "स्वर्णिम भाग्योदय" : isTe ? "సువర్ణ భాగ్యోదయం" : isTa ? "பொற்கால தொடக்கம்" : "Peak Opportunity"}
+                </span>
+                <p className="text-base font-black text-amber-950 mt-1 font-serif">
+                  {data.macroSummary.peakGoldenYear}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
+                  ⚡ {isKn ? "ಪ್ರಾಣಶಕ್ತಿ ಸ್ಕೋರ್" : isMr ? "प्राणशक्ती गुणांक" : isHi ? "प्राणशक्ति गुणांक" : isTe ? "ప్రాణశక్తి స్కోరు" : isTa ? "பிராணசக்தி மதிப்பெண்" : "Vitality Score"}
+                </span>
+                <p className="text-base font-black text-amber-950 mt-1 font-serif">
+                  {data.currentLifeStatus ? `${formatNumber6L(data.currentLifeStatus.energyScore, lang)}%` : "೮೮%"}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
+                  💎 {isKn ? "ದೈವಿಕ ರಕ್ಷಾ ಕವಚ" : isMr ? "दैवी रक्षा कवच" : isHi ? "दैवीय रक्षा कवच" : isTe ? "రక్షా కవచం" : isTa ? "ரக்ஷா கவசம்" : "Sacred Shield"}
+                </span>
+                <p className="text-sm font-black text-amber-950 mt-1 font-serif line-clamp-1">
+                  {data.remedies.gemstoneRecommendation}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/80 border border-amber-300 shadow-2xs">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
+                  ⏳ {isKn ? "ಮುಖ್ಯ ಪರಿಹಾರ" : isMr ? "मुख्य उपाय" : isHi ? "मुख्य परिहार" : isTe ? "ముఖ్య పరిహారం" : isTa ? "முக்கிய பரிகாரம்" : "Immediate Seva"}
+                </span>
+                <p className="text-xs font-bold text-amber-950 mt-1 font-serif line-clamp-2">
+                  {data.currentLifeStatus?.prescribedSevaText || data.remedies.gokarnaParihara}
+                </p>
+              </div>
+            </div>
+
+            {/* 5-Year Sovereign Guiding Destiny Quote */}
+            <div className="p-3.5 rounded-xl bg-amber-200/60 border border-amber-400/80 flex items-start gap-3">
+              <span className="text-xl text-amber-800 leading-none pt-0.5">📜</span>
+              <div>
+                <span className="text-[10px] font-black text-amber-900 uppercase tracking-widest block mb-0.5">
+                  {isKn ? "೫ ವರ್ಷಗಳ ದೈವಿಕ ಧ್ಯೇಯವಾಕ್ಯ" : isMr ? "५ वर्षांचे दिव्य जीवनसूत्र" : isHi ? "५-वर्षीय दिव्य जीवन सूत्र" : isTe ? "5 సంవత్సరాల దివ్య జీవన సూత్రం" : isTa ? "5 ஆண்டுகளின் தெய்வீக தாரக மந்திரம்" : "Sovereign 5-Year Destiny Axiom"}
+                </span>
+                <p className="text-sm font-bold text-amber-950 font-serif italic leading-relaxed">
+                  "{data.macroSummary.destinyTheme}"
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ── CHAPTER 1: SOVEREIGN 5-YEAR DESTINY TRAJECTORY & PIVOTAL TURNING POINT ── */}
       <div data-section="macro-destiny" className={sectionClass}>

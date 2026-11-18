@@ -29,6 +29,28 @@ import {
   getPadaWord
 } from "./fiveYearLocale";
 import { resolveDevoteeDisplayName } from "../../utils/transliterator";
+import {
+  type OpeningHookNarrative,
+  type PlanetaryCalculationItem,
+  type NagaluYearItem,
+  type NagaluRoadmapInfo,
+  calculateOpeningHookNarrative,
+  calculatePlanetaryCalculations,
+  calculateNagaluRoadmap
+} from "./fiveYearDynamicNarrativeEngine";
+
+export type {
+  OpeningHookNarrative,
+  PlanetaryCalculationItem,
+  NagaluYearItem,
+  NagaluRoadmapInfo
+};
+
+export {
+  calculateOpeningHookNarrative,
+  calculatePlanetaryCalculations,
+  calculateNagaluRoadmap
+};
 
 export function getEnglishOrdinal(n: number): string {
   const s = ["th", "st", "nd", "rd"];
@@ -366,6 +388,9 @@ export interface FiveYearPredictionPayload {
   sacredDeityImage?: SacredDeityImageInfo;
   personalizedDynamicShloka?: DynamicDevoteeShloka;
   currentLifeStatus?: FiveYearCurrentLifeStatus;
+  openingHook?: OpeningHookNarrative;
+  planetaryCalculations?: PlanetaryCalculationItem[];
+  nagaluRoadmap?: NagaluRoadmapInfo;
   hotelPrivilegeCard?: HotelHospitalityPrivilege;
   remedies: {
     ishtaDevata: string;
@@ -3544,41 +3569,122 @@ export function calculateCurrentLifeStatus(
     en: "Triggers sudden environmental pivots, shifts in ambition, and deeper spiritual awakening."
   }, targetLang);
 
-  const careerImmediateFocus = pick6({
-    kn: "ಉದ್ಯೋಗದಲ್ಲಿ ಆತುರದ ಬದಲಾವಣೆ ಬೇಡ. ಸದ್ಯದ ಜವಾಬ್ದಾರಿಗಳನ್ನು ನಿಷ್ಠೆಯಿಂದ ನಿರ್ವಹಿಸಿದರೆ ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲಿ ಭಡ್ತಿ ಹಾಗೂ ಮನ್ನಣೆ ಒಲಿಯಲಿದೆ.",
-    mr: "नोकरी-व्यवसायात घाईघाईने निर्णय घेऊ नका. चालू जबाबदाऱ्या प्रामाणिकपणे सांभाळल्यास प्रगतीचे मार्ग मोकळे होतील.",
-    hi: "कार्यक्षेत्र में जल्दबाजी से बचें। वर्तमान उत्तरदायित्वों को निष्ठापूर्वक निभाएं, आगामी ६ महीनों में पदोन्नति के योग बनेंगे।",
-    te: "ఉద్యోగంలో ఆవేశపూరిత నిర్ణయాలు వద్దు. ప్రస్తుత బాధ్యతలను సక్రమంగా నిర్వహిస్తే త్వరలో గుర్తింపు లభిస్తుంది.",
-    ta: "வேலையில் அவசர மாற்றங்களைத் தவிர்க்கவும். தற்போதைய பணிகளைச் செவ்வனே செய்தால் நன்மதிப்பும் உயர்வும் கிடைக்கும்.",
-    en: "Avoid hasty professional pivots. Steadily consolidate current responsibilities; advancement and recognition will follow."
-  }, targetLang);
+  const careerImmediateFocus = hasGuruBala
+    ? pick6({
+      kn: "ಗುರುಬಲದ ಶುಭ ಸಂಚಾರದಿಂದ ಕರ್ಮಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ವಿಸ್ತರಣೆ, ಬಡ್ತಿ ಹಾಗೂ ಅಧಿಕಾರ ಯೋಗ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಧೈರ್ಯದಿಂದ ಹೊಸ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳಿ.",
+      mr: "गुरूच्या शुभ गोचरामुळे कार्यक्षेत्रात नवीन संधी, पदोन्नती व सन्मान लाभेल. आत्मविश्वासाने महत्त्वाचे निर्णय घ्या.",
+      hi: "शुभ गुरुबल के प्रभाव से कार्यक्षेत्र में नवीन विस्तार, पदोन्नति एवं अधिकार वृद्धि के योग बनेंगे। आत्मविश्वासपूर्वक आगे बढ़ें।",
+      te: "గురుబల అనుకూలతతో ఉద్యోగ వ్యాపారాలలో విశేష పురోగతి, ప్రమోషన్ మరియు ఆధిపత్యం లభించును. ధైర్యంగా ముందడుగు వేయండి.",
+      ta: "குரு பலத்தின் அனுகூலத்தால் தொழில் மற்றும் வேலையில் புதிய உயர்வு, பதவி உயர்வு மற்றும் அங்கீகாரம் கிட்டும். துணிவுடன் முடிவெடுக்கலாம்.",
+      en: "Under auspicious Jupiter transit, vocational expansion, leadership breakthroughs, and well-earned promotions are strongly activated."
+    }, targetLang)
+    : (isSadeSati || isAshtama)
+      ? pick6({
+        kn: "ಶನಿಯ ಪ್ರಭಾವವಿರುವುದರಿಂದ ಉದ್ಯೋಗದಲ್ಲಿ ಆತುರದ ಬದಲಾವಣೆ ಬೇಡ. ಸದ್ಯದ ಜವಾಬ್ದಾರಿಗಳನ್ನು ನಿಷ್ಠೆಯಿಂದ ನಿರ್ವಹಿಸಿದರೆ ಹಂತ-ಹಂತವಾಗಿ ಯಶಸ್ಸು ಒಲಿಯಲಿದೆ.",
+        mr: "शनीच्या प्रभावामुळे नोकरी-व्यवसायात घाईघाईने निर्णय घेऊ नका. चालू जबाबदाऱ्या प्रामाणिकपणे सांभाळल्यास हळूहळू प्रगती होईल.",
+        hi: "शनि गोचर के कारण कार्यक्षेत्र में जल्दबाजी से बचें। वर्तमान उत्तरदायित्वों को धैर्यपूर्वक निभाएं, धीरे-धीरे स्थायी सफलता मिलेगी।",
+        te: "శని ప్రభావం వల్ల ఉద్యోగంలో తొందరపాటు నిర్ణయాలు వద్దు. బాధ్యతలను ఓర్పుతో నిర్వహిస్తే క్రమంగా స్థిరత్వం లభిస్తుంది.",
+        ta: "சனி சஞ்சாரத்தால் பணியில் அவசர முடிவுகளைத் தவிர்க்கவும். தற்போதைய பொறுப்புகளைப் பொறுமையுடன் செய்தால் படிப்படியாக வெற்றி கிட்டும்.",
+        en: "Under Saturn's disciplined transit, avoid impulsive job pivots. Diligently anchor current responsibilities to ensure steady endurance."
+      }, targetLang)
+      : pick6({
+        kn: "ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಸ್ಥಿರ ಪ್ರಗತಿ ಹಾಗೂ ನೂತನ ಕೌಶಲಗಳ ವೃದ್ಧಿ. ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ವಿಶ್ವಾಸ ಗಳಿಸಿ ಮಹತ್ವದ ಯೋಜನೆಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಮುನ್ನಡೆಸಿ.",
+        mr: "करिअरमध्ये स्थिर प्रगती व नवीन कौशल्यांचा विकास होईल. वरिष्ठांचा विश्वास संपादन करून महत्त्वाच्या प्रकल्पांचे नेतृत्व करा.",
+        hi: "कार्यक्षेत्र में संतुलित प्रगति एवं नवीन कौशल अर्जन के अवसर। वरिष्ठों का विश्वास जीतकर महत्वपूर्ण परियोजनाओं का सफल नेतृत्व करें।",
+        te: "కెరీర్‌లో స్థిరమైన ప్రగతి మరియు నూతన నైపుణ్యాల వృద్ధి. ఉన్నతాధికారుల విశ్వాసాన్ని పొంది కీలక ప్రాజెక్టులను ముందుకు నడపండి.",
+        ta: "தொழில் வாழ்க்கையில் சீரான வளர்ச்சி மற்றும் புதிய திறன்கள் கூடும். மேலதிகாரிகளின் நம்பிக்கையைப் பெற்று பணிகளை முன்னெடுக்கவும்.",
+        en: "Consistent vocational progress with steady skill acquisition. Cultivate senior stakeholder trust and lead core assignments with confidence."
+      }, targetLang);
 
-  const wealthImmediateFocus = pick6({
-    kn: "ಹೊಸ ಸಾಲ ಮಾಡುವುದು ಹಾಗೂ ಊಹಾತ್ಮಕ ಹೂಡಿಕೆಗಳಿಂದ (ಸ್ಪೆಕ್ಯುಲೇಶನ್) ದೂರವಿರಿ. ದ್ರವ್ಯ ನಿಧಿಯನ್ನು ಉಳಿತಾಯ ರೂಪದಲ್ಲಿ ಭದ್ರಪಡಿಸಿಕೊಳ್ಳಿ.",
-    mr: "नवीन कर्ज व सट्टेबाजीपासून दूर राहा. पैशांची बचत करून सुरक्षित पर्यायांमध्ये निधी राखून ठेवा.",
-    hi: "नया कर्ज लेने तथा सट्टेबाजी से दूर रहें। धन संचय कर सुरक्षित विकल्पों में पूंजी सुरक्षित रखें।",
-    te: "కొత్త అప్పులు చేయడం మరియు రిస్క్ పెట్టుబడులకు దూరంగా ఉండండి. ధనాన్ని పొదుపు చేయడం శ్రేయస్కరం.",
-    ta: "புதிய கடன்கள் வாங்குவதையும் ஊக வணிக முதலீடுகளையும் தவிர்க்கவும். சேமிப்பில் கவனம் செலுத்துவது நல்லது.",
-    en: "Refrain from speculative risks and avoidable debt liabilities. Prioritize liquid savings and defensive capital preservation."
-  }, targetLang);
+  const wealthImmediateFocus = hasGuruBala
+    ? pick6({
+      kn: "ಧನಕಾರಕ ಗುರುವಿನ ಅನುಗ್ರಹದಿಂದ ಸಕಾಲಿಕ ಧನಾಗಮನ, ಚಿನ್ನಾಭರಣ ಸಂಗ್ರಹ ಹಾಗೂ ಲಾಭದಾಯಕ ಹೂಡಿಕೆಗಳಿಗೆ ಅತ್ಯುತ್ತಮ ಕಾಲ. ಉಳಿತಾಯವನ್ನು ವೃದ್ಧಿಸಿ.",
+      mr: "गुरूच्या कृपेने धनप्राप्ती, सुवर्ण संचय व लाभदायक गुंतवणुकीसाठी उत्तम काळ. बचतीचे प्रमाण वाढवा.",
+      hi: "धनकारक गुरु की कृपा से आय में वृद्धि, स्वर्ण संचय एवं लाभदायक निवेश हेतु श्रेष्ठ समय। बचत को सुदृढ़ करें।",
+      te: "గురు అనుగ్రహంతో ధన ప్రవాహం, బంగారు ఆభరణాల సంచయం మరియు లాభదాయక పెట్టుబడులకు శుభ సమయం. పొదుపును పెంచండి.",
+      ta: "குருவின் அருளால் பணவரவு சீராகி, தங்க நகைகள் சேர்க்கை மற்றும் நன்மையான முதலீடுகளுக்கு உகந்த காலம். சேமிப்பை உயர்த்தவும்.",
+      en: "Jupiter's grace activates buoyant cash flow, consecrated jewelry acquisition, and rewarding capital accumulation."
+    }, targetLang)
+    : (isSadeSati || isAshtama)
+      ? pick6({
+        kn: "ಹೊಸ ಸಾಲ ಮಾಡುವುದು ಹಾಗೂ ಊಹಾತ್ಮಕ ಅಪಾಯಕಾರಿ ಹೂಡಿಕೆಗಳಿಂದ ದೂರವಿರಿ. ದ್ರವ್ಯ ನಿಧಿಯನ್ನು ತುರ್ತು ಅಗತ್ಯಗಳಿಗಾಗಿ ಉಳಿತಾಯ ರೂಪದಲ್ಲಿ ಭದ್ರಪಡಿಸಿಕೊಳ್ಳಿ.",
+        mr: "नवीन कर्ज व सट्टेबाजीपासून पूर्ण दूर राहा. अचानक खर्चासाठी द्रव निधी सुरक्षित पर्यायांमध्ये राखून ठेवा.",
+        hi: "अनावश्यक ऋण लेने एवं सट्टेबाजी से बचें। आपातकालीन आवश्यकताओं हेतु तरल पूंजी को सुरक्षित रूप में संचित रखें।",
+        te: "కొత్త అప్పులు చేయడం మరియు రిస్క్ పెట్టుబడులను పూర్తిగా మానండి. అత్యవసరాల కోసం నిధులను పొదుపుగా భద్రపరచండి.",
+        ta: "புதிய கடன்கள் வாங்குவதையும் ஊக வணிக முதலீடுகளையும் தவிர்க்கவும். அவசர தேவைக்கு சேமிப்பை பாதுகாப்பாக வைக்கவும்.",
+        en: "Strictly avoid speculative ventures and avoidable borrowing. Prioritize defensive cash preservation and liquid reserves."
+      }, targetLang)
+      : pick6({
+        kn: "ಆದಾಯ ಮತ್ತು ಖರ್ಚಿನ ನಡುವೆ ಉತ್ತಮ ಸಮತೋಲನ. ಭವಿಷ್ಯದ ಸುರಕ್ಷತೆಗಾಗಿ ದೀರ್ಘಾವಧಿ ಉಳಿತಾಯ ಯೋಜನೆಗಳಲ್ಲಿ ಹಣ ತೊಡಗಿಸುವುದು ಹಿತಕರ.",
+        mr: "उत्पन्न व खर्चात उत्तम समतोल राखा. दीर्घकालीन बचतीमध्ये गुंतवणूक करणे भविष्यासाठी हितकारक ठरेल.",
+        hi: "आय एवं व्यय में उत्तम संतुलन बनाए रखें। भविष्य की सुरक्षा हेतु दीर्घकालीन बचत योजनाओं में पूंजी लगाएं।",
+        te: "ఆదాయ వ్యయాల మధ్య చక్కని సమతుల్యత పాటించండి. భవిష్యత్ భద్రత కోసం దీర్ఘకాలిక పొదుపు పథకాలలో పెట్టుబడి పెట్టండి.",
+        ta: "வரவுக்கும் செலவுக்கும் இடையே சமநிலை பேணவும். எதிர்காலப் பாதுகாப்பிற்கு நீண்டகால சேமிப்பு திட்டங்களில் முதலீடு செய்யவும்.",
+        en: "Harmonious balance between income and expenditure. Channel surplus earnings into reliable long-term defensive assets."
+      }, targetLang);
 
-  const familyImmediateFocus = pick6({
-    kn: "ಕುಟುಂಬದ ಸದಸ್ಯರ ಭಾವನೆಗಳಿಗೆ ಗೌರವ ನೀಡಿ. ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಪ್ರಶಾಂತ ಸಂಭಾಷಣೆಯ ಮೂಲಕ ಸೌಹಾರ್ದಯುತವಾಗಿ ಬಗೆಹರಿಸಿಕೊಳ್ಳಿ.",
-    mr: "कुटुंबातील सदस्यांच्या भावनांचा आदर करा. लहानसहान मतभेद संवादाने शांतपणे सोडवा.",
-    hi: "पारिवारिक सदस्यों की भावनाओं का सम्मान करें। छोटे-मोटे मतभेदों को आपसी संवाद द्वारा शांतिपूर्वक सुलझाएं।",
-    te: "కుటుంబ సభ్యుల భావాలను గౌరవించండి. చిన్న చిన్న విభేదాలను సంభాషణ ద్వారా పరిష్కరించుకోండి.",
-    ta: "குடும்ப உறுப்பினர்களின் உணர்வுகளுக்கு மதிப்பளியுங்கள். சிறு கருத்து வேறுபாடுகளைப் பேசித் தீர்ப்பது அமைதி தரும்.",
-    en: "Foster harmonious household dialogue. Practice empathetic listening and prevent trivial disagreements from escalating."
-  }, targetLang);
+  const familyImmediateFocus = (isKantaka || isSadeSati)
+    ? pick6({
+      kn: "ಕುಟುಂಬದ ಹಿರಿಯರ ಆರೋಗ್ಯದ ಕಡೆಗೆ ವಿಶೇಷ ಕಾಳಜಿ ವಹಿಸಿ. ಸಣ್ಣಪುಟ್ಟ ಗೃಹ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಪ್ರಶಾಂತ ಸಂಭಾಷಣೆಯ ಮೂಲಕ ಸೌಹಾರ್ದಯುತವಾಗಿ ಬಗೆಹರಿಸಿಕೊಳ್ಳಿ.",
+      mr: "कुटुंबातील वडीलधाऱ्यांच्या आरोग्याची काळजी घ्या. लहानसहान मतभेद संवादाने शांतपणे सोडवून सामंजस्य राखा.",
+      hi: "परिवार के वरिष्ठ सदस्यों के स्वास्थ्य का विशेष ध्यान रखें। घरेलू मतभेदों को आपसी संवाद द्वारा शांतिपूर्वक सुलझाएं।",
+      te: "కుటుంబంలోని పెద్దల ఆరోగ్యంపై శ్రద్ధ పెట్టండి. చిన్న చిన్న వివాదాలను ప్రశాంత సంభాషణ ద్వారా పరిష్కరించుకోండి.",
+      ta: "குடும்பப் பெரியவர்களின் ஆரோக்கியத்தில் கவனம் செலுத்தவும். சிறு கருத்து வேறுபாடுகளை அன்பான பேச்சால் சமரசம் செய்யவும்.",
+      en: "Prioritize domestic harmony and elder well-being. Practice thoughtful patience to resolve household discussions amicably."
+    }, targetLang)
+    : hasGuruBala
+      ? pick6({
+        kn: "ಗೃಹದಲ್ಲಿ ಸನ್ಮಂಗಳ ವಾತಾವರಣ, ಶುಭ ಕಾರ್ಯಗಳ ಸಂಭ್ರಮ ಹಾಗೂ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಮಧುರ ಸಾಮರಸ್ಯ. ಬಂಧು-ಮಿತ್ರರ ಸಂಪೂರ್ಣ ಸಹಕಾರ ಲಭಿಸಲಿದೆ.",
+        mr: "घरात मंगलमय वातावरण, शुभकार्यांचे योग व कौटुंबिक सौख्य वृद्धिंगत होईल. आप्तेष्टांचे पूर्ण सहकार्य लाभेल.",
+        hi: "गृह में मांगलिक वातावरण, शुभ आयोजनों का उल्लास एवं पारिवारिक सौहार्द में वृद्धि। परिजनों का पूर्ण सहयोग प्राप्त होगा।",
+        te: "ఇంట్లో శుభ వాతావరణం, శుభకార్యాల సన్నాహాలు మరియు కుటుంబంలో మధుర బంధాలు బలపడతాయి. బంధువుల సహకారం లభిస్తుంది.",
+        ta: "இல்லத்தில் சுப மங்கல நிகழ்வுகள், சுப காரிய பேச்சுக்கள் மற்றும் குடும்பத்தில் மகிழ்ச்சி பொங்கும். உற்றார் உறவினர் ஆதரவு கிட்டும்.",
+        en: "Warm domestic contentment with auspicious family celebrations, harmonious spousal bonds, and supportive kinships."
+      }, targetLang)
+      : pick6({
+        kn: "ಕುಟುಂಬ ಸದಸ್ಯರ ಭಾವನೆಗಳಿಗೆ ಗೌರವ ನೀಡಿ. ಮಕ್ಕಳ ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಗೃಹಾಲಂಕಾರ ಯೋಜನೆಗಳಿಗೆ ಒಟ್ಟಾಗಿ ಸಮಯ ಮೀಸಲಿಡಿ.",
+        mr: "कुटुंबातील सदस्यांच्या भावनांचा आदर करा. मुलांचे शिक्षण व कौटुंबिक योजनांसाठी एकत्र वेळ द्या.",
+        hi: "परिवार के सदस्यों की भावनाओं का सम्मान करें। बच्चों की शिक्षा एवं पारिवारिक निर्णयों में परस्पर सहयोग बनाए रखें।",
+        te: "కుటుంబ సభ్యుల భావాలను గౌరవించండి. పిల్లల చదువు మరియు ఇంటి వ్యవహారాలపై శ్రద్ధ వహించండి.",
+        ta: "குடும்பத்தாரின் விருப்பங்களுக்கு மதிப்பளியுங்கள். குழந்தைகளின் கல்வி மற்றும் வீட்டு வளர்ச்சிக்கு நேரம் ஒதுக்குங்கள்.",
+        en: "Nurture household unity and emotional validation. Devote quality focus to children's aspirations and collective domestic goals."
+      }, targetLang);
 
-  const healthImmediateFocus = pick6({
-    kn: "ಮಾನಸಿಕ ಆತಂಕ, ನಿದ್ರಾಹೀನತೆ ಹಾಗೂ ರಕ್ತದೊತ್ತಡದ ಬಗ್ಗೆ ಜಾಗರೂಕರಾಗಿರಿ. ಪ್ರಾಣಾಯಾಮ, ಶುದ್ಧ ಆಹಾರ ಹಾಗೂ ಕಾಲಕಾಲಕ್ಕೆ ವಿಶ್ರಾಂತಿ ಅತ್ಯಗತ್ಯ.",
-    mr: "मानसिक ताण, अपुरी झोप व रक्तदाबाची काळजी घ्या. नियमित प्राणायाम व सात्विक आहार उत्तम राहील.",
-    hi: "मानसिक तनाव, अनिद्रा एवं रक्तचाप के प्रति सजग रहें। नियमित प्राणायाम, सात्विक आहार एवं पर्याप्त विश्राम अनिवार्य है।",
-    te: "మానసిక ఒత్తిడి, నిద్రలేమి పట్ల జాగ్రత్త వహించండి. ప్రాణాయామం మరియు సాత్విక ఆహారం పాటించడం అవసరం.",
-    ta: "மன அழுத்தம், தூக்கமின்மை குறித்து கவனம் தேவை. பிராணாயாமம் மற்றும் சாத்வீக உணவு நலம் பயக்கும்.",
-    en: "Safeguard against stress-induced fatigue, sleep disruption, and nervous tension. Maintain regular pranayama and wholesome nourishment."
-  }, targetLang);
+  const healthImmediateFocus = isAshtama
+    ? pick6({
+      kn: "ಅಷ್ಟಮ ಶನಿಯ ಕಾಲವಿರುವುದರಿಂದ ವಾಹನ ಚಾಲನೆ ಹಾಗೂ ದೀರ್ಘ ರಾತ್ರಿ ಪ್ರಯಾಣದಲ್ಲಿ ಪರಮ ಎಚ್ಚರಿಕೆ ವಹಿಸಿ. ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪವು ರಕ್ಷೆ.",
+      mr: "अष्टम शनीच्या काळात वाहन चालवताना व प्रवासात अत्यंत काळजी घ्या. महामृत्युंजय जप आरोग्यास अभय देईल.",
+      hi: "अष्टम शनि गोचर में वाहन चालन एवं रात्रि यात्राओं में अत्यधिक सावधानी बरतें। महामृत्युंजय जप शारीरिक आरोग्य रक्षक है।",
+      te: "అష్టమ శని ప్రభావంతో వాహనం నడిపేటప్పుడు మరియు రాత్రి ప్రయాణాలలో అత్యంత జాగ్రత్త అవసరం. మహామృత్యుంజయ జపం శ్రేయస్కరం.",
+      ta: "அஷ்டம சனி காலமாதலால் வாகனம் ஓட்டுவதிலும் இரவு பயணங்களிலும் அதிக கவனம் தேவை. மகா மிருத்யுஞ்சய ஜெபம் நலம் தரும்.",
+      en: "Under 8th house Saturn, exercise vigilance in vehicular transit and high-speed travel. Daily Maha Mrityunjaya japa guards vitality."
+    }, targetLang)
+    : isSadeSati
+      ? pick6({
+        kn: "ಮಾನಸಿಕ ಆತಂಕ, ಕೀಲು ನೋವು ಹಾಗೂ ನಿದ್ರಾಹೀನತೆಯ ಬಗ್ಗೆ ಜಾಗರೂಕರಾಗಿರಿ. ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ನಿಯಮಿತ ಸಾತ್ವಿಕ ಆಹಾರ ಅತ್ಯಗತ್ಯ.",
+        mr: "मानसिक ताण, सांधेदुखी व अपुरी झोप यावर लक्ष ठेवा. सूर्य नमस्कार, नियमित प्राणायाम व सात्विक आहार उत्तम राहील.",
+        hi: "मानसिक तनाव, जोड़ों के दर्द एवं अनिद्रा के प्रति सजग रहें। नित्य सूर्य नमस्कार, प्राणायाम एवं सात्विक आहार अनिवार्य है।",
+        te: "మానసిక ఒత్తిడి, కీళ్ల నొప్పులు మరియు నిద్రలేమి పట్ల జాగ్రత్త వహించండి. సూర్య నమస్కారాలు, ప్రాణాయామం మంచిది.",
+        ta: "மன அழுத்தம், மூட்டு வலி மற்றும் தூக்கமின்மைக்கு கவனம் தேவை. சூரிய நமஸ்காரம் மற்றும் சாத்வீக உணவு நலம் பயக்கும்.",
+        en: "Manage physical fatigue, joint stiffness, and stress-induced insomnia through regular pranayama and wholesome nourishment."
+      }, targetLang)
+      : hasGuruBala
+        ? pick6({
+          kn: "ದೈವಿಕ ಗುರುಬಲದಿಂದ ದೇಹದಲ್ಲಿ ಉತ್ತಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ಚೈತನ್ಯ. ದೈನಂದಿನ ಲಘು ವ್ಯಾಯಾಮದಿಂದ ಆಯಸ್ಸು ಹಾಗೂ ಆರೋಗ್ಯ ವೃದ್ಧಿ.",
+          mr: "गुरूच्या शुभ प्रभावामुळे उत्तम प्रतिकारशक्ती व ऊर्जा लाभेल. दैनंदिन हलक्या व्यायामाने आरोग्य उत्तम राहील.",
+          hi: "दिव्य गुरुबल से उत्तम रोगप्रतिरोधक क्षमता एवं शारीरिक ऊर्जा का संवर्धन। नियमित दिनचर्या से आरोग्य सुदृढ़ रहेगा।",
+          te: "గురుబలంతో రోగనిరోధక శక్తి మరియు ఉత్తేజం పెంపొందుతుంది. తేలికపాటి వ్యాయామంతో పరిపూర్ణ ఆరోగ్యం లభించును.",
+          ta: "குரு பலத்தால் உடலில் நோய் எதிர்ப்பு சக்தியும் புத்துணர்ச்சியும் கூடும். உடற்பயிற்சியால் உடல்நலம் சிறக்கும்.",
+          en: "Jupiter's radiant transit confers high vitality, robust immune defenses, and steady rejuvenation through wholesome habits."
+        }, targetLang)
+        : pick6({
+          kn: "ಹವಾಮಾನ ಬದಲಾವಣೆಯ ಸಮಯದಲ್ಲಿ ಜೀರ್ಣಶಕ್ತಿ ಹಾಗೂ ನೀರಿನ ಶುದ್ಧತೆಯ ಬಗ್ಗೆ ಗಮನವಿರಲಿ. ಕಾಲಕಾಲಕ್ಕೆ ಸಾಕಷ್ಟು ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ.",
+          mr: "ऋतुबदलाच्या काळात पचनशक्ती व पिण्याच्या पाण्याची काळजी घ्या. नियमित पुरेशी विश्रांती घेणे आवश्यक आहे.",
+          hi: "ऋतु परिवर्तन के समय खानपान एवं जल की शुद्धता का ध्यान रखें। समय पर पर्याप्त विश्राम अवश्य लें।",
+          te: "వాతావరణ మార్పుల సమయంలో జీర్ణక్రియ మరియు పరిశుభ్రమైన నీటిపై శ్రద్ధ పెట్టండి. తగినంత విశ్రాంతి తీసుకోండి.",
+          ta: "பருவநிலை மாற்றத்தில் உணவு செரிமானம் மற்றும் குடிநீர் சுத்தத்தில் கவனம் தேவை. போதுமான ஓய்வு அவசியம். ",
+          en: "Maintain hydration and digestive discipline during seasonal transitions. Ensure consistent, rejuvenating sleep rhythm."
+        }, targetLang);
 
   const cautionWindowImmediate = pick6({
     kn: "ಅಮಾವಾಸ್ಯೆ, ಹುಣ್ಣಿಮೆ ಹಾಗೂ ಚಂದ್ರಷ್ಟಮ ದಿನಗಳಲ್ಲಿ ಮಹತ್ವದ ಒಪ್ಪಂದಗಳಿಗೆ ಸಹಿ ಹಾಕಬೇಡಿ. ಶಾಂತಚಿತ್ತದಿಂದ ಇರಲು ಆದ್ಯತೆ ನೀಡಿ.",
@@ -4572,6 +4678,107 @@ export function compute5YearMasterPrediction(
             : targetLang === "te" ? `అనవసర అప్పులు చేయవద్దు; అపరిచిత ఆన్‌లైన్ పెట్టుబడులు లేదా వృథా ఖర్చులకు దూరంగా ఉండండి.`
               : targetLang === "ta" ? `தேவையில்லாமல் கடன் வாங்க வேண்டாம்; தேவையற்ற ஆன்லைன் திட்டங்கள் அல்லது வீண் செலவுகளை தவிர்க்கவும்.`
                 : `Strictly avoid speculative online investments and unvetted loans; enforce rigorous fiscal restraint.`;
+
+    } else if (munthaHouse === 6) {
+      if (isShatruVijaya) {
+        headline = targetLang === "kn" ? `${gregorianRange}: ಶತ್ರು ಜಯ, ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯಭೇರಿ ಹಾಗೂ ಪ್ರತಿಷ್ಠಾ ಪುನರುತ್ಥಾನದ ವರ್ಷ`
+          : targetLang === "hi" ? `${gregorianRange}: शत्रु विजय, चुनावी/प्रतिस्पर्धी सफलता एवं वर्चस्व पुनर्स्थापना वर्ष`
+          : targetLang === "mr" ? `${gregorianRange}: शत्रू विजय, स्पर्धात्मक यश व वर्चस्व पुनर्स्थापनेचे वर्ष`
+          : targetLang === "te" ? `${gregorianRange}: శత్రు జయం, పోటీ పరీక్షలు/ఎన్నికల విజయం & ఆధిపత్య పునరుద్ధరణ`
+          : targetLang === "ta" ? `${gregorianRange}: எதிரிகளை வெல்லும் காலம், தேர்தல்/போட்டி வெற்றி & ஆதிக்க நிலை ஆண்டு`
+          : `${gregorianRange}: Shatru Vijaya, Competitive Supremacy & Resurgence Victory Year`;
+
+        whatToExpect = [
+          targetLang === "kn" ? `ಪ್ರತಿರೋಧಿಗಳು, ರಾಜಕೀಯ ಅಥವಾ ವೃತ್ತಿಪರ ಎದುರಾಳಿಗಳ ವಿರುದ್ಧ ನಿರ್ಣಾಯಕ ವಿಜಯ.`
+            : targetLang === "hi" ? `विरोधियों, राजनैतिक अथवा व्यावसायिक प्रतिद्वंद्वियों पर निर्णायक विजय।`
+            : targetLang === "mr" ? `विरोधक, राजकीय अथवा व्यावसायिक स्पर्धकांवर निर्णायक मात.`
+            : targetLang === "te" ? `రాజకీయ లేదా వృత్తిపరమైన ప్రత్యర్థులపై నిర్ణయాత్మక విజయం.`
+            : targetLang === "ta" ? `அரசியல் அல்லது தொழில்முறை எதிர்ப்பாளர்களை வென்று சாதனை.`
+            : `Decisive triumph over long-standing adversaries, legal rivals, and organizational competitors.`,
+          targetLang === "kn" ? `ವಿವಾದಗಳು ಮತ್ತು ಸವಾಲುಗಳನ್ನು ಮೀರಿ ಜನಬೆಂಬಲ ಹಾಗೂ ಸ್ಥಾನಮಾನದ ಪುನರುತ್ಥಾನ.`
+            : targetLang === "hi" ? `विवादों व चुनौतियों के बावजूद जनसमर्थन एवं उच्च पद की पुनर्प्राप्ति।`
+            : targetLang === "mr" ? `वादविवाद व आव्हानांवर मात करून जनसमर्थन व अधिकाराची पुनर्प्राप्ती.`
+            : targetLang === "te" ? `వివాదాలు అధిగమించి ప్రజా మద్దతు మరియు ఉన్నత హోదా లభించును.`
+            : targetLang === "ta" ? `சவால்களை வென்று மக்கள் செல்வாக்கு மற்றும் உயர் பதவியை அடைதல்.`
+            : `Electoral resurgence, popular mandate, and strategic reclamation of authority.`,
+          targetLang === "kn" ? `ನ್ಯಾಯಾಲಯ ಹಾಗೂ ತನಿಖಾ ಪ್ರಕ್ರಿಯೆಗಳಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ತಿರುವು ಮತ್ತು ವಿಮೋಚನೆ.`
+            : targetLang === "hi" ? `विधिक एवं जांच प्रक्रियाओं में अप्रत्याशित राहत तथा अनुकूल निर्णय।`
+            : targetLang === "mr" ? `न्यायालयीन प्रकरणांत मोठा दिलासा व निर्दोष सुटकेची शक्यता.`
+            : targetLang === "te" ? `కోర్టు వ్యవహారాలలో భారీ ఉపశమనం మరియు అనుకూల తీర్పులు.`
+            : targetLang === "ta" ? `நீதிமன்ற வழக்குகளில் சாதகமான தீர்ப்பு மற்றும் பெரிய நிம்மதி.`
+            : `Favorable resolution of contentious inquiries, litigations, and forensic battles.`
+        ];
+
+        turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಶರದೃತು / ಕಾರ್ತಿಕ ಮಾಸ (ಚುನಾವಣಾ ಅಥವಾ ಸ್ಪರ್ಧಾತ್ಮಕ ವಿಜಯದ ಮಹಾ ಕ್ಷಣ).`
+          : targetLang === "hi" ? `वर्ष की शरद ऋतु / कार्तिक मास (चुनावी अथवा निर्णायक विजय का क्षण)।`
+          : targetLang === "mr" ? `वर्षातील शरद ऋतू / कार्तिक मास (निवडणूक अथवा निर्णायक विजयाचा क्षण).`
+          : targetLang === "te" ? `శరదృతువు / కార్తిక మాసం (కీలక ఎన్నికల విజయం లభించే సమయం).`
+          : targetLang === "ta" ? `ஐப்பசி-கார்த்திகை மாதங்கள் (தேர்தல் அல்லது பெரிய வெற்றிக் காலம்).`
+          : `Late autumn epoch (pivotal electoral verdict, competitive climax, or summit coronation).`;
+
+        goldenWindow = targetLang === "kn" ? `ವ್ಯೂಹಾತ್ಮಕ ಪ್ರಚಾರ ಹಾಗೂ ಶತ್ರು ನಿಗ್ರಹ ರಾಜತಾಂತ್ರಿಕತೆಗೆ ಸುವರ್ಣ ಕಾಲ.`
+          : targetLang === "hi" ? `रणनीतिक जनसंपर्क एवं प्रतिद्वंद्वी नियंत्रण हेतु स्वर्णिम समय।`
+          : targetLang === "mr" ? `रणनीतिक मोहीम व विरोधक नियंत्रण यासाठी सर्वोत्तम काळ.`
+          : targetLang === "te" ? `వ్యూహాత్మక ప్రచారం మరియు శత్రు నివారణకు అనువైన సమయం.`
+          : targetLang === "ta" ? `வியூக பிரச்சாரம் மற்றும் எதிர்ப்புகளை முறியடிக்க உகந்த காலம்.`
+          : `Prime window for strategic campaigns, debate triumphs, and adversary neutralization.`;
+
+        caution = targetLang === "kn" ? `ಅತಿರೇಕದ ಆತ್ಮವಿಶ್ವಾಸ ತಪ್ಪಿಸಿ; ಕಾನೂನು ಮತ್ತು ಆಡಳಿತಾತ್ಮಕ ನಿಯಮಾವಳಿಗಳನ್ನು ಗೌರವಿಸಿ.`
+          : targetLang === "hi" ? `अति-आत्मविश्वास से बचें; वैधानिक एवं प्रशासनिक मर्यादाओं का सम्मान करें।`
+          : targetLang === "mr" ? `अतिआत्मविश्वास टाळा; कायदेशीर व प्रशासकीय नियमांचे पालन करा.`
+          : targetLang === "te" ? `అతి విశ్వాసం పనికిరాదు; చట్టపరమైన నిబంధనలను గౌరవించండి.`
+          : targetLang === "ta" ? `அதிகப்படியான தன்னம்பிக்கையை தவிர்க்கவும்; சட்ட விதிகளை மதிக்கவும்.`
+          : `Guard against overconfidence; maintain strict administrative and legal vigilance.`;
+      } else {
+        headline = targetLang === "kn" ? `${gregorianRange}: ಸ್ಪರ್ಧಾತ್ಮಕ ಸಮರ, ಶತ್ರು-ವಿವಾದ ಪರಿಹಾರ ಹಾಗೂ ಕಠಿಣ ಪರೀಕ್ಷಾ ವರ್ಷ`
+          : targetLang === "hi" ? `${gregorianRange}: प्रतिस्पर्धी संघर्ष, विवाद निवारण एवं कठिन परीक्षा का वर्ष`
+          : targetLang === "mr" ? `${gregorianRange}: स्पर्धात्मक संघर्ष, वाद निवारण व कठोर परीक्षेचे वर्ष`
+          : targetLang === "te" ? `${gregorianRange}: తీవ్ర పోటీ, వివాదాల పరిష్కారం & కఠిన పరీక్షా సంవత్సరం`
+          : targetLang === "ta" ? `${gregorianRange}: கடும் போட்டி, வழக்குகள் தீர்வு & கடுமையான சவால்கள் நிறைந்த ஆண்டு`
+          : `${gregorianRange}: Competitive Warfare, Rivalry Resolution & Hard-Won Triumph Year`;
+
+        whatToExpect = [
+          targetLang === "kn" ? `ಶತ್ರುಗಳು, ಸ್ಪರ್ಧಿಗಳು ಅಥವಾ ವಿರೋಧಿ ಗುಂಪುಗಳಿಂದ ತೀವ್ರ ಸ್ಪರ್ಧೆ ಮತ್ತು ಸವಾಲುಗಳು.`
+            : targetLang === "hi" ? `शत्रुओं, प्रतिद्वंद्वियों अथवा विरोधी पक्षों से कड़ा मुकाबला व चुनौतियां।`
+            : targetLang === "mr" ? `शत्रू, स्पर्धक अथवा विरोधी गटांकडून तीव्र आव्हान व संघर्ष.`
+            : targetLang === "te" ? `ప్రత్యర్థులు లేదా శత్రు వర్గాల నుండి తీవ్ర పోటీ మరియు సవాళ్ళు.`
+            : targetLang === "ta" ? `எதிராளிகள் மற்றும் போட்டிக் குழுக்களால் கடுமையான சவால்கள்.`
+            : `Fierce adversarial friction, court subpoenas, political warfare, and competitive heat.`,
+          targetLang === "kn" ? `ನ್ಯಾಯಾಲಯದ ವಿಚಾರಣೆಗಳು, ವಿವಾದಗಳು ಮತ್ತು ರಾಜಕೀಯ ಆರೋಪಗಳ ಪರಿಹಾರಕ್ಕೆ ಹೋರಾಟ.`
+            : targetLang === "hi" ? `विधिक प्रक्रिया, विवादों एवं राजनैतिक आरोपों के समाधान हेतु सतत संघर्ष।`
+            : targetLang === "mr" ? `कायदेशीर अडचणी, वादविवाद व आरोपांचा सामना करून मार्ग काढणे.`
+            : targetLang === "te" ? `కోర్టు కేసులు, వివాదాలు మరియు నిందలను ధైర్యంగా ఎదుర్కొనుట.`
+            : targetLang === "ta" ? `நீதிமன்ற விசாரணைகள் மற்றும் சர்ச்சை வழக்குகளை தைரியமாக எதிர்கொள்ளுதல்.`
+            : `High-stakes litigation battles, investigative scrutiny, and relentless pushback.`,
+          targetLang === "kn" ? `ನಿರಂತರ ಹೋರಾಟದಿಂದ ಸತ್ಯ ಸಾಬೀತು ಹಾಗೂ ಹಂತ-ಹಂತವಾಗಿ ವಿರೋಧಿಗಳ ಶಮನ.`
+            : targetLang === "hi" ? `सतत संघर्ष से सत्य की विजय एवं धीरे-धीरे विरोधियों का शमन।`
+            : targetLang === "mr" ? `नेटाने दिलेल्या लढ्यामुळे सत्य समोर येऊन विरोधक निष्प्रभ ठरतील.`
+            : targetLang === "te" ? `నిరంతర పోరాటంతో నిజం గెలుపొంది క్రమంగా ప్రత్యర్థులు శాంతిస్తారు.`
+            : targetLang === "ta" ? `தொடர் போராட்டத்தால் உண்மை வென்று எதிர்ப்புகள் படிப்படியாக குறையும்.`
+            : `Tenacious endurance leading to incremental survival and hard-won tactical breakthroughs.`
+        ];
+
+        turningPoint = targetLang === "kn" ? `ವರ್ಷದ ಶರತ್-ಹೇಮಂತ ಕಾಲ (ಸ್ಪರ್ಧಾತ್ಮಕ ವಿಚಾರಣೆಗಳಲ್ಲಿ ಮಹತ್ವದ ತಿರುವು).`
+          : targetLang === "hi" ? `वर्ष के शरद-हेमंत मास (विधिक/प्रतिस्पर्धी मामलों में निर्णायक मोड़)।`
+          : targetLang === "mr" ? `वर्षातील शरद-हेमंत ऋतू (संघर्षात महत्त्वपूर्ण वळण देणारा काळ).`
+          : targetLang === "te" ? `శరత్-హేమంత కాలం (పోరాటాలలో కీలక మలుపు తిరిగే సమయం).`
+          : targetLang === "ta" ? `ஐப்பசி-மார்கழி மாதங்கள் (விசாரணைகளில் ஒரு முக்கிய திருப்புமுனை).`
+          : `Autumn-winter crossway (marking major trial turning points and tactical counter-strikes).`;
+
+        goldenWindow = targetLang === "kn" ? `ಸ್ಪರ್ಧಾತ್ಮಕ ಸಿದ್ಧತೆ, ಸಾಕ್ಷ್ಯಾಧಾರ ಕ್ರೋಡೀಕರಣ ಹಾಗೂ ಆಂತರಿಕ ಸಂಘಟನೆಗೆ ಪ್ರಶಸ್ತ.`
+          : targetLang === "hi" ? `तथ्य संकलन, विधिक तैयारी एवं संगठनात्मक मजबूती हेतु श्रेष्ठ काल।`
+          : targetLang === "mr" ? `पुरावे गोळा करणे, कायदेशीर तयारी व संघटना बांधणीसाठी उत्तम काळ.`
+          : targetLang === "te" ? `ఆధారాలు సేకరించడం మరియు సంసిద్ధతకు అనువైన సమయం.`
+          : targetLang === "ta" ? `ஆதாரங்கள் திரட்டவும் மற்றும் தயாராக இருக்கவும் உகந்த காலம்.`
+          : `Strategic mobilization window for gathering evidence and counter-offensive preparations.`;
+
+        caution = targetLang === "kn" ? `ಮಾತಿನಲ್ಲಿ ಆವೇಶ ಬೇಡ; ಉದ್ವೇಗದ ಹೇಳಿಕೆಗಳು ವಿರೋಧಿಗಳಿಗೆ ಅಸ್ತ್ರವಾಗದಂತೆ ಎಚ್ಚರವಹಿಸಿ.`
+          : targetLang === "hi" ? `वाणी पर संयम रखें; उत्तेजक वक्तव्य विरोधियों को अवसर न देने पाएं।`
+          : targetLang === "mr" ? `बोलण्यावर ताबा ठेवा; भावनिक विधानांमुळे विरोधकांना संधी मिळणार नाही याची काळजी घ्या.`
+          : targetLang === "te" ? `ఆవేశపూరిత వ్యాఖ్యలు చేయవద్దు; మాటల వల్ల వివాదాలు పెరగకుండా చూసుకోండి.`
+          : targetLang === "ta" ? `பேச்சில் நிதானம் தேவை; ஆவேசமான வார்த்தைகள் எதிரிகளுக்கு சாதகமாக மாறக்கூடும்.`
+          : `Avoid impulsive verbal outbursts; ensure rhetoric cannot be weaponized by legal rivals.`;
+      }
 
     } else if (ageCategory === "youth") {
       headline = targetLang === "kn" ? `${gregorianRange}: ಉನ್ನತ ವ್ಯಾಸಂಗ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ ಹಾಗೂ ವೃತ್ತಿ ಪ್ರವೇಶದ ಹಂತ`
@@ -5814,6 +6021,23 @@ export function compute5YearMasterPrediction(
     targetLang
   );
 
+  const openingHook = calculateOpeningHookNarrative(
+    kundli,
+    birthDateYmd,
+    birthTimeHm,
+    lat,
+    lng,
+    moonIdx,
+    lagnaIdx,
+    targetLang,
+    traditionalPanchanga,
+    resolvedDevoteeName
+  );
+
+  const planetaryCalculations = calculatePlanetaryCalculations(kundli, targetLang);
+
+  const nagaluRoadmap = calculateNagaluRoadmap(baseYear, targetLang, kundli, years);
+
   const hotelPrivilegeCard = getHotelHospitalityPrivilege(targetLang);
 
   return {
@@ -5852,6 +6076,9 @@ export function compute5YearMasterPrediction(
     sacredDeityImage,
     personalizedDynamicShloka,
     currentLifeStatus,
+    openingHook,
+    planetaryCalculations,
+    nagaluRoadmap,
     hotelPrivilegeCard,
     remedies,
     astrologerBlessing

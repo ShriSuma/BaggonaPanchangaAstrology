@@ -32,8 +32,14 @@ import {
   updateHotelOrderDownloaded,
   subscribeHotelOrder,
   verifyHotelOrderPayment,
+  logPremiumPdfDownload,
   type HotelTableOrderDoc
 } from "../db/firestoreDb";
+import {
+  notifyPremiumPdfDownloaded,
+  triggerDailyPdfSummaryIfActive
+} from "../features/notifications/notificationService";
+import { getIndianStandardDateStr } from "../core/placeTime";
 import {
   compute5YearMasterPrediction,
   type FiveYearPredictionPayload
@@ -2115,6 +2121,54 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         return next;
       });
       void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+
+      const packagePrice = selectedPackage === "remedy_450" ? 450 : 350;
+      const packageCoins = selectedPackage === "remedy_450" ? 4500 : 3500;
+
+      // 1. Log download to Firestore for daily summary aggregation & audit
+      try {
+        await logPremiumPdfDownload({
+          devoteeName: devoteeName || "Devotee",
+          username: devoteeName || "Devotee",
+          priestName: PRIEST_NAME || "Shreeram Pandit",
+          portalSource: "Pandit Palette",
+          language: selectedLang,
+          coinsSpent: packageCoins,
+          amountInr: packagePrice,
+          timestamp: new Date().toISOString(),
+          dateKey: getIndianStandardDateStr(),
+          packageType: selectedPackage,
+          paymentUtr: activeOrderId || "PAID_ORDER",
+          paymentMethod: "upi_qr"
+        });
+      } catch (logErr) {
+        console.warn("[AntarangadaSatyaPage] Log download error:", logErr);
+      }
+
+      // 2. Send instant transactional email notification to spshreepandit@gmail.com
+      try {
+        await notifyPremiumPdfDownloaded({
+          clientName: devoteeName || "Devotee",
+          pdfType: `Pandit Palette 5-Year Destiny (${selectedPackage === "remedy_450" ? "With Remedies" : "Standard"})`,
+          language: selectedLang,
+          pageCount: 16,
+          priestName: PRIEST_NAME || "Shreeram Pandit",
+          amountInr: packagePrice,
+          coinsSpent: packageCoins,
+          packageType: selectedPackage,
+          paymentMethod: "UPI QR Code",
+          paymentUtr: activeOrderId || "PAID_ORDER"
+        });
+      } catch (mailErr) {
+        console.warn("[AntarangadaSatyaPage] Notification email error:", mailErr);
+      }
+
+      // 3. Trigger daily summary report email (summarizes all copies sent today if >= 1)
+      try {
+        void triggerDailyPdfSummaryIfActive(getIndianStandardDateStr());
+      } catch (summaryErr) {
+        console.warn("[AntarangadaSatyaPage] Daily summary trigger error:", summaryErr);
+      }
     } catch (pdfErr: any) {
       console.error("5-Year PDF Generation error:", pdfErr);
       alert(`PDF download error: ${pdfErr?.message || "Please try again."}`);
