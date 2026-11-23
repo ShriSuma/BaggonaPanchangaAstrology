@@ -74,8 +74,8 @@ describe("Daivika Parihara 3-Page Master PDF Contract & Vedic Mantra Audit", () 
     expect(page1.textContent).toContain("ಸಿಂಹ"); // Moon Sign
     expect(page1.textContent).toContain("ಪೂರ್ವ ಫಲ್ಗುಣಿ"); // Nakshatra
 
-    // Section 1: Diagnosis & Psychological Meters
-    expect(page1.textContent).toContain("೧. ಜನ್ಮ ಕುಂಡಲಿ ಗ್ರಹದೋಷ ವಿಶ್ಲೇಷಣೆ");
+    // Section 1: Remedial Resolve & Psychological Meters
+    expect(page1.textContent).toContain("೧. ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ದೈವಿಕ ಪರಿಹಾರ ಸಂಕಲ್ಪ");
     expect(page1.textContent).toContain("ಕ್ರೋಧ / ಪಿತ್ತ ಶಕ್ತಿ");
     expect(page1.textContent).toContain("ಮನೋ ಶಾಂತಿ");
     expect(page1.textContent).toContain("ತೇಜಸ್ಸು / ಪ್ರಾಣಬಲ");

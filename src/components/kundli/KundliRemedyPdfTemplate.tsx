@@ -30,7 +30,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     panchangaTithiVara: "ತಿಥಿ & ವಾರ:",
     narrationHeader: "॥ ಶ್ರೀ ಸನ್ನಿಧಾನದ ವಿಶೇಷ ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ & ಸಂದೇಶ ॥",
     narrationBadge: "ಅಧಿಕೃತ ಜಾತಕ ವಿಶ್ಲೇಷಣೆ",
-    sec1Title: "೧. ಜನ್ಮ ಕುಂಡಲಿ ಗ್ರಹದೋಷ ವಿಶ್ಲೇಷಣೆ & ಮುಖ್ಯ ಸವಾಲು",
+    sec1Title: "೧. ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ದೈವಿಕ ಪರಿಹಾರ ಸಂಕಲ್ಪ & ಮನೋಬಲ ನಿರ್ಣಯ",
     krodhaLabel: "ಕ್ರೋಧ / ಪಿತ್ತ ಶಕ್ತಿ",
     manasLabel: "ಮನೋ ಶಾಂತಿ",
     vitalityLabel: "ತೇಜಸ್ಸು / ಪ್ರಾಣಬಲ",
@@ -54,7 +54,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     chant11TimesDaily: "ನಿತ್ಯ ೧೧ ಬಾರಿ ಜಪಿಸಿ",
     prescribedDeityLabel: "ಶಾಂತಿ ದೇವತೆ / ಗ್ರಹ",
     mantraMeaningLabel: "ಮಂತ್ರದ ದಿವ್ಯ ಅರ್ಥ",
-    calmingBenefitLabel: "ಮನಃಶಾಂತಿ & ದೋಷ ಶಮನ ಫಲ",
+    calmingBenefitLabel: "ಮನಃಶಾಂತಿ & ದೈವಿಕ ರಕ್ಷಾ ಫಲ",
     muhurthaTitle: "೬. ಜನ್ಮ ತಾರಾಬಲ ಆಧಾರಿತ ವ್ರತ ಆರಂಭ ಮುಹೂರ್ತ & ಸಾಧನಾ ವಿಧಿ",
     taraBalaLabel: "ತಾರಾಬಲ:",
     weekdayLabel: "ಶುಭ ವಾರ:",
@@ -95,7 +95,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ:",
     gemstone: "ರತ್ನ / ಲೋಹ:",
     daana: "ದಾನ & ಗೋಸೇವೆ:",
-    badhakeshLabel: "ಬಾಧಕ ಗ್ರಹ & ಅಡೆತಡೆ:",
+    badhakeshLabel: "ಕಾರ್ಯಸಿದ್ಧಿ & ವಿಘ್ನ ನಿವಾರಣಾ ಸಂಕಲ್ಪ:",
     anupanaLabel: "ಪವಿತ್ರ ಅನುಪಾನ ತೀರ್ಥ:",
     adhidevataTitle: "ದಶಾಧಿಪತಿ ಅಧಿದೇವತೆ & ಪ್ರತ್ಯಧಿದೇವತೆ:",
     sec8Title: "೮. ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಮುದ್ರೆ",
@@ -123,7 +123,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     panchangaTithiVara: "Tithi & Vara:",
     narrationHeader: "॥ Sacred Divine Astrological Narration & Astrologer's Guidance ॥",
     narrationBadge: "Authentic Chart Analysis",
-    sec1Title: "1. Kundali Root Cause & Struggle Diagnosis",
+    sec1Title: "1. Vedic Remedial Resolve & Inner Strength Focus",
     krodhaLabel: "Pitta / Anger Surge",
     manasLabel: "Mental Stability",
     vitalityLabel: "Vitality / Prana Force",
@@ -147,7 +147,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     chant11TimesDaily: "Chant 11 Times Daily",
     prescribedDeityLabel: "Prescribed Deity / Graha",
     mantraMeaningLabel: "Sacred Meaning",
-    calmingBenefitLabel: "Inner Peace & Pacification Result",
+    calmingBenefitLabel: "Mental Peace & Divine Protection Benefit",
     muhurthaTitle: "6. Janma Tara Bala Auspicious Starting Muhurtha & Setup",
     taraBalaLabel: "Tara Bala:",
     weekdayLabel: "Ideal Weekday:",
@@ -188,7 +188,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "Rudraksha:",
     gemstone: "Gemstone / Metal:",
     daana: "Daana & Goseva:",
-    badhakeshLabel: "Badhaka Obstruction Planet:",
+    badhakeshLabel: "Obstacle Clearance & Success Resolve:",
     anupanaLabel: "Sacred Anupana Vehicle:",
     adhidevataTitle: "Dasha Lord Adhidevata & Pratyadhidevata:",
     sec8Title: "8. Chief Priest Vedic Blessing & Official Temple Seal",
@@ -206,7 +206,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     page3Title: "दशा-भुक्ति फल, गोचर शांति, वैदिक ग्रह शांति मंत्र, गोकर्ण क्षेत्र सेवाएं एवं अर्चक आशीर्वाद",
     page4Title: "दशा-भुक्ति फल, गोचर शांति, वैदिक ग्रह शांति मंत्र, गोकर्ण क्षेत्र सेवाएं एवं अर्चक आशीर्वाद",
     dhyanaShloka: "॥ शान्ताकारं भुजगशयनं पद्मनाभं सुरेशं । चन्द्रशेखरं प्रणमामि सर्व शान्ति प्रदायकम् ॥",
-    mandalaBanner: "॥ एक मंडल साधना से समस्त कर्मदोष निवारण एवं संकल्प सिद्धि ॥",
+    mandalaBanner: "॥ एक मंडल साधना से आंतरिक शांति एवं दिव्य संकल्प सिद्धि ॥",
     devotee: "जातक:",
     gotraSuffix: "गोत्र",
     lagna: "लग्न:",
@@ -216,7 +216,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     panchangaTithiVara: "तिथि एवं वार:",
     narrationHeader: "॥ श्री सन्निधान का विशेष दैविक ज्योतिषीय विश्लेषण एवं सन्देश ॥",
     narrationBadge: "प्रामाणिक कुंडली विश्लेषण",
-    sec1Title: "१. कुंडली ग्रहदोष विश्लेषण एवं मुख्य चुनौती",
+    sec1Title: "१. जन्म कुंडली आधारित दैविक परिहार संकल्प एवं आत्मबल निर्णय",
     krodhaLabel: "क्रोध / पित्त स्तर",
     manasLabel: "मानसिक शांति",
     vitalityLabel: "आत्मबल / प्राणशक्ति",
@@ -235,12 +235,12 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraCount: "आवृत्ति:",
     stotraBenefits: "फलश्रुति:",
     dailySankalpaTitle: "🪔 दैनिक शांति संकल्प एवं सन्निधान नियमावली",
-    dailySankalpaText: "प्रतिदिन प्रातःकाल एवं संध्याकाल इन शास्त्रोक्त नियमों का श्रद्धापूर्वक पालन करने से ग्रह दोष शांत होते हैं और मानसिक शांति प्राप्त होती है।",
+    dailySankalpaText: "प्रतिदिन प्रातःकाल एवं संध्याकाल इन शास्त्रोक्त नियमों का श्रद्धापूर्वक पालन करने से ग्रह अनुकूल होते हैं और मानसिक शांति प्राप्त होती है।",
     vedicGrahaShantiTitle: "वैदिक ग्रह शांति मंत्र एवं नित्य ११ बार जप विधि",
     chant11TimesDaily: "नित्य ११ बार जपें",
     prescribedDeityLabel: "शांति देवता / ग्रह",
     mantraMeaningLabel: "मंत्र का पावन अर्थ",
-    calmingBenefitLabel: "मानसिक शांति एवं दोष शमन फल",
+    calmingBenefitLabel: "मानसिक शांति एवं दैविक रक्षा फल",
     muhurthaTitle: "६. जन्म ताराबल आधारित व्रत आरंभ मुहूर्त एवं साधना विधि",
     taraBalaLabel: "ताराबल:",
     weekdayLabel: "शुभ वार:",
@@ -281,7 +281,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "रुद्राक्ष धारण:",
     gemstone: "रत्न / धातु:",
     daana: "दान एवं गौसेवा:",
-    badhakeshLabel: "बाधक ग्रह एवं बाधा:",
+    badhakeshLabel: "कार्यसिद्धि एवं विघ्न निवारण संकल्प:",
     anupanaLabel: "पवित्र अनुपान तीर्थ:",
     adhidevataTitle: "दशाधिपति अधिदेवता एवं प्रत्यधिदेवता:",
     sec8Title: "८. प्रधान अर्चक का आशीर्वचन एवं गोकर्ण मुद्रा",
@@ -299,7 +299,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     page3Title: "దశా-భుక్తి ఫలం, గోచార పరిహారం, వైదిక గ్రహ శాంతి మంత్రం, గోకర్ణ క్షేత్ర సేవలు & అర్చకుల ఆశీర్వచనం",
     page4Title: "దశా-భుక్తి ఫలం, గోచార పరిహారం, వైదిక గ్రహ శాంతి మంత్రం, గోకర్ణ క్షేత్ర సేవలు & అర్చకుల ఆశీర్వచనం",
     dhyanaShloka: "॥ శాంతాకారం భుజగశయనం పద్మనాభం సురేశం । చంద్రశేఖరం ప్రణమామి సర్వ శాంతి ప్రదాయకమ్ ॥",
-    mandalaBanner: "॥ ఏక మండల తపస్సుతో సమస్త కర్మదోష నివారణ & సంకల్ప సిద్ధి ॥",
+    mandalaBanner: "॥ ఏక మండల తపస్సుతో అంతరంగ శాంతి & దివ్య సంకల్ప సిద్ధి ॥",
     devotee: "జాతకుడు:",
     gotraSuffix: "గోత్రం",
     lagna: "లగ్నం:",
@@ -309,7 +309,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     panchangaTithiVara: "తిథి & వారం:",
     narrationHeader: "॥ శ్రీ సన్నిధానం విశేష దైవిక జ్యోతిష్య వివరణ & సందేశం ॥",
     narrationBadge: "ప్రామాణిక జాతక విశ్లేషణ",
-    sec1Title: "1. కుండలి గ్రహదోష విశ్లేషణ & ప్రధాన సవాలు",
+    sec1Title: "1. జన్మ కుండలి ఆధారిత దైవిక పరిహార సంకల్పం & మనోబల నిర్ణయం",
     krodhaLabel: "క్రోధం / పిత్తం",
     manasLabel: "మనశ్శాంతి",
     vitalityLabel: "ఆత్మబలం",
@@ -328,12 +328,12 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraCount: "సంఖ్య:",
     stotraBenefits: "ఫలితం:",
     dailySankalpaTitle: "🪔 దైనందిన శాంతి సంకల్పం & నియమావళి",
-    dailySankalpaText: "ప్రతిరోజూ ఉదయం మరియు సాయంత్రం ఈ శాస్త్రోక్త నియమాలను శ్రద్ధతో పాటించడం వలన గ్రహ దోషాలు తొలగి, మనశ్శాంతి లభిస్తుంది.",
+    dailySankalpaText: "ప్రతిరోజూ ఉదయం మరియు సాయంత్రం ఈ శాస్త్రోక్త నియమాలను శ్రద్ధతో పాటించడం వలన గ్రహాలు శాంతించి, మనశ్శాంతి లభిస్తుంది.",
     vedicGrahaShantiTitle: "వైదిక గ్రహ శాంతి మంత్రం & నిత్య 11 సార్లు జప విధానం",
     chant11TimesDaily: "నిత్యం 11 సార్లు జపించండి",
     prescribedDeityLabel: "శాంతి దేవత / గ్రహం",
     mantraMeaningLabel: "మంత్ర దివ్యార్థం",
-    calmingBenefitLabel: "మనఃశాంతి & దోష నివారణ ఫలం",
+    calmingBenefitLabel: "మనఃశాంతి & దైవిక రక్షా ఫలం",
     muhurthaTitle: "6. జన్మ తారాబల ఆధారిత వ్రత ప్రారంభ ముహూర్తం & సాధనా విధానం",
     taraBalaLabel: "తారాబలం:",
     weekdayLabel: "శుభ వారం:",
@@ -374,7 +374,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "రుద్రాక్ష ధారణ:",
     gemstone: "రత్నం / లోహం:",
     daana: "దానం & గోసేవ:",
-    badhakeshLabel: "బాధక గ్రహం & అడ్డంకి:",
+    badhakeshLabel: "కార్యసిద్ధి & విఘ్న నివారణ సంకల్పం:",
     anupanaLabel: "పవిత్ర అనుపాన తీర్థం:",
     adhidevataTitle: "దశాధిపతి అధిదేవత & ప్రత్యధిదేవత:",
     sec8Title: "8. ప్రధాన అర్చకుల ఆశీర్వచనం & గోకర్ణ ముద్ర",
@@ -392,7 +392,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     page3Title: "திசை-புக்தி பலன், கோசார பரிகாரம், வைதீக கிரக சாந்தி மந்திரம், ஆலய பூஜைகள் & அர்ச்சகர் ஆசி",
     page4Title: "திசை-புக்தி பலன், கோசார பரிகாரம், வைதீக கிரக சாந்தி மந்திரம், ஆலய பூஜைகள் & அர்ச்சகர் ஆசி",
     dhyanaShloka: "॥ சாந்தாகாரம் புஜகசயனம் பத்மநாபம் ஸுரேசம் । சந்த்ரசேகரம் ப்ரணமாமி ஸர்வ சாந்தி ப்ரதாயகம் ॥",
-    mandalaBanner: "॥ ஒரு மண்டல வழிபாட்டால் கர்ம தோஷ நிவர்த்தி & சங்கல்ப சித்தி ॥",
+    mandalaBanner: "॥ ஒரு மண்டல வழிபாட்டால் அந்தரங்க சாந்தி & சங்கல்ப சித்தி ॥",
     devotee: "ஜாதகர்:",
     gotraSuffix: "கோத்திரம்",
     lagna: "லக்னம்:",
@@ -402,7 +402,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     panchangaTithiVara: "திதி & வாரம்:",
     narrationHeader: "॥ ஸ்ரீ சந்நிதானத்தின் சிறப்பு தெய்வீக ஜோதிட உரை & செய்தி ॥",
     narrationBadge: "சாஸ்திர ரீதியான ஜாதக ஆய்வு",
-    sec1Title: "1. ஜாதக கிரக தோஷ பகுப்பாய்வு & முக்கிய சவால்",
+    sec1Title: "1. ஜாதக அடிப்படையிலான தெய்வீக பரிகார சங்கல்பம் & மனோபல முடிவு",
     krodhaLabel: "கோபம் / பித்தம்",
     manasLabel: "மன அமைதி",
     vitalityLabel: "ஆத்ம பலம்",
@@ -421,12 +421,12 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraCount: "எண்ணிக்கை:",
     stotraBenefits: "பலன்கள்:",
     dailySankalpaTitle: "🪔 தினசரி சாந்தி சங்கல்பம் & வழிபாட்டு நெறிமுறை",
-    dailySankalpaText: "தினசரி காலை மற்றும் மாலை வேளைகளில் இந்த சாஸ்திர வழிபாடுகளை பக்தியுடன் கடைப்பிடிப்பதால் கிரக தோஷங்கள் நீங்கி, மன அமைதி உண்டாகும்.",
+    dailySankalpaText: "தினசரி காலை மற்றும் மாலை வேளைகளில் இந்த சாஸ்திர வழிபாடுகளை பக்தியுடன் கடைப்பிடிப்பதால் கிரகங்கள் அமைதியுற்று, மன அமைதி உண்டாகும்.",
     vedicGrahaShantiTitle: "வைதீக கிரக சாந்தி மந்திரம் & தினசரி 11 முறை ஜப முறை",
     chant11TimesDaily: "தினமும் 11 முறை ஜபிக்கவும்",
     prescribedDeityLabel: "சாந்தி தெய்வம் / கிரகம்",
     mantraMeaningLabel: "மந்திரத்தின் புனிதப் பொருள்",
-    calmingBenefitLabel: "மன அமைதி & தோஷ நிவர்த்தி பலன்",
+    calmingBenefitLabel: "மன அமைதி & தெய்வீக பாதுகாப்பு பலன்",
     muhurthaTitle: "6. ஜன்ம தாராபல அடிப்படையிலான விரத ஆரம்ப முகூர்த்தம் & வழிபாட்டு விதி",
     taraBalaLabel: "தாராபலம்:",
     weekdayLabel: "சுப வாரம்:",
@@ -467,7 +467,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "ருத்ராட்சம்:",
     gemstone: "ரத்தினம் / உலோகம்:",
     daana: "தானம் & கோபூஜை:",
-    badhakeshLabel: "பாதக கிரகம் & தடை:",
+    badhakeshLabel: "காரிய சித்தி & விக்ன நிவாரண சங்கல்பம்:",
     anupanaLabel: "புனித அனுபான தீர்த்தம்:",
     adhidevataTitle: "திசாதிபதி அதிதேவதை & பிரத்யதிதேவதை:",
     sec8Title: "8. தலைமை அர்ச்சகரின் ஆசி & ஆலய முத்திரை",
@@ -638,6 +638,38 @@ function getLocalizedPriestName(override?: string, langCode: SupportedLanguage =
 const cleanLabel = (lbl: string): string => {
   if (!lbl) return "";
   return lbl.replace(/[:：\s]+$/, "") + ":";
+};
+
+const cleanRemedyTitle = (title: string, _langCode: SupportedLanguage): string => {
+  if (!title) return "";
+  let clean = title
+    .replace(/ಕುಜ ದೋಷ[\s/]*[^\w\s\u0C80-\u0CFF]*/gi, "ಮಂಗಳ ಗ್ರಹ ಶಾಂತಿ & ಧೈರ್ಯ ಸಂವರ್ಧನೆ")
+    .replace(/ಬಾಧಕಾಧಿಪತಿ ದೋಷ/gi, "ವಿಘ್ನ ನಿವಾರಣಾ ಶಾಂತಿ")
+    .replace(/ಮಂಗಳ ದೋಷ|मंगल दोष[\s/]*[^\w\s\u0900-\u097F]*/gi, "मंगल ग्रह शांति एवं आत्मबल")
+    .replace(/బాధకాధిపతి దోషం/gi, "విఘ్న నివారణ శాంతి")
+    .replace(/కుజ దోషం/gi, "కుజ గ్రహ శాంతి & ధైర్యం")
+    .replace(/பாதகாதிபதி தோஷம்/gi, "விக்ன நிவாரண சாந்தி")
+    .replace(/செவ்வாய் தோஷம்/gi, "செவ்வாய் கிரக சாந்தி & தைரியம்")
+    .replace(/Mars \(Kuja\) High Combustion \/ Friction/gi, "Mars (Mangala) Calming & Vitality Shield")
+    .replace(/Badhakesh Obstruction/gi, "Obstacle Clearance & Harmonization")
+    .replace(/ದೋಷ/gi, "ಶಾಂತಿ")
+    .replace(/दोष/gi, "शांति")
+    .replace(/దోషం?/gi, "శాంతి")
+    .replace(/தோஷம்?/gi, "சாந்தி")
+    .replace(/Dosha/gi, "Harmonization")
+    .replace(/Affliction/gi, "Pacification");
+  return clean.trim();
+};
+
+const cleanRemedyReason = (reason: string): string => {
+  if (!reason) return "";
+  return reason
+    .replace(/ದೋಷ/gi, "ಗ್ರಹ ಪ್ರಭಾವ")
+    .replace(/दोष/gi, "ग्रह प्रभाव")
+    .replace(/దోషం?/gi, "గ్రహ ప్రభావం")
+    .replace(/தோஷம்?/gi, "கிரக தாக்கம்")
+    .replace(/Dosha/gi, "Planetary Influence")
+    .replace(/Affliction/gi, "Influence");
 };
 
 export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = ({
@@ -991,7 +1023,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               <span style={{ color: "#27272A", fontWeight: 500 }}>{primaryStruggle.description[code] || primaryStruggle.description.kn}</span>
             </div>
 
-            {/* Affliction Grid */}
+            {/* Planetary Pacification & Remedial Focus Grid */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "6px" }}>
               {afflictionFactors.slice(0, 2).map((af, idx) => (
                 <div
@@ -1005,8 +1037,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                     lineHeight: 1.45
                   }}
                 >
-                  <div style={{ fontWeight: 800, color: "#92400E" }}>🔥 {af.title[code] || af.title.kn}</div>
-                  <div style={{ color: "#451A03", marginTop: "2px" }}>{af.reason[code] || af.reason.kn}</div>
+                  <div style={{ fontWeight: 800, color: "#92400E" }}>🌿 {cleanRemedyTitle(af.title[code] || af.title.kn, code)}</div>
+                  <div style={{ color: "#451A03", marginTop: "2px" }}>{cleanRemedyReason(af.reason[code] || af.reason.kn)}</div>
                 </div>
               ))}
             </div>
@@ -1026,7 +1058,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 }}
               >
                 <span>
-                  <strong>🚧 {i18n.badhakeshLabel} </strong>
+                  <strong>🛡️ {i18n.badhakeshLabel} </strong>
                   {badhakaAnalysis.badhakeshName[code] || badhakaAnalysis.badhakeshName.kn} ({formatHouseName(badhakaAnalysis.badhakaHouse, code)} · {badhakaAnalysis.badhakaSignName[code] || badhakaAnalysis.badhakaSignName.kn}) — {badhakaAnalysis.shantiRemedy[code] || badhakaAnalysis.shantiRemedy.kn}
                 </span>
               </div>

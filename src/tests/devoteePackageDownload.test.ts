@@ -38,6 +38,7 @@ describe("Devotee Package Download Suite", () => {
         expect(dict.item5Title.length).toBeGreaterThan(0);
         expect(dict.item6Title.length).toBeGreaterThan(0);
         expect(dict.item7Title.length).toBeGreaterThan(0);
+        expect(dict.item8Title.length).toBeGreaterThan(0);
       });
     });
 

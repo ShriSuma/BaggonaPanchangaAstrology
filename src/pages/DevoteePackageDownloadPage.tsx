@@ -31,6 +31,12 @@ import { DivyaBhavishyaQnaPdfTemplate, type PackageQuestionItem } from "../compo
 import { generateAnswerForQuestion } from "../components/packageDownload/packageAnswerEngine";
 import { prepareBhavishyaV1Data, captureBhavishyaV1Pdf } from "../features/premiumPdf/bhavishyaV1Service";
 import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
+import { FiveYearPredictionPdfTemplate } from "../components/fiveYearPrediction/FiveYearPredictionPdfTemplate";
+import {
+  prepare5YearPredictionData,
+  captureFiveYearPredictionPdf
+} from "../features/fiveYearPrediction/fiveYearPredictionService";
+import type { FiveYearPredictionPayload } from "../features/fiveYearPrediction/fiveYearPredictionEngine";
 import { ageDecimalYearsAt } from "../core/birthTime";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 import {
@@ -109,7 +115,8 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
     item4_doshas: true,
     item5_currentLife: true,
     item6_qrCodes: true,
-    item7_qna: true
+    item7_qna: true,
+    item8_fiveYear: true
   });
 
   // 6. QR Code Data URLs (30, 90, 120 Days)
@@ -129,6 +136,10 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
   // Bhavishya V1 payload state for container rendering
   const [bhavishyaV1Payload, setBhavishyaV1Payload] = useState<any>(null);
   const bhavishyaV1Ref = useRef<HTMLDivElement>(null);
+
+  // 5-Year Prediction payload state for container rendering
+  const [fiveYearPayload, setFiveYearPayload] = useState<FiveYearPredictionPayload | null>(null);
+  const fiveYearPdfRef = useRef<HTMLDivElement>(null);
 
   // Synchronize question sample when language changes
   useEffect(() => {
@@ -516,6 +527,62 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
     }
   };
 
+  // 5-Year Master Destiny Prediction Payload Generator & Caching
+  const getOrPrepareFiveYearPayload = async (): Promise<FiveYearPredictionPayload> => {
+    if (fiveYearPayload) return fiveYearPayload;
+    const sessionObj: KundliViewerSession = {
+      result: kundliResult,
+      input: {
+        name: devoteeName,
+        birthDate,
+        birthTime,
+        latitude,
+        longitude,
+        gender: gender === "female" ? "Female" : "Male",
+        maritalStatus,
+        childrenStatus
+      },
+      birthDateYmd: birthDate,
+      birthTimeHm: birthTime,
+      homePlaceName: placeLabel,
+      placeLabel: placeLabel,
+      dasha: [],
+      dailyPrediction: ""
+    };
+    const payload = await prepare5YearPredictionData(
+      sessionObj,
+      selectedLang,
+      { geminiApiKey }
+    );
+    setFiveYearPayload(payload);
+    return payload;
+  };
+
+  // Individual 5-Year Prediction PDF Download
+  const handleDownloadFiveYearPdf = async () => {
+    try {
+      setSingleDownloadingId("pkg-five-year-container");
+      const safeDevotee = devoteeName.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "") || "Devotee";
+      const fullFileName = `${safeDevotee}_Baggona_Next_5_Years_Prediction_${selectedLang}.pdf`;
+
+      await getOrPrepareFiveYearPayload();
+      await new Promise((r) => setTimeout(r, 600));
+
+      if (fiveYearPdfRef.current) {
+        await captureFiveYearPredictionPdf(
+          fiveYearPdfRef.current,
+          fullFileName,
+          true
+        );
+      }
+    } catch (err: any) {
+      console.error("5-Year Prediction download failed:", err);
+      alert(`5-Year Prediction download failed: ${err?.message || "Error"}`);
+    } finally {
+      setSingleDownloadingId(null);
+    }
+  };
+
   // Download QR PNG images as a direct download or zip
   const handleDownloadQrPngs = () => {
     const downloadDataUrl = (url: string, name: string) => {
@@ -680,11 +747,28 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
 
       // 7. Divya Bhavishya Q&A
       if (selectedItems.item7_qna) {
-        setZipProgress(92);
-        setZipStageText("೭/೭ ದಿವ್ಯ ಭವಿಷ್ಯ ಪ್ರಶ್ನೋತ್ತರ ಪತ್ರ ಮುದ್ರಣವಾಗುತ್ತಿದೆ (7/7 Divya Bhavishya)...");
+        setZipProgress(90);
+        setZipStageText("೭/೮ ದಿವ್ಯ ಭವಿಷ್ಯ ಪ್ರಶ್ನೋತ್ತರ ಪತ್ರ ಮುದ್ರಣವಾಗುತ್ತಿದೆ (7/8 Divya Bhavishya)...");
         await new Promise((r) => setTimeout(r, 400));
         const pdf7 = await generatePDFFromElement("pkg-qna-container", "07_Divya_Bhavishya_QnA.pdf", false);
         zip.file(`07_Divya_Bhavishya_QnA_${safeDevotee}.pdf`, pdf7.output("blob"));
+      }
+
+      // 8. Next 5-Year Destiny Prediction
+      if (selectedItems.item8_fiveYear) {
+        setZipProgress(95);
+        setZipStageText("೮/೮ ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಭವಿಷ್ಯ ಮಹಾದರ್ಶನ ಮುದ್ರಣವಾಗುತ್ತಿದೆ (8/8 Five Year Prediction)...");
+        await getOrPrepareFiveYearPayload();
+        await new Promise((r) => setTimeout(r, 800));
+
+        if (fiveYearPdfRef.current) {
+          const pdf8 = await captureFiveYearPredictionPdf(
+            fiveYearPdfRef.current,
+            "08_Next_5_Years_Prediction.pdf",
+            false
+          );
+          zip.file(`08_Next_5_Years_Prediction_${safeDevotee}.pdf`, pdf8.output("blob"));
+        }
       }
 
       // Final ZIP compilation
@@ -1652,6 +1736,37 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
               {singleDownloadingId === "pkg-qna-container" ? "ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ..." : dict.downloadSinglePdfBtn}
             </button>
           </div>
+
+          {/* Item 8: 5-Year Master Destiny Prediction */}
+          <div className="p-4 rounded-2xl border border-amber-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.item8_fiveYear}
+                    onChange={() => toggleItem("item8_fiveYear")}
+                    className="w-4 h-4 text-amber-600 rounded"
+                  />
+                  <span className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
+                    {dict.item8Title}
+                  </span>
+                </label>
+                <span className="text-base">🪐</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+                {dict.item8Desc}
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={singleDownloadingId === "pkg-five-year-container"}
+              onClick={handleDownloadFiveYearPdf}
+              className="w-full py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 text-xs font-bold border border-amber-400/40 transition-all flex items-center justify-center gap-1.5"
+            >
+              {singleDownloadingId === "pkg-five-year-container" ? "ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ..." : dict.downloadSinglePdfBtn}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1852,6 +1967,28 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
           questions={questions}
           lang={selectedLang}
         />
+
+        {/* 8. 5-Year Master Destiny Prediction Container */}
+        {fiveYearPayload && (
+          <div
+            ref={fiveYearPdfRef}
+            id="pkg-five-year-container"
+            style={{
+              position: "fixed",
+              left: 0,
+              top: 0,
+              width: 900,
+              opacity: 0,
+              pointerEvents: "none",
+              zIndex: -1,
+              overflow: "hidden",
+              height: 0,
+              background: "#FFF7ED"
+            }}
+          >
+            <FiveYearPredictionPdfTemplate data={fiveYearPayload} />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -198,7 +198,7 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     beforeAfterTitle: "ಪರಿಹಾರ ಪೂರ್ವ vs ಪರಿಹಾರೋತ್ತರ ಫಲ",
     currentFrictionTitle: "ಪ್ರಸ್ತುತ ಕರ್ಮ ಸ್ಥಿತಿ: ",
     transformedStateTitle: "ಪರಿಹಾರೋತ್ತರ ಬದಲಾವಣೆ: ",
-    afflictedGrahasTitle: "ಪರಿಹಾರ ಅಗತ್ಯವಿರುವ ಗ್ರಹ ದೋಷಗಳು:",
+    afflictedGrahasTitle: "ದೈವಿಕ ಶಾಂತಿ & ರಕ್ಷೆ ಅಗತ್ಯವಿರುವ ಗ್ರಹ ಕೇಂದ್ರಗಳು:",
     metersTitle: "ಮಾನಸಿಕ ತತ್ತ್ವ ಮಾಪನ",
     meterKrodha: "ಕ್ರೋಧ / ಪಿತ್ತ ಶಕ್ತಿ",
     meterManas: "ಮನೋ ಶಾಂತಿ & ಧೃತಿ",
@@ -345,7 +345,7 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     beforeAfterTitle: "उपाय पूर्व बनाम उपायोत्तर फल",
     currentFrictionTitle: "वर्तमान कर्म स्थिति: ",
     transformedStateTitle: "उपायोत्तर रूपांतरण: ",
-    afflictedGrahasTitle: "शांति योग्य प्रमुख ग्रह दोष:",
+    afflictedGrahasTitle: "दैविक शांति एवं रक्षा योग्य प्रमुख ग्रह:",
     metersTitle: "मानसिक तत्त्व मापन",
     meterKrodha: "क्रोध / पित्त ऊर्जा",
     meterManas: "मनोशांति एवं संतुलन",
@@ -492,7 +492,7 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     beforeAfterTitle: "పరిహార పూర్వ vs పరిహారోత్తర ఫలితం",
     currentFrictionTitle: "ప్రస్తుత కర్మ స్థితి: ",
     transformedStateTitle: "పరిహారోత్తర మార్పు: ",
-    afflictedGrahasTitle: "పరిహారం అవసరమైన ముఖ్య గ్రహ దోషాలు:",
+    afflictedGrahasTitle: "దైవిక శాంతి & రక్షణ అవసరమైన గ్రహ కేంద్రాలు:",
     metersTitle: "మానసిక తత్త్వ మాపనం",
     meterKrodha: "క్రోధం / పిత్త శక్తి",
     meterManas: "మనో శాంతి & సమతుల్యత",
@@ -639,7 +639,7 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     beforeAfterTitle: "பரிகாரத்திற்கு முன் vs பின் பலன்",
     currentFrictionTitle: "தற்போதைய கர்ம நிலை: ",
     transformedStateTitle: "பரிகாரத்திற்குப் பின் நிலை: ",
-    afflictedGrahasTitle: "பரிகாரம் தேவைப்படும் முக்கிய கிரக தோஷங்கள்:",
+    afflictedGrahasTitle: "தெய்வீக சாந்தி & பாதுகாப்பு தேவைப்படும் முக்கிய கிரகங்கள்:",
     metersTitle: "மனோ தத்துவ அளவீடு",
     meterKrodha: "கோபம் / பித்த ஆற்றல்",
     meterManas: "மன அமைதி & சமநிலை",
@@ -786,7 +786,7 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     beforeAfterTitle: "Before vs After Transformation Contrast",
     currentFrictionTitle: "Current Friction: ",
     transformedStateTitle: "Transformed State: ",
-    afflictedGrahasTitle: "Key Afflicted Graha Placements:",
+    afflictedGrahasTitle: "Planetary Pacification & Calming Focus Areas:",
     metersTitle: "Temperament & Energy Meters",
     meterKrodha: "Pitta / Anger Surge",
     meterManas: "Mental Peace & Balance",
@@ -1542,16 +1542,28 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               {t.afflictedGrahasTitle}
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {afflictionFactors.map((af, idx) => (
-                <div key={idx} className="rounded-xl border border-amber-200 bg-amber-50/40 p-3 text-xs space-y-1">
-                  <div className="font-bold text-amber-900 flex items-center gap-1">
-                    <span>🔥</span>
-                    <span>{af.title[selectedLang] || af.title.kn}</span>
+              {afflictionFactors.map((af, idx) => {
+                const rawTitle = af.title[selectedLang] || af.title.kn;
+                const cleanTitle = rawTitle
+                  .replace(/ದೋಷ[\s/]*[^\w\s\u0C80-\u0CFF]*/gi, "ಶಾಂತಿ")
+                  .replace(/दोष[\s/]*[^\w\s\u0900-\u097F]*/gi, "शांति")
+                  .replace(/దోష[ంఁ]?[\s/]*[^\w\s\u0C00-\u0C7F]*/gi, "శాంతి")
+                  .replace(/தோஷ[ம்]?[\s/]*[^\w\s\u0B80-\u0BFF]*/gi, "சாந்தி")
+                  .replace(/Dosha[\s/]*[^\w\s]*/gi, "Harmonization")
+                  .replace(/Affliction[\s/]*[^\w\s]*/gi, "Pacification")
+                  .replace(/ದೋಷ|दोष|దోష|தோஷ|Dosha/gi, "")
+                  .trim();
+                return (
+                  <div key={idx} className="rounded-xl border border-amber-200 bg-amber-50/40 p-3 text-xs space-y-1">
+                    <div className="font-bold text-amber-900 flex items-center gap-1">
+                      <span>🌿</span>
+                      <span>{cleanTitle}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-700 leading-snug">{af.reason[selectedLang] || af.reason.kn}</p>
+                    <p className="text-[10px] text-rose-800 font-semibold">{af.impact[selectedLang] || af.impact.kn}</p>
                   </div>
-                  <p className="text-[11px] text-slate-700 leading-snug">{af.reason[selectedLang] || af.reason.kn}</p>
-                  <p className="text-[10px] text-rose-800 font-semibold">{af.impact[selectedLang] || af.impact.kn}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Badhaka Graha & Obstruction House Card */}
