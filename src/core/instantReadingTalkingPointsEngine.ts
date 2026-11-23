@@ -26,6 +26,17 @@ import {
   toKannadaPlanet,
   sanitizeAstrologyKannadaText
 } from "../utils/kannadaAstrologyTerms";
+import {
+  generatePastEventVerification,
+  normalizePlanetName,
+  type PastVerificationHook,
+  type Planet
+} from "../engine/jyotishPrecisionGates";
+import {
+  calculateSecretAccuracyProfile,
+  type SecretAccuracyProfile
+} from "../engine/secretAccuracyEngine";
+import { type SixLang, formatNumber6L } from "../features/fiveYearPrediction/fiveYearLocale";
 
 export type PointTone = "good" | "bad" | "notice" | "normal";
 
@@ -38,12 +49,312 @@ export interface AstrologerPointItem {
 }
 
 export interface FirstSixTalkingPointsStructured {
+  pastEventVerification?: AstrologerPointItem[];
   openingIceBreaker: AstrologerPointItem[];
   hiddenSubconsciousWorry: AstrologerPointItem[];
   maandiKarmicImpact: AstrologerPointItem[];
   bodyMarkAndTemperament: AstrologerPointItem[];
   karmaFinancialReality: AstrologerPointItem[];
   immediateTurningPoint: AstrologerPointItem[];
+}
+
+/**
+ * 6-Language Localization Dictionary for Past Event Verification Hooks
+ * STRICT RULE: ZERO English token leakage in Indic languages (kn, mr, hi, te, ta).
+ * STRICT RULE: ZERO technical astrological jargon (No Lagna, Rashi, Graha, etc.)
+ * Focus strictly on undeniable human events and psychological realities that shock the client.
+ */
+export const PAST_VERIFICATION_LOCALE: Record<
+  string,
+  Record<"kn" | "mr" | "hi" | "te" | "ta" | "en", { title: string; narrative: string }>
+> = {
+  HEALTH_OR_ENERGY_DIP_AT_CRITICAL_MOMENT: {
+    kn: {
+      title: "ತುರ್ತು ಸಂದರ್ಭದಲ್ಲಿ ಶಕ್ತಿ ಹೀನತೆ",
+      narrative: "ಅತ್ಯಂತ ನಿರ್ಣಾಯಕ ಕಾರ್ಯಕ್ಕೆ ಸಿದ್ಧವಾಗಿದ್ದ ಸಮಯದಲ್ಲಿ, ಅನಿರೀಕ್ಷಿತ ಆರೋಗ್ಯ ಏರುಪೇರು ಅಥವಾ ಅಪಾರ ದಣಿವು ಎದುರಾಗಿ ಕಾರ್ಯದ ವೇಗ ತಗ್ಗಿದ ಕಹಿ ಕ್ಷಣ."
+    },
+    mr: {
+      title: "ऐन वेळी ऊर्जा व आरोग्याची हानी",
+      narrative: "अत्यंत महत्त्वाच्या कामाच्या वेळी अचानक प्रकृती बिघडणे किंवा प्रचंड थकवा येऊन कामाचा वेग मंदावल्याचा कटू अनुभव."
+    },
+    hi: {
+      title: "अंतिम क्षण में स्वास्थ्य व ऊर्जा क्षीणता",
+      narrative: "अत्यंत महत्वपूर्ण कार्य के समय अचानक स्वास्थ्य में उतार-चढ़ाव अथवा अत्यधिक थकान के कारण गति अवरुद्ध होने की स्थिति।"
+    },
+    te: {
+      title: "కీలక సమయంలో ఆరోగ్య ఒడిదుడుకులు",
+      narrative: "ఎంతో ముఖ్యమైన పని మొదలుపెట్టే తరుణంలో, ఊహించని ఆరోగ్య సమస్య లేదా తీవ్రమైన నీరసం వల్ల ఆటంకం ఎదురైన తీరు."
+    },
+    ta: {
+      title: "முக்கிய தருணத்தில் உடல்நல பின்னடைவு",
+      narrative: "மிகவும் முக்கியமான காரியத்தின் போது எதிர்பாராத உடல்நலக் குறைவு அல்லது அதீத சோர்வால் தடை ஏற்பட்ட கசப்பான அனுபவம்."
+    },
+    en: {
+      title: "Sudden Energy Dip at Critical Crux",
+      narrative: "A sudden vitality dip or acute fatigue that compromised your momentum right when a pivotal life opportunity was within reach."
+    }
+  },
+  STALLED_SAVINGS_OR_FAMILY_FRICTION: {
+    kn: {
+      title: "ಉಳಿತಾಯದಲ್ಲಿ ಅಡಚಣೆ & ಕುಟುಂಬದ ಅಸಮಾಧಾನ",
+      narrative: "ಎಷ್ಟೇ ಶ್ರಮಪಟ್ಟು ಹಣ ಉಳಿಸಲು ಯತ್ನಿಸಿದರೂ, ಅನಿರೀಕ್ಷಿತ ಖರ್ಚುಗಳಿಂದಾಗಿ ಉಳಿತಾಯ ಕರಗಿ, ಆಪ್ತರಲ್ಲೇ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯ ತಲೆದೋರಿದ ಸನ್ನಿವೇಶ."
+    },
+    mr: {
+      title: "बचतीत अडथळे व कौटुंबिक मतभेद",
+      narrative: "कितीही प्रयत्न केले तरी अनपेक्षित खर्चामुळे बचत टिकू शकली नाही आणि जवळच्या व्यक्तींमध्ये विनाकारण वाद निर्माण झाले."
+    },
+    hi: {
+      title: "संचित धन में गतिरोध एवं पारिवारिक अशांति",
+      narrative: "कठिन परिश्रम से संचित की गई धनराशि अप्रत्याशित व्ययों में निकल गई और परिजनों के मध्य अकारण मतभेद का सामना करना पड़ा।"
+    },
+    te: {
+      title: "పొదుపులో ఆటంకం & కుటుంబంలో విభేదాలు",
+      narrative: "ఎంత కష్టపడి పొదుపు చేసినా ఊహించని ఖర్చులతో ధనం చేజారి, కుటుంబ సభ్యులతో చిన్నపాటి అపార్థాలు ఏర్పడిన పరిస్థితి."
+    },
+    ta: {
+      title: "சேமிப்பில் தடை & குடும்ப கருத்து வேறுபாடு",
+      narrative: "எவ்வளவு முயன்றும் எதிர்பாராத செலவுகளால் சேமிப்பு கரைந்து, குடும்பத்தினரிடையே வீண் மனஸ்தாபம் ஏற்பட்ட நிலை."
+    },
+    en: {
+      title: "Stalled Savings & Domestic Friction",
+      narrative: "Hard-earned savings dissipated through unforeseen obligations, triggering sudden and unprovoked friction among close kin."
+    }
+  },
+  DECISION_PARALYSIS_OR_EDUCATION_DELAY: {
+    kn: {
+      title: "ನಿರ್ಧಾರಗಳಲ್ಲಿ ಗೊಂದಲ & ವಿದ್ಯಾಭ್ಯಾಸದ ವಿಳಂಬ",
+      narrative: "ಮುಂದಿನ ಹೆಜ್ಜೆಯ ಬಗ್ಗೆ ಅಪಾರ ಗೊಂದಲ, ಒಂದೇ ಮನಸ್ಸಿನಿಂದ ತೀರ್ಮಾನ ಕೈಗೊಳ್ಳಲಾಗದ ಅನಿಶ್ಚಿತತೆ ಹಾಗೂ ಅಧ್ಯಯನದಲ್ಲಿ ಎದುರಾದ ಮಂದಗತಿ."
+    },
+    mr: {
+      title: "निर्णय घेताना द्विधा मनस्थिती व शिक्षणात विलंब",
+      narrative: "पुढील वाटचालीबाबत मनात तीव्र संभ्रम, वेळेवर ठोस निर्णय न घेता आल्याने अभ्यासात व नियोजनात झालेला विलंब."
+    },
+    hi: {
+      title: "अनिर्णय की स्थिति एवं अध्ययन में व्यवधान",
+      narrative: "भविष्य के निर्णयों में अत्यधिक भ्रम, स्पष्ट दृष्टिकोण का अभाव एवं विद्याध्ययन अथवा योजनाओं में अनपेक्षित मंदता।"
+    },
+    te: {
+      title: "నిర్ణయాలలో అయోమయం & విద్యలో ఆలస్యం",
+      narrative: "ముందడుగు వేయడంలో తీవ్ర సందిగ్ధత, సరైన సమయంలో స్పష్టమైన నిర్ణయం తీసుకోలేకపోవడం వల్ల చదువులో ఆలస్యం."
+    },
+    ta: {
+      title: "முடிவெடுப்பதில் குழப்பம் & கல்வியில் தாமதம்",
+      narrative: "அடுத்த கட்ட முடிவில் அதீத குழப்பம், சரியான தருணத்தில் முடிவெடுக்க முடியாமல் கல்வியிலும் திட்டங்களிலும் ஏற்பட்ட தொய்வு."
+    },
+    en: {
+      title: "Decision Paralysis & Academic Procrastination",
+      narrative: "Severe inner dilemma and overthinking that stalled timely decision-making, producing uncharacteristic delays in study or milestones."
+    }
+  },
+  PARTNERSHIP_OR_MARRIAGE_MISTRUST: {
+    kn: {
+      title: "ಪಾಲುದಾರಿಕೆ ಅಥವಾ ಬಾಂಧವ್ಯದಲ್ಲಿ ಸಂಶಯ",
+      narrative: "ಜೊತೆಗಿದ್ದವರ ಮೇಲೆ ವಿಶ್ವಾಸ ಕಡಿಮೆಯಾಗಿ, ಮಾತುಕತೆಯಲ್ಲಿ ಕಂದಕ ಸೃಷ್ಟಿಯಾಗಿ, ಸಂಬಂಧ ಅಥವಾ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಉಂಟಾದ ಕಹಿ ಅನುಭವ."
+    },
+    mr: {
+      title: "भागीदारी किंवा नात्यात अविश्वास",
+      narrative: "विश्वासू व्यक्तींवर संशय निर्माण होणे, संवादाचा अभाव आणि नात्यात किंवा व्यावसायिक भागीदारीत आलेला कटुता."
+    },
+    hi: {
+      title: "साझेदारी अथवा संबंधों में अविश्वास",
+      narrative: "निकटवर्ती सहयोगियों पर संशय, संवादहीनता तथा वैवाहिक अथवा व्यावसायिक साझेदारी में कटुता का अनुभव।"
+    },
+    te: {
+      title: "భాగస్వామ్యంలో నమ్మకలేమి & సంబంధాలలో దూరం",
+      narrative: "తోటివారిపై అనుమానాలు పెరగడం, పరస్పర అవగాహన లోపించడం వల్ల సంబంధాలలో లేదా వ్యాపార భాగస్వామ్యంలో ఎదురైన చేదు అనుభవం."
+    },
+    ta: {
+      title: "கூட்டாண்மை அல்லது உறவில் அவநம்பிக்கை",
+      narrative: "நெருங்கியவர்களிடம் நம்பிக்கை குறைந்து, புரிதல் இன்றி உறவிலோ அல்லது கூட்டுப் பணியிலோ மனக்கசப்பு ஏற்பட்ட நிலை."
+    },
+    en: {
+      title: "Partnership Friction & Relational Mistrust",
+      narrative: "A sudden rift in communication and creeping mistrust that strained an important partnership or matrimonial dialogue."
+    }
+  },
+  SUDDEN_UNEXPECTED_EXPENSE_OR_ANXIETY: {
+    kn: {
+      title: "ಅನಿರೀಕ್ಷಿತ ಆರ್ಥಿಕ ಹೊರೆ & ಆತಂಕ",
+      narrative: "ಯಾವುದೇ ಮುನ್ಸೂಚನೆಯಿಲ್ಲದೆ ಎದುರಾದ ದೊಡ್ಡ ಮಟ್ಟದ ಖರ್ಚು, ಕೈಯಲ್ಲಿದ್ದ ಹಣವೆಲ್ಲ ಖಾಲಿಯಾಗಿ ರಾತ್ರಿಗಳಲ್ಲಿ ಅನುಭವಿಸಿದ ತೀವ್ರ ಆತಂಕ."
+    },
+    mr: {
+      title: "अचानक उद्भवलेला मोठा खर्च व मानसिक चिंता",
+      narrative: "विनाकारण अचानक आलेले मोठे आर्थिक संकट, पैशांची चणचण आणि त्यामुळे रात्रीची झोप उडवणारी मानसिक घालमेल."
+    },
+    hi: {
+      title: "आकस्मिक व्यय भार एवं आंतरिक व्यथा",
+      narrative: "बिना किसी पूर्व सूचना के अचानक उत्पन्न हुआ भारी व्यय, जिससे आर्थिक संतुलन बिगड़ गया और गहरी चिंता का सामना करना पड़ा।"
+    },
+    te: {
+      title: "అనుకోని పెద్ద ఖర్చు & విపరీతమైన ఆందోళన",
+      narrative: "ఎలాంటి ముందస్తు సమాచారం లేకుండా వచ్చిపడ్డ భారీ ఖర్చు, ఆర్థిక సమతుల్యత దెబ్బతిని రాత్రి వేళల్లో నిద్రపట్టని ఆవేదన."
+    },
+    ta: {
+      title: "எதிர்பாராத பண விரயம் & மன உளைச்சல்",
+      narrative: "முன் அறிவிப்பின்றி திடீரென ஏற்பட்ட பெரும் பணச் செலவு, சேமிப்பு விரயமாகி இரவுகளில் தூக்கமில்லாத மன அழுத்தம்."
+    },
+    en: {
+      title: "Unforeseen Outflow & Midnight Anxiety",
+      narrative: "An abrupt, non-negotiable financial drain that disrupted liquid reserves and provoked recurring midnight anxiety."
+    }
+  },
+  CAREER_OR_DEAL_CANCELLED_AT_99_PERCENT: {
+    kn: {
+      title: "೯೯% ಮುಗಿದಿದ್ದ ಕೆಲಸ ಕೈತಪ್ಪಿದ ನೋವು",
+      narrative: "ಕೈಗೆ ಬಂದ ತುತ್ತು ಬಾಯಿಗೆ ಬಾರದಂತೆ, ಶೇಕಡಾ ೯೯ ರಷ್ಟು ಮುಗಿದಿದ್ದ ಪ್ರಮುಖ ಕಾರ್ಯ ಅಥವಾ ಒಪ್ಪಂದವು ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತವಾಗಿ ಕೈತಪ್ಪಿ ಹೋದ ಕಹಿ ಅನುಭವ."
+    },
+    mr: {
+      title: "९९% पूर्ण झालेले काम ऐन वेळी हुकणे",
+      narrative: "हातातोंडाशी आलेला घास हिरावल्यासारखा, ९९ टक्के पूर्ण झालेले महत्त्वाचे काम किंवा करार ऐन वेळी अनपेक्षितपणे रद्द झाल्याचा कटू अनुभव."
+    },
+    hi: {
+      title: "९९% सिद्ध कार्य अंतिम क्षण में विफल",
+      narrative: "ऐन वक्त पर बनते-बनते काम का रुक जाना, ९९ प्रतिशत संपन्न हो चुका महत्वपूर्ण कार्य अथवा अनुबंध अंतिम क्षण में अप्रत्याशित रूप से हाथ से निकल जाने का कटु अनुभव।"
+    },
+    te: {
+      title: "99% పూర్తయిన పని చివరి నిమిషంలో భగ్నం",
+      narrative: "చేతికి అందినట్టే అంది చేజారిన అనుభవం, 99 శాతం పూర్తయిన కీలకమైన పని లేదా ఒప్పందం చివరి నిమిషంలో ఊహించని విధంగా ఆగిపోయిన తీరు."
+    },
+    ta: {
+      title: "99% முடிந்த காரியம் கடைசி நொடியில் தவறுதல்",
+      narrative: "கைக்கு எட்டியது வாய்க்கு எட்டாமல், 99 சதவீதம் முடிந்திருந்த முக்கிய காரியம் அல்லது ஒப்பந்தம் கடைசி தருணத்தில் எதிர்பாராமல் கைநழுவிப் போன கசப்பான அனுபவம்."
+    },
+    en: {
+      title: "99% Accomplished Deal Stalled at the Finish Line",
+      narrative: "A critical endeavor or career deal advanced to 99% completion before unexplainably unraveling at the very final checkpoint."
+    }
+  },
+  BLOCKED_PAYMENTS_OR_DELAYED_GAINS: {
+    kn: {
+      title: "ಬರಬೇಕಾದ ಹಣ ನಿಲ್ಲುವಿಕೆ & ವಿಳಂಬ",
+      narrative: "ನ್ಯಾಯಬದ್ಧವಾಗಿ ತಮಗೆ ಸಲ್ಲಬೇಕಾಗಿದ್ದ ಹಣ ಅಥವಾ ಬರಬೇಕಾಗಿದ್ದ ಲಾಭವು ಬರದೆ ಸತಾಯಿಸಿ, ಭರವಸೆ ನೀಡಿದವರು ಕೈಕೊಟ್ಟ ಸನ್ನಿವೇಶ."
+    },
+    mr: {
+      title: "हक्काचे पैसे अडकणे व लाभास विलंब",
+      narrative: "न्यायहक्काचे पैसे वेळेवर न मिळणे, दिलेले आश्वासन न पाळले जाणे आणि हक्काच्या मोबदल्यासाठी वारंवार चकरा माराव्या लागणे."
+    },
+    hi: {
+      title: "प्राप्य धन का अवरोध एवं लाभ में विलंब",
+      narrative: "अपने ही परिश्रम का पारिश्रमिक समय पर न मिलना, सहयोगियों द्वारा दिया गया वचन भंग होना तथा लाभ प्राप्ति में निरंतर देरी।"
+    },
+    te: {
+      title: "రావలసిన ధనం నిలిచిపోవడం & లాభాలలో జాప్యం",
+      narrative: "న్యాయబద్ధంగా అందాల్సిన సొమ్ము సకాలంలో రాకపోవడం, ఇచ్చిన మాట తప్పడం వల్ల రావాల్సిన లాభాలలో తీవ్ర జాప్యం."
+    },
+    ta: {
+      title: "வரவேண்டிய பணம் முடங்குதல் & தாமதம்",
+      narrative: "உழைப்பிற்கான பலன் மற்றும் நியாயமாக வர வேண்டிய பணம் தடையாகி, வாக்குறுதி அளித்தவர்கள் ஏமாற்றிய வேதனை."
+    },
+    en: {
+      title: "Blocked Receivables & Delayed Compensation",
+      narrative: "Earned funds and rightful dues were repeatedly delayed or held back by counterparties despite repeated formal assurances."
+    }
+  },
+  HEAVY_MENTAL_LOAD_AND_UNRECOGNIZED_EFFORT: {
+    kn: {
+      title: "ಅತಿಯಾದ ಮಾನಸಿಕ ಹೊರೆ & ಮನ್ನಣೆ ಸಿಗದ ಶ್ರಮ",
+      narrative: "ಎಲ್ಲ ಜವಾಬ್ದಾರಿಗಳನ್ನೂ ತಾವೊಬ್ಬರೇ ಹೊತ್ತು ಹಗಲಿರುಳು ದುಡಿದರೂ, ಮಾಡಿದ ಉಪಕಾರಕ್ಕೆ ಸೂಕ್ತ ಬೆಲೆ ಹಾಗೂ ಮನ್ನಣೆ ಸಿಗದೆ ಹೋದ ನಿರಾಶೆ."
+    },
+    mr: {
+      title: "प्रचंड मानसिक ताण व कष्टाची उपेक्षा",
+      narrative: "सर्व जबाबदाऱ्या एकट्याने उचलून अहोरात्र कष्ट केले, तरीही केलेल्या उपकाराची किंमत व योग्य सन्मान न मिळाल्याची खंत."
+    },
+    hi: {
+      title: "अत्यधिक मानसिक भार एवं उपेक्षित परिश्रम",
+      narrative: "समस्त दायित्व अकेले निभाते हुए दिन-रात परिश्रम किया, परंतु किए गए त्याग का यथोचित श्रेय अथवा सम्मान प्राप्त न होने की पीड़ा।"
+    },
+    te: {
+      title: "అపరిమిత మానసిక భారం & గుర్తింపు లేని కష్టం",
+      narrative: "బాధ్యతలన్నీ ఒంటరిగా మోస్తూ ఎంత కష్టపడినా, చేసిన మేలుకు తగిన గుర్తింపు, ఆదరణ లభించలేదన్న నిరాశ."
+    },
+    ta: {
+      title: "அளப்பரிய மன பாரம் & அங்கீகாரமற்ற உழைப்பு",
+      narrative: "அனைத்து பொறுப்புகளையும் தனியாக சுமந்து அயராது உழைத்தும், செய்த உதவிக்குரிய மதிப்பும் மரியாதையும் கிடைக்காத ஏமாற்றம்."
+    },
+    en: {
+      title: "Heavy Mental Load & Uncredited Sacrifices",
+      narrative: "Carrying colossal responsibilities in silent endurance, yet receiving neither gratitude nor recognition from those you sheltered."
+    }
+  },
+  LAST_MINUTE_KARMIC_DELAY: {
+    kn: {
+      title: "ಕೊನೆ ಕ್ಷಣದ ಕರ್ಮಬಂಧ ವಿಳಂಬ",
+      narrative: "ಎಲ್ಲವೂ ಸಿದ್ಧವಾಗಿದ್ದರೂ, ಕೊನೆಯ ನಿಮಿಷದಲ್ಲಿ ತಾಂತ್ರಿಕ ಅಥವಾ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆ ಎದುರಾಗಿ ಕಾರ್ಯ ಮುಂದೂಡಲ್ಪಟ್ಟ ಕಹಿ ಕ್ಷಣ."
+    },
+    mr: {
+      title: "अंतिम क्षणी कर्मबंध अडथळा",
+      narrative: "सर्व तयारी पूर्ण असतानाही ऐन वेळी तांत्रिक किंवा अनपेक्षित कारणांमुळे काम पुढे ढकलले गेल्याचा अनुभव."
+    },
+    hi: {
+      title: "अंतिम क्षण में कर्म-बाधा जनित विलंब",
+      narrative: "प्रत्येक तैयारी संपन्न होने के उपरांत भी अंतिम क्षण में किसी अप्रत्याशित विघ्न के कारण कार्य का रुक जाना।"
+    },
+    te: {
+      title: "చివరి క్షణంలో కర్మబంధ ఆటంకం",
+      narrative: "అంతా సిద్ధమైన తర్వాత కూడా, చివరి నిమిషంలో ఊహించని అడ్డంకి ఎదురై పని వాయిదా పడిన అనుభవం."
+    },
+    ta: {
+      title: "கடைசி நிமிட கர்மவினை தாமதம்",
+      narrative: "அனைத்தும் தயாராக இருந்தும், கடைசி தருணத்தில் எதிர்பாராத தடங்கலால் காரியம் தள்ளிப்போன நிலை."
+    },
+    en: {
+      title: "Last-Minute Karmic Delay & Stall",
+      narrative: "Despite meticulous preparation, an unforeseen checkpoint glitch surfaced at the finish line, stalling completion."
+    }
+  }
+};
+
+/**
+ * Generates verified 24-36 month past event statements from Maandi and Saturn transit
+ * to provide a 100% accurate sales hook at the very top of Pillar #1 / Free Scan.
+ */
+export function generatePastVerificationTalkingPoints(
+  session: any,
+  synthesisData?: PanchangaSynthesisOutput,
+  lang: SixLang = "kn"
+): AstrologerPointItem[] {
+  const dashaTiming = synthesisData?.currentDiagnosis?.dashaTiming;
+  const rawPastMaha = dashaTiming?.currentMaha || "Guru";
+  const rawPastBhukti = dashaTiming?.currentBhukti || "Shani";
+  const pastAntardashaLord = normalizePlanetName(rawPastBhukti);
+
+  const bhavaHouse = session?.result?.planets?.find((p: any) => normalizePlanetName(p.name) === pastAntardashaLord)?.house || 10;
+  const maandiHouse = session?.result?.maandi?.house || 1;
+
+  const moonHouse = session?.result?.planets?.find((p: any) => p.name === "Moon")?.house || 1;
+  const saturnHouse = session?.result?.planets?.find((p: any) => p.name === "Saturn")?.house || 11;
+  const satDist = (((saturnHouse - moonHouse) % 12) + 12) % 12 + 1;
+  const wasSadeSatiOrAshtamaShani = satDist === 12 || satDist === 1 || satDist === 2 || satDist === 8;
+
+  const currentYear = new Date().getFullYear();
+  const pastPeriodLabel = lang === "kn"
+    ? `${formatNumber6L(currentYear - 2, lang)} – ${formatNumber6L(currentYear - 1, lang)}`
+    : lang === "mr" || lang === "hi"
+      ? `${formatNumber6L(currentYear - 2, lang)} – ${formatNumber6L(currentYear - 1, lang)}`
+      : `${currentYear - 2} – ${currentYear - 1}`;
+
+  const hooks = generatePastEventVerification({
+    pastAntardashaLord,
+    pastAntardashaHouse: bhavaHouse,
+    pastPeriodLabel,
+    maandiHouse,
+    wasSadeSatiOrAshtamaShani
+  });
+
+  return hooks.map((hook, idx) => {
+    const loc = PAST_VERIFICATION_LOCALE[hook.headlineKey]?.[lang] || PAST_VERIFICATION_LOCALE[hook.headlineKey]?.["en"];
+    const title = loc ? loc.title : hook.headlineKey;
+    const text = loc ? loc.narrative : hook.mathematicalProof;
+    const tag = loc ? loc.title : (lang === "kn" ? "ಗತ ಘಟನೆ ದೃಢೀಕರಣ" : "Verified Past Event");
+
+    return {
+      id: idx + 1,
+      text: `${text}`,
+      tone: (idx === 0 ? "bad" : "notice") as PointTone,
+      tagKn: tag,
+      tagEn: hook.headlineKey
+    };
+  });
 }
 
 export function getToneLabel(tone: PointTone, isKn: boolean): string {
@@ -428,6 +739,7 @@ export interface SubconsciousWorryOptions {
   isFemale: boolean;
   isKn: boolean;
   devoteeName?: string;
+  secretAccuracyProfile?: SecretAccuracyProfile;
 }
 
 export function buildSubconsciousWorryPoints(opts: SubconsciousWorryOptions): AstrologerPointItem[] {
@@ -674,6 +986,19 @@ export function buildSubconsciousWorryPoints(opts: SubconsciousWorryOptions): As
     tagKn: "ದೈವ ರಕ್ಷಣೆ",
     tagEn: "Divine Mental Shield"
   });
+
+  if (opts.secretAccuracyProfile) {
+    const sap = opts.secretAccuracyProfile;
+    points.push({
+      id: points.length + 1,
+      text: isKn
+        ? `ಅವಯೋಗಿ ಗ್ರಹ ಎಚ್ಚರಿಕೆ: ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ರಹಸ್ಯ ಅಡ್ಡಿ ಗ್ರಹ '${sap.avayogiPlanet}' ಆಗಿದೆ. ಈ ಗ್ರಹದ ದಶಾ ಕಾಲ ಅಥವಾ ದಿನದಂದು ಅನಗತ್ಯ ಸಾಲ, ಆತುರದ ಒಪ್ಪಂದ ಹಾಗೂ ವಿವಾದಗಳಿಂದ ದೂರವಿರುವುದು ಮಾನಸಿಕ ಶಾಂತಿಗೆ ಅತ್ಯಗತ್ಯ.`
+        : `Avayogi Friction Warning: Your chart's subconscious obstruction point is Avayogi planet ${sap.avayogiPlanet}. Avoid high-stake legal, lending, or emotional confrontations during its active hours.`,
+      tone: "bad",
+      tagKn: "ಅವಯೋಗಿ ಅಡ್ಡಿ ಎಚ್ಚರಿಕೆ",
+      tagEn: "Avayogi Vulnerability"
+    });
+  }
 
   return points;
 }
@@ -1095,6 +1420,7 @@ export interface KarmaFinancialOptions {
   amatyakarakaKn: string;
   amatyakarakaEn: string;
   isKn: boolean;
+  secretAccuracyProfile?: SecretAccuracyProfile;
 }
 
 export function buildKarmaFinancialPoints(opts: KarmaFinancialOptions): AstrologerPointItem[] {
@@ -1211,6 +1537,19 @@ export function buildKarmaFinancialPoints(opts: KarmaFinancialOptions): Astrolog
     tagKn: "ಸ್ವಯಂ ಸಂಪತ್ತು",
     tagEn: "Self-Made Prosperity"
   });
+
+  if (opts.secretAccuracyProfile) {
+    const sap = opts.secretAccuracyProfile;
+    points.push({
+      id: points.length + 1,
+      text: isKn
+        ? `ಯೋಗಿ ಗ್ರಹ ಧನ ರಹಸ್ಯ: ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಸಂಪತ್ತು ಹಾಗೂ ಅನಿರೀಕ್ಷಿತ ಧನಾಗಮನ ತರುವ ಯೋಗಿ ಗ್ರಹ '${sap.yogiPlanet}' ಆಗಿದ್ದು, ನಿಮ್ಮ ಅದೃಷ್ಟದ ಬಣ್ಣ ${sap.yogiAttributes.colorKn}, ದಿಕ್ಕು ${sap.yogiAttributes.directionKn} ಹಾಗೂ ವಾರದ ಧನ ವೃದ್ಧಿ ದಿನ '${sap.yogiAttributes.wealthDayKn}' ಆಗಿದೆ.`
+        : `Yogi Wealth Frequency: Your certified wealth catalyst is Yogi planet ${sap.yogiPlanet}. Align major investments and transactions with ${sap.yogiAttributes.directionEn}, lucky color ${sap.yogiAttributes.colorEn}, on ${sap.yogiAttributes.wealthDayEn}.`,
+      tone: "good",
+      tagKn: "ಯೋಗಿ ಧನ ರಹಸ್ಯ",
+      tagEn: "Yogi Wealth Key"
+    });
+  }
 
   return points;
 }
@@ -1342,11 +1681,11 @@ export function buildTurningPointPoints(opts: TurningPointOptions): AstrologerPo
   points.push({
     id: 11,
     text: isKn
-      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್ (+91 94821 09844) ಅವರ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ಸರ್ವಕಾರ್ಯ ಸಿದ್ಧಿ ಲಭಿಸಲಿ."
-      : "Blessed under the auspices of Sri Kshetra Gokarna Chief Priest Veda Moorthy Chaitanya Pandit (+91 94821 09844).",
+      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (+91 99723 39362) ಅವರ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ಸರ್ವಕಾರ್ಯ ಸಿದ್ಧಿ ಲಭಿಸಲಿ."
+      : "Blessed under the auspices of Sri Kshetra Gokarna Chief Priest Veda Moorthy Shreeram Pandit (+91 99723 39362).",
     tone: "good",
     tagKn: "ವೇದಮೂರ್ತಿ ಆಶೀರ್ವಾದ",
-    tagEn: "Priest Chaitanya Pandit Seal"
+    tagEn: "Priest Shreeram Pandit Seal"
   });
 
   return points;
@@ -1355,8 +1694,11 @@ export function buildTurningPointPoints(opts: TurningPointOptions): AstrologerPo
 export function buildDeterministicFirstSixPoints(
   synthesisData: PanchangaSynthesisOutput,
   session: any,
-  isKn: boolean
+  isKn: boolean,
+  options?: { lang?: SixLang; prependToIceBreaker?: boolean }
 ): FirstSixTalkingPointsStructured {
+  const targetLang: SixLang = options?.lang || (session?.input?.lang as SixLang) || (isKn ? "kn" : "en");
+  const pastVerificationPoints = generatePastVerificationTalkingPoints(session, synthesisData, targetLang);
   const lagnaRashiEn = session?.result?.lagnaRashi?.english || "Aries";
   const moonRashiEn = session?.result?.moonSign?.english || "Aries";
   const moonPlanet = session?.result?.planets?.find((p: any) => p.name === "Moon");
@@ -1435,6 +1777,29 @@ export function buildDeterministicFirstSixPoints(
   const amatyakarakaKn = prof?.amatyakarakaPlanetKn || "ಅಮಾತ್ಯಕಾರಕ";
   const amatyakarakaEn = prof?.amatyakarakaPlanetEn || "Amatyakaraka";
 
+  // Secret Accuracy Profile (Yogi & Avayogi Precision)
+  const sessionPlanets = session?.result?.planets || [];
+  const precisionPositions = sessionPlanets.map((p: any) => {
+    const pName = normalizePlanetName(p.name);
+    const rIdx = ((p.rashi?.index ?? 0) % 12 + 12) % 12;
+    const degInSign = Math.max(0, Math.min(29.9999, (p.degree ?? 15) % 30));
+    return {
+      planet: pName,
+      longitude: rIdx * 30 + degInSign,
+      rashi: rIdx as any,
+      degreeInSign: degInSign,
+      rashiHouse: p.house || 1,
+      bhavaHouse: p.house || 1
+    };
+  });
+  const sunP = precisionPositions.find((p: any) => p.planet === "Sun");
+  const moonP = precisionPositions.find((p: any) => p.planet === "Moon");
+  const rahuP = precisionPositions.find((p: any) => p.planet === "Rahu");
+  const sLon = sunP ? sunP.longitude : 0;
+  const mLon = moonP ? moonP.longitude : 30;
+  const rLon = rahuP ? rahuP.longitude : 0;
+  const secretAccuracyProfile = calculateSecretAccuracyProfile(sLon, mLon, rLon, precisionPositions);
+
   // Card 1: ಆರಂಭ & ಮೂಲ ಪ್ರಕೃತಿ (12 points)
   const card1: AstrologerPointItem[] = buildCoreTemperamentPoints({
     lagnaEn: lagnaRashiEn,
@@ -1460,7 +1825,8 @@ export function buildDeterministicFirstSixPoints(
     age: devoteeAge,
     isFemale,
     isKn,
-    devoteeName
+    devoteeName,
+    secretAccuracyProfile
   });
 
   // Card 3: 99% ಆದ ಕೆಲಸ ನಿಲ್ಲಿಸುವ 'ಮಾಂದಿ ಕರ್ಮ ಗಂಟು' (11 points) - 100% Dynamic 12 Houses
@@ -1488,7 +1854,8 @@ export function buildDeterministicFirstSixPoints(
     tenthLordKn,
     amatyakarakaKn,
     amatyakarakaEn,
-    isKn
+    isKn,
+    secretAccuracyProfile
   });
 
   // Card 6: ದಶಾ ತಿರುವು & ಶ್ರೀ ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ (11 points) - 100% Dynamic
@@ -1501,8 +1868,14 @@ export function buildDeterministicFirstSixPoints(
     isKn
   });
 
+  const shouldPrepend = options?.prependToIceBreaker ?? (session?.input?.isFreeScan || session?.isFreeScan || false);
+  const card1Final = shouldPrepend
+    ? [...pastVerificationPoints, ...card1]
+    : card1;
+
   return {
-    openingIceBreaker: card1,
+    pastEventVerification: pastVerificationPoints,
+    openingIceBreaker: card1Final,
     hiddenSubconsciousWorry: card2,
     maandiKarmicImpact: card3,
     bodyMarkAndTemperament: card4,
@@ -1518,6 +1891,7 @@ export function parseOrEnhanceTalkingPoints(
   isKn: boolean = true
 ): FirstSixTalkingPointsStructured {
   const safeDeterministic: FirstSixTalkingPointsStructured = {
+    pastEventVerification: deterministic?.pastEventVerification ? [...deterministic.pastEventVerification] : [],
     openingIceBreaker: deterministic?.openingIceBreaker ? [...deterministic.openingIceBreaker] : [],
     hiddenSubconsciousWorry: deterministic?.hiddenSubconsciousWorry ? [...deterministic.hiddenSubconsciousWorry] : [],
     maandiKarmicImpact: deterministic?.maandiKarmicImpact ? [...deterministic.maandiKarmicImpact] : [],
@@ -1527,6 +1901,7 @@ export function parseOrEnhanceTalkingPoints(
   };
 
   const result: FirstSixTalkingPointsStructured = {
+    pastEventVerification: [...(safeDeterministic.pastEventVerification || [])],
     openingIceBreaker: [...safeDeterministic.openingIceBreaker],
     hiddenSubconsciousWorry: [...safeDeterministic.hiddenSubconsciousWorry],
     maandiKarmicImpact: [...safeDeterministic.maandiKarmicImpact],
@@ -1550,7 +1925,7 @@ export function parseOrEnhanceTalkingPoints(
 
   for (const key of keys) {
     const aiArray = rawInput[`${key}Points`] || rawInput[key];
-    const baseList = safeDeterministic[key];
+    const baseList: AstrologerPointItem[] = safeDeterministic[key] || [];
 
     if (Array.isArray(aiArray) && aiArray.length > 0) {
       const parsedPoints: AstrologerPointItem[] = [];

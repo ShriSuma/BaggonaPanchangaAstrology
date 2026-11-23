@@ -32,6 +32,21 @@ import {
   type DynamicChartContext
 } from "../../components/RamanBhavishya/BhavishyaView";
 import {
+  getFunctionalNature,
+  checkNeechaBhanga,
+  getDegreeVulnerability,
+  normalizePlanetName,
+  type RashiIndex,
+  type Planet,
+  type PlanetPosition,
+  type FunctionalNature,
+  type DegreeVulnerability
+} from "../../engine/jyotishPrecisionGates";
+import {
+  calculateSecretAccuracyProfile,
+  type SecretAccuracyProfile
+} from "../../engine/secretAccuracyEngine";
+import {
   analyzeKundali,
   buildDynamicCharacteristicsFallback,
   buildDynamicDarkSecretFallback,
@@ -719,25 +734,100 @@ export async function prepareBhavishyaV1Data(
     hasChildren: personalization?.childrenStatus || "general"
   });
 
-  const dynamicCtx: DynamicChartContext = {
-    name: localizedDevoteeName,
-    maritalStatus: personalization?.maritalStatus,
-    hasChildren: personalization?.childrenStatus,
-    planets: session.result.planets.map(p => ({
+  // Baggona 100% Jyotish Precision Gates: Functional Nature, Neecha Bhanga & Degree Vulnerability
+  const precisionLagnaRashiIdx = (((session.result.lagnaRashi?.index ?? 0) % 12) + 12) % 12 as RashiIndex;
+  const moonRashiIdx = (((session.result.moonSign?.index ?? 0) % 12) + 12) % 12 as RashiIndex;
+
+  const planetPositionsMap: Partial<Record<Planet, PlanetPosition>> = {};
+  session.result.planets.forEach(p => {
+    const pName = normalizePlanetName(p.name);
+    const rashiIdx = (((p.rashi.index % 12) + 12) % 12) as RashiIndex;
+    const degInSign = Math.max(0, Math.min(29.9999, (p.degree ?? 0) % 30));
+    const absLong = (rashiIdx * 30) + degInSign;
+    const d9Sign = (Math.floor((absLong * 3) / 10) % 12) as RashiIndex;
+    const nakLord = normalizePlanetName((p as any).nakshatra?.lord || "Sun");
+
+    planetPositionsMap[pName] = {
+      planet: pName,
+      longitude: absLong,
+      rashi: rashiIdx,
+      degreeInSign: degInSign,
+      rashiHouse: p.house,
+      bhavaHouse: p.house,
+      nakshatraLord: nakLord,
+      isRetrograde: Boolean(p.isRetrograde),
+      isCombust: Boolean((p as any).isCombust),
+      d9Rashi: d9Sign,
+    };
+  });
+
+  const functionalNatureMap: Record<string, FunctionalNature> = {};
+  const neechaBhangaPlanetsList: Array<{ planet: string; reason?: string }> = [];
+  const degreeVulnerabilitiesList: Array<{ planet: string; vulnerability: DegreeVulnerability }> = [];
+
+  const precisionDecoratedPlanets = session.result.planets.map(p => {
+    const pName = normalizePlanetName(p.name);
+    const pPos = planetPositionsMap[pName];
+    const fnNature = getFunctionalNature(precisionLagnaRashiIdx, pName);
+    functionalNatureMap[p.name] = fnNature;
+
+    let hasNb = false;
+    let nbReason: string | undefined;
+    let degVuln: DegreeVulnerability | undefined;
+
+    if (pPos) {
+      const nbResult = checkNeechaBhanga(pPos, planetPositionsMap, precisionLagnaRashiIdx, moonRashiIdx);
+      hasNb = nbResult.hasNeechaBhanga;
+      nbReason = nbResult.reason;
+      if (hasNb) {
+        neechaBhangaPlanetsList.push({ planet: p.name, reason: nbReason });
+      }
+
+      degVuln = getDegreeVulnerability(pPos.rashi, pPos.degreeInSign);
+      if (degVuln.severity !== "NONE") {
+        degreeVulnerabilitiesList.push({ planet: p.name, vulnerability: degVuln });
+      }
+    }
+
+    return {
       name: p.name,
       house: p.house,
       rashiIndex: p.rashi.index,
       isExalted: p.isExalted,
-      isDebilitated: p.isDebilitated,
-      isRetrograde: p.isRetrograde
-    })),
+      isDebilitated: hasNb ? false : p.isDebilitated,
+      isRetrograde: p.isRetrograde,
+      functionalNature: fnNature,
+      hasNeechaBhanga: hasNb,
+      neechaBhangaReason: nbReason,
+      degreeVulnerability: degVuln
+    };
+  });
+
+  const sunPos = planetPositionsMap["Sun"];
+  const moonPos = planetPositionsMap["Moon"];
+  const rahuPos = planetPositionsMap["Rahu"];
+  const sunLon = sunPos ? sunPos.longitude : 0;
+  const moonLon = moonPos ? moonPos.longitude : (moonRashiIdx * 30 + 15);
+  const rahuLon = rahuPos ? rahuPos.longitude : 0;
+  const validPositions = Object.values(planetPositionsMap);
+  const secretAccuracyProfile = calculateSecretAccuracyProfile(sunLon, moonLon, rahuLon, validPositions);
+
+  const dynamicCtx: DynamicChartContext = {
+    name: localizedDevoteeName,
+    maritalStatus: personalization?.maritalStatus,
+    hasChildren: personalization?.childrenStatus,
+    planets: precisionDecoratedPlanets,
     transits,
     moonRashiIndex: session.result.moonSign.index,
     moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
     birthDate: session.input.birthDate,
     birthTime: session.input.birthTime,
     ageYears,
-    gender: ((userGender || "Male") as "Male" | "Female")
+    gender: ((userGender || "Male") as "Male" | "Female"),
+    functionalNatureMap,
+    neechaBhangaPlanets: neechaBhangaPlanetsList,
+    degreeVulnerabilities: degreeVulnerabilitiesList,
+    secretAccuracyProfile
   };
 
   onProgress?.(
@@ -1743,6 +1833,33 @@ export async function prepareBhavishyaV1Data(
       name: "Mahalakshmi Yoga",
       impact: "Sacred prosperity combination anchoring wealth preservation, ethical abundance, and enduring family auspiciousness."
     });
+  }
+
+  // 6. Neecha Bhanga Raja Yoga (Debilitation Cancellation Gate)
+  if (neechaBhangaPlanetsList.length > 0) {
+    neechaBhangaPlanetsList.forEach(nb => {
+      detectedClassicalYogas.push({
+        name: "Neecha Bhanga Raja Yoga",
+        impact: `Classical cancellation of ${nb.planet} debilitation (${nb.reason || "Dispositor/Exaltation lord in Kendra"}); transforms early struggle into high sovereign authority, resilient perseverance, and lasting achievement.`
+      });
+    });
+  }
+
+  // 7. Yogi Graha Wealth Catalyst & Pushkara Navamsha (South Indian Precision)
+  if (secretAccuracyProfile) {
+    detectedClassicalYogas.push({
+      name: "Yogi Graha Wealth Catalyst",
+      impact: `Divine prosperity conduit anchored by Yogi planet ${secretAccuracyProfile.yogiPlanet} (Duplicate Yogi dispositor: ${secretAccuracyProfile.duplicateYogiPlanet}). Catalyzes financial breakthroughs, high auspiciousness, and effortless wealth generation.`
+    });
+
+    if (secretAccuracyProfile.pushkaraBlessedPlanets && secretAccuracyProfile.pushkaraBlessedPlanets.length > 0) {
+      secretAccuracyProfile.pushkaraBlessedPlanets.forEach(pb => {
+        detectedClassicalYogas.push({
+          name: "Pushkara Navamsha Blessing",
+          impact: `${pb.planet} is enshrined in sacred Pushkara Navamsha degree band; confers divine invincibility, total protection from ruin, and lasting dignity in ${pb.protectionDomain}.`
+        });
+      });
+    }
   }
 
   const effectiveYogasSource = rawNarrativeYogas.length > 0 ? rawNarrativeYogas : detectedClassicalYogas;

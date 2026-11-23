@@ -153,5 +153,35 @@ describe("Instant Reading Structured Talking Points Engine", () => {
     expect(parsed.openingIceBreaker.some(p => p.text.includes("ಲಗ್ನವು"))).toBe(false);
     expect(parsed.openingIceBreaker[0].text).toBe("ಅತ್ಯಂತ ಸ್ವಾಭಿಮಾನಿ ಹಾಗೂ ಕಷ್ಟದಲ್ಲಿ ಯಾರ ಮುಂದೆಯೂ ಕೈಚಾಚದ ವ್ಯಕ್ತಿತ್ವ.");
   });
+
+  it("generates pastEventVerification hooks with ZERO English token leakage across all Indic languages", () => {
+    const points = buildDeterministicFirstSixPoints(synthesis, mockSession, true);
+    expect(points.pastEventVerification).toBeDefined();
+    expect(points.pastEventVerification!.length).toBeGreaterThanOrEqual(1);
+
+    const indicLangs: Array<"kn" | "mr" | "hi" | "te" | "ta"> = ["kn", "mr", "hi", "te", "ta"];
+    const englishWordRegex = /[a-zA-Z]{3,}/;
+
+    for (const lang of indicLangs) {
+      const localizedPoints = buildDeterministicFirstSixPoints(synthesis, mockSession, lang === "kn", { lang });
+      expect(localizedPoints.pastEventVerification!.length).toBeGreaterThanOrEqual(1);
+
+      for (const item of localizedPoints.pastEventVerification!) {
+        expect(item.text.length).toBeGreaterThan(15);
+        // Guarantee 0% English leakage
+        expect(item.text).not.toMatch(englishWordRegex);
+        expect(item.tagKn).not.toMatch(englishWordRegex);
+      }
+    }
+  });
+
+  it("ensures pastEventVerification can be prepended to Card 1 when explicitly requested", () => {
+    const pointsWithout = buildDeterministicFirstSixPoints(synthesis, mockSession, true, { prependToIceBreaker: false });
+    const pointsWith = buildDeterministicFirstSixPoints(synthesis, mockSession, true, { prependToIceBreaker: true });
+
+    expect(pointsWithout.openingIceBreaker.length).toBe(12);
+    expect(pointsWith.openingIceBreaker.length).toBe(12 + pointsWith.pastEventVerification!.length);
+    expect(pointsWith.openingIceBreaker[0].text).toBe(pointsWith.pastEventVerification![0].text);
+  });
 });
 

@@ -769,5 +769,117 @@ describe("Baggona 5-Year Master Destiny Forecast Engine", () => {
       expect(yr.charaKarakaInfluence!.influenceSummary.length).toBeGreaterThan(20);
     }
   });
+
+  it("strictly enforces authentic Infant (age < 2) age-voice across chapters, milestones, muhurtas, and annual forecast", () => {
+    const kundli = createMockKundli(0, 0); // Mesha Lagna, Mesha Moon
+    const payload = compute5YearMasterPrediction(
+      kundli,
+      "2025-05-15",
+      "09:30",
+      "kn",
+      "ಚಿನ್ನಾರಿ ಕಂದ",
+      2026
+    );
+
+    expect(payload.ageCategory).toBe("child");
+    const chapterIds = payload.chapters.map(c => c.id);
+    expect(chapterIds).toContain("infant_balarishta");
+    expect(chapterIds).toContain("infant_milestones");
+    expect(chapterIds).toContain("infant_samskaras");
+    expect(chapterIds).not.toContain("adult_career");
+    expect(chapterIds).not.toContain("adult_wealth");
+    expect(chapterIds).not.toContain("adult_family");
+
+    // All chapters must have contemplationInquest and 3 full paragraphs
+    payload.chapters.forEach(ch => {
+      expect(ch.contemplationInquest).toBeDefined();
+      expect(ch.paragraphs).toHaveLength(3);
+      expect(ch.keyAdvice.length).toBeGreaterThan(15);
+    });
+
+    // Muhurtas must be infant samskaras
+    const muhurtaNames = (payload.muhurtaWindows || []).map(m => m.category);
+    expect(muhurtaNames.some(n => n.includes("ಅನ್ನಪ್ರಾಶನ") || n.includes("ನಾಮಕರಣ") || n.includes("ಚೌಲ") || n.includes("ಆಯುಷ್ಯ"))).toBe(true);
+
+    // Milestones must be pediatric
+    const milestoneDims = payload.milestoneMatrix.map(m => m.dimensionTitle);
+    expect(milestoneDims.some(d => d.includes("ಶಿಶು") || d.includes("ಶೈಶವ") || d.includes("ಬಾಲ"))).toBe(true);
+    expect(milestoneDims.some(d => d.includes("ಸಾಲ ವಿಮುಕ್ತಿ") || d.includes("ದಾಂಪತ್ಯ"))).toBe(false);
+
+    // Annual forecast must be pediatric
+    expect(payload.years[0].headline).toContain("ಶಿಶು");
+    expect(payload.years[0].fourPillarsAnnualVerdict!.career.text).not.toContain("ಬಡ್ತಿ");
+    expect(payload.years[0].fourPillarsAnnualVerdict!.wealth.text).not.toContain("ದೊಡ್ಡ ಸಾಲ");
+  });
+
+  it("strictly enforces authentic Early Child (age 2-7) age-voice across chapters and muhurtas", () => {
+    const kundli = createMockKundli(1, 2);
+    const payload = compute5YearMasterPrediction(
+      kundli,
+      "2022-03-10",
+      "11:15",
+      "mr",
+      "चिन्मय",
+      2026
+    );
+
+    expect(payload.ageCategory).toBe("child");
+    const chapterIds = payload.chapters.map(c => c.id);
+    expect(chapterIds).toContain("early_child_education");
+    expect(chapterIds).toContain("early_child_health");
+    expect(chapterIds).toContain("early_child_habits");
+    expect(chapterIds).not.toContain("adult_career");
+
+    payload.chapters.forEach(ch => {
+      expect(ch.contemplationInquest).toBeDefined();
+      expect(ch.paragraphs).toHaveLength(3);
+    });
+  });
+
+  it("strictly enforces authentic Adolescent (age 13-17) secondary education and board exam age-voice", () => {
+    const kundli = createMockKundli(2, 3);
+    const payload = compute5YearMasterPrediction(
+      kundli,
+      "2011-06-20",
+      "16:45",
+      "hi",
+      "आदित्य",
+      2026
+    );
+
+    const chapterIds = payload.chapters.map(c => c.id);
+    expect(chapterIds).toContain("adolescent_education");
+    expect(chapterIds).toContain("adolescent_skills");
+    expect(chapterIds).toContain("adolescent_wellness");
+    expect(chapterIds).not.toContain("adult_career");
+    expect(chapterIds).not.toContain("adult_family");
+
+    // Board exam and technical skills
+    expect(payload.chapters[0].title).toContain("बोर्ड");
+    expect(payload.years[0].fourPillarsAnnualVerdict!.career.text).not.toContain("पदोन्नति");
+  });
+
+  it("strictly enforces authentic Senior (age 60+) spiritual evolution and legacy stewardship", () => {
+    const kundli = createMockKundli(5, 5);
+    const payload = compute5YearMasterPrediction(
+      kundli,
+      "1958-12-14",
+      "07:00",
+      "kn",
+      "ರಾಮಚಂದ್ರ ಹೆಗಡೆ",
+      2026
+    );
+
+    expect(payload.ageCategory).toBe("senior");
+    const chapterIds = payload.chapters.map(c => c.id);
+    expect(chapterIds).toContain("senior_spirituality");
+    expect(chapterIds).toContain("senior_health");
+    expect(chapterIds).toContain("senior_family_legacy");
+    expect(chapterIds).not.toContain("adult_career");
+
+    // Milestones must be spiritual/legacy
+    const milestoneDims = payload.milestoneMatrix.map(m => m.dimensionTitle);
+    expect(milestoneDims.some(d => d.includes("ಆಧ್ಯಾತ್ಮಿಕ") || d.includes("ಶಾಂತಿ") || d.includes("ಮೊಮ್ಮಕ್ಕಳ"))).toBe(true);
+  });
 });
 

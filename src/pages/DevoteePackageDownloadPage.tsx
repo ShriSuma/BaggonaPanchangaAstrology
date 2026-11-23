@@ -43,6 +43,17 @@ import {
   buildPersonalizedMarriageText,
   buildPersonalizedChildrenText
 } from "../components/RamanBhavishya/BhavishyaView";
+import { YogiOrderBump } from "../components/checkout/YogiOrderBump";
+import {
+  calculateSecretAccuracyProfile,
+  auditNameAndMobileWithYogi
+} from "../engine/secretAccuracyEngine";
+import {
+  normalizePlanetName,
+  type Planet,
+  type PlanetPosition as GatePlanetPosition,
+  type RashiIndex as GateRashiIndex
+} from "../engine/jyotishPrecisionGates";
 
 const toGrahaKey = (planet: any): GrahaKey => String(planet) as GrahaKey;
 
@@ -93,7 +104,10 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
   const [poojaName, setPoojaName] = useState<string>("ಶ್ರೀ ಮಹಾಗಣಪತಿ ಹೋಮ, ನವಗ್ರಹ ಶಾಂತಿ & ರುದ್ರಾಭಿಷೇಕ ಪೂಜೆ");
   const [poojaPlace, setPoojaPlace] = useState<string>("ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ");
 
-  // 4. Divya Bhavishya Single / Multi-Question State
+  // 4. VIP Order Bump State (Product D: Name & Mobile Yogi Frequency Audit)
+  const [isYogiOrderBumpChecked, setIsYogiOrderBumpChecked] = useState<boolean>(false);
+
+  // 5. Divya Bhavishya Single / Multi-Question State
   const [questionMode, setQuestionMode] = useState<"single" | "multi">("single");
   const [selectedTopic, setSelectedTopic] = useState<string>("career");
   const [questions, setQuestions] = useState<PackageQuestionItem[]>([
@@ -241,6 +255,34 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
     const bhuktiName = bhuktiLord && GRAHA_L5[bhuktiLord] ? pick(GRAHA_L5[bhuktiLord], selectedLang) : "Bhukti";
     return buildPersonalizedChildrenText(selectedLang, childrenStatus, lagnaIdx, dashaName, bhuktiName);
   }, [kundliResult, selectedLang, childrenStatus, birthDate, birthTime, latitude, longitude]);
+
+  // Yogi & Avayogi Planet Calculation for Devotee
+  const yogiPlanetInfo = useMemo(() => {
+    if (!kundliResult?.planets) return { yogi: "Jupiter" as Planet, avayogi: "Saturn" as Planet };
+    const posList: GatePlanetPosition[] = (kundliResult.planets || []).map(p => {
+      const pName = normalizePlanetName(p.name);
+      const rIdx = ((p.rashi?.index ?? 0) % 12 + 12) % 12;
+      const degInSign = Math.max(0, Math.min(29.9999, (p.degree ?? 15) % 30));
+      return {
+        planet: pName,
+        longitude: rIdx * 30 + degInSign,
+        rashi: rIdx as GateRashiIndex,
+        degreeInSign: degInSign,
+        rashiHouse: p.house || 1,
+        bhavaHouse: p.house || 1
+      };
+    });
+    const sPos = posList.find(p => p.planet === "Sun");
+    const mPos = posList.find(p => p.planet === "Moon");
+    const rPos = posList.find(p => p.planet === "Rahu");
+    const prof = calculateSecretAccuracyProfile(
+      sPos ? sPos.longitude : 0,
+      mPos ? mPos.longitude : 30,
+      rPos ? rPos.longitude : 0,
+      posList
+    );
+    return { yogi: prof.yogiPlanet, avayogi: prof.avayogiPlanet };
+  }, [kundliResult]);
 
   // Generate QR codes for 30, 90, and 120 Days
   useEffect(() => {
@@ -769,6 +811,41 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
           );
           zip.file(`08_Next_5_Years_Prediction_${safeDevotee}.pdf`, pdf8.output("blob"));
         }
+      }
+
+      // 9. VIP Order Bump: Name & Mobile Yogi Vibration Audit
+      if (isYogiOrderBumpChecked) {
+        setZipProgress(93);
+        setZipStageText("೯/೯ ಯೋಗಿ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪ್ರಮಾಣಪತ್ರ ಸಿದ್ಧವಾಗುತ್ತಿದೆ (9/9 Yogi Audit)...");
+        const audit = auditNameAndMobileWithYogi(devoteeName, priestPhone || "9972339362", yogiPlanetInfo.yogi, yogiPlanetInfo.avayogi);
+        const certContent = `================================================================================
+॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ — ಯೋಗಿ ಗ್ರಹ & ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ದೃಢೀಕರಣ ಪತ್ರ ॥
+================================================================================
+ಭಕ್ತರ ಹೆಸರು (Devotee Name): ${devoteeName}
+ದೂರವಾಣಿ ಸಂಖ್ಯೆ (Phone Number): ${priestPhone || "9972339362"}
+ದಿನಾಂಕ (Date): ${todayStr}
+ಮುಖ್ಯ ಜ್ಯೋತಿಷಿ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ದೂರವಾಣಿ: +91 99723 39362)
+
+೧. ಯೋಗಿ & ಅವಯೋಗಿ ಗ್ರಹ ನಿರ್ಣಯ (Seshadri Iyer System):
+   - ಯೋಗಿ ಗ್ರಹ (Yogi Planet - Wealth & Luck): ${yogiPlanetInfo.yogi}
+   - ಅವಯೋಗಿ ಗ್ರಹ (Avayogi Planet - Hidden Friction): ${yogiPlanetInfo.avayogi}
+
+೨. ಹೆಸರಿನ ಸಂಖ್ಯಾ ಕಂಪನ ವಿಶ್ಲೇಷಣೆ (Chaldean Numerology):
+   - ಹೆಸರಿನ ಸಂಯುಕ್ತ ಸಂಖ್ಯೆ (Compound Number): ${audit.nameCompoundNumber}
+   - ಅಂತಿಮ ಮೂಲಾಂಕ (Single Digit): ${audit.nameSingleDigit}
+   - ಆಳುವ ಗ್ರಹ (Ruling Planet): ${audit.nameRulingPlanet}
+   - ಸಾಮರಸ್ಯ ಸ್ಥಿತಿ (Harmony Status): ${audit.nameHarmonyStatus}
+   - ಶಾಸ್ತ್ರೋಕ್ತ ಸಲಹೆ: ${audit.nameRecommendationKn}
+
+೩. ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯ ಸಂಖ್ಯಾ ಕಂಪನ ವಿಶ್ಲೇಷಣೆ:
+   - ಅಂಕಿಗಳ ಒಟ್ಟು ಮೊತ್ತ (Mobile Sum): ${audit.mobileSum}
+   - ಅಂತಿಮ ಮೂಲಾಂಕ (Single Digit): ${audit.mobileSingleDigit}
+   - ಆಳುವ ಗ್ರಹ (Ruling Planet): ${audit.mobileRulingPlanet}
+   - ಸಾಮರಸ್ಯ ಸ್ಥಿತಿ (Harmony Status): ${audit.mobileHarmonyStatus}
+   - ಶಾಸ್ತ್ರೋಕ್ತ ಸಲಹೆ: ${audit.mobileRecommendationKn}
+================================================================================
+`;
+        zip.file(`VIP_09_Yogi_Name_Mobile_Audit_${safeDevotee}.txt`, certContent);
       }
 
       // Final ZIP compilation
@@ -1767,6 +1844,19 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
               {singleDownloadingId === "pkg-five-year-container" ? "ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ..." : dict.downloadSinglePdfBtn}
             </button>
           </div>
+        </div>
+
+        {/* Product D: Checkout Order Bump (Name & Mobile Yogi Frequency Audit) */}
+        <div className="mt-8 mb-4">
+          <YogiOrderBump
+            selectedLang={selectedLang}
+            devoteeName={devoteeName}
+            phoneNumber={priestPhone || "9972339362"}
+            yogiPlanet={yogiPlanetInfo.yogi}
+            avayogiPlanet={yogiPlanetInfo.avayogi}
+            isChecked={isYogiOrderBumpChecked}
+            onToggle={setIsYogiOrderBumpChecked}
+          />
         </div>
       </div>
 

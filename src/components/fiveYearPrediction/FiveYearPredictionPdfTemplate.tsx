@@ -21,6 +21,12 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
   const isTe = lang === "te";
   const isTa = lang === "ta";
 
+  const age = data.ageYears ?? (data.ageCategory === "child" ? 10 : 30);
+  const isInfant = age < 2;
+  const isChild = age < 13;
+  const isAdolescent = age >= 13 && age < 18;
+  const isMinor = age < 18;
+
   const getFontFamily = (l: SixLang): string => {
     switch (l) {
       case "kn":
@@ -184,6 +190,45 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
   ];
 
   const getParagraphSubheading = (pIdx: number, l: SixLang): string => {
+    if (pIdx === 1) {
+      if (isInfant) {
+        switch (l) {
+          case "kn": return "೨. ಶಿಶು ಬೆಳವಣಿಗೆ, ಸಂವೇದನೆ & ವಾತ್ಸಲ್ಯ ರಕ್ಷೆ";
+          case "mr": return "२. बालसंगोपन, बोबडे बोल व वात्सल्य रक्षा";
+          case "hi": return "२. शिशु विकास, संवेदी जागृति एवं वात्सल्य रक्षा";
+          case "te": return "2. శిశు ఎదుగుదల, స్పర్శ జ్ఞానం & వాత్సల్య రక్ష";
+          case "ta": return "2. குழந்தை வளர்ச்சி, உணர்ச்சி நிலை & தாய் பாசம்";
+          case "en":
+          default:
+            return "2. Pediatric Vitality, Sensory Milestones & Parental Warmth";
+        }
+      }
+      if (isChild) {
+        switch (l) {
+          case "kn": return "೨. ವಿದ್ಯಾಭ್ಯಾಸ, ಪ್ರತಿಭೆ & ಬೌದ್ಧಿಕ ವಿಕಾಸ";
+          case "mr": return "२. शिक्षण, सुप्त गुण व बौद्धिक विकास";
+          case "hi": return "२. शिक्षा, नैसर्गिक प्रतिभा एवं बौद्धिक विकास";
+          case "te": return "2. విద్యాభ్యాసం, ప్రతిభ & మేధో వికాసం";
+          case "ta": return "2. கல்வி, திறமை & அறிவு வளர்ச்சி";
+          case "en":
+          default:
+            return "2. Academic Foundations, Creative Talents & Cognitive Growth";
+        }
+      }
+      if (isAdolescent) {
+        switch (l) {
+          case "kn": return "೨. ಉನ್ನತ ವ್ಯಾಸಂಗ, ಕೌಶಲ್ಯ ಹಾಗೂ ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸ";
+          case "mr": return "२. उच्च शिक्षण, कौशल्य व व्यक्तिमत्त्व विकास";
+          case "hi": return "२. उच्च शिक्षा, कौशल संवर्धन एवं व्यक्तित्व विकास";
+          case "te": return "2. ఉన్నత విద్య, నైపుణ్యాలు & వ్యక్తిత్వ వికాసం";
+          case "ta": return "2. உயர்கல்வி, புதிய திறன்கள் & ஆளுமை வளர்ச்சி";
+          case "en":
+          default:
+            return "2. Advanced Academics, Technical Skills & Identity Growth";
+        }
+      }
+    }
+
     switch (l) {
       case "kn": return paragraphSubheadingsKn[pIdx] || "";
       case "mr": return paragraphSubheadingsMr[pIdx] || "";
@@ -368,7 +413,9 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   {/* Career */}
                   <div className="border-l-2 border-amber-700/50 pl-4 py-1">
                     <p className="text-sm font-black text-amber-950">
-                      💼 {isKn ? "ಉದ್ಯೋಗ & ವೃತ್ತಿ" : isMr ? "नोकरी व व्यवसाय" : isHi ? "कार्यक्षेत्र एवं व्यवसाय" : isTe ? "ఉద్యోగం & వృత్తి" : isTa ? "தொழில் & வேலை" : "Career & Work"}
+                      {isChild ? "📚 " : isAdolescent ? "🎓 " : "💼 "}{isChild ? (isKn ? "ವಿದ್ಯಾಭ್ಯಾಸ & ಪ್ರತಿಭೆ" : isMr ? "शिक्षण व सुप्त गुण" : isHi ? "शिक्षा एवं प्रतिभा" : isTe ? "విద్య & ప్రతిభ" : isTa ? "கல்வி & திறமை" : "Education & Talents")
+                        : isAdolescent ? (isKn ? "ಉನ್ನತ ವ್ಯಾಸಂಗ & ಕೌಶಲ್ಯ" : isMr ? "उच्च शिक्षण व कौशल्य" : isHi ? "उच्च शिक्षा एवं कौशल" : isTe ? "ఉన్నత విద్య & నైపుణ్యాలు" : isTa ? "உயர்கல்வி & திறன்கள்" : "Higher Academics & Skills")
+                        : (isKn ? "ಉದ್ಯೋಗ & ವೃತ್ತಿ" : isMr ? "नोकरी व व्यवसाय" : isHi ? "कार्यक्षेत्र एवं व्यवसाय" : isTe ? "ఉద్యోగం & వృత్తి" : isTa ? "தொழில் & வேலை" : "Career & Work")}
                       <span className="ml-2 font-normal text-amber-800">({data.currentLifeStatus.fourPillarsDashboard.career.badgeText})</span>
                     </p>
                     <p className="text-base text-amber-950 font-serif leading-relaxed mt-1">
@@ -379,7 +426,9 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   {/* Wealth */}
                   <div className="border-l-2 border-amber-700/50 pl-4 py-1">
                     <p className="text-sm font-black text-amber-950">
-                      💰 {isKn ? "ಆರ್ಥಿಕತೆ & ಹಣಕಾಸು" : isMr ? "आर्थिक स्थिती व वित्त" : isHi ? "धन एवं आर्थिक स्थिति" : isTe ? "ఆర్థికం & నిధులు" : isTa ? "பொருளாதாரம் & சேமிப்பு" : "Wealth & Finance"}
+                      {isChild ? "🌱 " : isAdolescent ? "💼 " : "💰 "}{isChild ? (isKn ? "ಪೋಷಕರ ವಿದ್ಯಾ ನಿಧಿ" : isMr ? "पालकांचा शैक्षणिक निधी" : isHi ? "अभिभावकीय शिक्षा निधि" : isTe ? "తల్లిదండ్రుల విద్యా నిధి" : isTa ? "பெற்றோரின் கல்வி நிதி" : "Parental Education Fund")
+                        : isAdolescent ? (isKn ? "ಭವಿಷ್ಯದ ವೃತ್ತಿ ಬುನಾದಿ & ನಿಧಿ" : isMr ? "भावी करिअर व शैक्षणिक निधी" : isHi ? "भावी करियर एवं शिक्षा कोष" : isTe ? "భవిష్యత్ కెరీర్ & విద్యా నిధి" : isTa ? "எதிர்கால தொழில் & கல்வி நிதி" : "Future Career & Education Fund")
+                        : (isKn ? "ಆರ್ಥಿಕತೆ & ಹಣಕಾಸು" : isMr ? "आर्थिक स्थिती व वित्त" : isHi ? "धन एवं आर्थिक स्थिति" : isTe ? "ఆర్థికం & నిధులు" : isTa ? "பொருளாதாரம் & சேமிப்பு" : "Wealth & Finance")}
                       <span className="ml-2 font-normal text-amber-800">({data.currentLifeStatus.fourPillarsDashboard.wealth.badgeText})</span>
                     </p>
                     <p className="text-base text-amber-950 font-serif leading-relaxed mt-1">
@@ -502,13 +551,17 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               <div className="space-y-3">
                 {/* Career */}
                 <div className="border-l-2 border-amber-700/40 pl-4 py-0.5">
-                  <strong className="text-sm font-black text-amber-950 block">💼 {isKn ? "ಉದ್ಯೋಗ & ವೃತ್ತಿ ಮುನ್ನೋಟ" : isMr ? "नोकरी व व्यवसाय" : isHi ? "कार्यक्षेत्र एवं व्यवसाय" : "Career & Profession"}:</strong>
+                  <strong className="text-sm font-black text-amber-950 block">{isChild ? "📚 " : isAdolescent ? "🎓 " : "💼 "}{isChild ? (isKn ? "ವಿದ್ಯಾಭ್ಯಾಸ & ಪ್ರತಿಭಾ ಮುನ್ನೋಟ" : isMr ? "शिक्षण व सुप्त गुणांची दिशा" : isHi ? "शिक्षा एवं प्रतिभा परिदृश्य" : isTe ? "విద్య & ప్రతిభా దృక్పథం" : isTa ? "கல்வி & திறமை நோக்கு" : "Academic & Talent Outlook")
+                    : isAdolescent ? (isKn ? "ಉನ್ನತ ವ್ಯಾಸಂಗ & ಕೌಶಲ್ಯ ಮುನ್ನೋಟ" : isMr ? "उच्च शिक्षण व कौशल्य दिशा" : isHi ? "उच्च शिक्षा एवं कौशल परिदृश्य" : isTe ? "ఉన్నత విద్య & నైపుణ్యాల దృక్పథం" : isTa ? "உயர்கல்வி & திறன் நோக்கு" : "Higher Academics & Skill Outlook")
+                    : (isKn ? "ಉದ್ಯೋಗ & ವೃತ್ತಿ ಮುನ್ನೋಟ" : isMr ? "नोकरी व व्यवसाय" : isHi ? "कार्यक्षेत्र एवं व्यवसाय" : "Career & Profession")}:</strong>
                   <p className="text-base text-amber-950 leading-relaxed font-serif mt-0.5">{data.currentLifeStatus.careerImmediateFocus}</p>
                 </div>
 
                 {/* Wealth */}
                 <div className="border-l-2 border-amber-700/40 pl-4 py-0.5">
-                  <strong className="text-sm font-black text-amber-950 block">💰 {isKn ? "ಆರ್ಥಿಕತೆ & ಉಳಿತಾಯ ಭದ್ರತೆ" : isMr ? "आर्थिक स्थिती व बचत" : isHi ? "धन एवं बचत सुरक्षा" : "Wealth & Asset Prudence"}:</strong>
+                  <strong className="text-sm font-black text-amber-950 block">{isChild ? "🌱 " : isAdolescent ? "💼 " : "💰 "}{isChild ? (isKn ? "ಪೋಷಕರ ವಿದ್ಯಾ ಉಳಿತಾಯ ಭದ್ರತೆ" : isMr ? "पालकांचा शैक्षणिक निधी व सुरक्षितता" : isHi ? "अभिभावकीय शिक्षा सुरक्षा कोष" : isTe ? "తల్లిదండ్రుల విద్యా పొదుపు రక్షణ" : isTa ? "பெற்றோரின் கல்வி நிதி பாதுகாப்பு" : "Parental Educational Growth Fund Security")
+                    : isAdolescent ? (isKn ? "ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ ನಿಧಿ & ಭವಿಷ್ಯದ ಬುನಾದಿ" : isMr ? "उच्च शिक्षण निधी व भविष्याचा पाया" : isHi ? "उच्च शिक्षा कोष एवं भावी आधार" : isTe ? "ఉన్నత విద్యా నిధి & భవిష్యత్ పునాది" : isTa ? "உயர்கல்வி நிதி & எதிர்கால அடித்தளம்" : "Higher Education Reserve & Career Foundation")
+                    : (isKn ? "ಆರ್ಥಿಕತೆ & ಉಳಿತಾಯ ಭದ್ರತೆ" : isMr ? "आर्थिक स्थिती व बचत" : isHi ? "धन एवं बचत सुरक्षा" : "Wealth & Asset Prudence")}:</strong>
                   <p className="text-base text-amber-950 leading-relaxed font-serif mt-0.5">{data.currentLifeStatus.wealthImmediateFocus}</p>
                 </div>
 
@@ -1284,16 +1337,30 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 {yr.fourPillarsAnnualVerdict && (
                   <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5 space-y-1">
                     <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
-                      {isKn ? "ಪ್ರಶ್ನೆ: ಜೀವನದ ೪ ಸ್ತಂಭಗಳ (ವೃತ್ತಿ, ಧನ, ಕುಟುಂಬ, ಆರೋಗ್ಯ) ವಾರ್ಷಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
-                        : isMr ? "प्रश्न: जीवनाचे ४ स्तंभ (व्यवसाय, वित्त, कुटुंब, आरोग्य) या वर्षात कसे राहतील?"
-                        : isHi ? "प्रश्न: जीवन के ४ स्तंभ (कार्यक्षेत्र, धन, परिवार, स्वास्थ्य) का इस वर्ष क्या फलादेश है?"
-                        : "Inquest: How do the 4 Life Pillars (Career, Wealth, Family, Health) perform this year?"}
+                      {isChild
+                        ? (isKn ? "ಪ್ರಶ್ನೆ: ಜೀವನದ ೪ ಸ್ತಂಭಗಳ (ವಿದ್ಯಾಭ್ಯಾಸ, ಪೋಷಕರ ನಿಧಿ, ಕುಟುಂಬ, ಆರೋಗ್ಯ) ವಾರ್ಷಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
+                          : isMr ? "प्रश्न: बालजीवनाचे ४ स्तंभ (शिक्षण, शैक्षणिक निधी, कुटुंब, आरोग्य) या वर्षात कसे राहतील?"
+                          : isHi ? "प्रश्न: बाल जीवन के ४ स्तंभ (शिक्षा, शिक्षा कोष, परिवार, स्वास्थ्य) का इस वर्ष क्या फलादेश है?"
+                          : isTe ? "ప్రశ్న: జీవిత 4 స్తంభాల (చదువు, విద్యా నిధి, కుటుంబం, ఆరోగ్యం) వార్షిక స్థితి ఎలా ఉంది?"
+                          : isTa ? "கேள்வி: வாழ்க்கையின் 4 தூண்கள் (கல்வி, பெற்றோர் நிதி, குடும்பம், ஆரோக்கியம்) இந்த ஆண்டு எவ்வாறு இருக்கும்?"
+                          : "Inquest: How do the 4 Pillars (Education, Parental Fund, Family, Health) perform this year?")
+                        : isAdolescent
+                          ? (isKn ? "ಪ್ರಶ್ನೆ: ಜೀವನದ ೪ ಸ್ತಂಭಗಳ (ಉನ್ನತ ವ್ಯಾಸಂಗ, ಕೌಶಲ್ಯ/ನಿಧಿ, ಕುಟುಂಬ, ಆರೋಗ್ಯ) ವಾರ್ಷಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
+                            : isMr ? "प्रश्न: युवा जीवनाचे ४ स्तंभ (उच्च शिक्षण, कौशल्य/निधी, कुटुंब, आरोग्य) या वर्षात कसे राहतील?"
+                            : isHi ? "प्रश्न: युवा जीवन के ४ स्तंभ (उच्च शिक्षा, कौशल/कोष, परिवार, स्वास्थ्य) का इस वर्ष क्या फलादेश है?"
+                            : isTe ? "ప్రశ్న: 4 స్తంభాల (ఉన్నత చదువు, నైపుణ్యాలు/నిధి, కుటుంబం, ఆరోగ్యం) వార్షిక స్థితి ఎలా ఉంది?"
+                            : isTa ? "கேள்வி: 4 தூண்கள் (உயர்கல்வி, திறன்கள்/நிதி, குடும்பம், ஆரோக்கியம்) இந்த ஆண்டு எவ்வாறு இருக்கும்?"
+                            : "Inquest: How do the 4 Pillars (Higher Academics, Skills/Fund, Family, Health) perform this year?")
+                          : (isKn ? "ಪ್ರಶ್ನೆ: ಜೀವನದ ೪ ಸ್ತಂಭಗಳ (ವೃತ್ತಿ, ಧನ, ಕುಟುಂಬ, ಆರೋಗ್ಯ) ವಾರ್ಷಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
+                            : isMr ? "प्रश्न: जीवनाचे ४ स्तंभ (व्यवसाय, वित्त, कुटुंब, आरोग्य) या वर्षात कसे राहतील?"
+                            : isHi ? "प्रश्न: जीवन के ४ स्तंभ (कार्यक्षेत्र, धन, परिवार, स्वास्थ्य) का इस वर्ष क्या फलादेश है?"
+                            : "Inquest: How do the 4 Life Pillars (Career, Wealth, Family, Health) perform this year?")}
                     </span>
                     <div className="text-xs text-amber-950 leading-relaxed font-sans">
                       <p>
-                        <strong className="text-amber-900">{isKn ? "ವೃತ್ತಿ:" : isMr ? "व्यवसाय:" : isHi ? "कार्यक्षेत्र:" : isTe ? "వృత్తి:" : isTa ? "தொழில்:" : "Career:"}</strong> {yr.fourPillarsAnnualVerdict.career.text}
+                        <strong className="text-amber-900">{isChild ? (isKn ? "ವಿದ್ಯಾಭ್ಯಾಸ:" : isMr ? "शिक्षण:" : isHi ? "शिक्षा:" : isTe ? "విద్య:" : isTa ? "கல்வி:" : "Education:") : isAdolescent ? (isKn ? "ಉನ್ನತ ವ್ಯಾಸಂಗ:" : isMr ? "उच्च शिक्षण:" : isHi ? "उच्च शिक्षा:" : isTe ? "ఉన్నత చదువు:" : isTa ? "உயர்கல்வி:" : "Academics:") : (isKn ? "ವೃತ್ತಿ:" : isMr ? "व्यवसाय:" : isHi ? "कार्यक्षेत्र:" : isTe ? "వృత్తి:" : isTa ? "தொழில்:" : "Career:")}</strong> {yr.fourPillarsAnnualVerdict.career.text}
                         <span className="mx-2 text-amber-700/60">•</span>
-                        <strong className="text-amber-900">{isKn ? "ಧನ:" : isMr ? "वित्त:" : isHi ? "धन:" : isTe ? "ధనం:" : isTa ? "தனம்:" : "Wealth:"}</strong> {yr.fourPillarsAnnualVerdict.wealth.text}
+                        <strong className="text-amber-900">{isChild ? (isKn ? "ವಿದ್ಯಾ ನಿಧಿ:" : isMr ? "शैक्षणिक निधी:" : isHi ? "शिक्षा कोष:" : isTe ? "విద్యా నిధి:" : isTa ? "கல்வி நிதி:" : "Education Fund:") : isAdolescent ? (isKn ? "ಕೌಶಲ್ಯ & ನಿಧಿ:" : isMr ? "कौशल्य व निधी:" : isHi ? "कौशल एवं कोष:" : isTe ? "నైపుణ్యాలు & నిధి:" : isTa ? "திறன் & நிதி:" : "Skills & Fund:") : (isKn ? "ಧನ:" : isMr ? "वित्त:" : isHi ? "धन:" : isTe ? "ధనం:" : isTa ? "தனம்:" : "Wealth:")}</strong> {yr.fourPillarsAnnualVerdict.wealth.text}
                         <span className="mx-2 text-amber-700/60">•</span>
                         <strong className="text-amber-900">{isKn ? "ಕುಟುಂಬ:" : isMr ? "कुटुंब:" : isHi ? "परिवार:" : isTe ? "కుటుంబం:" : isTa ? "குடும்பம்:" : "Family:"}</strong> {yr.fourPillarsAnnualVerdict.family.text}
                         <span className="mx-2 text-amber-700/60">•</span>
@@ -1495,10 +1562,31 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 <span>{t("muhurtaSectionTitle")}</span>
               </h3>
               <span className="text-xs font-bold text-amber-800 italic">
-                {isKn ? "ಗೃಹಪ್ರವೇಶ, ಆಸ್ತಿ, ವಾಹನ, ವಿವಾಹ ಹಾಗೂ ವಾಣಿಜ್ಯ ಆರಂಭಕ್ಕೆ ಶಾಸ್ತ್ರೋಕ್ತ ಕಾಲಾವಧಿಗಳು"
-                  : isMr ? "गृहप्रवेश, मालमत्ता, वाहन, विवाह व व्यवसायासाठी शुभ मुहूर्त"
-                    : isHi ? "गृह प्रवेश, संपत्ति, वाहन, विवाह एवं व्यापार शुभारंभ हेतु शुभ मुहूर्त"
-                      : "Auspicious Timing Windows for Major Life Decisions"}
+                {isInfant
+                  ? (isKn ? "ತೊಟ್ಟಿಲು ಶಾಸ್ತ್ರ, ಅನ್ನಪ್ರಾಶನ, ಆಯುಷ್ಯ ಹೋಮ ಹಾಗೂ ಕುಲದೇವತಾ ದರ್ಶನಕ್ಕೆ ಶಾಸ್ತ್ರೋಕ್ತ ಕಾಲಾವಧಿಗಳು"
+                    : isMr ? "पाळणा, अन्नप्राशन, आयुष्य होम व कुलदेवता दर्शनासाठी शुभ मुहूर्त"
+                    : isHi ? "नामकरण, अन्नप्राशन, आयुष्य होम एवं कुलदेवता दर्शन हेतु शुभ मुहूर्त"
+                    : isTe ? "నామకరణం, అన్నప్రాశన, ఆయుష్య హోమం & కులదేవత దర్శనానికి శుభ ముహూర్తాలు"
+                    : isTa ? "நாமக்கரணம், அன்னப்பிராசனம், ஆயுஷ்ய ஹோமம் & குலதெய்வ தரிசனத்திற்கு சுப முகூர்த்தங்கள்"
+                    : "Auspicious Vedic Timing Windows for Samskaras, Annaprashana & Ayushya Homa")
+                  : isChild
+                    ? (isKn ? "ಅಕ್ಷರಾಭ್ಯಾಸ, ಶಾಲಾ ಪ್ರವೇಶ, ವಿದ್ಯಾ ಹೋಮ ಹಾಗೂ ಪ್ರತಿಭಾ ವಿಕಾಸಕ್ಕೆ ಶಾಸ್ತ್ರೋಕ್ತ ಕಾಲಾವಧಿಗಳು"
+                      : isMr ? "अक्षराभ्यास, शाळा प्रवेश, विद्या होम व कलागुणांच्या विकासासाठी शुभ मुहूर्त"
+                      : isHi ? "अक्षराभ्यास, शाला प्रवेश, विद्या होम एवं प्रतिभा संवर्धन हेतु शुभ मुहूर्त"
+                      : isTe ? "అక్షరాభ్యాసం, పాఠశాల ప్రవేశం, విద్యా హోమం & ప్రతిభా వికాసానికి శుభ ముహూర్తాలు"
+                      : isTa ? "அக்ஷராப்யாசம், பள்ளி சேர்க்கை, வித்யா ஹோமம் & கலை வளர்ச்சிக்கு சுப முகூர்த்தங்கள்"
+                      : "Auspicious Vedic Timing Windows for Vidyarambha, Schooling & Talent Launch")
+                    : isAdolescent
+                      ? (isKn ? "ಪ್ರೌಢ ವ್ಯಾಸಂಗ, ಬೋರ್ಡ್ ಪರೀಕ್ಷೆಗಳು, ಸ್ಪರ್ಧಾತ್ಮಕ ಕೋಚಿಂಗ್ ಹಾಗೂ ಸ್ಕಾಲರ್‌ಶಿಪ್‌ಗೆ ಶಾಸ್ತ್ರೋಕ್ತ ಕಾಲಾವಧಿಗಳು"
+                        : isMr ? "माध्यमिक शिक्षण, बोर्ड परीक्षा, प्रगत कोचिंग व शिष्यवृत्तीसाठी शुभ मुहूर्त"
+                        : isHi ? "माध्यमिक शिक्षा, बोर्ड परीक्षा, कोचिंग प्रवेश एवं छात्रवृत्ति हेतु शुभ मुहूर्त"
+                        : isTe ? "ఉన్నత పాఠశాల చదువులు, బోర్డు పరీక్షలు, కోచింగ్ & స్కాలర్‌షిప్‌ల కోసం శుభ ముహూర్తాలు"
+                        : isTa ? "உயர்நிலைக் கல்வி, பொதுத்தேர்வு, சிறப்புப் பயிற்சி & உதவித்தொகைக்கான சுப முகூர்த்தங்கள்"
+                        : "Auspicious Vedic Timing Windows for Board Exams, Entrance Prep & Scholarships")
+                      : (isKn ? "ಗೃಹಪ್ರವೇಶ, ಆಸ್ತಿ, ವಾಹನ, ವಿವಾಹ ಹಾಗೂ ವಾಣಿಜ್ಯ ಆರಂಭಕ್ಕೆ ಶಾಸ್ತ್ರೋಕ್ತ ಕಾಲಾವಧಿಗಳು"
+                        : isMr ? "गृहप्रवेश, मालमत्ता, वाहन, विवाह व व्यवसायासाठी शुभ मुहूर्त"
+                        : isHi ? "गृह प्रवेश, संपत्ति, वाहन, विवाह एवं व्यापार शुभारंभ हेतु शुभ मुहूर्त"
+                        : "Auspicious Timing Windows for Major Life Decisions")}
               </span>
             </div>
 
@@ -1536,7 +1624,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                     <thead>
                       <tr className="bg-amber-900 text-amber-100 text-xs uppercase tracking-wider font-bold">
                         <th className="p-3 border-r border-amber-800/60 w-[18%]">{isKn ? "ವರ್ಷಾವಧಿ" : isMr ? "कालावधी" : isHi ? "कालावधि" : "Year"}</th>
-                        <th className="p-3 border-r border-amber-800/60 w-[24%]">{isKn ? "ಆರ್ಥಿಕ ನಿಲುವು" : isMr ? "आर्थिक स्थिती" : isHi ? "आर्थिक स्थिति" : "Stance"}</th>
+                        <th className="p-3 border-r border-amber-800/60 w-[24%]">{isMinor ? (isKn ? "ಶೈಕ್ಷಣಿಕ/ಬಾಲ ನಿಧಿ ನಿಲುವು" : isMr ? "शैक्षणिक निधी स्थिती" : isHi ? "शैक्षणिक कोष स्थिति" : isTe ? "విద్యా నిధి స్థితి" : isTa ? "கல்வி நிதி நிலை" : "Educational Fund Stance") : (isKn ? "ಆರ್ಥಿಕ ನಿಲುವು" : isMr ? "आर्थिक स्थिती" : isHi ? "आर्थिक स्थिति" : "Stance")}</th>
                         <th className="p-3 border-r border-amber-800/60 w-[30%]">{isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ಕ್ರಮ" : isMr ? "प्रमुख कृती" : isHi ? "प्रमुख कार्य" : "Key Action"}</th>
                         <th className="p-3 w-[28%]">{isKn ? "ಅನುಕೂಲಕರ ವಲಯಗಳು" : isMr ? "अनुकूल क्षेत्रे" : isHi ? "अनुकूल क्षेत्र" : "Sectors"}</th>
                       </tr>
@@ -1772,13 +1860,13 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   </span>
                   <div className="space-y-1.5 font-sans leading-relaxed text-amber-950 pt-1">
                     <p>
-                      <strong className="text-amber-900">💑 {isKn ? "ಸಂಗಾತಿಯ ಭಾಗ್ಯೋದಯ:" : isMr ? "जोडीदाराचा भाग्योदय:" : isHi ? "जीवनसाथी का भाग्योदय:" : "Spouse Destiny:"}</strong> {data.familyDestinyInterlocking.impactOnSpouse}
+                      <strong className="text-amber-900">{isMinor ? "👫 " : "💑 "}{isMinor ? (isKn ? "ಸಹೋದರ-ಸಹೋದರಿಯರ ಪ್ರೀತಿ & ಸ್ನೇಹ:" : isMr ? "भावंडांचे प्रेम व सख्य:" : isHi ? "सहोदर प्रेम एवं सद्भाव:" : isTe ? "తోబుట్టువుల ప్రేమ & స్నేహం:" : isTa ? "உடன்பிறந்தோர் அன்பு & நட்பு:" : "Sibling Camaraderie & Peer Affection:") : (isKn ? "ಸಂಗಾತಿಯ ಭಾಗ್ಯೋದಯ:" : isMr ? "जोडीदाराचा भाग्योदय:" : isHi ? "जीवनसाथी का भाग्योदय:" : "Spouse Destiny:")}</strong> {data.familyDestinyInterlocking.impactOnSpouse}
                     </p>
                     <p>
-                      <strong className="text-amber-900">👶 {isKn ? "ಸಂತಾನ & ಮಕ್ಕಳ ಭವಿಷ್ಯ:" : isMr ? "संतती व मुलांचे भविष्य:" : isHi ? "संतान एवं बच्चों का भविष्य:" : "Children's Grace:"}</strong> {data.familyDestinyInterlocking.impactOnChildren}
+                      <strong className="text-amber-900">{isMinor ? "🌟 " : "👶 "}{isMinor ? (isKn ? "ಬೌದ್ಧಿಕ ಪ್ರತಿಭೆ & ಸದ್ಗುಣ:" : isMr ? "बौद्धिक प्रतिभा व संस्कार:" : isHi ? "बौद्धिक प्रतिभा एवं सुसंस्कार:" : isTe ? "మేధో ప్రతిభ & సద్గుణాలు:" : isTa ? "அறிவுத் திறன் & நற்பண்புகள்:" : "Cognitive Virtues & Talents:") : (isKn ? "ಸಂತಾನ & ಮಕ್ಕಳ ಭವಿಷ್ಯ:" : isMr ? "संतती व मुलांचे भविष्य:" : isHi ? "संतान एवं बच्चों का भविष्य:" : "Children's Grace:")}</strong> {data.familyDestinyInterlocking.impactOnChildren}
                     </p>
                     <p>
-                      <strong className="text-amber-900">👵 {isKn ? "ತಂದೆ-ತಾಯಿಯ ಆಯುರಾರೋಗ್ಯ:" : isMr ? "आई-वडिलांचे आरोग्य:" : isHi ? "माता-पिता का स्वास्थ्य:" : "Parental Wellbeing:"}</strong> {data.familyDestinyInterlocking.impactOnParents}
+                      <strong className="text-amber-900">👵 {isMinor ? (isKn ? "ತಂದೆ-ತಾಯಿಯ ಆಯುರಾರೋಗ್ಯ & ತೃಪ್ತಿ:" : isMr ? "आई-वडिलांचे आरोग्य व समाधान:" : isHi ? "माता-पिता का स्वास्थ्य एवं संतोष:" : isTe ? "తల్లిదండ్రుల ఆరోగ్యం & సంతృప్తి:" : isTa ? "பெற்றோர் ஆரோக்கியம் & மனநிறைவு:" : "Parental Longevity & Fulfilment:") : (isKn ? "ತಂದೆ-ತಾಯಿಯ ಆಯುರಾರೋಗ್ಯ:" : isMr ? "आई-वडिलांचे आरोग्य:" : isHi ? "माता-पिता का स्वास्थ्य:" : "Parental Wellbeing:")}</strong> {data.familyDestinyInterlocking.impactOnParents}
                     </p>
                   </div>
                 </div>
@@ -1866,7 +1954,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   </span>
                   <div className="space-y-2 font-sans leading-relaxed text-amber-950 pt-1">
                     <p>
-                      <strong className="text-amber-900">💼 {isKn ? "ವೃತ್ತಿ & ಆರ್ಥಿಕ ತಿರುವು:" : isMr ? "करिअर व आर्थिक वळण:" : isHi ? "करियर एवं आर्थिक मोड़:" : "Career & Financial Pivot:"}</strong> {data.daivajnaSummary.careerFinancialPivot}
+                      <strong className="text-amber-900">{isChild ? "📚 " : isAdolescent ? "🎓 " : "💼 "}{isChild ? (isKn ? "ವಿದ್ಯಾಭ್ಯಾಸ & ಪ್ರತಿಭಾ ತಿರುವು:" : isMr ? "शिक्षण व सुप्त गुणांचे वळण:" : isHi ? "शिक्षा एवं प्रतिभा विकास मोड़:" : isTe ? "విద్యాభ్యాసం & ప్రతిభా వికాస మలుపు:" : isTa ? "கல்வி & திறமை வளர்ச்சி திருப்புமுனை:" : "Academic & Talent Pivot:") : isAdolescent ? (isKn ? "ಉನ್ನತ ವ್ಯಾಸಂಗ & ಕೌಶಲ್ಯ ತಿರುವು:" : isMr ? "उच्च शिक्षण व कौशल्य वळण:" : isHi ? "उच्च शिक्षा एवं कौशल मोड़:" : isTe ? "ఉన్నత విద్య & నైపుణ్యాల మలుపు:" : isTa ? "உயர்கல்வி & திறன் திருப்புமுனை:" : "Higher Academics & Skill Pivot:") : (isKn ? "ವೃತ್ತಿ & ಆರ್ಥಿಕ ತಿರುವು:" : isMr ? "करिअर व आर्थिक वळण:" : isHi ? "करियर एवं आर्थिक मोड़:" : "Career & Financial Pivot:")}</strong> {data.daivajnaSummary.careerFinancialPivot}
                     </p>
                     <p>
                       <strong className="text-amber-900">🛡️ {isKn ? "ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ ಕವಚ:" : isMr ? "आरोग्य व ऊर्जा कवच:" : isHi ? "स्वास्थ्य एवं प्राणशक्ति कवच:" : "Health & Vitality Shield:"}</strong> {data.daivajnaSummary.healthVitalityShield}

@@ -1417,6 +1417,21 @@ STRICT RULES:
                         <span>{playingPointKey === "icebreaker" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
                       </button>
                     </div>
+                    {/* Past Event Verification Sales Hook at very top of Pillar #1 */}
+                    {activeStructuredPoints?.pastEventVerification && activeStructuredPoints.pastEventVerification.length > 0 && (
+                      <div className="p-3 rounded-xl bg-amber-50/90 border border-amber-300/80 shadow-2xs space-y-2 mb-2">
+                        <div className="flex items-center justify-between text-xs font-black text-amber-950">
+                          <span className="flex items-center gap-1.5">
+                            <span>🔍</span>
+                            <span>{isKn ? "ಕಳೆದ ೨೪–೩೬ ತಿಂಗಳುಗಳ ನಿಖರ ಗತ ಘಟನೆ ದೃಢೀಕರಣ (Accuracy Proof)" : "Verified Past Events (Last 24–36 Months Accuracy Proof)"}</span>
+                          </span>
+                          <span className="px-2 py-0.5 text-[10px] rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
+                            100% {isKn ? "ಸಿದ್ಧ ಶಾಸ್ತ್ರೋಕ್ತ" : "Vedic Proof"}
+                          </span>
+                        </div>
+                        {renderPointList(activeStructuredPoints.pastEventVerification)}
+                      </div>
+                    )}
                     {renderPointList(activeStructuredPoints?.openingIceBreaker, activeTalkingPoints.openingIceBreakerKn)}
                   </div>
                 </div>

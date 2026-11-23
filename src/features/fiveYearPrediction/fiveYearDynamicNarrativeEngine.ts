@@ -153,7 +153,43 @@ export function calculateOpeningHookNarrative(
 
   // 1. Dynamic Core Focus Theme
   let coreFocusTheme = "";
-  if (isSadeSati) {
+  if (currentAgeYears < 2) {
+    coreFocusTheme = pick6({
+      kn: `${lagnaLocalized} ಲಗ್ನ • ${mahaLocalized} ಮಹಾದಶೆ: ಶೈಶವ ಆರೋಗ್ಯ ರಕ್ಷೆ, ಬಾಲಾರಿಷ್ಟ ಶಮನ & ಪೋಷಕರ ವಾತ್ಸಲ್ಯ ಕವಚ`,
+      mr: `${lagnaLocalized} लग्न • ${mahaMr(mahaLocalized)} महादशा: बाल आरोग्य, बालारिष्ट शांती व पालकांचे प्रेमछत्र`,
+      hi: `${lagnaLocalized} लग्न • ${mahaLocalized} महादशा: शैशव स्वास्थ्य, बालारिष्ट शमन एवं अभिभावकीय वात्सल्य`,
+      te: `${lagnaLocalized} లగ్నం • ${mahaLocalized} మహర్దశ: బాల ఆరోగ్యం, బాలారిష్ట నివారణ & తల్లిదండ్రుల ఆప్యాయత`,
+      ta: `${lagnaLocalized} லக்னம் • ${mahaLocalized} மகாதிசை: குழந்தை நலம், பாலாரிஷ்ட நிவர்த்தி & பெற்றோர் பாசம்`,
+      en: `${lagnaLocalized} Ascendant • ${mahaLocalized} Mahadasha: Infant Vitality, Balarishta Protection & Parental Sanctuary`
+    }, targetLang);
+  } else if (currentAgeYears < 8) {
+    coreFocusTheme = pick6({
+      kn: `${lagnaLocalized} ಲಗ್ನ • ${mahaLocalized} ಮಹಾದಶೆ: ಆಟೋಟದ ಕುತೂಹಲ, ಮುದ್ದು ಸಂಭಾಷಣೆ & ಪ್ರಾಥಮಿಕ ಶಿಕ್ಷಣದ ತಳಹದಿ`,
+      mr: `${lagnaLocalized} लग्न • ${mahaMr(mahaLocalized)} महादशा: खेळातील आनंद, संवाद कौशल्य व प्राथमिक शिक्षणाचा पाया`,
+      hi: `${lagnaLocalized} लग्न • ${mahaLocalized} महादशा: क्रीडा कुतूहल, भाषा विकास एवं प्राथमिक शिक्षा का आधार`,
+      te: `${lagnaLocalized} లగ్నం • ${mahaLocalized} మహర్దశ: ఆటపాటల ఆసక్తి, సంభాషణ నైపుణ్యం & ప్రాథమిక విద్యా పునాది`,
+      ta: `${lagnaLocalized} லக்னம் • ${mahaLocalized} மகாதிசை: விளையாட்டு ஆர்வம், பேச்சுத் திறன் & ஆரம்பக் கல்வி அடித்தளம்`,
+      en: `${lagnaLocalized} Ascendant • ${mahaLocalized} Mahadasha: Playful Curiosity, Speech & Early Educational Foundations`
+    }, targetLang);
+  } else if (currentAgeYears < 13) {
+    coreFocusTheme = pick6({
+      kn: `${lagnaLocalized} ಲಗ್ನ • ${mahaLocalized} ಮಹಾದಶೆ: ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸ, ಏಕಾಗ್ರತೆ & ಸುಪ್ತ ಪ್ರತಿಭಾ ವಿಕಾಸ`,
+      mr: `${lagnaLocalized} लग्न • ${mahaMr(mahaLocalized)} महादशा: शालेय शिक्षण, एकाग्रता व सुप्त कलागुणांचा विकास`,
+      hi: `${lagnaLocalized} लग्न • ${mahaLocalized} महादशा: विद्यालयीन शिक्षा, एकाग्रता एवं सुप्त प्रतिभा विकास`,
+      te: `${lagnaLocalized} లగ్నం • ${mahaLocalized} మహర్దశ: పాఠశాల చదువు, ఏకాగ్రత & సుప్త ప్రతిభా వికాసం`,
+      ta: `${lagnaLocalized} லக்னம் • ${mahaLocalized} மகாதிசை: பள்ளிப் படிப்பு, கவனக் குவிப்பு & தனித்திறன் வளர்ச்சி`,
+      en: `${lagnaLocalized} Ascendant • ${mahaLocalized} Mahadasha: Scholastic Progress, Focus & Latent Talent Awakening`
+    }, targetLang);
+  } else if (currentAgeYears < 18) {
+    coreFocusTheme = pick6({
+      kn: `${lagnaLocalized} ಲಗ್ನ • ${mahaLocalized} ಮಹಾದಶೆ: ಪ್ರಮುಖ ಪರೀಕ್ಷೆಗಳು, ಕೌಶಲಾಭಿವೃದ್ಧಿ & ಭವಿಷ್ಯದ ಶೈಕ್ಷಣಿಕ ಅಡಿಪಾಯ`,
+      mr: `${lagnaLocalized} लग्न • ${mahaMr(mahaLocalized)} महादशा: महत्त्वाच्या परीक्षा, कौशल्य विकास व भावी शिक्षणाचा पाया`,
+      hi: `${lagnaLocalized} लग्न • ${mahaLocalized} महादशा: बोर्ड परीक्षाएं, कौशल विकास एवं उच्च शिक्षा की सुदृढ़ नींव`,
+      te: `${lagnaLocalized} లగ్నం • ${mahaLocalized} మహర్దశ: ముఖ్యమైన పరీక్షలు, నైపుణ్యాభివృద్ధి & భవిష్యత్ విద్యా పునాది`,
+      ta: `${lagnaLocalized} லக்னம் • ${mahaLocalized} மகாதிசை: முக்கிய தேர்வுகள், திறன் மேம்பாடு & உயர்கல்வி அடித்தளம்`,
+      en: `${lagnaLocalized} Ascendant • ${mahaLocalized} Mahadasha: Board Exams, Skill Mastery & Academic Direction`
+    }, targetLang);
+  } else if (isSadeSati) {
     coreFocusTheme = pick6({
       kn: `ಸಾಡೇ ಸಾತಿ (${shaniHouseFormatted}ನೇ ಮನೆ ಶನಿ) • ${mahaLocalized} ಮಹಾದಶೆ: ಪರಿಶ್ರಮ, ಆರ್ಥಿಕ ಜವಾಬ್ದಾರಿಗಳು & ಭವಿಷ್ಯದ ಅನಿಶ್ಚಿತತೆಯ ಚಿಂತನೆ`,
       mr: `साडेसाती (${shaniHouseFormatted}वे स्थान शनी) • ${mahaMr(mahaLocalized)} महादशा: कठोर परिश्रम, आर्थिक जबाबदाऱ्या व भविष्यातील विचार`,
@@ -229,7 +265,43 @@ export function calculateOpeningHookNarrative(
 
   // 2. Dynamic Mind-Reading Opening Line
   let openingLine = "";
-  if (isSadeSati) {
+  if (currentAgeYears < 2) {
+    openingLine = pick6({
+      kn: `${moonRashiLocalized} ರಾಶಿ ಹಾಗೂ ${nakshatraLocalized} (${padaWord} ${padaFormatted}) ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ ಈ ಪುಣ್ಯ ಶಿಶುವು ಕುಟುಂಬಕ್ಕೆ ಲಕ್ಷ್ಮಿ ಕೃಪೆಯನ್ನು ತಂದಿದ್ದು, ಪ್ರಸ್ತುತ ${mahaLocalized} ಮಹಾದಶೆಯ ರಕ್ಷಣೆಯಲ್ಲಿ ಶಾರೀರಿಕ ಬೆಳವಣಿಗೆ, ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ಶೈಶವ ಮೈಲಿಗಲ್ಲುಗಳನ್ನು ತೇಜೋಮಯವಾಗಿ ಮುನ್ನಡೆಸುತ್ತಿದೆ.`,
+      mr: `${moonRashiLocalized} राशी व ${nakshatraLocalized} (चरण ${padaFormatted}) नक्षत्रात जन्मलेले हे तेजस्वी बाळ कुटुंबात लक्ष्मीची कृपा घेऊन आले असून, सध्या ${mahaLocalized} महादशेच्या छत्रछायेत उत्तम आरोग्य, रोगप्रतिकारशक्ती व शारीरिक वाढीचा टप्पा आनंदाने पार पाडत आहे.`,
+      hi: `${moonRashiLocalized} राशि एवं ${nakshatraLocalized} (${padaWord} ${padaFormatted}) नक्षत्र में जन्मे इस सुकोमल शिशु ने परिवार में लक्ष्मी कृपा का संचार किया है, और वर्तमान ${mahaLocalized} महादशा के संरक्षण में इसका शारीरिक विकास, रोगप्रतिरोधक क्षमता एवं आरोग्य निरंतर वर्धनशील है।`,
+      te: `${moonRashiLocalized} రాశి మరియు ${nakshatraLocalized} (${padaWord} ${padaFormatted}) నక్షత్రంలో జన్మించిన ఈ పసికందు కుటుంబంలో లక్ష్మీ కటాక్షాన్ని నింపింది; ప్రస్తుతం ${mahaLocalized} మహర్దశ రక్షణలో శారీరక ఎదుగుదల, రోగనిరోధక శక్తి ఉల్లాసంగా సాగుతున్నాయి.`,
+      ta: `${moonRashiLocalized} ராசி மற்றும் ${nakshatraLocalized} (${padaWord} ${padaFormatted}) நட்சத்திரத்தில் பிறந்த இந்தக் குழந்தை குடும்பத்திற்கு மகாலட்சுமி கடாட்சத்தை கொண்டு வந்துள்ளது; தற்போது ${mahaLocalized} மகாதிசையின் பாதுகாப்பில் ஆரோக்கியமும் வளர்ச்சியும் சிறப்பாக உள்ளன.`,
+      en: `Born under the sacred auspices of ${moonRashiLocalized} Moon and ${nakshatraLocalized} (${padaWord} ${padaFormatted}), this blessed infant brings radiant Lakshmi grace to the household, flourishing in pediatric vitality and immune resilience under ${mahaLocalized} Mahadasha.`
+    }, targetLang);
+  } else if (currentAgeYears < 8) {
+    openingLine = pick6({
+      kn: `${moonRashiLocalized} ರಾಶಿ ಹಾಗೂ ${nakshatraLocalized} ನಕ್ಷತ್ರದ ಮಗುವಾದ ಇವರು, ಬುಧ ಹಾಗೂ ${mahaLocalized} ದಶೆಯ ಅನುಗ್ರಹದಿಂದ ಸದಾ ಚಟುವಟಿಕೆಯಿಂದ ಕೂಡಿದ್ದು, ಆಟೋಟಗಳು, ನೂತನ ಕಲಿಕೆ ಹಾಗೂ ಮುದ್ದು ಮಾತುಗಳ ಮೂಲಕ ಪೋಷಕರು ಮತ್ತು ಕುಟುಂಬಕ್ಕೆ ಅಪಾರ ಸಂತೋಷವನ್ನು ನೀಡುತ್ತಿದ್ದಾರೆ.`,
+      mr: `${moonRashiLocalized} राशी व ${nakshatraLocalized} नक्षत्राचे हे बालक, बुध व ${mahaLocalized} महादशेच्या कृपेने अत्यंत उत्साही असून, खेळ, नवीन गोष्टी शिकण्याची आवड व गोड संभाषणाने संपूर्ण कुटुंबाला आनंद देत आहे.`,
+      hi: `${moonRashiLocalized} राशि एवं ${nakshatraLocalized} नक्षत्र का यह बालक, बुध एवं ${mahaLocalized} महादशा के शुभ प्रभाव से ऊर्जावान है तथा खेलकूद, प्रारंभिक ज्ञानार्जन एवं मधुर वाणी से परिवार में प्रसन्नता का वातावरण बनाए रखता है।`,
+      te: `${moonRashiLocalized} రాశి మరియు ${nakshatraLocalized} నక్షత్రంలో జన్మించిన ఈ చిన్నారి, బుధ మరియు ${mahaLocalized} దశల అనుగ్రహంతో ఎంతో చురుగ్గా ఉంటూ ఆటపాటలు, కొత్త విషయాలు నేర్చుకుంటూ కుటుంబానికి ఆనందాన్ని పంచుతోంది.`,
+      ta: `${moonRashiLocalized} ராசி மற்றும் ${nakshatraLocalized} நட்சத்திரத்தில் பிறந்த இந்தக் குழந்தை, புதன் மற்றும் ${mahaLocalized} திசையின் அருளால் மிகுந்த சுறுசுறுப்புடன் விளையாடி, புதியவற்றைக் கற்று குடும்பத்திற்கு மகிழ்ச்சியை அளிக்கிறது.`,
+      en: `Radiating the youthful curiosity of ${moonRashiLocalized} Moon and ${nakshatraLocalized} Nakshatra, this young child flourishes with vibrant energy under ${mahaLocalized} Mahadasha, delighting parents through playful exploration, sweet speech, and quick early learning.`
+    }, targetLang);
+  } else if (currentAgeYears < 13) {
+    openingLine = pick6({
+      kn: `${lagnaLocalized} ಲಗ್ನ ಹಾಗೂ ${nakshatraLocalized} ನಕ್ಷತ್ರದ ಜಾತಕರಾದ ಇವರು, ಬುಧ ಹಾಗೂ ಗುರುವಿನ ಅನುಗ್ರಹದಿಂದ ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉತ್ತಮ ಗ್ರಹಣ ಶಕ್ತಿ, ಕ್ರೀಡೆ ಅಥವಾ ಕಲಾ ಪ್ರತಿಭೆಯನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತಿದ್ದು, ಶ್ರದ್ಧೆಯಿಂದ ಅಧ್ಯಯನ ನಡೆಸಲು ಪೋಷಕರ ಪ್ರೋತ್ಸಾಹ ಲಭಿಸುತ್ತಿದೆ.`,
+      mr: `${lagnaLocalized} लग्न व ${nakshatraLocalized} नक्षत्राचे जातक असलेले हे बालक, बुध व गुरूच्या शुभ दृष्टीने शालेय अभ्यासात उत्तम बुद्धिमत्ता, खेळ व कलागुणांमध्ये प्रगती करत असून पालकांचे योग्य मार्गदर्शन लाभत आहे.`,
+      hi: `${lagnaLocalized} लग्न एवं ${nakshatraLocalized} नक्षत्र में उत्पन्न यह बालक, बुध एवं देवगुरु बृहस्पति के शुभ प्रभाव से विद्यालयी अध्ययन में उत्कृष्ट स्मरण शक्ति, खेलकूद अथवा कला में प्रतिभा का प्रदर्शन कर रहा है।`,
+      te: `${lagnaLocalized} లగ్నం మరియు ${nakshatraLocalized} నక్షత్ర ప్రభావంతో, బుధ మరియు గురు గ్రహాల అనుగ్రహం వల్ల పాఠశాల చదువులో మంచి గ్రహణశక్తి, క్రీడలు లేదా కళల్లో విశేష ప్రతిభ కనబరుస్తున్నారు.`,
+      ta: `${lagnaLocalized} லக்னம் மற்றும் ${nakshatraLocalized} நட்சத்திரத்தில் பிறந்த இந்த மாணவர், புதன் மற்றும் குருவின் அருளால் பள்ளிப் படிப்பில் சிறந்த நினைவாற்றல், விளையாட்டு மற்றும் கலைகளில் திறமை வெளிப்படுத்துகிறார்.`,
+      en: `Blessed with ${lagnaLocalized} Lagna and ${nakshatraLocalized} Nakshatra, the child thrives under Mercury and Jupiter's auspices, displaying sharp scholastic retention, athletic curiosity, and artistic gifts supported by parental mentorship.`
+    }, targetLang);
+  } else if (currentAgeYears < 18) {
+    openingLine = pick6({
+      kn: `${lagnaLocalized} ಲಗ್ನದ ತೇಜಸ್ಸು ಹಾಗೂ ${nakshatraLocalized} ನಕ್ಷತ್ರದ ಸಾಮರ್ಥ್ಯದೊಂದಿಗೆ, ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಪ್ರಮುಖ ಶೈಕ್ಷಣಿಕ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಭವಿಷ್ಯದ ಕೋರ್ಸ್ ಆಯ್ಕೆಯ ನಿರ್ಣಾಯಕ ಹಂತದಲ್ಲಿದ್ದು, ಅಧ್ಯಯನದಲ್ಲಿ ದೃಢ ಏಕಾಗ್ರತೆಯನ್ನು ಸಾಧಿಸುವ ತುಡಿತ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿದೆ.`,
+      mr: `${lagnaLocalized} लग्नाचे तेज व ${nakshatraLocalized} नक्षत्राच्या क्षमतेसह, सध्या आपण महत्त्वाच्या परीक्षा व भावी शिक्षणाच्या निवडीच्या टप्प्यावर आहात; अभ्यासात अढळ एकाग्रता साधण्याची तीव्र जिद्द मनात आहे.`,
+      hi: `${lagnaLocalized} लग्न के तेज एवं ${nakshatraLocalized} नक्षत्र के प्रभाव से, वर्तमान में आप महत्वपूर्ण परीक्षाओं एवं भावी शैक्षणिक दिशा के निर्णायक पड़ाव पर हैं, जहां अध्ययन में सुदृढ़ एकाग्रता ही आपका प्रमुख लक्ष्य है।`,
+      te: `${lagnaLocalized} లగ్న తేజస్సు మరియు ${nakshatraLocalized} నక్షత్ర ప్రతిభతో, ప్రస్తుతం మీరు ముఖ్యమైన పరీక్షలు మరియు భవిష్యత్ విద్యా మార్గం ఎంచుకునే దశలో ఉన్నారు; చదువుపై ఏకాగ్రత సాధించాలనే సంకల్పం బలంగా ఉంది.`,
+      ta: `${lagnaLocalized} லக்ன பொலிவும் ${nakshatraLocalized} நட்சத்திர ஆற்றலும் கொண்டு, தற்போது நீங்கள் முக்கிய தேர்வுகள் மற்றும் எதிர்கால படிப்பு தேர்வின் முக்கிய கட்டத்தில் உள்ளீர்கள்; படிப்பில் ஆழ்ந்த கவனம் செலுத்த விழைகிறீர்கள்.`,
+      en: `Embodying the focused radiance of ${lagnaLocalized} Lagna and ${nakshatraLocalized} Nakshatra, you stand at a crucial adolescent academic threshold, channeling determination toward benchmark examinations, stream selection, and cognitive mastery.`
+    }, targetLang);
+  } else if (isSadeSati) {
     openingLine = pick6({
       kn: `${moonRashiLocalized} ರಾಶಿ ಹಾಗೂ ${nakshatraLocalized} ನಕ್ಷತ್ರದ (${padaWord} ${padaFormatted}) ಜಾತಕರಾದ ನಿಮ್ಮ ಮನಸ್ಸು, ಪ್ರಸ್ತುತ ${shaniHouseFormatted}ನೇ ಮನೆಯ ಶನಿಯ ಸಾಡೇ ಸಾತಿ ಮತ್ತು ${mahaLocalized} ಮಹಾದಶೆಯ ನಡುವೆ, ನಿರಂತರ ಪರಿಶ್ರಮ ಪಡುತ್ತಿದ್ದರೂ ನಿರೀಕ್ಷಿತ ಫಲ ತಕ್ಷಣಕ್ಕೆ ಕೈಸೇರದೆ ಎಲ್ಲ ಜವಾಬ್ದಾರಿಯನ್ನೂ ನಾನೊಬ್ಬನೇ ಹೊರಬೇಕಲ್ಲವೇ ಎಂಬ ಮಾನಸಿಕ ಆಯಾಸ ಮತ್ತು ಭವಿಷ್ಯದ ಅನಿಶ್ಚಿತತೆಯ ನಡುವೆ ಹೋರಾಡುತ್ತಿದೆ.`,
       mr: `${moonRashiLocalized} राशी व ${nakshatraLocalized} (चरण ${padaFormatted}) असलेल्या आपल्या मनात, सध्या ${shaniHouseFormatted}व्या स्थानातील साडेसाती व ${mahaLocalized} महादशेमुळे, जिवापाड मेहनत करूनही अपेक्षित फळ विलंबाने मिळून सर्व कौटुंबिक व आर्थिक जबाबदाऱ्यांचा भार एकट्यावरच आल्यासारखा मानसिक ताण जाणवत आहे.`,

@@ -353,6 +353,102 @@ export function enrichYogaDescription(
     return formatTwoParagraphs(p1, p2, cleanImpact);
   }
 
+  // YOGI GRAHA WEALTH CATALYST
+  if (lowerName.includes("yogi") || lowerName.includes("ಯೋಗಿ") || lowerName.includes("योगी") || lowerName.includes("యోగీ") || lowerName.includes("யோகி")) {
+    if (baseLang === "kn") {
+      const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಶೇಷಾದ್ರಿ ಅಯ್ಯರ್ ವೈದಿಕ ಪದ್ಧತಿಯಂತೆ ಅತ್ಯಂತ ಶುಭಪ್ರದವಾದ ಯೋಗಿ ಗ್ರಹ ಧನಸಂಪದ ಯೋಗವು ಸಕ್ರಿಯವಾಗಿದೆ. ಸೂರ್ಯ ಹಾಗೂ ಚಂದ್ರರ ನಿಖರ ಸ್ಪುಟ ಗಣಿತದಿಂದ ಸಿದ್ಧವಾಗುವ ಈ ಯೋಗಿ ಬಿಂದುವು ಜಾತಕನಿಗೆ ಅನಾಯಾಸ ಸಂಪತ್ತು, ಅನಿರೀಕ್ಷಿತ ಧನಾಗಮನ ಮತ್ತು ಭಾಗ್ಯೋದಯವನ್ನು ತರುವ ಪರಮ ಶಕ್ತಿಯಾಗಿದೆ. ಈ ಗ್ರಹದ ಮಂಗಳಕರ ಕಿರಣಗಳು ಜಾತಕನ ಜೀವಿತಾವಧಿಯಲ್ಲಿ ಆರ್ಥಿಕ ಸಂಕಷ್ಟಗಳನ್ನು ಕರಗಿಸಿ ಶಾಶ್ವತ ಸಮೃದ್ಧಿ ನಿರ್ಮಿಸುತ್ತವೆ.`;
+      const p2 = `ಈ ಯೋಗಿ ಗ್ರಹದ ದಶಾ, ಭುಕ್ತಿ ಅಥವಾ ಗೋಚಾರ ಸಂಚಾರ ಕಾಲದಲ್ಲಿ ಕೈಗೆತ್ತಿಕೊಳ್ಳುವ ಯಾವುದೇ ವ್ಯಾಪಾರ, ಹೂಡಿಕೆ ಅಥವಾ ನೂತನ ಉದ್ಯೋಗಗಳು ಬಹುಬೇಗ ಯಶಸ್ವಿಯಾಗುತ್ತವೆ. ಈ ಗ್ರಹದ ಅದೃಷ್ಟ ದಿಕ್ಕು, ಬಣ್ಣ ಹಾಗೂ ಧನ ವೃದ್ಧಿ ದಿನದ ಸದ್ಬಳಕೆಯು ನಿಮ್ಮ ಆರ್ಥಿಕ ಅಡೆತಡೆಗಳನ್ನು ಶಮನಗೊಳಿಸಿ ನಿರಂತರ ಸಮೃದ್ಧಿಯನ್ನು ದಯಪಾಲಿಸುತ್ತದೆ. ಸತ್ಪಾತ್ರ ದಾನ ಹಾಗೂ ಧರ್ಮ ಕಾರ್ಯಗಳಿಂದ ಈ ಯೋಗದ ಪ್ರಭಾವ ನೂರ್ಮಡಿಯಾಗಲಿದೆ.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "hi") {
+      const p1 = `आपकी जन्म कुंडली में शेषाद्रि अय्यर वैदिक पद्धति के अनुसार अत्यंत कल्याणकारी योगी ग्रह धनसमृद्धि योग सक्रिय है। सूर्य एवं चंद्र के सूक्ष्म देशांतर से निष्पन्न यह पावन योगी बिंदु जातक को अनायास धन लाभ, आकस्मिक भाग्योदय और आर्थिक सुदृढ़ता प्रदान करने वाला परम सामर्थ्यवान योग है। यह कुंडली के प्रमुख भावों को दैवीय ऊर्जा से आलोकित करता है।`;
+      const p2 = `इस योगी ग्रह की महादशा, अंतर्दशा अथवा गोचर के अनुकूल समय में प्रारंभ किए गए व्यापारिक उद्यम एवं वित्तीय निवेश अप्रत्याशित सफलता दिलाते हैं। इस ग्रह के शुभ रंग, दिशा एवं धन दिवस का बुद्धिमत्तापूर्ण उपयोग आपके मार्ग की समस्त आर्थिक बाधाओं का शमन कर जीवन में निरंतर ऐश्वर्य एवं स्थिरता सुनिश्चित करता है।`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "mr") {
+      const p1 = `आपल्या जन्म पत्रिकेत शेषाद्री अय्यर वैदिक फलज्योतिष नियमांनुसार अत्यंत शुभ फलदायी योगी ग्रह धनसमृद्धी योग कार्यरत आहे. सूर्य व चंद्राच्या सूक्ष्म गणितातून सिद्ध होणारा हा योगी बिंदू जातकाला अकस्मात भाग्योदय, निरंतर धनलाभ व आर्थिक संकटांतून सहज मुक्ती मिळवून देणारा अत्यंत प्रभावी राजयोग मानला जातो.`;
+      const p2 = `या योगी ग्रहाच्या दशा-अंतर्दशा किंवा अनुकूल गोचराच्या काळात हाती घेतलेले नवीन व्यावसायिक उपक्रम व आर्थिक गुंतवणूक प्रचंड यश मिळवून देतात. या ग्रहाचा शुभ रंग, दिशा आणि धन दिवस यांचा योग्य वापर केल्याने सर्व अडथळे दूर होऊन व्यवसायात व नोकरीत सर्वोच्च उन्नती प्राप्त होते.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "te") {
+      const p1 = `మీ జన్మ కుండలిలో శేషాద్రి అయ్యర్ వైదిక పద్ధతి ప్రకారం అత్యంత శుభప్రదమైన యోగీ గ్రహ ధనసంపద యోగం విరాజిల్లుతోంది. సూర్య చంద్రుల సూక్ష్మ గణితం ద్వారా రూపుదిద్దుకునే ఈ యోగీ బిందువు జాతకుడికి అప్రయత్న ధనలాభం, ఆకస్మిక భాగ్యోదయం మరియు ఆర్థిక స్థిరత్వాన్ని చేకూర్చే అద్భుత దైవబలం.`;
+      const p2 = `ఈ యోగీ గ్రహ దశ, భుక్తి లేదా అనుకూల గోచార కాలంలో ప్రారంభించే వ్యాపారాలు, పెట్టుబడులు విశేష లాభాలను తెచ్చిపెడతాయి. ఈ గ్రహానికి సంబంధించిన శుభ వర్ణం, దిశ మరియు ధన వృద్ధి దినాన్ని సద్వినియోగం చేసుకోవడం వల్ల సర్వ ఆర్థిక అవరోధాలు తొలగి నిరంతర సౌభాగ్యం చేకూరుతుంది.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "ta") {
+      const p1 = `உங்கள் ஜாதகத்தில் சேஷாத்ரி ஐயர் வைதிக ஜோதிட முறைப்படி மிகச் சிறந்த யோகி கிரக தனசுபிட்ச யோகம் அமைந்துள்ளது. சூரியன் மற்றும் சந்திரனின் துல்லிய தீர்க்கரேகை கணிதத்தால் உருவாகும் இந்த யோகி புள்ளி, ஜாதகருக்கு எதிர்பாராத தனவரவு, திடீர் பாக்கியோதயம் மற்றும் பொருளாதார மேன்மையை அருளும் மகா சக்தியாகும்.`;
+      const p2 = `இந்த யோகி கிரகத்தின் தசா-புக்தி அல்லது கோச்சார சாதகக் காலங்களில் தொடங்கும் தொழில் மற்றும் முதலீடுகள் மகத்தான லாபத்தை ஈட்டித் தரும். இந்த கிரகத்தின் அதிர்ஷ்ட நிறம், திசை மற்றும் தன வரவு தினத்தை நேர்த்தியாகப் பயன்படுத்துவது உங்கள் பொருளாதாரத் தடைகளை அகற்றி நிலையான சுபிட்சத்தை உறுதி செய்யும்.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    const p1 = `Anchored in authentic Seshadri Iyer Vedic principles, the Yogi Graha Wealth Catalyst is actively consecrated in your birth chart. Derived from the sacred mathematical synthesis of the Sun and Moon, this Yogi point acts as an unshakeable magnetic conduit for effortless prosperity, financial breakthroughs, and sovereign fortune throughout your life.`;
+    const p2 = `During transits and Vimshottari operational phases governed by this Yogi planet, speculative, real estate, and vocational expansions achieve rapid fruition. Aligning significant undertakings with its lucky direction, resonant vibration, and wealth day dissolves subconscious financial bottlenecks and establishes generational stability.`;
+    return formatTwoParagraphs(p1, p2, cleanImpact);
+  }
+
+  // PUSHKARA NAVAMSHA BLESSING
+  if (lowerName.includes("pushkara") || lowerName.includes("ಪುಷ್ಕರ") || lowerName.includes("पुष्कर") || lowerName.includes("పుష్కర") || lowerName.includes("புஷ்கர")) {
+    if (baseLang === "kn") {
+      const p1 = `ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದ ಅತ್ಯಂತ ರಹಸ್ಯ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣಾ ಸೂತ್ರವಾದ ಪುಷ್ಕರ ನವಾಂಶ ರಕ್ಷಾ ಕವಚ ಯೋಗವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ರೂಪುಗೊಂಡಿದೆ. ಯಾವುದೇ ಗ್ರಹವು ಪುಷ್ಕರ ನವಾಂಶದ ಪವಿತ್ರ ಕಲಾಂಶದಲ್ಲಿ ಸ್ಥಿತವಾಗಿದ್ದರೆ, ಆ ಗ್ರಹವು ಜಾತಕನನ್ನು ಯಾವುದೇ ಕಷ್ಟದ ಪರಿಸ್ಥಿತಿಯಲ್ಲೂ ಸಂರಕ್ಷಿಸುವ 'ಅಜೇಯ ದೈವಿಕ ಕವಚ'ವಾಗಿ ಬದಲಾಗುತ್ತದೆ.`;
+      const p2 = `ಜೀವನದಲ್ಲಿ ಆಕಸ್ಮಿಕ ಹಿನ್ನಡೆಗಳು, ಆರ್ಥಿಕ ಬಿಕ್ಕಟ್ಟು ಅಥವಾ ಅಪವಾದಗಳು ಎದುರಾದರೂ, ಈ ಪುಷ್ಕರ ನವಾಂಶದಲ್ಲಿರುವ ಗ್ರಹದ ಅನುಗ್ರಹದಿಂದ ಜಾತಕನು ಪುನಃ ಜಯಶಾಲಿಯಾಗಿ ಮೇಲೇಳುತ್ತಾನೆ. ಇದು ಆಪತ್ತಿನಲ್ಲೂ ಕೈಹಿಡಿಯುವ ದೈವಿಕ ಸಂಜೀವಿನಿಯಂತೆ ಕಾರ್ಯನಿರ್ವಹಿಸಿ ಸರ್ವ ಕಾರ್ಯಗಳಲ್ಲೂ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "hi") {
+      const p1 = `वैदिक ज्योतिष के अत्यंत गोपनीय एवं दिव्य रक्षा सूत्र के अनुसार आपकी कुंडली में पुष्कर नवांश रक्षा कवच योग निर्मित हुआ है। जब कोई ग्रह पुष्कर नवांश के पवित्र कलांश में विराजमान होता है, तो वह जातक के लिए किसी भी विषम परिस्थिति में अभेद्य दैवीय सुरक्षा कवच का कार्य करता है।`;
+      const p2 = `जीवन में अप्रत्याशित संकट, आर्थिक उतार-चढ़ाव अथवा अवरोध आने पर भी पुष्कर नवांश में स्थित ग्रह जातक को पुनः प्रतिष्ठित एवं विजयी बनाता है। यह संकटमोचन संजीवनी की भांति कार्य करते हुए मान-सम्मान एवं जीवन के महत्वपूर्ण क्षेत्रों में पूर्ण सुरक्षा प्रदान करता है।`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "mr") {
+      const p1 = `वैदिक फलज्योतिषातील अत्यंत गोपनीय व दैवी सुरक्षा देणारा पुष्कर नवांश सुरक्षा योग आपल्या जन्म पत्रिकेत स्थित आहे. पुष्कर नवांशामध्ये स्थित असलेला ग्रह जातकाला आयुष्यातील कोणत्याही संकटाच्या प्रसंगी अभेद्य संरक्षण देणारे दैवी कवच ठरतो.`;
+      const p2 = `जीवनात आकस्मिक आर्थिक मंदी किंवा आव्हाने उभी राहिली, तरी पुष्कर नवांश ग्रहाच्या कृपेने जातक पुन्हा आत्मविश्वासाने संकटांवर मात करून विजय संपादन करतो. हा योग कोणत्याही पडझडीतून पुन्हा सावरण्याचे वरदान देतो.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "te") {
+      const p1 = `వైదిక జ్యోతిషంలో అత్యంత రహస్యమైన, దైవిక రక్షణను ప్రసాదించే పుష్కర నవాంశ రక్షా కవచ యోగం మీ జాతకంలో ఏర్పడింది. పుష్కర నవాంశ పవిత్ర అంశలో ఉన్న గ్రహం జాతకుడికి ఏ కష్ట సమయంలోనైనా తిరుగులేని రక్షా కవచంగా మారుతుంది.`;
+      const p2 = `జీవితంలో ఊహించని ఒడుదొడుకులు లేదా ఆర్థిక ఇబ్బందులు ఎదురైనా, ఈ పుష్కర నవాంశ గ్రహం మిమ్మల్ని తిరిగి విజయపథంలో నిలబెడుతుంది. ఇది ఆపత్కాలంలో ఆదుకునే సంజీవనిలా పనిచేస్తూ సర్వతోముఖ రక్షణను ప్రసాదిస్తుంది.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "ta") {
+      const p1 = `வைதிக ஜோதிடத்தின் மிக நுண்ணிய, தெய்விகப் பாதுகாப்பு அளிக்கும் புஷ்கர நவாம்ச பாதுகாப்பு யோகம் உங்கள் ஜாதகத்தில் அமைந்துள்ளது. புஷ்கர நவாம்சத்தின் புனித பாகையில் அமர்ந்திருக்கும் கிரகம் எந்தவொரு நெருக்கடியான சூழலிலும் ஜாதகருக்கு அழியாத பாதுகாப்புக் கவசமாக மாறுகிறது.`;
+      const p2 = `வாழ்வில் எதிர்பாராத சோதனைகள் அல்லது நிதி நெருக்கடிகள் ஏற்பட்டாலும், இந்த புஷ்கர நவாம்ச கிரகத்தின் அருளால் நீங்கள் மீண்டும் கம்பீரமாக எழுந்து வெற்றி பெறுவீர்கள். இது இக்கட்டான சூழ்நிலைகளிலும் கைகொடுக்கும் தெய்வீக வரமாகும்.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    const p1 = `A classical jewel of Jaimini and Parashara traditions, the Pushkara Navamsha Blessing endows your chart with divine invincibility. Any planet posited within sacred Pushkara degrees gains an extraordinary sanctuary status, acting as an invincible shield that refuses to let the corresponding life domain perish.`;
+    const p2 = `Even during intense Sade Sati, hostile transits, or sudden vocational disruption, this Pushkara-blessed graha ensures resilience, recovery, and final triumph. It neutralizes malefic strikes and restores dignified authority across critical junctures.`;
+    return formatTwoParagraphs(p1, p2, cleanImpact);
+  }
+
+  // NEECHA BHANGA RAJA YOGA
+  if (lowerName.includes("neecha bhanga") || lowerName.includes("ನೀಚಭಂಗ") || lowerName.includes("ನೀಚ ಭಂಗ") || lowerName.includes("नीचभंग") || lowerName.includes("నీచభంగ") || lowerName.includes("நீசபங்க")) {
+    if (baseLang === "kn") {
+      const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ನೀಚ ಸ್ಥಾನದಲ್ಲಿದ್ದ ಗ್ರಹವು ಶಾಸ್ತ್ರೋಕ್ತ ನಿಯಮಗಳ ಪ್ರಕಾರ ಕೇಂದ್ರ ಸ್ಥಾನದ ಅಧಿಪತಿಯ ಅಥವಾ ಉಚ್ಚ ಸ್ಥಾನದ ಅಧಿಪತಿಯ ಬಲದಿಂದ ಸಂಪೂರ್ಣವಾಗಿ ನೀಚಭಂಗಗೊಂಡು ಅತ್ಯುನ್ನತ ನೀಚಭಂಗ ರಾಜಯೋಗವಾಗಿ ಪರಿವರ್ತನೆಗೊಂಡಿದೆ. ಆರಂಭಿಕ ನ್ಯೂನತೆಯು ಪರಿಹಾರವಾಗಿ ಮಹಾನ್ ದೈವಬಲವಾಗಿ ರೂಪುಗೊಂಡಿದೆ.`;
+      const p2 = `ಆರಂಭಿಕ ಜೀವನದಲ್ಲಿ ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಸವಾಲುಗಳು ಎದುರಾದರೂ, ಕಾಲಕ್ರಮೇಣ ಈ ಯೋಗವು ಜಾತಕನಿಗೆ ಸಮಾಜದಲ್ಲಿ ಮಹೋನ್ನತ ಕೀರ್ತಿ, ಅಪ್ರತಿಮ ತಾಳ್ಮೆ ಮತ್ತು ಉನ್ನತ ಅಧಿಕಾರವನ್ನು ಕರುಣಿಸುತ್ತದೆ. ಸೋಲನ್ನೇ ಮೆಟ್ಟಿಲನ್ನಾಗಿ ಮಾಡಿಕೊಂಡು ಧೀರ ಯಶಸ್ಸು ಸಾಧಿಸುವ ಅದ್ಭುತ ಶಕ್ತಿ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ಲಭಿಸಿದೆ.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "hi") {
+      const p1 = `आपकी जन्म कुंडली में नीच राशिगत ग्रह शास्त्रोक्त नियमों के अनुसार केंद्र के स्वामियों अथवा उच्च राशि के अधिपति के प्रभाव से पूर्णतः नीचभंग होकर प्रबल नीचभंग राजयोग में रूपांतरित हो चुका है। यह प्रारंभिक निर्बलता को असीम सामर्थ्य में परिवर्तित करने वाला योग है।`;
+      const p2 = `प्रारंभिक जीवन में संघर्ष एवं कठिनाइयों का सामना होने पर भी, यह राजयोग कालांतर में जातक को समाज में सर्वोच्च प्रतिष्ठा, असाधारण धैर्य और उच्च अधिकार प्रदान करता है। प्रतिकूलताओं को परास्त कर अद्वितीय सफलता अर्जित करने की अद्भुत क्षमता आपको प्राप्त है।`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "mr") {
+      const p1 = `आपल्या पत्रिकेत नीच राशीत असलेला ग्रह शास्त्रशुद्ध नियमांनुसार केंद्राधिपती अथवा उच्च राशीच्या स्वामीच्या प्रभावाने पूर्ण नीचभंग होऊन शक्तिशाली नीचभंग राजयोगात परावर्तित झाला आहे. हा योग प्रारंभीच्या अडथळ्यांचे रूपांतर मोठ्या यशात करतो.`;
+      const p2 = `सुरुवातीच्या काळात कष्ट व आव्हाने सोसावी लागली, तरी हा योग जातकाला कालांतराने समाजात प्रचंड मान-सन्मान, धैर्य व उच्च पद मिळवून देतो. संकटांवर मात करून विजयाचे शिखर गाठण्याची निसर्गदत्त ताकद आपल्यात निर्माण झाली आहे.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "te") {
+      const p1 = `మీ జన్మ కుండలిలో నీచ స్థితిలో ఉన్న గ్రహం శాస్త్రోక్త నిబంధనల ప్రకారం కేంద్ర త్రికోణాధిపతుల బలం చేత పూర్తిగా నీచభంగం చెంది శక్తివంతమైన నీచభంగ రాజయోగంగా మారింది. ప్రారంభంలోని ప్రతికూలత బలమైన భాగ్యోదయంగా మారింది.`;
+      const p2 = `ప్రారంభంలో తీవ్ర శ్రమ, సవాళ్లు ఎదురైనా, కాలక్రమేణా ఈ యోగం జాతకుడికి అఖండ కీర్తిని, పట్టుదలను మరియు ఉన్నత అధికార యోగాన్ని ప్రసాదిస్తుంది. అడ్డంకులను అధిగమించి అద్భుత విజయాన్ని సాధించే విశేష శక్తి మీకు కలుగుతుంది.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    if (baseLang === "ta") {
+      const p1 = `உங்கள் ஜாதகத்தில் நீசமடைந்த கிரகம் சாஸ்திர விதிகளின்படி கேந்திராதிபதிகள் மற்றும் உச்ச அதிபதியின் பார்வையால் முழுமையாக நீசபங்கமாகி, உயர்வான நீசபங்க ராஜயோகமாக மாறியுள்ளது. ஆரம்பக் குறைபாட்டை அகற்றி இது பெரும் வரமாக மாறியுள்ளது.`;
+      const p2 = `ஆரம்ப கட்டங்களில் சவால்களும் போராட்டங்களும் இருந்தாலும், இந்த யோகம் காலப்போக்கில் ஜாதகருக்குப் பெரும் புகழ், தளராத தன்னம்பிக்கை மற்றும் உயர்ந்த அதிகாரத்தை வழங்கும். தடைகளைத் தகர்த்து சரித்திர வெற்றி பெறும் ஆற்றல் உங்களுக்கு அமையும்.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
+    const p1 = `Classical Parashari and Jaimini cancellation canons dictate that the debilitation of your natal planet has undergone complete Neecha Bhanga, transmuting vulnerability into a formidable Neecha Bhanga Raja Yoga. Grounded in Kendra dispositor support, this cancellation transforms early handicaps into sovereign endurance.`;
+    const p2 = `While early chapters demanded intense perseverance and trial by fire, this yoga ultimately yields supreme public prestige, unwavering psychological resilience, and executive authority. It ensures that eventual breakthroughs outshine any initial adversity.`;
+    return formatTwoParagraphs(p1, p2, cleanImpact);
+  }
+
   // 6. GENERIC / UNIVERSAL YOGA FALLBACK (Strictly 2 paragraphs, 4-5 lines each)
   if (baseLang === "kn") {
     const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ ರಚಿತವಾಗಿರುವ ಈ ಶುಭ ಯೋಗವು ಜಾತಕದ ಪ್ರಮುಖ ಕೇಂದ್ರ ಮತ್ತು ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳ ಬಲದಿಂದ ಪೋಷಿಸಲ್ಪಟ್ಟಿದೆ. ಶಾಸ್ತ್ರೀಯ ನಿಯಮಗಳಂತೆ ಈ ಗ್ರಹ ಸಂಯೋಜನೆಯು ಜಾತಕನ ಆಂತರಿಕ ಶಕ್ತಿ, ಸದ್ಗುಣಗಳು ಹಾಗೂ ನೈತಿಕ ನಿಷ್ಠೆಯನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತದೆ. ಇದು ಜೀವನದ ಮುಖ್ಯ ಹಂತಗಳಲ್ಲಿ ಕಷ್ಟಗಳನ್ನು ಹಿಮ್ಮೆಟ್ಟಿಸುವ ದೈವಿಕ ಶಕ್ತಿಯಾಗಿದ್ದು, ಸತತ ಪರಿಶ್ರಮಕ್ಕೆ ಯೋಗ್ಯ ಫಲ ದೊರೆಯುವಂತೆ ಮಾಡುವ ಮಂಗಳಕರ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ.`;
@@ -853,6 +949,30 @@ export function localizeYogaName(name: string, lang: string): string {
     if (baseLang === "hi") return "विपरीत राजयोग";
     if (baseLang === "te") return "విపరీత రాజయోగం";
     if (baseLang === "ta") return "விபரீத ராஜயோகம்";
+  }
+
+  if (lower.includes("neecha bhanga") || lower.includes("ನೀಚಭಂಗ") || lower.includes("ನೀಚ ಭಂಗ") || lower.includes("नीचभंग") || lower.includes("నీచభంగ") || lower.includes("நீசபங்க")) {
+    if (baseLang === "kn") return "ನೀಚಭಂಗ ರಾಜಯೋಗ";
+    if (baseLang === "mr") return "नीचभंग राजयोग";
+    if (baseLang === "hi") return "नीचभंग राजयोग";
+    if (baseLang === "te") return "నీచభంగ రాజయోగం";
+    if (baseLang === "ta") return "நீசபங்க ராஜயோகம்";
+  }
+
+  if (lower.includes("yogi") || lower.includes("ಯೋಗಿ") || lower.includes("योगी") || lower.includes("యోగీ") || lower.includes("யோகி")) {
+    if (baseLang === "kn") return "ಯೋಗಿ ಗ್ರಹ ಧನಸಂಪದ ಯೋಗ";
+    if (baseLang === "mr") return "योगी ग्रह धनसमृद्धी योग";
+    if (baseLang === "hi") return "योगी ग्रह धनसमृद्धि योग";
+    if (baseLang === "te") return "యోగీ గ్రహ ధనసంపద యోగం";
+    if (baseLang === "ta") return "யோகி கிரக தனசுபிட்ச யோகம்";
+  }
+
+  if (lower.includes("pushkara") || lower.includes("ಪುಷ್ಕರ") || lower.includes("पुष्कर") || lower.includes("పుష్కర") || lower.includes("புஷ்கர")) {
+    if (baseLang === "kn") return "ಪುಷ್ಕರ ನವಾಂಶ ರಕ್ಷಾ ಕವಚ ಯೋಗ";
+    if (baseLang === "mr") return "पुष्कर नवांश सुरक्षा योग";
+    if (baseLang === "hi") return "पुष्कर नवांश रक्षा कवच योग";
+    if (baseLang === "te") return "పుష్కర నవాంశ రక్షా కవచ యోగం";
+    if (baseLang === "ta") return "புஷ்கர நவாம்ச பாதுகாப்பு யோகம்";
   }
 
   if (lower.includes("dhana") || lower.includes("ಧನ") || lower.includes("धन") || lower.includes("ధన") || lower.includes("தன")) {

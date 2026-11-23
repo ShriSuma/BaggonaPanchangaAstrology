@@ -248,6 +248,14 @@ export interface DynamicChartContext {
     isExalted?: boolean;
     isDebilitated?: boolean;
     isRetrograde?: boolean;
+    functionalNature?: string;
+    hasNeechaBhanga?: boolean;
+    neechaBhangaReason?: string;
+    degreeVulnerability?: {
+      isRashiSandhi: boolean;
+      isGandanta: boolean;
+      severity: string;
+    };
   }>;
   transits?: TransitPlacement[];
   moonRashiIndex?: number;
@@ -256,6 +264,10 @@ export interface DynamicChartContext {
   birthTime?: string;
   ageYears?: number;
   gender?: "Male" | "Female";
+  functionalNatureMap?: Record<string, string>;
+  neechaBhangaPlanets?: Array<{ planet: string; reason?: string }>;
+  degreeVulnerabilities?: Array<{ planet: string; vulnerability: any }>;
+  secretAccuracyProfile?: any;
 }
 
 export function robustParseGeminiJSON(text: string): Record<string, any> {
