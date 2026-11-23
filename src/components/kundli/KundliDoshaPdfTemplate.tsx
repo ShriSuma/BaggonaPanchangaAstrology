@@ -1166,27 +1166,19 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   const displayPriestName = (() => {
     if (!overridePriestName?.trim()) return t.priestName;
     const trimmed = overridePriestName.trim();
-    const isDefaultPriest =
+    const isChaitanyaDefault =
       trimmed.includes("ಚೈತನ್ಯ") ||
       trimmed.includes("Chaitanya") ||
       trimmed.includes("चैतन्य") ||
       trimmed.includes("చైతన్య") ||
-      trimmed.includes("சைதன்ய") ||
-      trimmed.includes("ಶ್ರೀರಾಮ") ||
-      trimmed.includes("ಶ್ರೀರಾಮ್") ||
-      trimmed.includes("Shreeram") ||
-      trimmed.includes("श्रीराम") ||
-      trimmed.includes("శ్రీరామ్") ||
-      trimmed.includes("ஸ்ரீராம்");
-    if (isDefaultPriest) {
+      trimmed.includes("சைதன்ய");
+    if (isChaitanyaDefault) {
       return t.priestName;
     }
     return formatDevoteeNameForLanguage(trimmed, code);
   })();
   const rawOverridePhone = overridePriestPhone?.trim();
-  const displayPriestPhone = rawOverridePhone
-    ? (["9972339362", "9482109844"].includes(rawOverridePhone.replace(/[^0-9]/g, "")) ? "+91 94821 09844" : rawOverridePhone)
-    : t.priestPhone;
+  const displayPriestPhone = rawOverridePhone || t.priestPhone;
 
   const { devoteeInfo, doshas, gandantaraAndBhaya, summary } = report;
   const rawDevoteeName = devoteeInfo.name || "Devotee";

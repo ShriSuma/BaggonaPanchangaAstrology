@@ -552,7 +552,7 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
     const payload = await prepare5YearPredictionData(
       sessionObj,
       selectedLang,
-      { geminiApiKey }
+      { geminiApiKey, baseYear: new Date().getFullYear() }
     );
     setFiveYearPayload(payload);
     return payload;
@@ -1872,6 +1872,8 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
           placeLabel={placeLabel}
           gotra={gotra}
           lang={selectedLang}
+          latitude={latitude}
+          longitude={longitude}
         />
 
         {/* 2. Premium Bhavishya V1 Container */}

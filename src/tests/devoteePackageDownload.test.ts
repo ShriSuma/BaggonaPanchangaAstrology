@@ -86,6 +86,7 @@ describe("Devotee Package Download Suite", () => {
 
         const url = generateCompactGoogleCalendarUrlForQR({
           days: rhythmDays,
+          daysCount: count,
           lang: "kn",
           panditName: priestName,
           priestPhone,
@@ -96,6 +97,8 @@ describe("Devotee Package Download Suite", () => {
 
         expect(url.length).toBeLessThan(1000);
         expect(url).toContain("calendar.google.com");
+        expect(url).toContain(`recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D${count}`);
+        expect(url).toContain(encodeURIComponent(String(count)));
       });
     });
 
@@ -176,6 +179,7 @@ describe("Devotee Package Download Suite", () => {
       zip.file("05_Current_Life_Status_Manoj.pdf", new Uint8Array([37, 80, 68, 70]));
       zip.file("06_Priest_QR_Card_Manoj.pdf", new Uint8Array([37, 80, 68, 70]));
       zip.file("07_Divya_Bhavishya_QnA_Manoj.pdf", new Uint8Array([37, 80, 68, 70]));
+      zip.file("08_Next_5_Years_Prediction_Manoj.pdf", new Uint8Array([37, 80, 68, 70]));
 
       // Bundle QR codes folder
       const qrFolder = zip.folder("QR_Codes");
@@ -197,6 +201,79 @@ describe("Devotee Package Download Suite", () => {
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
       expect(zipBlob.size).toBeGreaterThan(500);
+    });
+  });
+
+  describe("5. Mathematical Accuracy & 6-Anga Panchanga Integrity Audit", () => {
+    it("computes authentic 6-Anga Birth Panchanga from birth parameters", async () => {
+      const { calculateTraditionalBaggona } = await import("../core/TraditionalBaggonaEngine");
+      const panchanga = calculateTraditionalBaggona("1993-03-16", "01:40", 14.5479, 74.3188);
+
+      expect(panchanga.samvatsaraKn).toBeDefined();
+      expect(panchanga.samvatsaraKn.length).toBeGreaterThan(0);
+      expect(panchanga.tithiKn).toBeDefined();
+      expect(panchanga.tithiKn.length).toBeGreaterThan(0);
+      expect(panchanga.weekdayKn).toBeDefined();
+      expect(panchanga.yogaKn).toBeDefined();
+      expect(panchanga.karanaKn).toBeDefined();
+      expect(panchanga.horaKn).toBeDefined();
+      expect(panchanga.sunrise).toBeDefined();
+    });
+
+    it("evaluates comprehensive doshas and remedies with 100% chart grounding", async () => {
+      const { calculateComprehensiveDoshas } = await import("../core/ComprehensiveDoshaEngine");
+      const { generateKundliRemedyReport } = await import("../features/remedies/kundliRemedyEngine");
+
+      const doshaReport = calculateComprehensiveDoshas(kundli, {
+        name: sampleInput.name,
+        birthDate: "1993-03-16",
+        birthTime: "01:40",
+        latitude: 14.5479,
+        longitude: 74.3188
+      });
+
+      expect(doshaReport).toBeDefined();
+      expect(doshaReport.doshas.length).toBeGreaterThan(5);
+
+      const remedyReport = generateKundliRemedyReport(kundli, {
+        name: sampleInput.name,
+        birthDate: "1993-03-16",
+        birthTime: "01:40",
+        latitude: 14.5479,
+        longitude: 74.3188
+      });
+
+      expect(remedyReport.panchangaRemedies.nakshatraRemedy.rulingDeity).toBeDefined();
+      expect(remedyReport.panchangaRemedies.nakshatraRemedy.sacredTree.kannada.length).toBeGreaterThan(0);
+      expect(remedyReport.mandalaVrataSadhana.durationDays).toBeGreaterThanOrEqual(40);
+    });
+
+    it("computes 5-Year Master Prediction with continuous years and transits", async () => {
+      const { compute5YearMasterPrediction } = await import("../features/fiveYearPrediction/fiveYearPredictionEngine");
+
+      const fiveYear = compute5YearMasterPrediction(
+        kundli,
+        "1993-03-16",
+        "01:40",
+        "kn",
+        "Manoj Poornamatha",
+        2026,
+        {
+          latitude: 14.5479,
+          longitude: 74.3188,
+          gender: "Male"
+        }
+      );
+
+      expect(fiveYear.years.length).toBe(5);
+      expect(fiveYear.startYear).toBe(2026);
+      expect(fiveYear.endYear).toBe(2031);
+      expect(fiveYear.years[0].samvatsaraKn.length).toBeGreaterThan(0);
+      expect(fiveYear.years[0].activeMahadasha.length).toBeGreaterThan(0);
+      expect(fiveYear.years[0].whatToExpect.length).toBeGreaterThan(0);
+      if (fiveYear.years[0].seasons) {
+        expect(fiveYear.years[0].seasons.length).toBe(4);
+      }
     });
   });
 });

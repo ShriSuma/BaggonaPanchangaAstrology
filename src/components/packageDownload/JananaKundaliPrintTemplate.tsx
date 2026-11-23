@@ -5,6 +5,7 @@ import { degreeToNakshatraPada } from "../../core/AstroMath";
 import { generateDashaTimeline, vimshottariBalanceAtBirth, type DashaEntry } from "../../core/DashaBhuktiEngine";
 import { GRAHA_L5, RASHI_L5, NAKSHATRA_L5, type GrahaKey } from "../../features/premiumPdf/premiumPdfLocale";
 import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
+import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
 import type { PackageLang } from "./packageDownloadLocale";
 
 function formatDegree(totalDeg: number): string {
@@ -25,6 +26,8 @@ interface Props {
   placeLabel: string;
   gotra?: string;
   lang: PackageLang;
+  latitude?: number;
+  longitude?: number;
 }
 
 const GANA_L5: Record<string, Record<PackageLang, string>> = {
@@ -122,7 +125,16 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     retrogradeLabel: "ವಕ್ರಿ",
     directMotionLabel: "ಮಾರ್ಗಿ",
     priestBlessingHeading: "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರ ದೈವಿಕ ಆಶೀರ್ವಚನ",
-    priestBlessingSub: "ಸಮಸ್ತ ಗ್ರಹ ಪೀಡಾ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಪೂರ್ವಕ ಆಶೀರ್ವಾದ"
+    priestBlessingSub: "ಸಮಸ್ತ ಗ್ರಹ ಪೀಡಾ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಪೂರ್ವಕ ಆಶೀರ್ವಾದ",
+    birthPanchangaHeading: "ಜನನ ಕಾಲದ ಷಡಂಗ ಪಂಚಾಂಗ (Birth Panchanga)",
+    samvatsaraLabel: "ಸಂವತ್ಸರ:",
+    masaPakshaLabel: "ಮಾಸ & ಪಕ್ಷ:",
+    tithiLabel: "ತಿಥಿ:",
+    varaLabel: "ವಾರ (ದಿನ):",
+    yogaLabel: "ಯೋಗ:",
+    karanaLabel: "ಕರಣ:",
+    janmaHoraLabel: "ಜನ್ಮ ಹೋರಾ:",
+    sunriseLabel: "ಸೂರ್ಯೋದಯ:"
   },
   en: {
     templeBanner: "॥ Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga Astrology ॥",
@@ -174,7 +186,16 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     retrogradeLabel: "Retrograde",
     directMotionLabel: "Direct",
     priestBlessingHeading: "Sacred Benediction by Chief Priest, Sri Gokarna Kshetra",
-    priestBlessingSub: "Solemn prayer for the pacification of all planetary adversities"
+    priestBlessingSub: "Solemn prayer for the pacification of all planetary adversities",
+    birthPanchangaHeading: "6-Anga Birth Panchanga (Vedic Coordinates)",
+    samvatsaraLabel: "Samvatsara:",
+    masaPakshaLabel: "Masa & Paksha:",
+    tithiLabel: "Tithi:",
+    varaLabel: "Vara (Weekday):",
+    yogaLabel: "Yoga:",
+    karanaLabel: "Karana:",
+    janmaHoraLabel: "Birth Hora:",
+    sunriseLabel: "Sunrise:"
   },
   hi: {
     templeBanner: "॥ श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष ॥",
@@ -226,7 +247,16 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     retrogradeLabel: "वक्री",
     directMotionLabel: "मार्गी",
     priestBlessingHeading: "श्री गोकर्ण क्षेत्र प्रधान पुजारी का दिव्य आशीर्वाद",
-    priestBlessingSub: "समस्त ग्रह पीड़ा निवारण संकल्प पूर्वक आशीर्वाद"
+    priestBlessingSub: "समस्त ग्रह पीड़ा निवारण संकल्प पूर्वक आशीर्वाद",
+    birthPanchangaHeading: "जन्म कालीन षडंग पंचांग (Vedic Panchanga)",
+    samvatsaraLabel: "संवत्सर:",
+    masaPakshaLabel: "मास एवं पक्ष:",
+    tithiLabel: "तिथि:",
+    varaLabel: "वार (दिन):",
+    yogaLabel: "योग:",
+    karanaLabel: "करण:",
+    janmaHoraLabel: "जन्म होरा:",
+    sunriseLabel: "सूर्योदय:"
   },
   te: {
     templeBanner: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగ జ్యోతిష్యం ॥",
@@ -278,7 +308,16 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     retrogradeLabel: "వక్రం",
     directMotionLabel: "మార్గం",
     priestBlessingHeading: "శ్రీ గోకర్ణ క్షేత్ర ప్రధాన అర్చకుల దివ్య ఆశీర్వచనం",
-    priestBlessingSub: "సమస్త గ్రహ పీడల నివారణా సంకల్ప పూర్వక ఆశీర్వాదం"
+    priestBlessingSub: "సమస్త గ్రహ పీడల నివారణా సంకల్ప పూర్వక ఆశీర్వాదం",
+    birthPanchangaHeading: "జన్మ కాలపు షడంగ పంచాంగం",
+    samvatsaraLabel: "సంవత్సరం:",
+    masaPakshaLabel: "మాసం & పక్షం:",
+    tithiLabel: "తిథి:",
+    varaLabel: "వారం:",
+    yogaLabel: "యోగం:",
+    karanaLabel: "కరణం:",
+    janmaHoraLabel: "జన్మ హోరా:",
+    sunriseLabel: "సూర్యోదయం:"
   },
   ta: {
     templeBanner: "॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்க ஜோதிடம் ॥",
@@ -330,7 +369,16 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     retrogradeLabel: "வக்ரம்",
     directMotionLabel: "நேர்கதி",
     priestBlessingHeading: "ஸ்ரீ கோகர்ண க்ஷேத்திர தலைமை அர்ச்சகரின் தெய்வீக ஆசீர்வாதம்",
-    priestBlessingSub: "சகல கிரக தோஷ நிவர்த்தி சங்கல்ப பூர்வக ஆசீர்வாதம்"
+    priestBlessingSub: "சகல கிரக தோஷ நிவர்த்தி சங்கல்ப பூர்வக ஆசீர்வாதம்",
+    birthPanchangaHeading: "பிறப்பு கால ஷடங்க பஞ்சாங்கம்",
+    samvatsaraLabel: "ஆண்டு (சம்வத்சரம்):",
+    masaPakshaLabel: "மாதம் & பக்ஷம்:",
+    tithiLabel: "திதி:",
+    varaLabel: "வாரம் (கிழமை):",
+    yogaLabel: "யோகம்:",
+    karanaLabel: "கரணம்:",
+    janmaHoraLabel: "பிறப்பு ஹோரை:",
+    sunriseLabel: "சூரிய உதயம்:"
   }
 };
 
@@ -409,10 +457,28 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
   birthTime,
   placeLabel,
   gotra,
-  lang
+  lang,
+  latitude = 14.5479,
+  longitude = 74.3188
 }) => {
   const dict = UI_TITLES[lang] || UI_TITLES.kn;
   const dashaTimeline = generateDashaTimeline(kundli, 100);
+
+  const birthPanchanga = calculateTraditionalBaggona(
+    birthDate || "1993-03-16",
+    birthTime || "01:40",
+    latitude,
+    longitude
+  );
+
+  const panchangaSamvatsara = birthPanchanga.samvatsara5L?.[lang] || birthPanchanga.samvatsaraKn || "";
+  const panchangaMasa = birthPanchanga.masa5L?.[lang] || birthPanchanga.masaKn || "";
+  const panchangaPaksha = birthPanchanga.paksha5L?.[lang] || birthPanchanga.pakshaKn || "";
+  const panchangaTithi = birthPanchanga.tithi5L?.[lang] || birthPanchanga.tithiKn || "";
+  const panchangaVara = birthPanchanga.weekday5L?.[lang] || birthPanchanga.weekdayKn || "";
+  const panchangaYoga = birthPanchanga.yoga5L?.[lang] || birthPanchanga.yogaKn || "";
+  const panchangaKarana = birthPanchanga.karana5L?.[lang] || birthPanchanga.karanaKn || "";
+  const panchangaHora = birthPanchanga.hora5L?.[lang] || birthPanchanga.horaKn || "";
 
   const moonPlanet = kundli.planets.find((p) => p.name === PN.Moon);
   const moonRashiSanskrit = kundli.moonSign?.sanskrit || moonPlanet?.rashi?.sanskrit || "Mesha";
@@ -552,57 +618,83 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Avakahada Attributes Card */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ border: "1px solid #FCD34D", borderRadius: 8, padding: 12, backgroundColor: "#FFFDF0" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#92400E", borderBottom: "1px solid #FDE68A", paddingBottom: 6, marginBottom: 8 }}>
-                ✦ {dict.avakahadaHeading}
+          {/* Birth Panchanga & Avakahada Cards (Right Column) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {/* 1. 6-Anga Birth Panchanga Card */}
+            <div style={{ border: "1.5px solid #FCD34D", borderRadius: 8, padding: 8, backgroundColor: "#FFFDF0" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#92400E", borderBottom: "1px solid #FDE68A", paddingBottom: 4, marginBottom: 6, display: "flex", justifyContent: "space-between" }}>
+                <span>✦ {dict.birthPanchangaHeading}</span>
+                <span style={{ fontSize: 9.5, color: "#B45309", fontWeight: 600 }}>Lahiri Ayanamsa</span>
               </div>
-              <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
+              <table style={{ width: "100%", fontSize: 9.5, borderCollapse: "collapse" }}>
                 <tbody>
                   <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
-                    <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.moonSignLabel}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 800, color: "#78350F" }}>
-                      {RASHI_L5[moonRashiSanskrit as any]?.[lang] || moonRashiSanskrit}
-                    </td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.samvatsaraLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 700, color: "#78350F" }}>{panchangaSamvatsara}</td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.masaPakshaLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 700, color: "#78350F" }}>{panchangaMasa} ({panchangaPaksha})</td>
                   </tr>
                   <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
-                    <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.nakshatraLabel}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 800, color: "#78350F" }}>
-                      {NAKSHATRA_L5[moonNakshatraSanskrit as any]?.[lang] || moonNakshatraSanskrit} ({moonPada} {dict.padaLabel})
-                    </td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.tithiLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 700, color: "#78350F" }}>{panchangaTithi}</td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.varaLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 700, color: "#78350F" }}>{panchangaVara}</td>
                   </tr>
                   <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
-                    <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.varna}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedVarna}</td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
-                    <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.vashya}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedVashya}</td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
-                    <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.yoni}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedYoni}</td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
-                    <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.gana}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedGana}</td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.yogaLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 700, color: "#78350F" }}>{panchangaYoga}</td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.karanaLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 700, color: "#78350F" }}>{panchangaKarana}</td>
                   </tr>
                   <tr>
-                    <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.nadi}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedNadi}</td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.janmaHoraLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 800, color: "#B45309" }}>{panchangaHora}</td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.sunriseLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 600, color: "#475569" }}>{birthPanchanga.sunrise || "06:24 AM"}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <div style={{ border: "1px solid #E2E8F0", borderRadius: 8, padding: 10, backgroundColor: "#F8FAFC" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 4 }}>
-                🕉️ {dict.blessingCardHeading}
+            {/* 2. Avakahada Attributes Card */}
+            <div style={{ border: "1px solid #E2E8F0", borderRadius: 8, padding: 8, backgroundColor: "#FFFFFF" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#78350F", borderBottom: "1px solid #F1F5F9", paddingBottom: 4, marginBottom: 6 }}>
+                ✦ {dict.avakahadaHeading}
               </div>
-              <p style={{ fontSize: 10.5, lineHeight: 1.5, color: "#64748B", margin: 0 }}>
-                {dict.blessingCardDesc}
-              </p>
+              <table style={{ width: "100%", fontSize: 9.5, borderCollapse: "collapse" }}>
+                <tbody>
+                  <tr style={{ borderBottom: "1px solid #F8FAFC" }}>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.moonSignLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 700, color: "#78350F" }}>
+                      {RASHI_L5[moonRashiSanskrit as any]?.[lang] || moonRashiSanskrit}
+                    </td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.nakshatraLabel}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 700, color: "#78350F" }}>
+                      {NAKSHATRA_L5[moonNakshatraSanskrit as any]?.[lang] || moonNakshatraSanskrit} ({moonPada} {dict.padaLabel})
+                    </td>
+                  </tr>
+                  <tr style={{ borderBottom: "1px solid #F8FAFC" }}>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.varna}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 600 }}>{localizedVarna}</td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.vashya}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 600 }}>{localizedVashya}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.yoni}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 600 }}>{localizedYoni}</td>
+                    <td style={{ padding: "2px 0", color: "#64748B", fontWeight: 600 }}>{dict.gana} / {dict.nadi}</td>
+                    <td style={{ padding: "2px 0", fontWeight: 600 }}>{localizedGana} · {localizedNadi}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Sacred Sannidhi Seal Note */}
+            <div style={{ border: "1px dashed #D4AF37", borderRadius: 8, padding: 8, backgroundColor: "#FFFBEB", display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 18 }}>🪔</span>
+              <div style={{ fontSize: 9.5, lineHeight: 1.4, color: "#78350F" }}>
+                <strong>{dict.blessingCardHeading}:</strong> {dict.blessingCardDesc}
+              </div>
             </div>
           </div>
         </div>

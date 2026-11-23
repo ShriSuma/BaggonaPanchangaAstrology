@@ -2132,7 +2132,8 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya${contactOverrideQuery}`;
 
   // Compact ASCII-only summary for QR (strictly under 600 chars)
-  const summary = `Baggona Panchanga`;
+  const count = options.daysCount || (days && days.length > 0 ? days.length : 30);
+  const summary = `Baggona Panchanga (${count} Days)`;
   const details = sanctumUrl;
 
   const baseUrl = "https://calendar.google.com/calendar/render";
@@ -2143,6 +2144,10 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     details: details,
     ctz: "Asia/Kolkata"
   });
+
+  if (count > 1) {
+    params.set("recur", `RRULE:FREQ=DAILY;COUNT=${count}`);
+  }
 
   return `${baseUrl}?${params.toString()}`;
 }
