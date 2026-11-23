@@ -58,6 +58,8 @@ import OmkarDeskPortalPage from "./pages/OmkarDeskPortalPage";
 import BaggonaPosterPage from "./pages/BaggonaPosterPage";
 import AntarangadaSatyaPage from "./pages/AntarangadaSatyaPage";
 import HotelTableQrPage from "./pages/HotelTableQrPage";
+import PriestDoshaPrescriptionPage from "./pages/PriestDoshaPrescriptionPage";
+import LivePrashnaOraclePage from "./pages/LivePrashnaOraclePage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -264,7 +266,25 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/quick-seva")
   );
 
-  const isDoshasRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+  const isDoshaDeskRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/dosha-desk") ||
+    window.location.search.includes("portal=dosha-desk") ||
+    window.location.search.includes("portal=dosha_desk") ||
+    window.location.search.includes("page=dosha-desk") ||
+    window.location.search.includes("page=dosha_desk") ||
+    window.location.hash.includes("#/dosha-desk")
+  );
+
+  const isPrashnaOracleRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/prashna-oracle") ||
+    window.location.search.includes("portal=prashna-oracle") ||
+    window.location.search.includes("portal=prashna_oracle") ||
+    window.location.search.includes("page=prashna-oracle") ||
+    window.location.search.includes("page=prashna_oracle") ||
+    window.location.hash.includes("#/prashna-oracle")
+  );
+
+  const isDoshasRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isDoshaDeskRoute && (
     window.location.pathname.startsWith("/doshas") ||
     window.location.pathname.startsWith("/kundli-doshas") ||
     window.location.pathname.startsWith("/dosha") ||
@@ -297,7 +317,7 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#gurukula")
   );
 
-  const isAstrologyQARoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+  const isAstrologyQARoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isPrashnaOracleRoute && (
     window.location.pathname.startsWith("/qa") ||
     window.location.pathname.startsWith("/astrology-qa") ||
     window.location.pathname.startsWith("/qa-scan") ||
@@ -563,6 +583,8 @@ export default function App(): JSX.Element {
             isPublisherRoute ||
             isQuickCalendarRoute ||
             isCalendarRoute ||
+            isDoshaDeskRoute ||
+            isPrashnaOracleRoute ||
             isDoshasRoute ||
             isAstodayaGrahanaRoute ||
             isAstrologyQARoute ||
@@ -589,7 +611,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute, isOmkarDeskRoute, isAntarangaRoute, isHotelQrRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshaDeskRoute, isPrashnaOracleRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute, isOmkarDeskRoute, isAntarangaRoute, isHotelQrRoute]);
 
   if (isAntarangaRoute) {
     return (
@@ -706,6 +728,22 @@ export default function App(): JSX.Element {
         <div className="min-h-screen bg-slate-950 p-2 sm:p-4 text-amber-100">
           <BaggonaBookPublisherDashboard />
         </div>
+      </ErrorBoundary>
+    );
+  }
+
+  if (isDoshaDeskRoute) {
+    return (
+      <ErrorBoundary>
+        <PriestDoshaPrescriptionPage />
+      </ErrorBoundary>
+    );
+  }
+
+  if (isPrashnaOracleRoute) {
+    return (
+      <ErrorBoundary>
+        <LivePrashnaOraclePage />
       </ErrorBoundary>
     );
   }
