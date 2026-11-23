@@ -358,6 +358,160 @@ export default function CategorizedNavDrawer({
 
         {/* Scrollable Categories & Navigation Items */}
         <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5 custom-scrollbar">
+          {/* 👑 Super Admin VIP Quick Launch Grid (Visible strictly to Super Admin when not searching) */}
+          {isMasterOrSuperAdmin && !searchQuery && (
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-amber-950/70 via-slate-900 to-amber-950/50 border-2 border-amber-500/50 shadow-lg shadow-amber-950/40 mb-3">
+              <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-amber-500/30">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base select-none animate-pulse">👑</span>
+                  <span className="text-xs font-black tracking-wide bg-gradient-to-r from-amber-300 to-yellow-200 bg-clip-text text-transparent uppercase">
+                    {language === "kn" ? "ಸೂಪರ್ ಅಡ್ಮಿನ್ ಕ್ವಿಕ್ ಹಬ್" : "Super Admin Master Hub"}
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full border border-amber-400/40">
+                  ALL ACCESS
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5">
+                {/* 1. Super Admin Dashboard */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage("superadmindashboard");
+                    onClose();
+                  }}
+                  className={`flex items-center gap-1.5 p-2 rounded-xl text-left transition-all active:scale-95 ${
+                    currentPage === "superadmindashboard"
+                      ? "bg-amber-500 text-slate-950 font-black shadow-md ring-2 ring-amber-300"
+                      : "bg-slate-900/90 hover:bg-amber-950/60 text-amber-200 border border-amber-500/40"
+                  }`}
+                >
+                  <span className="text-base shrink-0">🛡️</span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold truncate">
+                      {language === "kn" ? "ಸೂಪರ್ ಅಡ್ಮಿನ್" : "Super Admin"}
+                    </p>
+                    <p className="text-[9px] opacity-75 truncate">Dashboard</p>
+                  </div>
+                </button>
+
+                {/* 2. 20-Minute Link Generator */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage("consultation_generator");
+                    onClose();
+                    if (typeof window !== "undefined" && window.location.pathname !== "/consultation-generator") {
+                      window.location.href = "/consultation-generator";
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 p-2 rounded-xl text-left transition-all active:scale-95 ${
+                    currentPage === "consultation_generator"
+                      ? "bg-emerald-500 text-slate-950 font-black shadow-md ring-2 ring-emerald-300"
+                      : "bg-slate-900/90 hover:bg-emerald-950/60 text-emerald-200 border border-emerald-500/40"
+                  }`}
+                >
+                  <span className="text-base shrink-0">🔗</span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold truncate">
+                      {language === "kn" ? "೨೦-ನಿಮಿಷ ಲಿಂಕ್" : "20-Min Token"}
+                    </p>
+                    <p className="text-[9px] opacity-75 truncate">Consultation</p>
+                  </div>
+                </button>
+
+                {/* 3. Devotee Package Download */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage("package_download");
+                    onClose();
+                  }}
+                  className={`flex items-center gap-1.5 p-2 rounded-xl text-left transition-all active:scale-95 ${
+                    currentPage === "package_download"
+                      ? "bg-amber-400 text-slate-950 font-black shadow-md"
+                      : "bg-slate-900/90 hover:bg-amber-950/60 text-amber-100 border border-amber-400/30"
+                  }`}
+                >
+                  <span className="text-base shrink-0">📦</span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold truncate">
+                      {language === "kn" ? "ಸಂಪುಟ ಡೌನ್‌ಲೋಡ್" : "Full Package"}
+                    </p>
+                    <p className="text-[9px] opacity-75 truncate">Complete ZIP</p>
+                  </div>
+                </button>
+
+                {/* 4. 8K Poster Studio */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage("poster");
+                    onClose();
+                  }}
+                  className={`flex items-center gap-1.5 p-2 rounded-xl text-left transition-all active:scale-95 ${
+                    currentPage === "poster"
+                      ? "bg-amber-400 text-slate-950 font-black shadow-md"
+                      : "bg-slate-900/90 hover:bg-amber-950/60 text-amber-100 border border-amber-400/30"
+                  }`}
+                >
+                  <span className="text-base shrink-0">🖼️</span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold truncate">
+                      {language === "kn" ? "೮ಕೆ ಪೋಸ್ಟರ್" : "8K Poster"}
+                    </p>
+                    <p className="text-[9px] opacity-75 truncate">Tent & Cashier</p>
+                  </div>
+                </button>
+
+                {/* 5. 90-Day Calendar */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage("calendar");
+                    onClose();
+                  }}
+                  className={`flex items-center gap-1.5 p-2 rounded-xl text-left transition-all active:scale-95 ${
+                    currentPage === "calendar"
+                      ? "bg-amber-400 text-slate-950 font-black shadow-md"
+                      : "bg-slate-900/90 hover:bg-amber-950/60 text-amber-100 border border-amber-400/30"
+                  }`}
+                >
+                  <span className="text-base shrink-0">📅</span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold truncate">
+                      {language === "kn" ? "ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್" : "90-Day Calendar"}
+                    </p>
+                    <p className="text-[9px] opacity-75 truncate">Daily Darshana</p>
+                  </div>
+                </button>
+
+                {/* 6. AI Astrology Q&A */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage("aiaastrologer");
+                    onClose();
+                  }}
+                  className={`flex items-center gap-1.5 p-2 rounded-xl text-left transition-all active:scale-95 ${
+                    currentPage === "aiaastrologer"
+                      ? "bg-purple-500 text-white font-black shadow-md"
+                      : "bg-slate-900/90 hover:bg-purple-950/60 text-purple-200 border border-purple-500/40"
+                  }`}
+                >
+                  <span className="text-base shrink-0">🔮</span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold truncate">
+                      {language === "kn" ? "ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೋತ್ತರ" : "Astrology Q&A"}
+                    </p>
+                    <p className="text-[9px] opacity-75 truncate">Ask Astrologer</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
           {filteredCategories.length === 0 ? (
             <div className="text-center py-10 px-4 text-slate-400">
               <span className="text-3xl block mb-2" aria-hidden>🔍</span>

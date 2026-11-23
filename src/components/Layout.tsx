@@ -121,93 +121,102 @@ export default function Layout({ children }: Props): JSX.Element {
       )}
       
       {/* Header with Hamburger & Priest Coin Wallet */}
-      <header className="border-b border-slate-800 bg-slate-950 px-3 md:px-4 py-2.5 shadow-md flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <header className="border-b border-slate-800 bg-slate-950 px-2.5 sm:px-4 py-2 shadow-md flex items-center justify-between gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink">
           {/* BURGER CONTROL: Strictly only for Super Admin and Baggona Master Profile */}
           {isMasterOrSuperAdmin ? (
             <button 
               onClick={() => setIsDrawerOpen(true)}
-              className="p-2 -ml-1 text-amber-500 hover:text-amber-400 rounded-lg transition-colors focus:outline-none"
+              className="p-1.5 -ml-1 text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 rounded-xl transition-all focus:outline-none shrink-0 relative flex items-center gap-1"
               aria-label="Open Menu"
+              title="ಮೆನು ತೆರೆಯಿರಿ / Open Master Menu"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              <span className="text-[10px] hidden sm:inline font-bold text-amber-300">Menu</span>
             </button>
           ) : (
-            <div className="flex items-center gap-1 py-1">
-              <span className="text-xl pl-1 pr-0.5 select-none" aria-hidden>🪔</span>
+            <div className="flex items-center gap-1 py-1 shrink-0">
+              <span className="text-lg sm:text-xl pl-1 pr-0.5 select-none" aria-hidden>🪔</span>
             </div>
           )}
-          <div>
-            <span className="text-base md:text-lg font-semibold tracking-tight text-amber-400 block leading-tight">{t("app.title")}</span>
-            <p className="text-[10px] md:text-xs text-amber-100/70">
+          <div className="min-w-0">
+            <span className="text-sm sm:text-base md:text-lg font-bold tracking-tight text-amber-400 block leading-tight truncate">{t("app.title")}</span>
+            <p className="text-[9px] sm:text-[10px] md:text-xs text-amber-100/70 truncate">
               {currentUser && !isMasterOrSuperAdmin
                 ? `🙏 ${wallet?.priestName || currentUser}`
+                : isMasterOrSuperAdmin
+                ? "👑 Super Admin Suite"
                 : t("app.subtitle")}
             </p>
           </div>
         </div>
 
-        {/* Right side Actions: Wallet Pill, Super Admin & Reset */}
-        <div className="flex items-center gap-2">
+        {/* Right side Actions: Wallet Pill, Super Admin & Responsive Navigation */}
+        <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
           <button
             onClick={() => setPage("calendar")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:bg-amber-500/30 text-xs font-bold transition-all shadow-xs"
+            className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:bg-amber-500/30 text-xs font-bold transition-all shadow-xs shrink-0"
             title="ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ / Baggona Panchanga Calendar"
           >
             <span>📅</span>
-            <span className="hidden sm:inline">ಕ್ಯಾಲೆಂಡರ್</span>
+            <span className="hidden lg:inline">ಕ್ಯಾಲೆಂಡರ್</span>
           </button>
           <button
             onClick={() => setPage("aiaastrologer")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/25 to-orange-500/25 border border-amber-400/60 text-amber-300 hover:bg-amber-500/35 text-xs font-bold transition-all shadow-xs"
+            className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/25 to-orange-500/25 border border-amber-400/60 text-amber-300 hover:bg-amber-500/35 text-xs font-bold transition-all shadow-xs shrink-0"
             title="ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೋತ್ತರ / Ask Astrology Consultation"
           >
             <span>🔮</span>
-            <span className="hidden sm:inline">ಪ್ರಶ್ನೋತ್ತರ</span>
+            <span className="hidden lg:inline">ಪ್ರಶ್ನೋತ್ತರ</span>
           </button>
           <button
             onClick={() => setPage("pooja_estimate")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:bg-amber-500/30 text-xs font-bold transition-all shadow-xs"
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:bg-amber-500/30 text-xs font-bold transition-all shadow-xs shrink-0"
             title="ಪೂಜಾ ಯೋಜನೆ & ವೆಚ್ಚ ವಿವರ / Pooja Packages & Estimate"
           >
             <span>📜</span>
-            <span className="hidden md:inline">ಪೂಜಾ ಯೋಜನೆ</span>
+            <span>ಪೂಜಾ ಯೋಜನೆ</span>
           </button>
           <button
             onClick={() => setPage("package_download")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/30 to-yellow-500/30 border border-amber-300 text-amber-200 hover:bg-amber-500/40 text-xs font-bold transition-all shadow-xs"
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/30 to-yellow-500/30 border border-amber-300 text-amber-200 hover:bg-amber-500/40 text-xs font-bold transition-all shadow-xs shrink-0"
             title="ಸಂಪೂರ್ಣ ಜಾತಕ & ಪರಿಹಾರ ಸಂಪುಟ / Devotee Complete Astrology & Remedy Package"
           >
             <span>📦</span>
-            <span className="hidden sm:inline">ಸಂಪುಟ ಡೌನ್‌ಲೋಡ್</span>
+            <span className="hidden xl:inline">ಸಂಪುಟ ಡೌನ್‌ಲೋಡ್</span>
           </button>
           {/* Super Admin Control Center & 20-Minute Link Generator */}
-          {role === "superadmin" && (
+          {isMasterOrSuperAdmin && (
             <>
               <button
-                onClick={() => setPage("consultation_generator")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 text-xs font-bold transition-all shadow-md"
+                onClick={() => {
+                  setPage("consultation_generator");
+                  if (typeof window !== "undefined" && window.location.pathname !== "/consultation-generator") {
+                    window.location.href = "/consultation-generator";
+                  }
+                }}
+                className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 text-xs font-bold transition-all shadow-md shrink-0"
                 title="೨೦-ನಿಮಿಷ ಚಾಟ್ ಲಿಂಕ್ ಜನರೇಟರ್ (Super Admin Only)"
               >
                 <span>🔗</span>
-                <span className="hidden lg:inline">೨೦-ನಿಮಿಷ ಲಿಂಕ್</span>
+                <span>೨೦-ನಿಮಿಷ ಲಿಂಕ್</span>
               </button>
               <button
                 onClick={() => setPage("superadmindashboard")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 hover:from-amber-500 hover:to-amber-400 text-xs font-extrabold transition-all shadow-md"
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-slate-950 hover:from-amber-400 hover:to-yellow-300 text-xs font-black transition-all shadow-md shrink-0 active:scale-95"
                 title="Super Admin Master Control Center"
               >
-                <span>🛡️</span>
-                <span className="hidden md:inline">Super Admin</span>
+                <span className="text-sm">🛡️</span>
+                <span className="text-[11px] sm:text-xs font-black">Admin</span>
               </button>
             </>
           )}
 
           {/* Admin Approval Button (if pending or admin) */}
-          {(pendingAdminTransactions.length > 0 || role === "admin") && role !== "superadmin" && (
+          {(pendingAdminTransactions.length > 0 || role === "admin") && !isMasterOrSuperAdmin && (
             <button
               onClick={openAdminApprovalModal}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/60 text-xs font-semibold transition-all shadow-sm"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/60 text-xs font-semibold transition-all shadow-sm shrink-0"
               title="Admin Coin Approval Desk"
             >
               <span>🛡️</span>
@@ -221,28 +230,28 @@ export default function Layout({ children }: Props): JSX.Element {
           )}
 
           {/* Priest Coin Wallet Pill with Floating Deduction Animation & Red Low/Zero Balance Alert */}
-          <div className="relative inline-flex items-center">
+          <div className="relative inline-flex items-center shrink-0">
             <FloatingCoinDeductionBadge />
             <button
-              onClick={openRechargeModal}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all text-xs font-semibold shadow-sm ${
+              onClick={isMasterOrSuperAdmin ? () => setPage("superadmindashboard") : openRechargeModal}
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl transition-all text-xs font-semibold shadow-xs shrink-0 ${
                 isLowCoins
                   ? "bg-red-950/90 border-2 border-red-500 text-red-200 hover:bg-red-900 shadow-red-900/40 animate-pulse ring-2 ring-red-500/40"
                   : isMasterOrSuperAdmin
-                  ? "bg-amber-500/20 border border-amber-400 text-amber-200 hover:bg-amber-500/30"
+                  ? "bg-amber-500/15 border border-amber-400/60 text-amber-200 hover:bg-amber-500/25"
                   : "bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 hover:border-amber-400"
               }`}
               title={
                 isLowCoins
                   ? "⚠️ ನಾಣ್ಯಗಳ ಕೊರತೆ! Click to refill coins"
                   : isMasterOrSuperAdmin
-                  ? "👑 ಮಾಸ್ಟರ್ ಖಾತೆ • ಅನಿಯಮಿತ ಮುಕ್ತ ಪ್ರವೇಶ (Zero Deduction Master Profile)"
+                  ? "👑 ಸೂಪರ್ ಅಡ್ಮಿನ್ • ಅನಿಯಮಿತ ಮುಕ್ತ ಪ್ರವೇಶ (Super Admin Unlimited Access)"
                   : "Priest Coin Wallet • Click to recharge"
               }
             >
-              <span className="text-sm">{isLowCoins ? "⚠️" : isMasterOrSuperAdmin ? "👑" : "🪙"}</span>
-              <span className={`font-mono font-black ${isLowCoins ? "text-red-200" : "text-amber-200"}`}>
-                {isMasterOrSuperAdmin ? "♾️ ಮುಕ್ತ" : coinBalance.toLocaleString()} {isLowCoins ? "🪙" : ""}
+              <span className="text-xs sm:text-sm">{isLowCoins ? "⚠️" : isMasterOrSuperAdmin ? "👑" : "🪙"}</span>
+              <span className={`font-mono font-bold text-[11px] sm:text-xs ${isLowCoins ? "text-red-200" : "text-amber-200"}`}>
+                {isMasterOrSuperAdmin ? "ಮುಕ್ತ" : coinBalance.toLocaleString()} {isLowCoins ? "🪙" : ""}
               </span>
               <span className={`hidden sm:inline text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase ${
                 isLowCoins
@@ -263,7 +272,7 @@ export default function Layout({ children }: Props): JSX.Element {
                 useKundliViewerStore.getState().clearSession();
                 useAppStore.getState().setPage("kundli");
               }}
-              className="flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg shadow-sm hover:bg-rose-100 transition-colors"
+              className="flex items-center justify-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg shadow-sm hover:bg-rose-100 transition-colors shrink-0"
               title="Reset / Edit current Kundali"
             >
               <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
