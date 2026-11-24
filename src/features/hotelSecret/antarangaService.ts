@@ -55,6 +55,13 @@ import {
   verifyHotelOrderPayment,
   type HotelTableOrderDoc
 } from "../../db/firestoreDb";
+import {
+  calculateLiveTodayTarabalaAndChandrashtama,
+  type LiveTodayTarabalaOutput
+} from "../../engine/jyotishPrecisionGates";
+import {
+  calculateSecretAccuracyProfile
+} from "../../engine/secretAccuracyEngine";
 
 export type AntarangaLang = "kn" | "en" | "hi" | "te" | "ta" | "ml" | "mr";
 
@@ -152,6 +159,29 @@ export interface AntarangaSecretResult {
   paragraph1: string; // Outward Composure vs Hidden Inner Dilemma
   paragraph2: string; // Subconscious Solitude & The Unspoken Truth
   kshetraBlessing: string; // Sacred Gokarna Atma Linga Blessing
+  isTimeUnknown?: boolean;
+  todayLiveTarabala?: LiveTodayTarabalaOutput;
+  pastVerification?: {
+    periodLabel: string;
+    headline: string;
+    proofText: string;
+    symptoms: string[];
+  };
+  curiosityMiniCards?: {
+    maandiCard: {
+      house: number;
+      title: string;
+      desc: string;
+      lockedCta: string;
+    };
+    yogiCard: {
+      yogiPlanet: string;
+      avayogiPlanet: string;
+      title: string;
+      desc: string;
+      lockedCta: string;
+    };
+  };
   moorthyNirnaya?: MoorthyNirnayaData;
   cosmicVoltage?: CosmicLifeVoltageData;
   fiveYearPreview?: FiveYearPreviewHorizonData;
@@ -162,7 +192,8 @@ export interface AntarangaSecretResult {
 export const HOTEL_PDF_PRICE_INR = 350;
 export const HOTEL_REMEDY_ADDON_INR = 100;
 export const HOTEL_PREMIUM_REMEDY_PRICE_INR = 450;
-export type HotelPackageType = "standard_350" | "remedy_450";
+export const HOTEL_FAMILY_UPSELL_PRICE_INR = 250;
+export type HotelPackageType = "standard_350" | "remedy_450" | "family_250";
 
 export const PRIEST_UPI_ID = DEFAULT_PRIEST_UPI_ID; // "9108135387@ybl"
 export const PRIEST_UPI_NAME = DEFAULT_PRIEST_UPI_NAME; // "Sumana Ranganath Maarigoli"
@@ -719,15 +750,25 @@ export function generateAntarangaSatya(
   birthDate?: string,
   birthTime?: string,
   lat?: number,
-  lng?: number
+  lng?: number,
+  isTimeUnknown: boolean = false
 ): AntarangaSecretResult {
   const baseLang = lang || "kn";
   const localizedName = getLocalizedDevoteeName(devoteeName, baseLang) || devoteeName;
+  const now = new Date();
+
+  // Calculate age
+  const birthDt = new Date(`${birthDate || "1990-01-01"}T${(birthTime || "12:00").slice(0, 5)}:00`);
+  const ageYears = isNaN(birthDt.getTime()) ? 30 : Math.max(0.1, (now.getTime() - birthDt.getTime()) / (365.25 * 24 * 3600 * 1000));
+  const isChild = ageYears < 13;
 
   // Extract Lagna and Moon Sign
-  const lagnaRashiIdx = kundli.lagnaRashi?.index ?? 0;
+  const rawLagnaRashiIdx = kundli.lagnaRashi?.index ?? 0;
   const moonRashiIdx = kundli.moonSign?.index ?? 0;
   const moonPada = kundli.moonPada ?? 1;
+
+  // If time is unknown, anchor cleanly to Chandra Kundali (Moon Sign as Lagna)
+  const lagnaRashiIdx = isTimeUnknown ? moonRashiIdx : rawLagnaRashiIdx;
 
   // Moon Nakshatra
   const moonPlanet = kundli.planets.find((p) => p.name === PlanetName.Moon);
@@ -765,7 +806,17 @@ export function generateAntarangaSatya(
   });
 
   // Localized astronomical markers across 7 languages
-  const lagnaSignName = RASHI_7L[lagnaRashiIdx]?.[baseLang] || RASHI_7L[lagnaRashiIdx].en;
+  const baseLagnaName = RASHI_7L[lagnaRashiIdx]?.[baseLang] || RASHI_7L[lagnaRashiIdx].en;
+  const chandraSuffix: Record<AntarangaLang, string> = {
+    kn: " (ಚಂದ್ರ ಲಗ್ನ)",
+    en: " (Chandra Lagna)",
+    hi: " (चन्द्र लग्न)",
+    mr: " (चंद्र लग्न)",
+    te: " (చంద్ర లగ్నం)",
+    ta: " (சந்திர லக்னம்)",
+    ml: " (ചന്ദ്ര ലഗ്നം)"
+  };
+  const lagnaSignName = isTimeUnknown ? `${baseLagnaName}${chandraSuffix[baseLang] || chandraSuffix.en}` : baseLagnaName;
   const moonSignName = RASHI_7L[moonRashiIdx]?.[baseLang] || RASHI_7L[moonRashiIdx].en;
   const nakshatraName = NAKSHATRA_7L[moonNakshatraIdx]?.[baseLang] || NAKSHATRA_7L[moonNakshatraIdx].en;
   const h8LordName = GRAHA_7L[h8LordKey]?.[baseLang] || GRAHA_7L[h8LordKey].en;
@@ -777,7 +828,6 @@ export function generateAntarangaSatya(
   const nigoodha = getAntarangaNigoodhaDetails(h8LordKey, baseLang);
 
   // 1. Calculate live transits for the current moment
-  const now = new Date();
   const currentTransits = getTransitsForDate(moonRashiIdx, now, "lahiri");
   const transitMoonSign = currentTransits[PlanetName.Moon]?.rashiIndex ?? ((moonRashiIdx + 1) % 12);
   const shaniHouse = currentTransits[PlanetName.Saturn]?.house ?? 8;
@@ -852,27 +902,72 @@ export function generateAntarangaSatya(
       : `${localizedName}, `)
     : "";
 
-  const personaOpening = getPersonaOpening(element, lagnaSignName, moonSignName, baseLang);
-  const dashaCrisis = getCurrentDashaLifeCrisis(mahaKey, bhuktiKey, activeMahadasha, activeBhukti, baseLang);
-  const gocharaTransit = getGocharaTransitPressure(isSadeSati, isAshtama, isKantaka, hasGuruBala, baseLang);
-  const soulSecret = getSubconsciousSoulSecret(element, moonSignName, nakshatraName, moonPada, h12RashiName, h12LordName, baseLang);
+  let paragraph1: string;
+  let paragraph2: string;
+  let kshetraBlessing: string;
 
-  const paragraph1 = `${salutation}${personaOpening} ${dashaCrisis} ${gocharaTransit} ${nigoodha.conflict}`;
-  const paragraph2 = soulSecret;
+  if (isChild) {
+    // Child / Infant Pure Adaptation (Zero Adult Betrayal or Dark Burden)
+    const childPara1Map: Record<AntarangaLang, string> = {
+      kn: `${salutation}ಮಗುವಿನ ಜನ್ಮ ರಾಶಿಯಾದ ${moonSignName}, ${nakshatraName} ನಕ್ಷತ್ರ ಹಾಗೂ ${lagnaSignName}ವು ಅಪಾರ ದೈವಿಕ ತೇಜಸ್ಸು ಹಾಗೂ ಸಹಜ ಬುದ್ಧಿಮತ್ತೆಯನ್ನು ಸೂಚಿಸುತ್ತವೆ. ಮಗುವಿನ ಮನಸ್ಸು ಅತ್ಯಂತ ಸೂಕ್ಷ್ಮ ಹಾಗೂ ಪರಿಶುದ್ಧವಾಗಿದ್ದು, ಹೊಸ ವಿಷಯಗಳನ್ನು ತ್ವರಿತವಾಗಿ ಗ್ರಹಿಸುವ ಅದ್ಭುತ ಶಕ್ತಿಯಿದೆ. ನೈಸರ್ಗಿಕ ಸೃಜನಶೀಲತೆ ಹಾಗೂ ಕಲಿಕಾ ವೇಗವು ಅಸಾಧಾರಣವಾಗಿದ್ದು, ಮನೆಯವರ ಪ್ರೀತಿಯೇ ಮಗುವಿನ ಅತಿ ದೊಡ್ಡ ಶಕ್ತಿಯಾಗಿದೆ.`,
+      en: `${salutation}The childs Moon Sign (${moonSignName}), Janma Nakshatra (${nakshatraName}), and Lagna (${lagnaSignName}) reveal a pure, highly intelligent, and luminous celestial aura. Possessing acute emotional sensitivity and sharp observational acumen, the child absorbs environment and learning at rapid pace. Nurturing with gentle patience unlocks boundless creative potential.`,
+      hi: `${salutation}बालक की चंद्र राशि ${moonSignName}, ${nakshatraName} नक्षत्र एवं लग्न ${lagnaSignName} अत्यंत दिव्य मेधा एवं स्वाभाविक बुद्धिमत्ता को दर्शाते हैं। बालक का मन अत्यंत कोमल व संवेदनशील है, जो नवीन विषयों को शीघ्रता से ग्रहण करता है। प्रेम एवं धैर्यपूर्वक मार्गदर्शन से बालक अद्वितीय प्रगति करेगा।`,
+      mr: `${salutation}बाळाची चंद्र रास ${moonSignName}, ${nakshatraName} नक्षत्र आणि लग्न ${lagnaSignName} अपार दैवी तेज व उपजत बुद्धिमत्ता दर्शवतात. बाळाचे मन अत्यंत हळवे व शुद्ध असून ते नवीन गोष्टी पटकन शिकते. कौटुंबिक प्रेम आणि धीर हीच बाळाची खरी ताकद आहे.`,
+      te: `${salutation}బిడ్డ చంద్ర రాశి ${moonSignName}, ${nakshatraName} నక్షత్రం మరియు లగ్నం ${lagnaSignName} అద్భుతమైన దైవిక తేజస్సు మరియు సహజ మేధస్సును సూచిస్తున్నాయి. బిడ్డ మనస్సు ఎంతో సున్నితమైనది మరియు పరిశుద్ధమైనది, విషయాలను వేగంగా గ్రహిస్తుంది.`,
+      ta: `${salutation}குழந்தையின் சந்திர ராசி ${moonSignName}, ${nakshatraName} நட்சத்திரம் மற்றும் லக்னம் ${lagnaSignName} தெய்வீக ஆற்றலையும் கூரிய அறிவாற்றலையும் காட்டுகின்றன. குழந்தையின் மனம் மிகவும் மென்மையானது, அனைத்தையும் விரைவாகக் கற்கும் திறன் கொண்டது.`,
+      ml: `${salutation}കുട്ടിയുടെ ചന്ദ്ര രാശിയായ ${moonSignName}, ${nakshatraName} നക്ഷത്രം, ലഗ്നം ${lagnaSignName} എന്നിവ ദിവ്യമായ ബുദ്ധിശക്തിയെയും സാത്വിക ഗുണങ്ങളെയും വ്യക്തമാക്കുന്നു. മനസ്സ് വളരെ മൃദുലവും കാര്യങ്ങൾ വേഗത്തിൽ ഗ്രഹിക്കുന്നതുമാണ്.`
+    };
 
-  const kshetraBlessing = baseLang === "kn"
-    ? `【ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸನ್ನಿಧಾನದ ದಿವ್ಯ ರಕ್ಷೆ】: ಈ ಆಂತರಿಕ ಸಂಘರ್ಷಗಳು ಶಮನಗೊಳ್ಳಲು ಪೂರ್ವಜರ ಆಶೀರ್ವಾದ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ಆತ್ಮಲಿಂಗ ಕೃಪೆಯು ಅತ್ಯಂತ ಪ್ರಧಾನವಾಗಿದೆ. ${nigoodha.remedy} ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಅನುಗ್ರಹವು ನಿಮ್ಮ ಮನಸ್ಸಿನ ಭಾರವನ್ನು ಹಗುರಗೊಳಿಸಿ, ಶಾಶ್ವತ ನೆಮ್ಮದಿ ಮತ್ತು ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ಕರುಣಿಸಲಿ.`
-    : baseLang === "hi"
-    ? `【श्री क्षेत्र गोकर्ण सन्निधान दिव्य रक्षा कवच】: अंतर्मन के इस संताप को शांत करने हेतु पितरों का आशीर्वाद तथा श्री गोकर्ण महाबलेश्वर आत्मलिंग की कृपा परम कल्याणकारी है। ${nigoodha.remedy} भगवान महाबलेश्वर का पावन आशीर्वाद आपके चित्त को निर्मल शांति और नवीन आत्मविश्वास प्रदान करे।`
-    : baseLang === "mr"
-    ? `【श्री क्षेत्र गोकर्ण आत्मलिंग दिव्य संरक्षण कवच】: अंतर्मनातील हा संताप शांत होण्यासाठी पूर्वजांचे आशीर्वाद व श्री गोकर्ण महाबळेश्वर आत्मलिंगाची कृपा अत्यंत लाभदायी आहे। ${nigoodha.remedy} भगवान महाबळेश्वरांच्या कृपेने आपले मानसिक ओझे हलके होऊन जीवनात शाश्वत शांतता व अढळ आत्मबल लाभो.`
-    : baseLang === "te"
-    ? `【శ్రీ క్షేత్ర గోకర్ణ సన్నిధాన దివ్య రక్షణ】: ఈ అంతర్గత ఆవేదనను తొలగించడానికి పితృదేవతల ఆశీస్సులు మరియు శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ఆత్మలింగ అనుగ్రహం శ్రేయస్కరం. ${nigoodha.remedy} స్వామివారి కరుణతో మీ మనోభారం తొలగిపోయి శాశ్వత మనశ్శాంతి చేకూరునుగాక.`
-    : baseLang === "ta"
-    ? `【ஸ்ரீ க்ஷேத்ர கோகர்ணம் ஆத்மலிங்க தெய்வீக கவசம்】: இந்த ஆழ்மன வேதனையைத் தணிக்க முன்னோர்களின் ஆசியும் ஸ்ரீ கோகர்ணம் மகாபலேஸ்வரரின் ஆத்மலிங்க அருளும் மிக முக்கியமானதாகும். ${nigoodha.remedy} மகாபலேஸ்வரர் அருளால் உங்கள் மனப்பாரம் நீங்கி நிலையான அமைதியும் தைரியமும் உண்டாகட்டும்.`
-    : baseLang === "ml"
-    ? `【ശ്രീ ഗോകർണം മഹാബലേശ്വര സന്നിധാന ദിവ്യ രക്ഷാ കവചം】: ഉള്ളിലെ സംഘർഷങ്ങൾ ശമിക്കാൻ പിതൃക്കളുടെ അനുഗ്രഹവും ഗോകർണം മഹാബലേശ്വര ആത്മലിംഗ കൃപയും അത്യാവശ്യമാണ്. ${nigoodha.remedy} ഭഗവാന്റെ ദിവ്യാനുഗ്രഹത്താൽ നിങ്ങളുടെ മനസ്സിന്റെ ഭാരം ഇല്ലാതായി ശാശ്വത സമാധാനം ലഭിക്കട്ടെ.`
-    : `【SACRED SRI KSHETRA GOKARNA DIVINE SHIELD】: Transmuting this subconscious emotional weight requires the grace of ancestral blessings and the sacred touch of Lord Mahabaleshwara (Atma Linga) at Sri Kshetra Gokarna. ${nigoodha.remedy} May the divine presence of Sri Mahabaleshwara dissolve your inner anxieties and illuminate your life with unshakable serenity and sovereign confidence.`;
+    const childPara2Map: Record<AntarangaLang, string> = {
+      kn: `ಮಗುವಿನ ದ್ವಾದಶ ಭಾವ ${h12RashiName}ವು ಸೂಕ್ಷ್ಮ ನಿದ್ರಾ ವ್ಯವಸ್ಥೆ ಹಾಗೂ ವಾತಾವರಣದ ಪ್ರಭಾವವನ್ನು ತೋರಿಸುತ್ತದೆ. ಮಗುವಿಗೆ ಅನಗತ್ಯ ಶಬ್ದ ಅಥವಾ ಹೊರಗಿನ ಋಣಾತ್ಮಕ ದೃಷ್ಟಿ ದೋಷಗಳಿಂದ ರಕ್ಷಣೆ ನೀಡಲು ನಿಯಮಿತ ದೃಷ್ಟಿ ನಿವಾರಣೆ, ಸಾತ್ವಿಕ ಆಹಾರ ಹಾಗೂ ಸದಾ ಶಾಂತಿಯುತ ಕೌಟುಂಬಿಕ ವಾತಾವರಣ ಒದಗಿಸುವುದು ಅತ್ಯಗತ್ಯ. ಮಗುವಿನ ಪ್ರತಿಭೆಯು ದಿನದಿಂದ ದಿನಕ್ಕೆ ಪ್ರವರ್ಧಮಾನಕ್ಕೆ ಬರಲಿದೆ.`,
+      en: `The 12th house (${h12RashiName}) indicates sensitive sleeping patterns and delicate receptivity to subtle energies. Providing a tranquil, calm home sanctuary, regular traditional gaze protection (Drishti Parihara), and consistent restful routines safeguards the childs vitality and ensures sound, undisturbed sleep.`,
+      hi: `द्वादश भाव ${h12RashiName} संवेदनशील निद्रा एवं बाहरी ऊर्जाओं के प्रति कोमलता को दर्शाता है। शांत पारिवारिक वातावरण, सात्विक दिनचर्या एवं नियमित दृष्टि निवारण से बालक की जीवन शक्ति एवं एकाग्रता सदैव सुरक्षित रहेगी।`,
+      mr: `बारावे स्थान ${h12RashiName} संवेदनशील झोप व वातावरणाचा प्रभाव दर्शवते. घरात शांतता राखणे, नियमित दृष्ट काढणे व सात्त्विक वातावरण देणे यामुळे बाळाचे आरोग्य व बुद्धी उत्तम प्रकारे विकसित होईल.`,
+      te: `12వ ఇల్లు ${h12RashiName} సున్నితమైన నిద్ర మరియు బాహ్య ప్రభావాల పట్ల జాగ్రత్తను సూచిస్తుంది. ప్రశాంతమైన గృహ వాతావరణం మరియు దిష్టి తీయడం వల్ల బిడ్డ ఆరోగ్యం, చదువు బాగుంటాయి.`,
+      ta: `12-ம் வீடு ${h12RashiName} மென்மையான தூக்கம் மற்றும் சூழல் விழிப்புணர்வை காட்டுகிறது. அமைதியான வீட்டு சூழலும், திருஷ்டி கழித்தலும் குழந்தையின் ஆரோக்கியத்தையும் உற்சாகத்தையும் காக்கும்.`,
+      ml: `ദ്വാദശ ഭാവമായ ${h12RashiName} മൃദുവായ ഉറക്കത്തെയും സംരക്ഷണ ആവശ്യകതയെയും സൂചിപ്പിക്കുന്നു. ശാന്തമായ ഗൃഹാന്തരീക്ഷവും ഈശ്വര പ്രാർത്ഥനയും കുട്ടിയുടെ ആരോഗ്യത്തെയും പഠനത്തെയും മികച്ചതാക്കും.`
+    };
+
+    paragraph1 = childPara1Map[baseLang] || childPara1Map.en;
+    paragraph2 = childPara2Map[baseLang] || childPara2Map.en;
+
+    kshetraBlessing = baseLang === "kn"
+      ? `【ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಾಲ ರಕ್ಷಾ ದಿವ್ಯ ಕವಚ】: ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ಆತ್ಮಲಿಂಗ ಸ್ಪರ್ಶ ಪವಿತ್ರ ಭಸ್ಮ-ತೀರ್ಥ ಪ್ರಸಾದವು ಮಗುವಿಗೆ ಬಾಲಾರಿಷ್ಟ ನಿವಾರಣೆ, ದೀರ್ಘಾಯುಷ್ಯ, ದೃಷ್ಟಿ ದೋಷ ಮುಕ್ತಿ ಹಾಗೂ ವಿದ್ಯಾರಂಗದಲ್ಲಿ ಅದ್ಭುತ ಜಯವನ್ನು ಕರುಣಿಸಲಿ.`
+      : baseLang === "hi"
+      ? `【श्री क्षेत्र गोकर्ण बाल रक्षा दिव्य कवच】: श्री गोकर्ण महाबलेश्वर आत्मलिंग की कृपा से बालक को उत्तम स्वास्थ्य, दीर्घायु, अरिष्ट निवारण एवं विद्या-बुद्धि में असाधारण सफलता प्राप्त हो।`
+      : baseLang === "mr"
+      ? `【श्री क्षेत्र गोकर्ण बाल संरक्षण दिव्य कवच】: श्री गोकर्ण महाबळेश्वर आत्मलिंगाच्या आशीर्वादाने बाळाला उत्तम आरोग्य, दीर्घायुष्य, दृष्ट दोष मुक्ती व शिक्षणात यश लाभो.`
+      : baseLang === "te"
+      ? `【శ్రీ క్షేత్ర గోకర్ణ బాల రక్షా దివ్య కవచం】: శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ఆత్మలింగ అనుగ్రహంతో బిడ్డకు ఆయురారోగ్యాలు, దృష్టి దోష నివారణ మరియు విద్యా విజయాలు చేకూరునుగాక.`
+      : baseLang === "ta"
+      ? `【ஸ்ரீ கோகர்ணம் பால ரக்ஷா கவசம்】: ஸ்ரீ கோகர்ணம் மகாபலேஸ்வரர் அருளால் குழந்தைக்கு நீண்ட ஆயுளும், திருஷ்டி தோஷ நிவாரணமும், கல்வியில் பெரும் வெற்றியும் உண்டாகட்டும்.`
+      : baseLang === "ml"
+      ? `【ശ്രീ ഗോകർണം ബാല രക്ഷാ കവചം】: ശ്രീ ഗോകർണം മഹാബലേശ്വര കൃപയാൽ കുട്ടിക്ക് ആയുരാരോഗ്യവും ദൃഷ്ടിദോഷ മുക്തിയും വിദ്യാഭ്യാസത്തിൽ ഉന്നത വിജയവും ലഭിക്കട്ടെ.`
+      : `【SACRED SRI KSHETRA GOKARNA BALA RAKSHA SHIELD】: May the sacred Atma Linga grace of Lord Mahabaleshwara at Sri Kshetra Gokarna surround the child with impenetrable divine vitality, total freedom from malefic gaze, and sovereign brilliance in learning.`;
+  } else {
+    // Adult Deep Psychological Truth
+    const personaOpening = getPersonaOpening(element, lagnaSignName, moonSignName, baseLang);
+    const dashaCrisis = getCurrentDashaLifeCrisis(mahaKey, bhuktiKey, activeMahadasha, activeBhukti, baseLang);
+    const gocharaTransit = getGocharaTransitPressure(isSadeSati, isAshtama, isKantaka, hasGuruBala, baseLang);
+    const soulSecret = getSubconsciousSoulSecret(element, moonSignName, nakshatraName, moonPada, h12RashiName, h12LordName, baseLang);
+
+    paragraph1 = `${salutation}${personaOpening} ${dashaCrisis} ${gocharaTransit} ${nigoodha.conflict}`;
+    paragraph2 = soulSecret;
+
+    kshetraBlessing = baseLang === "kn"
+      ? `【ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸನ್ನಿಧಾನದ ದಿವ್ಯ ರಕ್ಷೆ】: ಈ ಆಂತರಿಕ ಸಂಘರ್ಷಗಳು ಶಮನಗೊಳ್ಳಲು ಪೂರ್ವಜರ ಆಶೀರ್ವಾದ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ಆತ್ಮಲಿಂಗ ಕೃಪೆಯು ಅತ್ಯಂತ ಪ್ರಧಾನವಾಗಿದೆ. ${nigoodha.remedy} ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಅನುಗ್ರಹವು ನಿಮ್ಮ ಮನಸ್ಸಿನ ಭಾರವನ್ನು ಹಗುರಗೊಳಿಸಿ, ಶಾಶ್ವತ ನೆಮ್ಮದಿ ಮತ್ತು ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ಕರುಣಿಸಲಿ.`
+      : baseLang === "hi"
+      ? `【श्री क्षेत्र गोकर्ण सन्निधान दिव्य रक्षा कवच】: अंतर्मन के इस संताप को शांत करने हेतु पितरों का आशीर्वाद तथा श्री गोकर्ण महाबलेश्वर आत्मलिंग की कृपा परम कल्याणकारी है। ${nigoodha.remedy} भगवान महाबलेश्वर का पावन आशीर्वाद आपके चित्त को निर्मल शांति और नवीन आत्मविश्वास प्रदान करे।`
+      : baseLang === "mr"
+      ? `【श्री क्षेत्र गोकर्ण आत्मलिंग दिव्य संरक्षण कवच】: अंतर्मनातील हा संताप शांत होण्यासाठी पूर्वजांचे आशीर्वाद व श्री गोकर्ण महाबळेश्वर आत्मलिंगाची कृपा अत्यंत लाभदायी आहे। ${nigoodha.remedy} भगवान महाबळेश्वरांच्या कृपेने आपले मानसिक ओझे हलके होऊन जीवनात शाश्वत शांतता व अढळ आत्मबल लाभो.`
+      : baseLang === "te"
+      ? `【శ్రీ క్షేత్ర గోకర్ణ సన్నిధాన దివ్య రక్షణ】: ఈ అంతర్గత ఆవేదనను తొలగించడానికి పితృదేవతల ఆశీస్సులు మరియు శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ఆత్మలింగ అనుగ్రహం శ్రేయస్కరం. ${nigoodha.remedy} స్వామివారి కరుణతో మీ మనోభారం తొలగిపోయి శాశ్వత మనశ్శాంతి చేకూరునుగాక.`
+      : baseLang === "ta"
+      ? `【ஸ்ரீ க்ஷேத்ர கோகர்ணம் ஆத்மலிங்க தெய்வீக கவசம்】: இந்த ஆழ்மன வேதனையைத் தணிக்க முன்னோர்களின் ஆசியும் ஸ்ரீ கோகர்ணம் மகாபலேஸ்வரரின் ஆத்மலிங்க அருளும் மிக முக்கியமானதாகும். ${nigoodha.remedy} மகாபலேஸ்வரர் அருளால் உங்கள் மனப்பாரம் நீங்கி நிலையான அமைதியும் தைரியமும் உண்டாகட்டும்.`
+      : baseLang === "ml"
+      ? `【ശ്രീ ഗോകർണം മഹാബലേശ്വര സന്നിധാന ദിവ്യ രക്ഷാ കവചം】: ഉള്ളിലെ സംഘർഷങ്ങൾ ശമിക്കാൻ പിതൃക്കളുടെ അനുഗ്രഹവും ഗോകർണം മഹാബലേശ്വര ആത്മലിംഗ കൃപയും അത്യാവശ്യമാണ്. ${nigoodha.remedy} ഭഗവാന്റെ ദിവ്യാനുഗ്രഹത്താൽ നിങ്ങളുടെ മനസ്സിന്റെ ഭാരം ഇല്ലാതായി ശാശ്വത സമാധാനം ലഭിക്കട്ടെ.`
+      : `【SACRED SRI KSHETRA GOKARNA DIVINE SHIELD】: Transmuting this subconscious emotional weight requires the grace of ancestral blessings and the sacred touch of Lord Mahabaleshwara (Atma Linga) at Sri Kshetra Gokarna. ${nigoodha.remedy} May the divine presence of Sri Mahabaleshwara dissolve your inner anxieties and illuminate your life with unshakable serenity and sovereign confidence.`;
+  }
 
   // 1. Classical Moorthy Nirnaya (ಮೂರ್ತಿ ನಿರ್ಣಯ)
   const moorthyNirnaya = calculateMoorthyNirnaya(transitMoonSign, moonRashiIdx, baseLang);
@@ -894,7 +989,10 @@ export function generateAntarangaSatya(
     kundli,
     moonRashiIdx,
     lagnaRashiIdx,
-    baseLang
+    baseLang,
+    cosmicVoltage.energyScore,
+    moorthyNirnaya.tier,
+    mahaKey
   );
 
   // 4. Free Divine Lucky Blueprint (ಉಚಿತ ದೈವಿಕ ಅದೃಷ್ಟ ಅಂಶಗಳು)
@@ -907,6 +1005,139 @@ export function generateAntarangaSatya(
 
   // 5. Pandit Palette Dining Conversion Offer (೮೪% ಅತಿಥಿಗಳ ನಂಬಿಕೆ & ೧೦ ಸೆಕೆಂಡ್ ಡೌನ್‌ಲೋಡ್)
   const diningOffer = getDiningConversionOffer(baseLang);
+
+  // 6. Live Today's Tarabala & Chandrashtama (Table-Side Psychic Hook)
+  const todayLiveTarabala = calculateLiveTodayTarabalaAndChandrashtama(
+    moonNakshatraIdx,
+    moonRashiIdx,
+    now,
+    baseLang
+  );
+
+  // 7. Secret Accuracy Profile: Yogi, Avayogi, and Maandi Knot
+  const sunPlanet = kundli.planets.find((p) => p.name === PlanetName.Sun);
+  const sunLon = (sunPlanet?.rashi?.index ?? 0) * 30 + (sunPlanet?.degree ?? 0);
+  const moonLon = (moonPlanet?.rashi?.index ?? 0) * 30 + (moonPlanet?.degree ?? 0);
+  const rahuPlanet = kundli.planets.find((p) => p.name === PlanetName.Rahu);
+  const rahuLon = (rahuPlanet?.rashi?.index ?? 0) * 30 + (rahuPlanet?.degree ?? 0);
+  const secretAccuracy = calculateSecretAccuracyProfile(sunLon, moonLon, rahuLon);
+
+  const maandiHouse = kundli.maandi?.rashi
+    ? (((kundli.maandi.rashi.index - lagnaRashiIdx + 12) % 12) + 1)
+    : (([1, 4, 7, 10].includes(lagnaRashiIdx % 4) ? 8 : [2, 5, 8, 11].includes(lagnaRashiIdx % 4) ? 6 : 10));
+
+  // Past 24-Month Mathematical Verification Box
+  const pastVerification = {
+    periodLabel: baseLang === "kn" ? "ಕಳೆದ ೧೮ - ೨೪ ತಿಂಗಳುಗಳು (೨೦೨೪ - ೨೦೨೫)"
+      : baseLang === "hi" ? "विगत १८ - २४ माह (२०२४ - २०२५)"
+      : baseLang === "mr" ? "मागील १८ - २४ महिने (२०२४ - २०२५)"
+      : baseLang === "te" ? "గత 18 - 24 నెలలు (2024 - 2025)"
+      : baseLang === "ta" ? "கடந்த 18 - 24 மாதங்கள் (2024 - 2025)"
+      : baseLang === "ml" ? "കഴിഞ്ഞ 18 - 24 മാസങ്ങൾ (2024 - 2025)"
+      : "Past 18 - 24 Months (2024 - 2025)",
+    headline: isSadeSati || isAshtama
+      ? (baseLang === "kn" ? "ಅತಿಯಾದ ಮಾನಸಿಕ ಆತಂಕ & ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಸಿಗದಿರುವಿಕೆ"
+        : baseLang === "hi" ? "अत्यधिक मानसिक दबाव एवं परिश्रम का यथोचित फल न मिलना"
+        : baseLang === "mr" ? "मानसिक ताणतणाव व कष्टांचे योग्य श्रेय न मिळणे"
+        : baseLang === "te" ? "తీవ్ర మానసిక ఒత్తిడి మరియు శ్రమకు తగిన గుర్తింపు లేకపోవడం"
+        : baseLang === "ta" ? "அதிக மன அழுத்தம் மற்றும் உழைப்பிற்கேற்ற அங்கீகாரம் இன்மை"
+        : baseLang === "ml" ? "കഠിന മാനസിക സമ്മർദ്ദവും അർഹിച്ച അംഗീകാരം ലഭിക്കാതിരിക്കലും"
+        : "Heavy Mental Pressure & Unrecognized Diligence")
+      : (baseLang === "kn" ? "ಪ್ರಮುಖ ಕಾರ್ಯಗಳು ೯೯% ಪೂರ್ಣಗೊಂಡು ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆ"
+        : baseLang === "hi" ? "महत्वपूर्ण कार्य ९९% पूर्ण होकर अंतिम क्षण में रुकावट"
+        : baseLang === "mr" ? "महत्त्वाची कामे ९९% पूर्ण होऊन शेवटच्या क्षणी अडथळा"
+        : baseLang === "te" ? "ముఖ్యమైన పనులు 99% పూర్తయి చివరి నిమిషంలో ఆగిపోవడం"
+        : baseLang === "ta" ? "முக்கிய பணிகள் 99% முடிந்து இறுதி நேரத்தில் தடைகள்"
+        : baseLang === "ml" ? "പ്രധാന കാര്യങ്ങൾ 99% പൂർത്തിയായി അവസാന നിമിഷം തടസ്സം"
+        : "Critical Projects Stalled at 99% Milestone"),
+    proofText: isSadeSati || isAshtama
+      ? (baseLang === "kn" ? "ಶನಿ ಗೋಚಾರದ ಪ್ರಭಾವ (ಸಾಡೇಸಾತಿ / ಅಷ್ಟಮ ಶನಿ) ಹಾಗೂ ಅಂತರ್ದಶಾ ಸಂಧಿ ಪರಿವರ್ತನೆ."
+        : baseLang === "hi" ? "शनि गोचर (साढ़ेसाती / अष्टम शनि) एवं अंतर्दशा संधि का प्रत्यक्ष प्रभाव।"
+        : baseLang === "mr" ? "शनि गोचर (साडेसाती / अष्टम शनि) व अंतर्दशा संधिकाल प्रभाव."
+        : baseLang === "te" ? "శని గోచారం (ఏలినాటి శని / అష్టమ శని) మరియు అంతర్దశ సంధి ప్రభావం."
+        : baseLang === "ta" ? "சனி பெயர்ச்சி (ஏழரை சனி / அஷ்டம சனி) மற்றும் அந்தர்திசை சந்தி தாக்கம்."
+        : baseLang === "ml" ? "ശനി ഗോചര ഫലവും (ഏഴരശ്ശനി / അഷ്ടമശനി) അപഹാര സന്ധിയും."
+        : "Direct mathematical impact of Saturn Gochara (Sade Sati / Ashtama Shani) & Antardasha transition.")
+      : (baseLang === "kn" ? `ಕುಂಡಲಿಯ ${maandiHouse}ನೇ ಭಾವದಲ್ಲಿರುವ ಮಾಂದಿ ಗಂಟು ಹಾಗೂ ಹಿಂದಿನ ರಾಹು-ಕೇತು ಸಂಚಾರ.`
+        : baseLang === "hi" ? `कुंडली के ${maandiHouse}वें भाव में मान्दि ग्रंथि एवं राहु-केतु अक्ष का प्रभाव।`
+        : baseLang === "mr" ? `पत्रिकेतील ${maandiHouse}व्या स्थानातील मांदी गाठ व राहू-केतू अक्ष प्रभाव.`
+        : baseLang === "te" ? `జాతకంలోని ${maandiHouse}వ స్థానంలో మాంది ముడి మరియు రాహు-కేతు ప్రభావం.`
+        : baseLang === "ta" ? `ஜாதகத்தின் ${maandiHouse}-ம் வீட்டில் உள்ள மாந்தி முடிச்சு மற்றும் ராகு-கேது தாக்கம்.`
+        : baseLang === "ml" ? `ജാതകത്തിലെ ${maandiHouse}-ാം ഭാവത്തിലെ മാന്ദി ഗ്രന്ഥിയും രാഹു-കേതു പ്രഭാവവും.`
+        : `House ${maandiHouse} Maandi knot and past Rahu-Ketu nodal axis transit.`),
+    symptoms: [
+      baseLang === "kn" ? "೧೦೦% ಶ್ರಮ ವಹಿಸಿದರೂ ಪ್ರಮುಖ ಕೆಲಸಗಳು ಅಂತಿಮ ಹಂತದಲ್ಲಿ ವಿನಾಕಾರಣ ತಡವಾಗುವುದು"
+        : baseLang === "hi" ? "शत-प्रतिशत प्रयास के उपरांत भी कार्य अंतिम चरण में अकारण विलंबित होना"
+        : baseLang === "mr" ? "१००% प्रयत्न करूनही कामे शेवटच्या टप्प्यावर विनाकारण रखडणे"
+        : baseLang === "te" ? "100% శ్రమించినా ముఖ్యమైన పనులు చివరి క్షణంలో ఆలస్యం కావడం"
+        : baseLang === "ta" ? "100% முயற்சி செய்தும் பணிகள் இறுதி கட்டத்தில் காரணமின்றி தாமதமாவது"
+        : baseLang === "ml" ? "100% പരിശ്രമിച്ചിട്ടും കാര്യങ്ങൾ അവസാന ഘട്ടത്തിൽ അകാരണമായി നീണ്ടുപോവുക"
+        : "Despite 100% sincere toil, critical endeavors faced last-minute bureaucratic drag",
+      baseLang === "kn" ? "ಅನಿರೀಕ್ಷಿತ ಆರ್ಥಿಕ ಖರ್ಚು ಅಥವಾ ಕುಟುಂಬದ ಆಪ್ತರ ನಂಬಿಕೆಯಿಂದ ಮಾನಸಿಕ ನಿರಾಶೆ"
+        : baseLang === "hi" ? "आकस्मिक धन व्यय अथवा निकट संबंधियों के व्यवहार से आंतरिक व्यथा"
+        : baseLang === "mr" ? "अचानक आर्थिक खर्च किंवा जवळच्या व्यक्तींच्या वागण्याने मानसिक खिन्नता"
+        : baseLang === "te" ? "ఆకస్మిక ఆర్థిక ఖర్చులు లేదా ఆత్మీయుల ప్రవర్తన వల్ల మనస్తాపం"
+        : baseLang === "ta" ? "திடீர் பண விரயம் அல்லது நெருங்கியவர்களின் செயலால் மன வேதனை"
+        : baseLang === "ml" ? "അപ്രതീക്ഷിത ധനനഷ്ടം അല്ലെങ്കിൽ പ്രിയപ്പെട്ടവരിൽ നിന്നുള്ള മാനസിക വിഷമം"
+        : "Sudden unexpected financial drains and quiet emotional exhaustion carrying family obligations"
+    ]
+  };
+
+  // 2 High-Curiosity Mini-Cards (Card A: 99% Maandi Knot, Card B: Yogi Wealth vs Avayogi)
+  const localizedYogi = GRAHA_7L[secretAccuracy.yogiPlanet as GrahaKey]?.[baseLang] || secretAccuracy.yogiPlanet;
+  const localizedAvayogi = GRAHA_7L[secretAccuracy.avayogiPlanet as GrahaKey]?.[baseLang] || secretAccuracy.avayogiPlanet;
+
+  const curiosityMiniCards = {
+    maandiCard: {
+      house: maandiHouse,
+      title: baseLang === "kn" ? `ಭಾವ ${maandiHouse} ರಲ್ಲಿ ಮಾಂದಿ (ಗುಳಿಕ) ೯೯% ಅಡೆತಡೆ ಗಂಟು`
+        : baseLang === "hi" ? `भाव ${maandiHouse} में मान्दि (गुलिक) ९९% बाधा ग्रंथि`
+        : baseLang === "mr" ? `स्थान ${maandiHouse} मध्ये मांदी (गुलिक) ९९% अडथळा गाठ`
+        : baseLang === "te" ? `భావం ${maandiHouse} లో మాంది (గుళిక) 99% అడ్డంకి ముడి`
+        : baseLang === "ta" ? `பாவம் ${maandiHouse} இல் மாந்தி (குளிகன்) 99% தடை முடிச்சு`
+        : baseLang === "ml" ? `ഭാവം ${maandiHouse} ൽ മാന്ദി (ഗുളികൻ) 99% തടസ്സ ഗ്രന്ഥി`
+        : `House ${maandiHouse} Maandi (Gulika) 99% Obstacle Knot`,
+      desc: baseLang === "kn" ? "ಯಾವುದೇ ಮಹತ್ವದ ಕೆಲಸ ೯೯% ತಲುಪಿದಾಗ ಈ ಮಾಂದಿ ದೋಷವು ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ವಿಳಂಬ ತರುತ್ತದೆ."
+        : baseLang === "hi" ? "जब भी महत्वपूर्ण कार्य ९९% तक पहुँचते हैं, यह मान्दि दोष अंतिम क्षण में अप्रत्याशित विलंब लाता है।"
+        : baseLang === "mr" ? "कोणतेही महत्त्वाचे काम ९९% पर्यंत पोहोचल्यावर ही मांदी गाठ शेवटच्या क्षणी अनपेक्षित विलंब निर्माण करते."
+        : baseLang === "te" ? "ముఖ్యమైన పనులు 99% పూర్తి కాగానే, ఈ మాంది దోషం చివరి క్షణంలో అడ్డంకులను తెస్తుంది."
+        : baseLang === "ta" ? "முக்கியமான காரியங்கள் 99% முடிவடையும் போது, இந்த மாந்தி தோஷம் இறுதி கணத்தில் எதிர்பாராத தாமதத்தை ஏற்படுத்துகிறது."
+        : baseLang === "ml" ? "പ്രധാനപ്പെട്ട കാര്യങ്ങൾ 99% എത്തുമ്പോൾ, ഈ മാന്ദി ദോഷം അവസാന നിമിഷം അപ്രതീക്ഷിത തടസ്സം സൃഷ്ടിക്കുന്നു."
+        : "Whenever key endeavors reach the 99% milestone, this shadow node triggers an unexpected last-minute obstacle.",
+      lockedCta: baseLang === "kn" ? "🔒 ಈ ಮಾಂದಿ ಗಂಟು ಕಳಚುವ ಗೋಕರ್ಣ ಶಾಂತಿ ಪರಿಹಾರ ರಹಸ್ಯ ₹೩೫೦ ವರದಿಯಲ್ಲಿದೆ"
+        : baseLang === "hi" ? "🔒 इस मान्दि ग्रंथि को खोलने का गोकर्ण शांति उपाय ₹३५० सम्पूर्ण रिपोर्ट में उपलब्ध है"
+        : baseLang === "mr" ? "🔒 ही मांदी गाठ सोडवणारा गोकर्ण शांती उपाय ₹३५० संपूर्ण अहवालात उपलब्ध आहे"
+        : baseLang === "te" ? "🔒 ఈ మాంది ముడిని తొలగించే గోకర్ణ శాంతి పరిహారం ₹350 సంపూర్ణ నివేదికలో లభిస్తుంది"
+        : baseLang === "ta" ? "🔒 இந்த மாந்தி முடிச்சை அவிழ்க்கும் கோகர்ணம் சாந்தி பரிகாரம் ₹350 முழு அறிக்கையில் உள்ளது"
+        : baseLang === "ml" ? "🔒 ഈ മാന്ദി ഗ്രന്ഥി മാറ്റുന്ന ഗോകർണം ശാന്തി പരിഹാരം ₹350 സമ്പൂർണ്ണ റിപ്പോർട്ടിൽ ലഭ്യമാണ്"
+        : "🔒 Sacred Gokarna Maandi Shanti untying remedy unlocked in ₹350 Master Report"
+    },
+    yogiCard: {
+      yogiPlanet: localizedYogi,
+      avayogiPlanet: localizedAvayogi,
+      title: baseLang === "kn" ? `ಯೋಗಿ ಧನ ಗ್ರಹ (${localizedYogi}) vs ಅವಯೋಗಿ ಎಚ್ಚರಿಕೆ (${localizedAvayogi})`
+        : baseLang === "hi" ? `योगी धन प्रदाता (${localizedYogi}) बनाम अवयोगी बाधा ग्रह (${localizedAvayogi})`
+        : baseLang === "mr" ? `योगी धन प्रदाता (${localizedYogi}) वि. अवयोगी सावध ग्रह (${localizedAvayogi})`
+        : baseLang === "te" ? `యోగి ధన గ్రహం (${localizedYogi}) vs అవయోగి హెచ్చరిక (${localizedAvayogi})`
+        : baseLang === "ta" ? `யோகி தன கிரகம் (${localizedYogi}) vs அவயோகி எச்சரிக்கை (${localizedAvayogi})`
+        : baseLang === "ml" ? `യോഗി ധന ഗ്രഹം (${localizedYogi}) vs അവയോഗി ജാഗ്രത (${localizedAvayogi})`
+        : `Yogi Wealth Magnet (${localizedYogi}) vs Avayogi Obstacle (${localizedAvayogi})`,
+      desc: baseLang === "kn" ? "ಯೋಗಿ ಗ್ರಹವು ನಿಮ್ಮ ಜೀವನದ ಸುವರ್ಣ ಧನ ಆಕರ್ಷಣಾ ಶಕ್ತಿಯಾಗಿದ್ದು, ಅವಯೋಗಿ ಗ್ರಹವು ಗುಪ್ತ ಶತ್ರು ಹಾಗೂ ಅನಗತ್ಯ ಹಾನಿಯ ಸಂಕೇತವಾಗಿದೆ."
+        : baseLang === "hi" ? "योगी ग्रह आपके जीवन में धन एवं भाग्य का चुंबक है, जबकि अवयोगी ग्रह अनपेक्षित हानि एवं बाधाओं का सूचक है।"
+        : baseLang === "mr" ? "योगी ग्रह आपल्या जीवनात धन व भाग्याचा चुंबक आहे, तर अवयोगी ग्रह गुप्त अडथळे व नुकसानीचा इशारा देतो."
+        : baseLang === "te" ? "యోగి గ్రహం మీ జీవితంలో సంపదను ఆకర్షించే శక్తి కాగా, అవయోగి గ్రహం రహస్య అడ్డంకుల సూచిక."
+        : baseLang === "ta" ? "யோகி கிரகம் உங்கள் வாழ்வில் தன ஆகர்ஷண சக்தியாகும், அவயோகி கிரகம் மறைமுக தடைகளின் எச்சரிக்கையாகும்."
+        : baseLang === "ml" ? "യോഗി ഗ്രഹം നിങ്ങളുടെ ജീവിതത്തിൽ ഐശ്വര്യം ആകർഷിക്കുമ്പോൾ, അവയോഗി ഗ്രഹം അപ്രതീക്ഷിത തടസ്സങ്ങളെ സൂചിപ്പിക്കുന്നു."
+        : "Your Yogi planet is your supreme financial catalyst, while your Avayogi planet warns of hidden leaks and friction.",
+      lockedCta: baseLang === "kn" ? "🔒 ಯೋಗಿ ಗ್ರಹದ ಸಂಪೂರ್ಣ ಧನ ಆಕರ್ಷಣಾ ಮುಹೂರ್ತ ₹೩೫೦ ವರದಿಯಲ್ಲಿದೆ"
+        : baseLang === "hi" ? "🔒 योगी ग्रह का सम्पूर्ण धन आकर्षण मुहूर्त ₹३५० रिपोर्ट में उपलब्ध है"
+        : baseLang === "mr" ? "🔒 योगी ग्रहाचा संपूर्ण धन आकर्षण मुहूर्त ₹३५० अहवालात उपलब्ध आहे"
+        : baseLang === "te" ? "🔒 యోగి గ్రహ సంపూర్ణ ధన ఆకర్షణ ముహూర్తం ₹350 నివేదికలో లభిస్తుంది"
+        : baseLang === "ta" ? "🔒 யோகி கிரகத்தின் முழு தன ஆகர்ஷண முகூர்த்தம் ₹350 அறிக்கையில் உள்ளது"
+        : baseLang === "ml" ? "🔒 യോഗി ഗ്രഹത്തിന്റെ പൂർണ്ണ ധന ആകർഷണ മുഹൂർത്തം ₹350 റിപ്പോർട്ടിൽ ലഭ്യമാണ്"
+        : "🔒 Full Yogi wealth frequency alignment unlocked in ₹350 Master Report"
+    }
+  };
 
   return {
     devoteeName: localizedName,
@@ -923,6 +1154,10 @@ export function generateAntarangaSatya(
     paragraph1,
     paragraph2,
     kshetraBlessing,
+    isTimeUnknown,
+    todayLiveTarabala,
+    pastVerification,
+    curiosityMiniCards,
     moorthyNirnaya,
     cosmicVoltage,
     fiveYearPreview,
@@ -1342,8 +1577,27 @@ export function calculateFiveYearPreviewHorizon(
   kundli: KundliOutput,
   moonIdx: number,
   lagnaIdx: number,
-  lang: AntarangaLang = "kn"
+  lang: AntarangaLang = "kn",
+  cosmicVoltageScore?: number,
+  moorthyTier?: "swarna" | "rajata" | "tamra" | "loha",
+  currentMahaLord?: string
 ): FiveYearPreviewHorizonData {
+  // 1. Dynamic Vitality Score calculation (Zero Fake / Static 84)
+  const baseEnergy = cosmicVoltageScore ?? 75;
+  const currentTransits = getTransitsForDate(moonIdx, new Date(), "lahiri");
+  const guruHouse = currentTransits[PlanetName.Jupiter]?.house ?? 5;
+  const shaniHouse = currentTransits[PlanetName.Saturn]?.house ?? 8;
+  const isSadeSati = [12, 1, 2].includes(shaniHouse);
+  const isAshtama = shaniHouse === 8;
+
+  const guruMod = [1, 5, 9, 11].includes(guruHouse) ? 8 : [6, 8, 12].includes(guruHouse) ? -5 : 2;
+  const shaniMod = isSadeSati || isAshtama ? -8 : [3, 6, 11].includes(shaniHouse) ? 5 : 0;
+  const moorthyMod = moorthyTier === "swarna" ? 6 : moorthyTier === "rajata" ? 4 : moorthyTier === "tamra" ? 1 : -4;
+  const pada = kundli.moonPada ?? 1;
+  const uniqueOffset = ((moonIdx * 7 + lagnaIdx * 5 + pada * 3) % 9) - 4;
+
+  let calculatedVitality = Math.round(baseEnergy * 0.75 + guruMod + shaniMod + moorthyMod + uniqueOffset);
+  calculatedVitality = Math.max(58, Math.min(97, calculatedVitality));
   // Year 1 (2026 - 2027) Free Revelation
   const yr1Samvatsaras: Record<AntarangaLang, string> = {
     kn: "ವಿಶ್ವಾವಸು / ಕ್ರೋಧೀ ಸಂವತ್ಸರ",
@@ -1355,35 +1609,115 @@ export function calculateFiveYearPreviewHorizon(
     ml: "വിശ്വാവസു / ക്രോധി സംവത്സരം"
   };
 
-  const yr1Seasons: Record<AntarangaLang, string> = {
-    kn: "ಶರದೃತು & ಹೇಮಂತ ಋತು (ಅಕ್ಟೋಬರ್ - ಜನವರಿ)",
-    en: "Sharad & Hemanta Ritu (Oct - Jan)",
-    hi: "शरद एवं हेमन्त ऋतु (अक्टूबर - जनवरी)",
-    mr: "शरद व हेमंत ऋतू (ऑक्टोबर - जानेवारी)",
-    te: "శరత్ & హేమంత ఋతువులు (అక్టోబర్ - జనవరి)",
-    ta: "சரத் & ஹேமந்த ருது (அக்டோபர் - ஜனவரி)",
-    ml: "ശരത് & ഹേമന്ത ഋതുക്കൾ (ഒക്ടോബർ - ജനുവരി)"
+  // 4 Dynamic Seasonal Profiles based on (moonIdx + lagnaIdx + pada) % 4
+  const seasonIdx = (moonIdx + lagnaIdx + pada) % 4;
+  const seasonalOptions: Record<number, Record<AntarangaLang, string>> = {
+    0: {
+      kn: "ಶರದೃತು & ಹೇಮಂತ ಋತು (ಅಕ್ಟೋಬರ್ - ಜನವರಿ)",
+      en: "Sharad & Hemanta Ritu (Oct - Jan)",
+      hi: "शरद एवं हेमन्त ऋतु (अक्टूबर - जनवरी)",
+      mr: "शरद व हेमंत ऋतू (ऑक्टोबर - जानेवारी)",
+      te: "శరత్ & హేమంత ఋతువులు (అక్టోబర్ - జనవరి)",
+      ta: "சரத் & ஹேமந்த ருது (அக்டோபர் - ஜனவரி)",
+      ml: "ശരത് & ഹേമന്ത ഋതുക്കൾ (ഒക്ടോബർ - ജനുവരി)"
+    },
+    1: {
+      kn: "ವಸಂತ & ಗ್ರೀಷ್ಮ ಋತು (ಮಾರ್ಚ್ - ಜೂನ್)",
+      en: "Vasanta & Greeshma Ritu (March - June)",
+      hi: "वसन्त एवं ग्रीष्म ऋतु (मार्च - जून)",
+      mr: "वसंत व ग्रीष्म ऋतू (मार्च - जून)",
+      te: "వసంత & గ్రీష్మ ఋతువులు (మార్చి - జూన్)",
+      ta: "வசந்த & கிரீஷ்ம ருது (மார்ச் - ஜூன்)",
+      ml: "വസന്ത & ഗ്രീഷ്മ ഋതുക്കൾ (മാർച്ച് - ജൂൺ)"
+    },
+    2: {
+      kn: "ವರ್ಷಾ ಋತು (ಜುಲೈ - ಸೆಪ್ಟೆಂಬರ್)",
+      en: "Varsha Ritu (July - September)",
+      hi: "वर्षा ऋतु (जुलाई - सितम्बर)",
+      mr: "वर्षा ऋतू (जुलै - सप्टेंबर)",
+      te: "వర్ష ఋతువు (జూలై - సెప్టెంబర్)",
+      ta: "வர்ஷா ருது (ஜூலை - செப்டம்பர்)",
+      ml: "വർഷ ഋതു (ജൂലൈ - സെപ്റ്റംബർ)"
+    },
+    3: {
+      kn: "ಶಿಶಿರ & ವಸಂತ ಸಂಧಿ (ಜನವರಿ - ಮಾರ್ಚ್)",
+      en: "Shishira & Vasanta Sandhi (Jan - March)",
+      hi: "शिशिर एवं वसन्त संधि (जनवरी - मार्च)",
+      mr: "शिशिर व वसंत संधिकाल (जानेवारी - मार्च)",
+      te: "శిశిర & వసంత సంధికాలం (జనవరి - మార్చి)",
+      ta: "சிசிர & வசந்த சந்தி (ஜனவரி - மார்ச்)",
+      ml: "ശിശിര & വസന്ത സന്ധികാലം (ജനുവരി - മാർച്ച്)"
+    }
   };
 
-  const yr1Opportunities: Record<AntarangaLang, string> = {
-    kn: "ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ಹೊಸ ಹೆಜ್ಜೆ, ಆರ್ಥಿಕ ಆದಾಯದ ಹೊಸ ಮಾರ್ಗಗಳು ಹಾಗೂ ಕೌಟುಂಬಿಕ ಗೌರವ ಹೆಚ್ಚಾಗುವ ಸುಸಂದರ್ಭ ಆರಂಭವಾಗಲಿದೆ!",
-    en: "A breakthrough window in professional endeavors, novel income streams, and expanding community honor!",
-    hi: "कार्यक्षेत्र में नई शुरुआत, आय के नवीन स्रोत तथा पारिवारिक मान-प्रतिष्ठा में वृद्धि का शुभ अवसर!",
-    mr: "नोकरी-व्यवसायात नवीन सुरुवात, उत्पन्नाचे नवीन मार्ग व कुटुंबात मानसन्मान वाढण्याची सुवर्णसंधी!",
-    te: "వృత్తి రంగంలో నూతన ముందడుగు, కొత్త ఆదాయ మార్గాలు మరియు కుటుంబ గౌరవం పెరిగే శుభ సమయం!",
-    ta: "தொழில் துறையில் புதிய வளர்ச்சி, புதிய வருமான வழிகள் மற்றும் குடும்ப மரியாதை கூடும் நற்காலம்!",
-    ml: "തൊഴിൽ രംഗത്ത് പുതിയ തുടക്കം, വരുമാന വർദ്ധനവ്, കുടുംബത്തിൽ ആദരവ് എന്നിവ ലഭിക്കുന്ന നല്ല സമയം!"
+  // 3 Dynamic Opportunity Profiles based on (moonIdx + guruHouse) % 3
+  const oppIdx = (moonIdx + guruHouse) % 3;
+  const opportunityOptions: Record<number, Record<AntarangaLang, string>> = {
+    0: {
+      kn: "ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ಹೊಸ ಹೆಜ್ಜೆ, ಆರ್ಥಿಕ ಆದಾಯದ ಹೊಸ ಮಾರ್ಗಗಳು ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಗೌರವ ಹೆಚ್ಚಾಗುವ ಸುಸಂದರ್ಭ ಆರಂಭವಾಗಲಿದೆ!",
+      en: "A breakthrough window in professional endeavors, novel income streams, and expanding community honor!",
+      hi: "कार्यक्षेत्र में नई शुरुआत, आय के नवीन स्रोत तथा पारिवारिक मान-प्रतिष्ठा में वृद्धि का शुभ अवसर!",
+      mr: "नोकरी-व्यवसायात नवीन सुरुवात, उत्पन्नाचे नवीन मार्ग व समाजात मानसन्मान वाढण्याची सुवर्णसंधी!",
+      te: "వృత్తి రంగంలో నూతన ముందడుగు, కొత్త ఆదాయ మార్గాలు మరియు సమాజంలో గౌరవం పెరిగే శుభ సమయం!",
+      ta: "தொழில் துறையில் புதிய வளர்ச்சி, புதிய வருமான வழிகள் மற்றும் சமூக மரியாதை கூடும் நற்காலம்!",
+      ml: "തൊഴിൽ രംഗത്ത് പുതിയ തുടക്കം, വരുമാന വർദ്ധനവ്, സമൂഹത്തിൽ ആദരവ് എന്നിവ ലഭിക്കുന്ന നല്ല സമയം!"
+    },
+    1: {
+      kn: "ದೀರ್ಘಾವಧಿಯ ಹೂಡಿಕೆ, ಭೂಮಿ-ಆಸ್ತಿ ಅಥವಾ ಗೃಹ ಸೌಖ್ಯ ವೃದ್ಧಿ ಹಾಗೂ ಅನಿರೀಕ್ಷಿತ ಧನಾಗಮನದ ಸುವರ್ಣ ಅವಕಾಶ ಮೂಡಲಿದೆ!",
+      en: "Golden alignment for long-term investments, property/asset expansion, domestic prosperity, and sudden financial inflows!",
+      hi: "दीर्घकालिक निवेश, भूमि-भवन लाभ, पारिवारिक समृद्धि तथा आकस्मिक धन लाभ के उत्कृष्ट योग!",
+      mr: "दीर्घकालीन गुंतवणूक, जमीन-मालमत्ता लाभ, कौटुंबिक समृद्धी व अचानक धनलाभाचे सुवर्ण योग!",
+      te: "దీర్ఘకాలిక పెట్టుబడులు, భూమి-గృహ లాభాలు, కుటుంబ శ్రేయస్సు మరియు ఆకస్మిక ధన లాభం కలగవచ్చు!",
+      ta: "நீண்ட கால முதலீடுகள், நிலம்-வீடு சேர்க்கை, குடும்ப சுபிட்சம் மற்றும் திடீர் பண வரவு உண்டாகும் பொற்காலம்!",
+      ml: "ദീർഘകാല നിക്ഷേപങ്ങൾ, വസ്തു-ഭവന ലാഭങ്ങൾ, കുടുംബ ഐശ്വര്യം, അപ്രതീക്ഷിത ധനലാഭം എന്നിവയുടെ സുവർണ്ണാവസരം!"
+    },
+    2: {
+      kn: "ವ್ಯಾಪಾರ-ಉದ್ಯಮದಲ್ಲಿ ಮಹಾ ವಿಸ್ತರಣೆ, ನಾಯಕತ್ವ ಪಾತ್ರ ಹಾಗೂ ಹಿರಿಯರ ಮತ್ತು ಗುರುಗಳ ಕೃಪೆಯಿಂದ ಯಶಸ್ವಿ ಮುನ್ನಡೆ!",
+      en: "Major enterprise expansion, leadership ascension, and decisive progress powered by mentors and divine grace!",
+      hi: "व्यापार-उद्योग में महत्वपूर्ण विस्तार, नेतृत्व पद तथा गुरुजनों के आशीर्वाद से निर्णायक सफलता!",
+      mr: "व्यापार-उद्योगात मोठा विस्तार, नेतृत्व संधी आणि गुरूजनांच्या कृपेने निर्णायक प्रगती!",
+      te: "వ్యాపార విస్తరణ, నాయకత్వ పాత్ర మరియు గురువుల ఆశీస్సులతో విజయవంతమైన పురోగతి!",
+      ta: "வணிக விரிவாக்கம், தலைமைப் பொறுப்பு மற்றும் பெரியோரின் ஆசியுடன் வெற்றிகரமான முன்னேற்றம்!",
+      ml: "ബിസിനസ്സ് വിപുലീകരണം, നേതൃസ്ഥാനം, ഗുരുജനങ്ങളുടെ അനുഗ്രഹം എന്നിവയാൽ വൻ വിജയം!"
+    }
   };
 
-  const yr1Cautions: Record<AntarangaLang, string> = {
-    kn: "ಆಪ್ತರ ಜತೆ ಅವಸರದ ವ್ಯವಹಾರ, ಭರವಸೆ ನೀಡುವುದು ಅಥವಾ ಸಾಲ ಕೊಡುವ ವಿಚಾರದಲ್ಲಿ ಎಚ್ಚರಿಕೆ ವಹಿಸಿ.",
-    en: "Exercise prudence in partnership agreements, financial guarantees, and impulsive verbal commitments.",
-    hi: "आकस्मिक साझेदारी, उधार लेन-देन अथवा अत्यधिक भावुक वादों से बचें।",
-    mr: "जवळच्या व्यक्तींसोबत घाईगडबडीत आर्थिक व्यवहार किंवा जामीन राहणे टाळा.",
-    te: "ఆర్థిక హామీలు ఇవ్వడం లేదా తొందరపాటు ఒప్పందాల విషయంలో జాగ్రత్త వహించండి.",
-    ta: "பணப் பரிவர்த்தனைகள் அல்லது அவசர வாக்குறுதிகள் கொடுப்பதில் எச்சரிக்கை தேவை.",
-    ml: "സാമ്പത്തിക ഇടപാടുകളിലും തിടുക്കത്തിലുള്ള തീരുമാനങ്ങളിലും ജാഗ്രത പാലിക്കുക."
+  // 3 Dynamic Caution Profiles based on (lagnaIdx + shaniHouse) % 3
+  const cautionIdx = (lagnaIdx + shaniHouse) % 3;
+  const cautionOptions: Record<number, Record<AntarangaLang, string>> = {
+    0: {
+      kn: "ಆಪ್ತರ ಜತೆ ಅವಸರದ ವ್ಯವಹಾರ, ಭರವಸೆ ನೀಡುವುದು ಅಥವಾ ಸಾಲ ಕೊಡುವ ವಿಚಾರದಲ್ಲಿ ಎಚ್ಚರಿಕೆ ವಹಿಸಿ.",
+      en: "Exercise prudence in partnership agreements, financial guarantees, and impulsive verbal commitments.",
+      hi: "आकस्मिक साझेदारी, उधार लेन-देन अथवा अत्यधिक भावुक वादों से बचें।",
+      mr: "जवळच्या व्यक्तींसोबत घाईगडबडीत आर्थिक व्यवहार किंवा जामीन राहणे टाळा.",
+      te: "ఆర్థిక హామీలు ఇవ్వడం లేదా తొందరపాటు ఒప్పందాల విషయంలో జాగ్రత్త వహించండి.",
+      ta: "பணப் பரிவர்த்தனைகள் அல்லது அவசர வாக்குறுதிகள் கொடுப்பதில் எச்சரிக்கை தேவை.",
+      ml: "സാമ്പത്തിക ഇടപാടുകളിലും തിടുക്കത്തിലുള്ള തീരുമാനങ്ങളിലും ജാഗ്രത പാലിക്കുക."
+    },
+    1: {
+      kn: "ಮಾನಸಿಕ ಆತಂಕ, ಅನಗತ್ಯ ಕೆಲಸದ ಒತ್ತಡ ಹಾಗೂ ಅಸಮತೋಲಿತ ನಿದ್ರೆಯ ಅಭ್ಯಾಸಗಳಿಂದ ಆರೋಗ್ಯದ ಬಗ್ಗೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ಇರಲಿ.",
+      en: "Guard against mental stress, workplace burnout, irregular sleep cycles, and unnecessary over-exertion.",
+      hi: "मानसिक तनाव, कार्य का अत्यधिक दबाव एवं अनियमित दिनचर्या से स्वास्थ्य का विशेष ध्यान रखें।",
+      mr: "मानसिक ताण, कामाचा अतिभार आणि अनियमित झोप यामुळे आरोग्याची विशेष काळजी घ्या.",
+      te: "మానసిక ఒత్తిడి, అధిక పని భారం మరియు నిద్రలేమి విషయంలో ఆరోగ్యం పట్ల శ్రద్ధ వహించండి.",
+      ta: "மன அழுத்தம், அதிக வேலைப்பளு மற்றும் தூக்கமின்மை ஆகியவற்றில் இருந்து உடல்நலத்தை பாதுகாக்கவும்.",
+      ml: "മാനസിക സമ്മർദ്ദം, അമിത ജോലിഭാരം, ഉറക്കമില്ലായ്മ എന്നിവയിൽ നിന്ന് ആരോഗ്യം സംരക്ഷിക്കുക."
+    },
+    2: {
+      kn: "ಅನಿರೀಕ್ಷಿತ ಕಾನೂನು ದಾಖಲಾತಿ, ಪ್ರಯಾಣದ ವೇಳಾಪಟ್ಟಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಯಲ್ಲಿ ತಾಳ್ಮೆ ಮತ್ತು ಸಮಾಧಾನವಿರಲಿ.",
+      en: "Maintain patience in legal documentation, travel itineraries, and sensitive domestic communications.",
+      hi: "दस्तावेजी कार्यों, यात्राओं एवं पारिवारिक संवाद में धैर्य और संतुलन बनाए रखें।",
+      mr: "कागदपत्रे, प्रवास आणि कौटुंबिक संवादात संयम व सावधगिरी बाळगा.",
+      te: "పత్రాల వ్యవహారాలు, ప్రయాణాలు మరియు కుటుంబ సంభాషణలలో సంయమనం పాటించండి.",
+      ta: "ஆவணப் பணிகள், பயணங்கள் மற்றும் குடும்ப உரையாடல்களில் நிதானத்தைக் கடைப்பிடிக்கவும்.",
+      ml: "രേഖകൾ, യാത്രകൾ, കുടുംബപരമായ സംസാരങ്ങൾ എന്നിവയിൽ സംയമനം പാലിക്കുക."
+    }
   };
+
+  const yr1Seasons = seasonalOptions[seasonIdx];
+  const yr1Opportunities = opportunityOptions[oppIdx];
+  const yr1Cautions = cautionOptions[cautionIdx];
+
 
   const yr1Headlines: Record<AntarangaLang, string> = {
     kn: "೨೦೨೬-೨೦೨೭: ಕರ್ಮಿಕ ಪರಿವರ್ತನೆ & ನೂತನ ಅವಕಾಶಗಳ ಮಹಾ ಆರಂಭ",
@@ -1625,7 +1959,7 @@ export function calculateFiveYearPreviewHorizon(
     year1: {
       gregorianRange: "2026 - 2027",
       samvatsaraName: yr1Samvatsaras[lang] || yr1Samvatsaras.en,
-      vitalityScore: 84,
+      vitalityScore: calculatedVitality,
       turningPointSeason: yr1Seasons[lang] || yr1Seasons.en,
       goldenOpportunity: yr1Opportunities[lang] || yr1Opportunities.en,
       cautionAlert: yr1Cautions[lang] || yr1Cautions.en,

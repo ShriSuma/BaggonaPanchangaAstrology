@@ -47,6 +47,14 @@ import {
 import { captureFiveYearPredictionPdf } from "../features/fiveYearPrediction/fiveYearPredictionService";
 import { FiveYearPredictionPdfTemplate } from "../components/fiveYearPrediction/FiveYearPredictionPdfTemplate";
 import type { SixLang } from "../features/fiveYearPrediction/fiveYearLocale";
+import { SampoornaMaster25PdfTemplate } from "../components/sampoornaMaster25/SampoornaMaster25PdfTemplate";
+import {
+  prepareSampoornaMaster25Data,
+  captureSampoornaMaster25Pdf,
+  type SampoornaMaster25Payload
+} from "../services/sampoornaMaster25Service";
+import { HOTEL_FAMILY_UPSELL_PRICE_INR } from "../features/hotelSecret/antarangaService";
+
 
 // Core Kundli & Remedy PDF Imports
 import { PublicKundliPdfDocument } from "../components/kundli/PublicKundliPdfDocument";
@@ -134,6 +142,68 @@ const QUICK_CITIES_BY_LANG: Record<AntarangaLang, Array<{ name: string; lat: num
 };
 
 // Comprehensive 7-Language Pure UI Translations
+
+export const TIME_UNKNOWN_LABELS: Record<AntarangaLang, string> = {
+  kn: "ನಿಖರ ಜನನ ಸಮಯ ತಿಳಿದಿಲ್ಲ (ಚಂದ್ರ ಕುಂಡಲಿ ಆಧಾರಿತ)",
+  en: "I do not know my exact birth time (Use Chandra Kundali)",
+  hi: "जन्म का सही समय ज्ञात नहीं है (चन्द्र कुण्डली का उपयोग करें)",
+  mr: "जन्माची अचूक वेळ माहित नाही (चंद्र कुंडली वापरा)",
+  te: "ఖచ్చితమైన పుట్టిన సమయం తెలియదు (చంద్ర కుండలి ఉపయోగించండి)",
+  ta: "சரியான பிறந்த நேரம் தெரியவில்லை (சந்திர ஜாதகம் பயன்படுத்தவும்)",
+  ml: "കൃത്യമായ ജനന സമയം അറിയില്ല (ചന്ദ്ര കുണ്ഡലി ഉപയോഗിക്കുക)"
+};
+
+export const SAFARI_OPEN_LABELS: Record<AntarangaLang, string> = {
+  kn: "👁️ ಹೊಸ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ತೆರೆಯಿರಿ (ಐಫೋನ್ ಸಫಾರಿ ಸುರಕ್ಷಿತ)",
+  en: "👁️ Open PDF in New Tab (iPhone Safari Safe)",
+  hi: "👁️ नए टैब में खोलें (आईफोन सफारी सुरक्षित)",
+  mr: "👁️ नवीन टॅबमध्ये उघडा (आयफोन सफारी सुरक्षित)",
+  te: "👁️ కొత్త ట್ಯಾబ్‌లో తెరవండి (ఐఫోన్ సఫారీ సురక్షితం)",
+  ta: "👁️ புதிய தாவலில் திறக்கவும் (ஐபோன் சஃபாரி பாதுகாப்பானது)",
+  ml: "👁️ പുതിയ ടാബിൽ തുറക്കുക (ഐഫോൺ സഫാരി സുരക്ഷിതം)"
+};
+
+export const FAMILY_UPSELL_LABELS: Record<
+  AntarangaLang,
+  { title: string; desc: string; btn: string }
+> = {
+  kn: {
+    title: "👨‍👩‍👧‍👦 ಈ ಟೇಬಲ್‌ನಲ್ಲಿರುವ ನಿಮ್ಮ ಕುಟುಂಬದ ಸದಸ್ಯರಿಗಾಗಿ (ವಿಶೇಷ ₹250 ಕೊಡುಗೆ)",
+    desc: "ನಿಮ್ಮ ಕುಟುಂಬದ ಇತರ ಸದಸ್ಯರ (ಪತ್ನಿ, ಪತಿ, ಮಕ್ಕಳು) ಪೂರ್ಣ 25-ಅಧ್ಯಾಯಗಳ ಮಾಸ್ಟರ್ ಜಾತಕ & ಭವಿಷ್ಯವನ್ನು ಕೇವಲ ₹250 ಕ್ಕೆ ಪಡೆಯಿರಿ!",
+    btn: "ಕುಟುಂಬದ ಸದಸ್ಯರ ಜಾತಕ ಪಡೆಯಿರಿ (₹250)"
+  },
+  en: {
+    title: "👨‍👩‍👧‍👦 Family Member at This Table (Special ₹250 Offer)",
+    desc: "Unlock the complete 25-Chapter Master Kundli & Destiny Report for another family member at your table for just ₹250!",
+    btn: "Get Family Member Report (₹250)"
+  },
+  hi: {
+    title: "👨‍👩‍👧‍👦 इस टेबल पर अपने परिवार के सदस्य के लिए (विशेष ₹250 ऑफ़र)",
+    desc: "अपने परिवार के किसी अन्य सदस्य की संपूर्ण 25-अध्यायों की जन्मकुंडली व महाभविष्यफल मात्र ₹250 में प्राप्त करें!",
+    btn: "परिवार के सदस्य की रिपोर्ट प्राप्त करें (₹250)"
+  },
+  mr: {
+    title: "👨‍👩‍👧‍👦 या टेबलवरील आपल्या कुटुंबियासाठी (विशेष ₹250 ऑफर)",
+    desc: "आपल्या कुटुंबातील अन्य सदस्याची संपूर्ण 25-अध्यायांची जन्मकुंडली आणि महाभविष्य फक्त ₹250 मध्ये मिळवा!",
+    btn: "कुटुंबियांची कुंडली मिळवा (₹250)"
+  },
+  te: {
+    title: "👨‍👩‍👧‍👦 ఈ టేబుల్ వద్ద ఉన్న మీ కుటుంబ సభ్యుల కోసం (ప్రత్యేక ₹250 ఆఫర్)",
+    desc: "మీ కుటుంబ సభ్యులలో మరొకరి సంపూర్ణ 25-అధ్యాయాల జాతకం & భవిష్యత్తును కేవలం ₹250 కే పొందండి!",
+    btn: "కుటుంబ సభ్యుల జాతకం పొందండి (₹250)"
+  },
+  ta: {
+    title: "👨‍👩‍👧‍👦 இந்த மேஜையில் உள்ள உங்கள் குடும்ப உறுப்பினருக்கு (சிறப்பு ₹250 சலுகை)",
+    desc: "உங்கள் குடும்பத்தின் மற்றொரு உறுப்பினரின் முழு 25-அத்தியாய ஜாதக அறிக்கையை வெறும் ₹250-க்கு பெறுங்கள்!",
+    btn: "குடும்ப உறுப்பினரின் அறிக்கை பெறுங்கள் (₹250)"
+  },
+  ml: {
+    title: "👨‍👩‍👧‍👦 ഈ ടേബിളിലുള്ള നിങ്ങളുടെ കുടുംബാംഗത്തിനായി (പ്രത്യേക ₹250 ഓഫർ)",
+    desc: "നിങ്ങളുടെ കുടുംബത്തിലെ മറ്റൊരു അംഗത്തിന്റെ സമ്പൂർണ്ണ 25-അധ്യായ ജാതക റിപ്പോർട്ട് വെറും ₹250-ന് സ്വന്തമാക്കൂ!",
+    btn: "കുടുംബാംഗത്തിന്റെ റിപ്പോർട്ട് നേടൂ (₹250)"
+  }
+};
+
 export const ANTARANGA_UI_STRINGS: Record<
   AntarangaLang,
   {
@@ -1555,7 +1625,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   // 3. Unique Order Session ID & Package Tier Selection (₹350 vs ₹450)
   const [activeOrderId, setActiveOrderId] = useState<string>(() => generateHotelOrderId("1"));
   const [selectedPackage, setSelectedPackage] = useState<HotelPackageType>("standard_350");
-  const packagePrice = selectedPackage === "remedy_450" ? HOTEL_PREMIUM_REMEDY_PRICE_INR : HOTEL_PDF_PRICE_INR;
+  const packagePrice = selectedPackage === "remedy_450" ? HOTEL_PREMIUM_REMEDY_PRICE_INR : selectedPackage === "family_250" ? HOTEL_FAMILY_UPSELL_PRICE_INR : HOTEL_PDF_PRICE_INR;
 
   const [hasClickedPaymentApp, setHasClickedPaymentApp] = useState<boolean>(false);
   const [returnedFromPaymentApp, setReturnedFromPaymentApp] = useState<boolean>(false);
@@ -1581,6 +1651,24 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
   // 4. User Input State
   const [devoteeName, setDevoteeName] = useState("");
+  const [isTimeUnknown, setIsTimeUnknown] = useState<boolean>(false);
+  const [master25Payload, setMaster25Payload] = useState<SampoornaMaster25Payload | null>(null);
+  const master25PdfRef = useRef<HTMLDivElement>(null);
+  const [downloadCounts, setDownloadCounts] = useState<{
+    fiveYear?: number;
+    kundli?: number;
+    remedy?: number;
+    master25?: number;
+    all?: number;
+  }>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const saved = sessionStorage.getItem(`baggona_hotel_download_counts_${activeOrderId}`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
   const [birthDate, setBirthDate] = useState("1995-05-15");
   const [birthTime, setBirthTime] = useState("10:30");
   const [selectedCityName, setSelectedCityName] = useState("Gokarna");
@@ -1627,13 +1715,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   });
 
-  // Re-sync downloaded state if activeOrderId changes
+  // Re-sync downloaded state & counts if activeOrderId changes
   useEffect(() => {
     if (!activeOrderId || typeof window === "undefined") return;
     try {
       const saved = sessionStorage.getItem(`baggona_hotel_downloads_${activeOrderId}`);
       if (saved) {
         setDownloadedPdfs(JSON.parse(saved));
+      }
+      const savedCounts = sessionStorage.getItem(`baggona_hotel_download_counts_${activeOrderId}`);
+      if (savedCounts) {
+        setDownloadCounts(JSON.parse(savedCounts));
       }
     } catch {}
   }, [activeOrderId]);
@@ -1824,6 +1916,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       return;
     }
 
+    if (new Date(birthDate) > new Date()) {
+      alert(selectedLang === "kn" ? "ಜನನ ದಿನಾಂಕವು ಭವಿಷ್ಯದ್ದಾಗಿರಲು ಸಾಧ್ಯವಿಲ್ಲ." : "Birth date cannot be in the future.");
+      return;
+    }
+
     setIsCalculating(true);
     triggerScreenLoader("antaranga_calc", undefined, { progress: 20 });
 
@@ -1845,15 +1942,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       setComputedKundli(kundli);
 
       // 1. Generate Free Dark Secret & Complete 7-Language Free Revelation Suite
+      const effectiveTime = isTimeUnknown ? "12:00" : birthTime;
       const secret = generateAntarangaSatya(
         kundli,
         selectedLang,
         devoteeName.trim(),
         gender,
         birthDate,
-        birthTime,
+        effectiveTime,
         latitude,
-        longitude
+        longitude,
+        isTimeUnknown
       );
       setSecretResult(secret);
 
@@ -1887,6 +1986,28 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         setPublicKundliInsights(insights);
       } catch (kundliErr) {
         console.warn("Precomputing public kundli profile warning:", kundliErr);
+      }
+
+      // Precompute Sampoorna Master 25-Chapter Payload
+      try {
+        const pdfLang: SixLang = (selectedLang === "ml" ? "en" : selectedLang) as SixLang;
+        const m25 = await prepareSampoornaMaster25Data(
+          {
+            kundli,
+            input: {
+              name: devoteeName.trim(),
+              birthDate,
+              birthTime: effectiveTime,
+              latitude,
+              longitude,
+              gender: gender === "female" ? "Female" : "Male"
+            }
+          },
+          pdfLang
+        );
+        setMaster25Payload(m25);
+      } catch (m25Err) {
+        console.warn("Precomputing master25 payload warning:", m25Err);
       }
 
       // 4. Pre-compute Sacred Gokarna Remedy Dossier
@@ -1940,13 +2061,39 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   // Re-generate secret and profiles when language changes
   useEffect(() => {
     if (computedKundli && devoteeName.trim()) {
+      const effectiveTime = isTimeUnknown ? "12:00" : birthTime;
       const updatedSecret = generateAntarangaSatya(
         computedKundli,
         selectedLang,
         devoteeName.trim(),
-        gender
+        gender,
+        birthDate,
+        effectiveTime,
+        latitude,
+        longitude,
+        isTimeUnknown
       );
       setSecretResult(updatedSecret);
+
+      try {
+        const pdfLang: SixLang = (selectedLang === "ml" ? "en" : selectedLang) as SixLang;
+        void prepareSampoornaMaster25Data(
+          {
+            kundli: computedKundli,
+            input: {
+              name: devoteeName.trim(),
+              birthDate,
+              birthTime: effectiveTime,
+              latitude,
+              longitude,
+              gender: gender === "female" ? "Female" : "Male"
+            }
+          },
+          pdfLang
+        ).then(setMaster25Payload).catch((e) => console.warn("Master 25 lang update:", e));
+      } catch (err) {
+        console.warn("Language switch master25 warning:", err);
+      }
 
       try {
         const pdfLang: SixLang = (selectedLang === "ml" ? "en" : selectedLang) as SixLang;
@@ -2061,14 +2208,15 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     return true;
   };
 
-  // 1. Download 5-Year Master Destiny PDF (Single-use disabled once downloaded)
+  // 1. Download 25-Chapter Sampoorna Master Report / 5-Year Destiny PDF (Up to 3 downloads per order)
   const handleDownload5YearPdf = async (isPartOfBatch = false) => {
     if (!(await ensurePaymentVerified())) return;
-    if (downloadedPdfs.fiveYear || downloadedPdfs.all) {
+    const currentCount = downloadCounts.fiveYear || 0;
+    if (currentCount >= 3 || downloadedPdfs.all) {
       alert(ui.alreadyDownloadedAlert);
       return;
     }
-    if (!fiveYearPdfRef.current) {
+    if (!master25PdfRef.current && !fiveYearPdfRef.current) {
       alert("PDF template loading. Please retry in 2 seconds.");
       return;
     }
@@ -2083,20 +2231,42 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
     try {
       const cleanName = (devoteeName || "Devotee").replace(/\s+/g, "_");
-      const fileName = `Pandit_Palette_5_Year_Destiny_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
+      let pdf: any;
+      let fileName: string;
 
-      const pdf = await captureFiveYearPredictionPdf(
-        fiveYearPdfRef.current,
-        fileName,
-        true,
-        (p) => {
-          setPdfProgress(p);
-          if (!isPartOfBatch) setScreenLoaderProgress(p);
-          if (p < 40) setPdfStageText(stages.s1);
-          else if (p < 80) setPdfStageText(stages.s2);
-          else setPdfStageText(stages.s3);
-        }
-      );
+      if (master25PdfRef.current && master25Payload) {
+        fileName = `Baggona_Sampoorna_25_Chapter_Master_Report_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
+        pdf = await captureSampoornaMaster25Pdf(
+          master25PdfRef.current,
+          fileName,
+          true,
+          {
+            lang: (selectedLang === "kn" || selectedLang === "hi" || selectedLang === "mr" || selectedLang === "te" || selectedLang === "ta") ? selectedLang : "en",
+            onProgress: (p) => {
+              setPdfProgress(p);
+              if (!isPartOfBatch) setScreenLoaderProgress(p);
+              if (p < 40) setPdfStageText(stages.s1);
+              else if (p < 80) setPdfStageText(stages.s2);
+              else setPdfStageText(stages.s3);
+            },
+            payload: master25Payload
+          }
+        );
+      } else {
+        fileName = `Pandit_Palette_5_Year_Destiny_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
+        pdf = await captureFiveYearPredictionPdf(
+          fiveYearPdfRef.current!,
+          fileName,
+          true,
+          (p) => {
+            setPdfProgress(p);
+            if (!isPartOfBatch) setScreenLoaderProgress(p);
+            if (p < 40) setPdfStageText(stages.s1);
+            else if (p < 80) setPdfStageText(stages.s2);
+            else setPdfStageText(stages.s3);
+          }
+        );
+      }
 
       try {
         const arrayBuf = pdf.output("arraybuffer");
@@ -2112,18 +2282,29 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       if (!isPartOfBatch) setScreenLoaderProgress(100);
       setPdfStageText(stages.done);
 
-      // Single-use disable: mark 5-Year PDF as successfully downloaded
-      setDownloadedPdfs((prev) => {
-        const next = { ...prev, fiveYear: true };
+      // Relaxed Download Lock: up to 3 downloads per file per order
+      const nextCount = currentCount + 1;
+      setDownloadCounts((prev) => {
+        const next = { ...prev, fiveYear: nextCount };
         try {
-          sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+          sessionStorage.setItem(`baggona_hotel_download_counts_${activeOrderId}`, JSON.stringify(next));
         } catch {}
         return next;
       });
-      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
 
-      const packagePrice = selectedPackage === "remedy_450" ? 450 : 350;
-      const packageCoins = selectedPackage === "remedy_450" ? 4500 : 3500;
+      if (nextCount >= 3) {
+        setDownloadedPdfs((prev) => {
+          const next = { ...prev, fiveYear: true };
+          try {
+            sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+          } catch {}
+          return next;
+        });
+        void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+      }
+
+      const currentPackagePrice = selectedPackage === "remedy_450" ? 450 : selectedPackage === "family_250" ? 250 : 350;
+      const currentPackageCoins = selectedPackage === "remedy_450" ? 4500 : selectedPackage === "family_250" ? 2500 : 3500;
 
       // 1. Log download to Firestore for daily summary aggregation & audit
       try {
@@ -2133,8 +2314,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           priestName: PRIEST_NAME || "Shreeram Pandit",
           portalSource: "Pandit Palette",
           language: selectedLang,
-          coinsSpent: packageCoins,
-          amountInr: packagePrice,
+          coinsSpent: currentPackageCoins,
+          amountInr: currentPackagePrice,
           timestamp: new Date().toISOString(),
           dateKey: getIndianStandardDateStr(),
           packageType: selectedPackage,
@@ -2149,12 +2330,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       try {
         await notifyPremiumPdfDownloaded({
           clientName: devoteeName || "Devotee",
-          pdfType: `Pandit Palette 5-Year Destiny (${selectedPackage === "remedy_450" ? "With Remedies" : "Standard"})`,
+          pdfType: `Pandit Palette 25-Chapter Master Report (${selectedPackage === "remedy_450" ? "With Remedies" : selectedPackage === "family_250" ? "Family Upsell" : "Standard"})`,
           language: selectedLang,
-          pageCount: 16,
+          pageCount: 25,
           priestName: PRIEST_NAME || "Shreeram Pandit",
-          amountInr: packagePrice,
-          coinsSpent: packageCoins,
+          amountInr: currentPackagePrice,
+          coinsSpent: currentPackageCoins,
           packageType: selectedPackage,
           paymentMethod: "UPI QR Code",
           paymentUtr: activeOrderId || "PAID_ORDER"
@@ -2170,7 +2351,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         console.warn("[AntarangadaSatyaPage] Daily summary trigger error:", summaryErr);
       }
     } catch (pdfErr: any) {
-      console.error("5-Year PDF Generation error:", pdfErr);
+      console.error("Master 25 / 5-Year PDF Generation error:", pdfErr);
       alert(`PDF download error: ${pdfErr?.message || "Please try again."}`);
     } finally {
       setIsGeneratingPdf(false);
@@ -2180,10 +2361,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 2. Download Baggona Panchanga Janma Kundali Multi-Page PDF (Single-use disabled once downloaded)
+  // 2. Download Baggona Panchanga Janma Kundali Multi-Page PDF (Up to 3 downloads per order)
   const handleDownloadKundliPdf = async (isPartOfBatch = false) => {
     if (!(await ensurePaymentVerified())) return;
-    if (downloadedPdfs.kundli || downloadedPdfs.all) {
+    const currentCount = downloadCounts.kundli || 0;
+    if (currentCount >= 3 || downloadedPdfs.all) {
       alert(ui.alreadyDownloadedAlert);
       return;
     }
@@ -2214,15 +2396,26 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       if (!isPartOfBatch) setScreenLoaderProgress(100);
       setPdfStageText(PDF_STAGES[selectedLang]?.done || PDF_STAGES.en.done);
 
-      // Single-use disable: mark Kundli PDF as successfully downloaded
-      setDownloadedPdfs((prev) => {
-        const next = { ...prev, kundli: true };
+      // Relaxed Download Lock: up to 3 downloads per file per order
+      const nextCount = currentCount + 1;
+      setDownloadCounts((prev) => {
+        const next = { ...prev, kundli: nextCount };
         try {
-          sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+          sessionStorage.setItem(`baggona_hotel_download_counts_${activeOrderId}`, JSON.stringify(next));
         } catch {}
         return next;
       });
-      void updateHotelOrderDownloaded(activeOrderId, "kundli");
+
+      if (nextCount >= 3) {
+        setDownloadedPdfs((prev) => {
+          const next = { ...prev, kundli: true };
+          try {
+            sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+          } catch {}
+          return next;
+        });
+        void updateHotelOrderDownloaded(activeOrderId, "kundli");
+      }
     } catch (pdfErr: any) {
       console.error("Kundli PDF Generation error:", pdfErr);
       alert(`Kundli PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -2234,10 +2427,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 3. Download Sacred Gokarna Remedy & Parihara PDF (Available in ₹450 Package, single-use disabled once downloaded)
+  // 3. Download Sacred Gokarna Remedy & Parihara PDF (Available in ₹450 Package, up to 3 downloads)
   const handleDownloadRemedyPdf = async (isPartOfBatch = false) => {
     if (!(await ensurePaymentVerified())) return;
-    if (downloadedPdfs.remedy || downloadedPdfs.all) {
+    const currentCount = downloadCounts.remedy || 0;
+    if (currentCount >= 3 || downloadedPdfs.all) {
       alert(ui.alreadyDownloadedAlert);
       return;
     }
@@ -2268,15 +2462,26 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       if (!isPartOfBatch) setScreenLoaderProgress(100);
       setPdfStageText(PDF_STAGES[selectedLang]?.done || PDF_STAGES.en.done);
 
-      // Single-use disable: mark Remedy PDF as successfully downloaded
-      setDownloadedPdfs((prev) => {
-        const next = { ...prev, remedy: true };
+      // Relaxed Download Lock: up to 3 downloads per file per order
+      const nextCount = currentCount + 1;
+      setDownloadCounts((prev) => {
+        const next = { ...prev, remedy: nextCount };
         try {
-          sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+          sessionStorage.setItem(`baggona_hotel_download_counts_${activeOrderId}`, JSON.stringify(next));
         } catch {}
         return next;
       });
-      void updateHotelOrderDownloaded(activeOrderId, "remedy");
+
+      if (nextCount >= 3) {
+        setDownloadedPdfs((prev) => {
+          const next = { ...prev, remedy: true };
+          try {
+            sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+          } catch {}
+          return next;
+        });
+        void updateHotelOrderDownloaded(activeOrderId, "remedy");
+      }
     } catch (pdfErr: any) {
       console.error("Remedy PDF Generation error:", pdfErr);
       alert(`Remedy PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -2288,14 +2493,14 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 4. Download Complete Package (All remaining PDFs sequentially, disabled once completed)
+  // 4. Download Complete Package (All remaining PDFs sequentially, up to 3 downloads each)
   const handleDownloadAllPdfs = async () => {
     if (!(await ensurePaymentVerified())) return;
     const isAllDone =
       Boolean(downloadedPdfs.all) ||
-      (Boolean(downloadedPdfs.fiveYear) &&
-        Boolean(downloadedPdfs.kundli) &&
-        (selectedPackage !== "remedy_450" || Boolean(downloadedPdfs.remedy)));
+      ((downloadCounts.fiveYear || 0) >= 3 &&
+        (downloadCounts.kundli || 0) >= 3 &&
+        (selectedPackage !== "remedy_450" || (downloadCounts.remedy || 0) >= 3));
     if (isAllDone) {
       alert(ui.allAlreadyDownloadedAlert);
       return;
@@ -2303,18 +2508,18 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
     triggerScreenLoader("pdf_download_all", undefined, { progress: 10 });
     try {
-      if (!downloadedPdfs.fiveYear) {
+      if ((downloadCounts.fiveYear || 0) < 3) {
         await handleDownload5YearPdf(true);
       }
       setScreenLoaderProgress(45);
       await new Promise((r) => setTimeout(r, 600));
 
-      if (!downloadedPdfs.kundli) {
+      if ((downloadCounts.kundli || 0) < 3) {
         await handleDownloadKundliPdf(true);
       }
       setScreenLoaderProgress(75);
 
-      if (selectedPackage === "remedy_450" && !downloadedPdfs.remedy) {
+      if (selectedPackage === "remedy_450" && (downloadCounts.remedy || 0) < 3) {
         await new Promise((r) => setTimeout(r, 600));
         await handleDownloadRemedyPdf(true);
         setScreenLoaderProgress(95);
@@ -2322,16 +2527,6 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
       setScreenLoaderProgress(100);
       await new Promise((r) => setTimeout(r, 400));
-
-      // Single-use disable: mark all as downloaded
-      setDownloadedPdfs((prev) => {
-        const next = { ...prev, fiveYear: true, kundli: true, remedy: true, all: true };
-        try {
-          sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
-        } catch {}
-        return next;
-      });
-      void updateHotelOrderDownloaded(activeOrderId, "all");
     } catch (batchErr: any) {
       console.error("Batch download error:", batchErr);
       alert(`Download error: ${batchErr?.message || "Please retry downloading individually."}`);
@@ -2339,6 +2534,67 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       closeScreenLoader();
     }
   };
+
+  // 5. Open PDF in New Tab (Safe for iPhone Safari popup blocker & direct viewing)
+  const handleOpenInNewTab = async (pdfType: "fiveYear" | "kundli" | "remedy") => {
+    if (!(await ensurePaymentVerified())) return;
+
+    if (pdfType === "fiveYear") {
+      if (fiveYearPdfUrl) {
+        window.open(fiveYearPdfUrl, "_blank");
+      } else {
+        await handleDownload5YearPdf();
+      }
+    } else if (pdfType === "kundli") {
+      if (kundliPdfUrl) {
+        window.open(kundliPdfUrl, "_blank");
+      } else {
+        await handleDownloadKundliPdf();
+      }
+    } else if (pdfType === "remedy") {
+      if (remedyPdfUrl) {
+        window.open(remedyPdfUrl, "_blank");
+      } else {
+        await handleDownloadRemedyPdf();
+      }
+    }
+  };
+
+  // 6. Start Family Member at This Table Upsell (₹250 special table offer)
+  const handleStartFamilyUpsell = () => {
+    setDevoteeName("");
+    setGender("male");
+    setBirthDate("");
+    setBirthTime("");
+    setIsTimeUnknown(false);
+    setSelectedCityName("Gokarna");
+    setCustomCitySearch("");
+    setComputedKundli(null);
+    setSecretResult(null);
+    setFiveYearPayload(null);
+    setMaster25Payload(null);
+    setSelectedPackage("family_250");
+
+    const newOrderId = generateHotelOrderId(tableNumber || "1");
+    setActiveOrderId(newOrderId);
+    setIsPaymentVerified(false);
+    setEnteredUtr("");
+    setDownloadedPdfs({});
+    setDownloadCounts({});
+    setFiveYearPdfUrl(null);
+    setKundliPdfUrl(null);
+    setRemedyPdfUrl(null);
+    setHasClickedPaymentApp(false);
+    setReturnedFromPaymentApp(false);
+
+    setTimeout(() => {
+      const formEl = document.getElementById("birth-form");
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 120);
+  };
+
 
   const currentCities = QUICK_CITIES_BY_LANG[selectedLang] || QUICK_CITIES_BY_LANG.en;
 
@@ -2599,8 +2855,26 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   type="time"
                   value={birthTime}
                   onChange={(e) => setBirthTime(e.target.value)}
-                  className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-500 font-medium shadow-sm"
+                  disabled={isTimeUnknown}
+                  className={`w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-500 font-medium shadow-sm ${
+                    isTimeUnknown ? "opacity-60 cursor-not-allowed bg-stone-100" : ""
+                  }`}
                 />
+                <div className="mt-1.5 flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="time-unknown-check"
+                    checked={isTimeUnknown}
+                    onChange={(e) => {
+                      setIsTimeUnknown(e.target.checked);
+                      if (e.target.checked) setBirthTime("12:00");
+                    }}
+                    className="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <label htmlFor="time-unknown-check" className="text-[11px] text-stone-700 font-medium cursor-pointer select-none">
+                    {TIME_UNKNOWN_LABELS[selectedLang] || TIME_UNKNOWN_LABELS.en}
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -2725,6 +2999,73 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               </span>
             </div>
 
+            {/* ── STAGE 1: Today's Live Tarabala & Table-Side Energy Hook ── */}
+            {secretResult.todayLiveTarabala && (
+              <div className="bg-gradient-to-r from-amber-500/10 via-yellow-500/15 to-amber-500/10 border-2 border-amber-400/80 rounded-xl p-3.5 space-y-1.5 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">📍</span>
+                    <span className="text-[11px] uppercase font-bold text-amber-950 tracking-wider">
+                      {selectedLang === "kn" ? "ಇಂದಿನ ಲೈವ್ ತಾರಾಬಲ & ಟೇಬಲ್ ಚೈತನ್ಯ"
+                        : selectedLang === "hi" ? "आज का लाइव ताराबल एवं टेबल ऊर्जा"
+                        : selectedLang === "mr" ? "आजचे थेट ताराबल व टेबल ऊर्जा"
+                        : selectedLang === "te" ? "నేటి లైవ్ తారాబలం & టేబుల్ ఎనర్జీ"
+                        : selectedLang === "ta" ? "இன்றைய நேரடி தாரபலன் & மேஜை ஆற்றல்"
+                        : selectedLang === "ml" ? "ഇന്നത്തെ ലൈവ് താരാബലവും ടേബിൾ ഊർജ്ജവും"
+                        : "Today's Live Tarabala & Dining Table Energy"}
+                    </span>
+                  </div>
+                  <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 border border-amber-400 shadow-xs">
+                    ✨ {secretResult.todayLiveTarabala.energyBadge}
+                  </span>
+                </div>
+                <div className="text-xs sm:text-sm font-black text-amber-950 font-serif">
+                  {secretResult.todayLiveTarabala.headline} — <span className="font-medium text-stone-700">{secretResult.todayLiveTarabala.guidanceText}</span>
+                </div>
+                {secretResult.todayLiveTarabala.chandrashtamaAlert && (
+                  <div className="text-[11px] font-semibold text-rose-800 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1">
+                    {secretResult.todayLiveTarabala.chandrashtamaAlert}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── STAGE 2: Past 24-Month Mathematical Verification Box ── */}
+            {secretResult.pastVerification && (
+              <div className="bg-[#FAF7F0] border-2 border-[#8B263E] rounded-xl p-4 space-y-2 shadow-sm">
+                <div className="flex items-center justify-between gap-2 border-b border-rose-200 pb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">🔍</span>
+                    <h4 className="text-xs sm:text-sm font-black text-[#5C1D24] uppercase tracking-wide font-serif">
+                      {selectedLang === "kn" ? "ಕಳೆದ ೧೮-೨೪ ತಿಂಗಳ ಗಣಿತ ಸತ್ಯ ಪರಿಶೀಲನೆ"
+                        : selectedLang === "hi" ? "विगत १८-२४ माह का गणितीय सत्यापन"
+                        : selectedLang === "mr" ? "मागील १८-२४ महिन्यांची गणितीय पडताळणी"
+                        : selectedLang === "te" ? "గత 18-24 నెలల ఖచ్చితమైన గణిత పరిశీలన"
+                        : selectedLang === "ta" ? "கடந்த 18-24 மாத கணித உண்மை சரிபார்ப்பு"
+                        : selectedLang === "ml" ? "കഴിഞ്ഞ 18-24 മാസങ്ങളിലെ ഗണിത പരിശോധന"
+                        : "Past 18-24 Month Mathematical Verification"}
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-bold text-stone-500">
+                    {secretResult.pastVerification.periodLabel}
+                  </span>
+                </div>
+                <div className="text-xs font-bold text-[#8B263E]">
+                  ⚡ {secretResult.pastVerification.headline}
+                </div>
+                <p className="text-[11px] text-stone-700 italic">
+                  {secretResult.pastVerification.proofText}
+                </p>
+                <ul className="text-xs text-stone-800 space-y-1 list-disc list-inside">
+                  {secretResult.pastVerification.symptoms.map((symptom, sIdx) => (
+                    <li key={sIdx} className="leading-relaxed">
+                      {symptom}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Astrological Coordinates Ribbon */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-amber-50/80 border-2 border-amber-200 rounded-xl p-2.5">
               <div>
@@ -2771,6 +3112,43 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             <div className="bg-amber-100/70 border border-amber-300 rounded-xl p-3.5 text-xs text-amber-950 leading-relaxed font-serif shadow-sm">
               {secretResult.kshetraBlessing}
             </div>
+
+            {/* ── STAGE 4: Two High-Curiosity Mini-Cards (Maandi Knot & Yogi/Avayogi) ── */}
+            {secretResult.curiosityMiniCards && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {/* Card A: Maandi 99% Knot */}
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50/70 border-2 border-amber-300 rounded-xl p-3.5 space-y-2 shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">⏳</span>
+                    <h5 className="text-xs sm:text-sm font-black text-amber-950 font-serif">
+                      {secretResult.curiosityMiniCards.maandiCard.title}
+                    </h5>
+                  </div>
+                  <p className="text-[11px] text-stone-700 leading-relaxed font-serif">
+                    {secretResult.curiosityMiniCards.maandiCard.desc}
+                  </p>
+                  <div className="text-[10px] font-bold text-amber-950 bg-amber-200/80 border border-amber-300 rounded-lg px-2.5 py-1 text-center">
+                    {secretResult.curiosityMiniCards.maandiCard.lockedCta}
+                  </div>
+                </div>
+
+                {/* Card B: Yogi vs Avayogi */}
+                <div className="bg-gradient-to-br from-yellow-50 to-amber-50/70 border-2 border-yellow-300 rounded-xl p-3.5 space-y-2 shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">🧲</span>
+                    <h5 className="text-xs sm:text-sm font-black text-amber-950 font-serif">
+                      {secretResult.curiosityMiniCards.yogiCard.title}
+                    </h5>
+                  </div>
+                  <p className="text-[11px] text-stone-700 leading-relaxed font-serif">
+                    {secretResult.curiosityMiniCards.yogiCard.desc}
+                  </p>
+                  <div className="text-[10px] font-bold text-amber-950 bg-yellow-200/80 border border-yellow-300 rounded-lg px-2.5 py-1 text-center">
+                    {secretResult.curiosityMiniCards.yogiCard.lockedCta}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/* 🌟 FREE FEATURE SUITE: COSMIC VOLTAGE, MOORTHY NIRNAYA,        */}
@@ -3199,13 +3577,22 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
               {/* Price Summary & CTA to Open Payment */}
               <div className="bg-[#FFFDF7] border-2 border-[#D4AF37] rounded-2xl p-4 text-center space-y-3 shadow-md">
+                {selectedPackage === "family_250" && (
+                  <div className="p-3 bg-amber-100/90 border-2 border-amber-500 rounded-xl flex items-center justify-between text-left">
+                    <div>
+                      <span className="text-xs font-black text-amber-950">👨‍👩‍👧‍👦 Family Member Special Offer Active</span>
+                      <p className="text-[11px] text-stone-700">Special table discount applied (₹250 for 25-Chapter Master Kundli & Report)</p>
+                    </div>
+                    <span className="text-lg font-black text-amber-900">₹250</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-center gap-3">
                   <span className="text-xs text-stone-700 font-medium">
-                    {selectedPackage === "remedy_450" ? "5-Year PDF + Kundali + Remedy Dossier" : "5-Year PDF + Janma Kundali"}
+                    {selectedPackage === "remedy_450" ? "5-Year PDF + Kundali + Remedy Dossier" : selectedPackage === "family_250" ? "Family 25-Chapter Master Report + Janma Kundali" : "25-Chapter Master PDF + Janma Kundali"}
                   </span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl sm:text-3xl font-black text-amber-900">₹{packagePrice}</span>
-                    <span className="text-xs text-stone-500">({selectedPackage === "remedy_450" ? "INR 450 Only" : "INR 350 Only"})</span>
+                    <span className="text-xs text-stone-500">({selectedPackage === "remedy_450" ? "INR 450 Only" : selectedPackage === "family_250" ? "INR 250 Only" : "INR 350 Only"})</span>
                   </div>
                 </div>
 
@@ -3264,7 +3651,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                       <div className="text-[11px] text-stone-600 font-mono">
                         UPI ID: <span className="font-semibold text-stone-700">{PRIEST_UPI_ID}</span> · <span className="text-emerald-700 font-bold text-sm">₹{packagePrice}</span>
                         <span className="ml-1 text-[10px] text-stone-500">
-                          ({selectedPackage === "remedy_450" ? "Destiny + Remedy" : "Standard"})
+                          ({selectedPackage === "remedy_450" ? "Destiny + Remedy" : selectedPackage === "family_250" ? "Family Special" : "Standard"})
                         </span>
                       </div>
                     </div>
@@ -3465,69 +3852,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-lg mx-auto">
-                {/* Button 1: 5-Year Master Destiny PDF */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!isPaymentVerified) {
-                      alert(ui.unpaidWarning);
-                      const payEl = document.getElementById("hotel-payment-box");
-                      if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
-                      return;
-                    }
-                    void handleDownload5YearPdf();
-                  }}
-                  disabled={!isPaymentVerified || isGeneratingPdf || Boolean(downloadedPdfs.fiveYear) || Boolean(downloadedPdfs.all)}
-                  className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
-                    !isPaymentVerified
-                      ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300/80 cursor-not-allowed opacity-90"
-                      : downloadedPdfs.fiveYear || downloadedPdfs.all
-                      ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
-                      : "bg-amber-500 hover:bg-amber-400 text-stone-950 active:scale-[0.99] cursor-pointer"
-                  }`}
-                >
-                  <span>
-                    {!isPaymentVerified
-                      ? `${ui.downloadFiveYearPdfBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
-                      : downloadedPdfs.fiveYear || downloadedPdfs.all
-                      ? ui.downloadedBtn
-                      : ui.downloadFiveYearPdfBtn}
-                  </span>
-                </button>
-
-                {/* Button 2: Baggona Panchanga Janma Kundali PDF */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!isPaymentVerified) {
-                      alert(ui.unpaidWarning);
-                      const payEl = document.getElementById("hotel-payment-box");
-                      if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
-                      return;
-                    }
-                    void handleDownloadKundliPdf();
-                  }}
-                  disabled={!isPaymentVerified || isGeneratingPdf || Boolean(downloadedPdfs.kundli) || Boolean(downloadedPdfs.all)}
-                  className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
-                    !isPaymentVerified
-                      ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300/80 cursor-not-allowed opacity-90"
-                      : downloadedPdfs.kundli || downloadedPdfs.all
-                      ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
-                      : "bg-yellow-500 hover:bg-yellow-400 text-stone-950 active:scale-[0.99] cursor-pointer"
-                  }`}
-                >
-                  <span>
-                    {!isPaymentVerified
-                      ? `${ui.downloadKundliPdfBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
-                      : downloadedPdfs.kundli || downloadedPdfs.all
-                      ? ui.downloadedBtn
-                      : ui.downloadKundliPdfBtn}
-                  </span>
-                </button>
-
-                {/* Button 3: Sacred Gokarna Remedy PDF (Only if ₹450 package chosen) */}
-                {selectedPackage === "remedy_450" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
+                {/* Button 1: 25-Chapter Sampoorna Master Report / 5-Year Destiny PDF */}
+                <div className="flex flex-col gap-1.5">
                   <button
                     type="button"
                     onClick={() => {
@@ -3537,34 +3864,133 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                         if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
                         return;
                       }
-                      void handleDownloadRemedyPdf();
+                      void handleDownload5YearPdf();
                     }}
-                    disabled={!isPaymentVerified || isGeneratingPdf || Boolean(downloadedPdfs.remedy) || Boolean(downloadedPdfs.all)}
-                    className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition sm:col-span-2 ${
+                    disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.fiveYear || 0) >= 3 || Boolean(downloadedPdfs.all)}
+                    className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
                       !isPaymentVerified
                         ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300/80 cursor-not-allowed opacity-90"
-                        : downloadedPdfs.remedy || downloadedPdfs.all
+                        : (downloadCounts.fiveYear || 0) >= 3 || downloadedPdfs.all
                         ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
-                        : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white active:scale-[0.99] cursor-pointer"
+                        : "bg-amber-500 hover:bg-amber-400 text-stone-950 active:scale-[0.99] cursor-pointer"
                     }`}
                   >
                     <span>
                       {!isPaymentVerified
-                        ? `${ui.downloadRemedyPdfBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
-                        : downloadedPdfs.remedy || downloadedPdfs.all
+                        ? `${ui.downloadFiveYearPdfBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                        : (downloadCounts.fiveYear || 0) >= 3 || downloadedPdfs.all
                         ? ui.downloadedBtn
-                        : ui.downloadRemedyPdfBtn}
+                        : `${ui.downloadFiveYearPdfBtn}${downloadCounts.fiveYear ? ` (${downloadCounts.fiveYear}/3)` : ""}`}
                     </span>
                   </button>
+                  {isPaymentVerified && (
+                    <button
+                      type="button"
+                      onClick={() => void handleOpenInNewTab("fiveYear")}
+                      disabled={isGeneratingPdf}
+                      className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 flex items-center justify-center gap-1 transition shadow-sm active:scale-95 cursor-pointer"
+                      title="iPhone Safari Safe Preview"
+                    >
+                      <span>{SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Button 2: Baggona Panchanga Janma Kundali PDF */}
+                <div className="flex flex-col gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isPaymentVerified) {
+                        alert(ui.unpaidWarning);
+                        const payEl = document.getElementById("hotel-payment-box");
+                        if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
+                        return;
+                      }
+                      void handleDownloadKundliPdf();
+                    }}
+                    disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.kundli || 0) >= 3 || Boolean(downloadedPdfs.all)}
+                    className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                      !isPaymentVerified
+                        ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300/80 cursor-not-allowed opacity-90"
+                        : (downloadCounts.kundli || 0) >= 3 || downloadedPdfs.all
+                        ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
+                        : "bg-yellow-500 hover:bg-yellow-400 text-stone-950 active:scale-[0.99] cursor-pointer"
+                    }`}
+                  >
+                    <span>
+                      {!isPaymentVerified
+                        ? `${ui.downloadKundliPdfBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                        : (downloadCounts.kundli || 0) >= 3 || downloadedPdfs.all
+                        ? ui.downloadedBtn
+                        : `${ui.downloadKundliPdfBtn}${downloadCounts.kundli ? ` (${downloadCounts.kundli}/3)` : ""}`}
+                    </span>
+                  </button>
+                  {isPaymentVerified && (
+                    <button
+                      type="button"
+                      onClick={() => void handleOpenInNewTab("kundli")}
+                      disabled={isGeneratingPdf}
+                      className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-yellow-100 hover:bg-yellow-200 text-yellow-950 border border-yellow-300 flex items-center justify-center gap-1 transition shadow-sm active:scale-95 cursor-pointer"
+                      title="iPhone Safari Safe Preview"
+                    >
+                      <span>{SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Button 3: Sacred Gokarna Remedy PDF (Only if ₹450 package chosen) */}
+                {selectedPackage === "remedy_450" && (
+                  <div className="flex flex-col gap-1.5 sm:col-span-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!isPaymentVerified) {
+                          alert(ui.unpaidWarning);
+                          const payEl = document.getElementById("hotel-payment-box");
+                          if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
+                          return;
+                        }
+                        void handleDownloadRemedyPdf();
+                      }}
+                      disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.remedy || 0) >= 3 || Boolean(downloadedPdfs.all)}
+                      className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                        !isPaymentVerified
+                          ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300/80 cursor-not-allowed opacity-90"
+                          : (downloadCounts.remedy || 0) >= 3 || downloadedPdfs.all
+                          ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
+                          : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white active:scale-[0.99] cursor-pointer"
+                      }`}
+                    >
+                      <span>
+                        {!isPaymentVerified
+                          ? `${ui.downloadRemedyPdfBtn} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                          : (downloadCounts.remedy || 0) >= 3 || downloadedPdfs.all
+                          ? ui.downloadedBtn
+                          : `${ui.downloadRemedyPdfBtn}${downloadCounts.remedy ? ` (${downloadCounts.remedy}/3)` : ""}`}
+                      </span>
+                    </button>
+                    {isPaymentVerified && (
+                      <button
+                        type="button"
+                        onClick={() => void handleOpenInNewTab("remedy")}
+                        disabled={isGeneratingPdf}
+                        className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-300 flex items-center justify-center gap-1 transition shadow-sm active:scale-95 cursor-pointer"
+                        title="iPhone Safari Safe Preview"
+                      >
+                        <span>{SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}</span>
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 {/* Button 4: Download Complete All-in-One Package */}
                 {(() => {
                   const isAllDone =
                     Boolean(downloadedPdfs.all) ||
-                    (Boolean(downloadedPdfs.fiveYear) &&
-                      Boolean(downloadedPdfs.kundli) &&
-                      (selectedPackage !== "remedy_450" || Boolean(downloadedPdfs.remedy)));
+                    ((downloadCounts.fiveYear || 0) >= 3 &&
+                      (downloadCounts.kundli || 0) >= 3 &&
+                      (selectedPackage !== "remedy_450" || (downloadCounts.remedy || 0) >= 3));
                   return (
                     <button
                       type="button"
@@ -3604,6 +4030,25 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   {ui.iphoneSafariTip}
                 </p>
               )}
+
+              {/* ₹250 Family Member at This Table Upsell Banner */}
+              {isPaymentVerified && (
+                <div className="mt-5 p-4 rounded-xl border-2 border-dashed border-amber-500 bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 text-center shadow-md space-y-2 animate-in fade-in max-w-lg mx-auto">
+                  <div className="text-sm font-black text-amber-950 flex items-center justify-center gap-2">
+                    <span>{(FAMILY_UPSELL_LABELS[selectedLang] || FAMILY_UPSELL_LABELS.en).title}</span>
+                  </div>
+                  <p className="text-xs text-stone-700 max-w-md mx-auto leading-relaxed">
+                    {(FAMILY_UPSELL_LABELS[selectedLang] || FAMILY_UPSELL_LABELS.en).desc}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleStartFamilyUpsell}
+                    className="mt-2 py-2.5 px-5 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-black text-xs sm:text-sm rounded-xl shadow-lg border border-amber-300 active:scale-95 transition cursor-pointer inline-flex items-center gap-2"
+                  >
+                    <span>{(FAMILY_UPSELL_LABELS[selectedLang] || FAMILY_UPSELL_LABELS.en).btn}</span>
+                  </button>
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -3627,6 +4072,13 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         <div ref={fiveYearPdfRef}>
           <FiveYearPredictionPdfTemplate data={fiveYearPayload} />
         </div>
+
+        {/* Master 25-Chapter Combined PDF Template */}
+        {master25Payload && (
+          <div ref={master25PdfRef}>
+            <SampoornaMaster25PdfTemplate data={master25Payload} />
+          </div>
+        )}
 
         {/* 2. Baggona Panchanga Janma Kundali Multi-Page PDF Template */}
         <div ref={kundliPdfRef} id="hotel-kundli-pdf-render">

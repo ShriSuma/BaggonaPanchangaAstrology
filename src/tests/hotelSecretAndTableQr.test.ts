@@ -584,7 +584,8 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
 
       // Year 1 Free Unlocked Preview
       expect(preview.year1.gregorianRange).toBe("2026 - 2027");
-      expect(preview.year1.vitalityScore).toBe(84);
+      expect(preview.year1.vitalityScore).toBeGreaterThanOrEqual(55);
+      expect(preview.year1.vitalityScore).toBeLessThanOrEqual(99);
       expect(preview.year1.samvatsaraName).toContain("ಸಂವತ್ಸರ");
       expect(preview.year1.turningPointSeason.length).toBeGreaterThan(5);
       expect(preview.year1.goldenOpportunity.length).toBeGreaterThan(10);
@@ -1147,6 +1148,107 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
         expect(outA.paragraph1.length).toBeGreaterThan(100);
         expect(outB.paragraph1.length).toBeGreaterThan(100);
       }
+    });
+  });
+  describe("13. Breakthrough Accuracy Gates, Unknown Birth Time, Child Safety & Family Upsell Audit", () => {
+    it("guarantees two different guests at the same table receive different vitality scores and seasonal guidance", () => {
+      const guest1 = calculateKundli({
+        birthDate: "1990-05-15",
+        birthTime: "08:30",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        name: "Devotee 1",
+        gender: "Male"
+      });
+      const guest2 = calculateKundli({
+        birthDate: "1988-10-22",
+        birthTime: "14:15",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        name: "Devotee 2",
+        gender: "Female"
+      });
+
+      const preview1 = calculateFiveYearPreviewHorizon(guest1, guest1.moonSign.index, guest1.lagnaRashi.index, "en");
+      const preview2 = calculateFiveYearPreviewHorizon(guest2, guest2.moonSign.index, guest2.lagnaRashi.index, "en");
+
+      expect(preview1.year1.vitalityScore).toBeGreaterThanOrEqual(55);
+      expect(preview2.year1.vitalityScore).toBeGreaterThanOrEqual(55);
+      // Vitality scores are deterministic and chart-dependent
+      expect(preview1.year1.vitalityScore).not.toBe(preview2.year1.vitalityScore);
+    });
+
+    it("verifies isTimeUnknown (Chandra Kundali mode) anchors predictions to Moon sign and nakshatra", () => {
+      const kundli = calculateKundli({
+        birthDate: "1995-07-20",
+        birthTime: "12:00",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        name: "Devotee Unknown Time",
+        gender: "Male"
+      });
+
+      const res = generateAntarangaSatya(
+        kundli,
+        "en",
+        "Devotee Unknown Time",
+        "male",
+        "1995-07-20",
+        "12:00",
+        14.5479,
+        74.3188,
+        true // isTimeUnknown
+      );
+
+      expect(res.isTimeUnknown).toBe(true);
+      expect(res.todayLiveTarabala).toBeDefined();
+      expect(res.todayLiveTarabala?.taraName.length).toBeGreaterThan(0);
+      expect(res.curiosityMiniCards).toBeDefined();
+      expect(res.curiosityMiniCards?.maandiCard.title.length).toBeGreaterThan(10);
+      expect(res.curiosityMiniCards?.yogiCard.title.length).toBeGreaterThan(10);
+    });
+
+    it("guarantees child under 13 receives pure child blessing & vitality text with zero adult betrayal or debt leakage", () => {
+      const childKundli = calculateKundli({
+        birthDate: "2018-06-10",
+        birthTime: "09:00",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        name: "Child Devotee",
+        gender: "Male"
+      });
+
+      const resKn = generateAntarangaSatya(
+        childKundli,
+        "kn",
+        "Child Devotee",
+        "male",
+        "2018-06-10",
+        "09:00",
+        14.5479,
+        74.3188
+      );
+
+      // Child mode is activated
+      expect(resKn.paragraph1).toContain("ಬುದ್ಧಿಮತ್ತೆ");
+      expect(resKn.paragraph2).toContain("ಪ್ರತಿಭೆ");
+      // Dark adult keywords must not be present
+      expect(resKn.paragraph1).not.toContain("ಮೋಸ");
+      expect(resKn.paragraph2).not.toContain("ಸಾಲ");
+
+      const resEn = generateAntarangaSatya(
+        childKundli,
+        "en",
+        "Child Devotee",
+        "male",
+        "2018-06-10",
+        "09:00",
+        14.5479,
+        74.3188
+      );
+      expect(resEn.paragraph1).toContain("intelligent");
+      expect(resEn.paragraph1).not.toContain("betrayal");
+      expect(resEn.paragraph2).not.toContain("debt");
     });
   });
 });

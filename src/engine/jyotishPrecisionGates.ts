@@ -1,7 +1,10 @@
 /**
  * BAGGONA PANCHANGA — 100% JYOTISH PRECISION GATES ENGINE
- * Deterministic Parashari-Tajika Override Rules, 3-Gate Validator & Past-Event Sales Hook.
+ * Deterministic Parashari-Tajika Override Rules, 3-Gate Validator, Tarabala & Past-Event Sales Hook.
  */
+
+import { siderealLongitudes } from "../core/EphemerisEngine";
+import { calculateTaraBala, calculateChandraBala, type TaraNumber } from "../core/TaraBalaEngine";
 
 export type RashiIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11; // 0=Aries ... 11=Pisces
 export type Planet = "Sun" | "Moon" | "Mars" | "Mercury" | "Jupiter" | "Venus" | "Saturn" | "Rahu" | "Ketu";
@@ -294,4 +297,153 @@ export function generatePastEventVerification(input: PastVerificationInput): Pas
   }
 
   return hooks;
+}
+
+// ============================================================================
+// 8. LIVE TODAY'S TARABALA & CHANDRASHTAMA (TABLE-SIDE PSYCHIC HOOK)
+// ============================================================================
+export interface LiveTodayTarabalaOutput {
+  taraNumber: TaraNumber;
+  taraName: string;
+  score: number;
+  isFavourable: boolean;
+  isDifficult: boolean;
+  isChandrashtama: boolean;
+  transitMoonRashi: number;
+  transitMoonNakshatra: number;
+  headline: string;
+  energyBadge: string;
+  guidanceText: string;
+  chandrashtamaAlert?: string;
+}
+
+export const TARA_NAMES_7L: Record<TaraNumber, Record<string, { name: string; desc: string; badge: string }>> = {
+  1: {
+    kn: { name: "ಜನ್ಮ ತಾರೆ", desc: "ದೇಹ-ಮನಸ್ಸಿನ ವಿಶ್ರಾಂತಿ & ಎಚ್ಚರಿಕೆಯ ದಿನ", badge: "ಧ್ಯಾನ & ಸಮಾಧಾನ" },
+    en: { name: "Janma Tara", desc: "Mind-Body Poise & Reflective Rest", badge: "Rest & Equilibrium" },
+    hi: { name: "जन्म तारा", desc: "आत्म-चिंतन एवं सावधानी का दिवस", badge: "संयम एवं विश्राम" },
+    mr: { name: "जन्म तारा", desc: "आत्मचिंतन व सावधगिरीचा दिवस", badge: "शांतता व विश्रांती" },
+    te: { name: "జన్మ తార", desc: "శరీర-మనస్సుల విశ్రాంతి & జాగరూకత", badge: "విశ్రాంతి & ప్రశాంతత" },
+    ta: { name: "ஜென்ம தாரை", desc: "மன அமைதி மற்றும் விழிப்புணர்வு நாள்", badge: "விழிப்புணர்வு" },
+    ml: { name: "ജന്മ താര", desc: "ശരീര-മനസ്സുകളുടെ വിശ്രമം & ജാഗ്രത", badge: "ശാന്തത" }
+  },
+  2: {
+    kn: { name: "ಸಂಪತ್ ತಾರೆ", desc: "ಧನ ಲಾಭ, ಹೊಸ ಅವಕಾಶ & ವ್ಯಾಪಾರ ಸಿದ್ಧಿ", badge: "ಧನ ಸಮೃದ್ಧಿ ಯೋಗ" },
+    en: { name: "Sampat Tara", desc: "Financial Inflow, New Opportunities & Gains", badge: "Wealth Inflow" },
+    hi: { name: "सम्पत तारा", desc: "धन लाभ, नवीन अवसर एवं व्यापार सिद्धि", badge: "धन वृद्धि योग" },
+    mr: { name: "संपत तारा", desc: "धनलाभ, नवीन संधी व व्यावसायिक यश", badge: "आर्थिक यश" },
+    te: { name: "సంపత్ తార", desc: "ధన లాభం, నూతన అవకాశాలు & శుభం", badge: "ధన లాభం" },
+    ta: { name: "சம்பத் தாரை", desc: "தன லாபம், புதிய வாய்ப்புகள் & வெற்றி", badge: "தன லாபம்" },
+    ml: { name: "സമ്പത് താര", desc: "ധനലാഭം, പുതിയ അവസരങ്ങൾ & അഭിവൃദ്ധി", badge: "ഐശ്വര്യം" }
+  },
+  3: {
+    kn: { name: "ವಿಪತ್ ತಾರೆ", desc: "ಅನಗತ್ಯ ವಾದ-ವಿವಾದ ತಪ್ಪಿಸಿ, ತಾಳ್ಮೆ ಅಗತ್ಯ", badge: "ತಾಳ್ಮೆಯ ರಕ್ಷಣೆ" },
+    en: { name: "Vipat Tara", desc: "Avoid Hasty Moves & Exercise Patience", badge: "Exercise Caution" },
+    hi: { name: "विपत तारा", desc: "विवादों से बचें, धैर्य एवं संयम आवश्यक", badge: "धैर्य आवश्यक" },
+    mr: { name: "विपत तारा", desc: "वाद टाळा, संयम व संयमी निर्णय आवश्यक", badge: "संयम ठेवा" },
+    te: { name: "విపత్ తార", desc: "వాదోపవాదాలకు దూరంగా ఉండండి, సహనం ముఖ్యం", badge: "నిதானం" },
+    ta: { name: "விபத் தாரை", desc: "வீண் வாக்குவாதங்களைத் தவிர்க்கவும், பொறுமை அவசியம்", badge: "பொறுமை" },
+    ml: { name: "വിപത് താര", desc: "തർക്കങ്ങൾ ഒഴിവാക്കുക, ക്ഷമ പാലിക്കുക", badge: "ജാഗ്രത" }
+  },
+  4: {
+    kn: { name: "ಕ್ಷೇಮ ತಾರೆ", desc: "ಕುಟುಂಬ ನೆಮ್ಮದಿ, ರಕ್ಷಣೆ & ಆನಂದದಾಯಕ ಭೋಜನ", badge: "ಕ್ಷೇಮ & ರಕ್ಷಣೆ" },
+    en: { name: "Kshema Tara", desc: "Family Harmony, Protection & Joyful Dining", badge: "Auspicious Safety" },
+    hi: { name: "क्षेम तारा", desc: "पारिवारिक सुख, सुरक्षा एवं आनंदमय समय", badge: "कल्याणकारी" },
+    mr: { name: "क्षेम तारा", desc: "कौटुंबिक शांतता, संरक्षण व आनंदी भोजन", badge: "कौटुंबिक सुख" },
+    te: { name: "క్షేమ తార", desc: "కుటుంబ శాంతి, రక్షణ & ఆనందం", badge: "క్షేమకరం" },
+    ta: { name: "க்ஷேம தாரை", desc: "குடும்ப அமைதி, பாதுகாப்பு & மகிழ்ச்சி", badge: "நலமான நாள்" },
+    ml: { name: "ക്ഷേമ താര", desc: "കുടുംബ സമാധാനം, സംരക്ഷണം & സന്തോഷം", badge: "ക്ഷേമം" }
+  },
+  5: {
+    kn: { name: "ಪ್ರತ್ಯಕ್ ತಾರೆ", desc: "ಅಡೆತಡೆಗಳ ನಿವಾರಣೆಗೆ ಶ್ರಮಿಸಿ, ರಿಸ್ಕ್ ಬೇಡ", badge: "ಮಧ್ಯಮ ಬಲ" },
+    en: { name: "Pratyak Tara", desc: "Moderate Obstacles, Defer Critical Risks", badge: "Patience Required" },
+    hi: { name: "प्रत्यक तारा", desc: "अवरोध निवारण का दिन, जोखिम टालें", badge: "सावधानी" },
+    mr: { name: "प्रत्यक तारा", desc: "अडथळे दूर करण्याचा दिवस, धोका पत्करणे टाळा", badge: "दक्षता" },
+    te: { name: "ప్రత్యక్ తార", desc: "అడ్డంకులు తొలగించే సమయం, రిస్క్ వద్దు", badge: "నిదానం" },
+    ta: { name: "பிரத்யக் தாரை", desc: "தடைகளைத் தவிர்க்கவும், ஆபத்தான முயற்சிகள் வேண்டாம்", badge: "கவனம்" },
+    ml: { name: "പ്രത്യക് താര", desc: "തടസ്സങ്ങൾ മാറ്റാനുള്ള സമയം, അപകടങ്ങൾ ഒഴിവാക്കുക", badge: "സൂക്ഷ്മത" }
+  },
+  6: {
+    kn: { name: "ಸಾಧನಾ ತಾರೆ", desc: "ಯಶಸ್ವಿ ಕೆಲಸಗಳು, ಗುರಿ ಸಾಧನೆ & ನಾಯಕತ್ವ", badge: "ವಿಜಯ ಸಿದ್ಧಿ" },
+    en: { name: "Sadhana Tara", desc: "Goal Accomplishment, Success & Milestone Triumphs", badge: "Success Energy" },
+    hi: { name: "साधना तारा", desc: "कार्य सिद्धि, लक्ष्य प्राप्ति एवं सफलता", badge: "विजय योग" },
+    mr: { name: "साधना तारा", desc: "कार्यसिद्धी, ध्येयपूर्ती व नेतृत्व", badge: "ध्येयसिद्धी" },
+    te: { name: "సాధన తార", desc: "కార్యసిద్ధి, లక్ష్య సాధన & విజయం", badge: "విజయవంతం" },
+    ta: { name: "சாதனா தாரை", desc: "காரிய சித்தி, இலக்கு அடைதல் & வெற்றி", badge: "வெற்றி நாள்" },
+    ml: { name: "സാധന താര", desc: "കാര്യസിദ്ധി, ലക്ഷ്യപ്രാപ്തി & ഉന്നത വിജയം", badge: "വിജയം" }
+  },
+  7: {
+    kn: { name: "ನೈಧನ ತಾರೆ", desc: "ಅತ್ಯಂತ ಸೂಕ್ಷ್ಮ ದಿನ, ಶಿವ-ದುರ್ಗಾ ಆರಾಧನೆ ಮಾಡಿ", badge: "ದೈವಾರಾಧನೆ ಅವಶ್ಯ" },
+    en: { name: "Naidhana Tara", desc: "Delicate Transit, Invoke Lord Shiva & Stay Calm", badge: "Spiritual Poise" },
+    hi: { name: "नैधन तारा", desc: "संवेदनशील दिवस, शिव आराधना से शांति", badge: "शांति प्रार्थना" },
+    mr: { name: "नैधन तारा", desc: "अत्यंत संवेदनशील दिवस, शिवोपासना करा", badge: "शिवस्मरण" },
+    te: { name: "నైధన తార", desc: "సున్నితమైన సమయం, శివారాధన మేలు", badge: "శివారాధన" },
+    ta: { name: "நைதன தாரை", desc: "கவனமான நாள், சிவ வழிபாடு நன்று", badge: "தெய்வ வழிபாடு" },
+    ml: { name: "നൈധന താര", desc: "ശ്രദ്ധയോടുകൂടിയ ദിവസം, ശിവ ഭജനം ഉത്തമം", badge: "പ്രാർത്ഥന" }
+  },
+  8: {
+    kn: { name: "ಮಿತ್ರ ತಾರೆ", desc: "ಸ್ನೇಹಿತರ ಸಹಕಾರ, ಸಂತೋಷ ಕೂಟ & ಶುಭ ವಾರ್ತೆ", badge: "ಸ್ನೇಹ-ಸೌಹಾರ್ದ" },
+    en: { name: "Mitra Tara", desc: "Warm Camaraderie, Good News & Cooperative Energy", badge: "Harmonious" },
+    hi: { name: "मित्र तारा", desc: "मित्रों का सहयोग, शुभ समाचार एवं सौहार्द", badge: "मित्र लाभ" },
+    mr: { name: "मित्र तारा", desc: "मित्रांचे सहकार्य, शुभ वार्ता व आनंद", badge: "मित्र साह्य" },
+    te: { name: "మిత్ర తార", desc: "స్నేహితుల సహకారం, శుభవార్తలు & సంతోషం", badge: "మిత్ర లాభం" },
+    ta: { name: "மித்ர தாரை", desc: "நண்பர்கள் ஆதரவு, சுப செய்தி & மகிழ்ச்சி", badge: "நட்பு ஆதரவு" },
+    ml: { name: "മിത്ര താര", desc: "സുഹൃത്തുക്കളുടെ സഹായം, നല്ല വാർത്തകൾ", badge: "സൗഹൃദം" }
+  },
+  9: {
+    kn: { name: "ಪರಮ ಮಿತ್ರ ತಾರೆ", desc: "ಸರ್ವೋತ್ಕೃಷ್ಟ ಭಾಗ್ಯೋದಯ, ದೈವಿಕ ಆಶೀರ್ವಾದ & ಸಂಭ್ರಮ", badge: "ಪರಮ ಕೃಪೆ" },
+    en: { name: "Parama Mitra Tara", desc: "Supreme Divine Blessing, Peak Fortune & Auspicious Harmony", badge: "Supreme Grace" },
+    hi: { name: "परम मित्र तारा", desc: "सर्वश्रेष्ठ भाग्योदय, ईश्वरीय कृपा एवं उत्सव", badge: "परम कृपा" },
+    mr: { name: "परम मित्र तारा", desc: "सर्वोत्कृष्ट भाग्योदय, दैवी कृपा व यश", badge: "महाभाग्य" },
+    te: { name: "పరమ మిత్ర తార", desc: "సర్వోత్కృష్ట భాగ్యోదయం & దైవ కృప", badge: "పరమ శుభం" },
+    ta: { name: "பரம மித்ர தாரை", desc: "உன்னத பாக்கியம், தெய்வ அருள் & வெற்றி", badge: "மகா பாக்கியம்" },
+    ml: { name: "പരമ മിത്ര താര", desc: "സർവ്വോൽകൃഷ്ട ഭാഗ്യോദയം, ഈശ്വരാനുഗ്രഹം", badge: "പരമ ഭാഗ്യം" }
+  }
+};
+
+export const CHANDRASHTAMA_ALERTS_7L: Record<string, string> = {
+  kn: "⚠️ ಇಂದು ಚಂದ್ರಾಷ್ಟಮ ಪ್ರಭಾವ: ಹೊಸ ಒಪ್ಪಂದಗಳಿಗೆ ಅವಸರ ಬೇಡ, ಶಾಂತಚಿತ್ತದಿಂದ ಇರಿ.",
+  en: "⚠️ Active Chandrashtama Today: Avoid emotional decisions & stay serene.",
+  hi: "⚠️ आज चंद्राष्टम प्रभाव: भावुक निर्णयों से बचें, शांत मन रखें।",
+  mr: "⚠️ आज चंद्राष्टम प्रभाव: घाईगडबडीत निर्णय घेणे टाळा, शांत राहा.",
+  te: "⚠️ నేడు చంద్రాష్టమ ప్రభావం: భావోద్వేగ నిర్ణయాలు వద్దు, ప్రశాంతంగా ఉండండి.",
+  ta: "⚠️ இன்று சந்திராஷ்டமம்: உணர்ச்சிவசப்பட்டு முடிவுகள் எடுப்பதைத் தவிர்க்கவும்.",
+  ml: "⚠️ ഇന്ന് ചന്ദ്രാഷ്ടമ പ്രഭാവം: വൈകാരിക തീരുമാനങ്ങൾ ഒഴിവാക്കുക."
+};
+
+export function calculateLiveTodayTarabalaAndChandrashtama(
+  natalMoonNakshatra: number,
+  natalMoonRashi: number,
+  now = new Date(),
+  lang = "kn"
+): LiveTodayTarabalaOutput {
+  const longs = siderealLongitudes(now, "lahiri");
+  const transitMoonLon = longs.moon ?? 0;
+  const transitMoonRashi = Math.floor(transitMoonLon / 30) % 12;
+  const transitMoonNakshatra = Math.floor(transitMoonLon / (360 / 27)) % 27;
+
+  const taraResult = calculateTaraBala(natalMoonNakshatra, transitMoonNakshatra);
+  const chandraResult = calculateChandraBala(natalMoonRashi, transitMoonRashi);
+
+  const langKey = TARA_NAMES_7L[taraResult.tara]?.[lang] ? lang : "kn";
+  const taraMeta = TARA_NAMES_7L[taraResult.tara][langKey];
+  const isChandrashtama = chandraResult.isChandrashtama;
+  const chandrashtamaAlert = isChandrashtama ? (CHANDRASHTAMA_ALERTS_7L[langKey] || CHANDRASHTAMA_ALERTS_7L.en) : undefined;
+
+  const headline = `${taraMeta.name} (${taraResult.score}% ${langKey === "kn" ? "ಶುಭ ಬಲ" : langKey === "hi" ? "शुभ बल" : "Support"})`;
+
+  return {
+    taraNumber: taraResult.tara,
+    taraName: taraMeta.name,
+    score: taraResult.score,
+    isFavourable: taraResult.isFavourable,
+    isDifficult: taraResult.isDifficult,
+    isChandrashtama,
+    transitMoonRashi,
+    transitMoonNakshatra,
+    headline,
+    energyBadge: taraMeta.badge,
+    guidanceText: taraMeta.desc,
+    chandrashtamaAlert
+  };
 }

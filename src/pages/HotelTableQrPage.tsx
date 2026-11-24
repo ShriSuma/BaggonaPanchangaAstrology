@@ -89,14 +89,18 @@ export default function HotelTableQrPage(): JSX.Element {
 
   const printContainerRef = useRef<HTMLDivElement>(null);
 
-  // Base Customer URL
+  // Base Customer URL (Default to production domain so printed QR codes never fail on mobile)
   const getCustomerBaseUrl = () => {
     if (customBaseHost.trim()) {
       const clean = customBaseHost.trim().replace(/\/+$/, "");
       return `${clean}/antaranga`;
     }
     if (typeof window !== "undefined") {
-      return `${window.location.origin}/antaranga`;
+      const origin = window.location.origin;
+      // Guard: Never default to localhost/127.0.0.1 for customer table stand QRs
+      if (!origin.includes("localhost") && !origin.includes("127.0.0.1")) {
+        return `${origin}/antaranga`;
+      }
     }
     return "https://baggonapanchanga.com/antaranga";
   };
