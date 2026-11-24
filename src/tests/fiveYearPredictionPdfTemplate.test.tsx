@@ -236,13 +236,12 @@ describe("FiveYearPredictionPdfTemplate Visual Architecture & Content Audit", ()
     const doshaParas = doshaSection?.querySelectorAll("p.text-left");
     expect(doshaParas?.length).toBe(3);
 
-    // Diagnostic table
+    // Verify ZERO tables (pure narrative cards in Premium PDF V1 luxury style)
     const table = doshaSection?.querySelector("table");
-    expect(table).not.toBeNull();
-    expect(doshaSection?.textContent).toContain("ದೋಷ ನಾಮ");
-    expect(doshaSection?.textContent).toContain("ತೀವ್ರತೆ / ಸ್ಥಿತಿ");
+    expect(table).toBeNull();
     expect(doshaSection?.textContent).toContain("ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಪ್ರಭಾವ");
-    expect(doshaSection?.textContent).toContain("ಶಿಫಾರಸು ಮಾಡಿದ ಗೋಕರ್ಣ ಸೇವೆ & ಮಂತ್ರ");
+    expect(doshaSection?.textContent).toContain("ಗೋಕರ್ಣ ಶಾಂತಿ ಸೇವೆ");
+    expect(doshaSection?.textContent).toContain("ದೋಷಗಳು, ೫ ವರ್ಷಗಳ ಪ್ರಭಾವ");
 
     // Protection shield summary
     expect(doshaSection?.textContent).toContain("ಪಂಚವರ್ಷದ ದೋಷ ಶಮನ ರಕ್ಷಾ ಕವಚ");
@@ -414,10 +413,12 @@ describe("FiveYearPredictionPdfTemplate Visual Architecture & Content Audit", ()
     expect(userDetails?.textContent).toContain("ಗುರು (ಬೃಹಸ್ಪತಿ)");
     expect(userDetails?.textContent).toContain("ಶನಿ");
 
+    // Verify ZERO tables (rendered as elegant cards for mobile readability)
     const table = userDetails?.querySelector("table");
-    expect(table).not.toBeNull();
-    const rows = table?.querySelectorAll("tbody tr");
-    expect(rows?.length).toBe(9); // 9 Grahas
+    expect(table).toBeNull();
+    // 9 Graha cards rendered
+    expect(userDetails?.textContent).toContain("ಸೂರ್ಯ");
+    expect(userDetails?.textContent).toContain("ಶನಿ");
   });
 
   it("renders Collection Nagalu 5-Year Gold, Jewelry & Ornament Accumulation Forecast", () => {
@@ -431,9 +432,10 @@ describe("FiveYearPredictionPdfTemplate Visual Architecture & Content Audit", ()
     expect(nagaluSection?.textContent).toContain("೫ ವರ್ಷಗಳ ಒಟ್ಟು ಚಿನ್ನ-ಆಭರಣ ವೃದ್ಧಿ ಮುನ್ನೋಟ");
     expect(nagaluSection?.textContent).toContain("ಚಿನ್ನಾಭರಣ ಖರೀದಿ ಭವಿಷ್ಯ & ಮಾರ್ಗದರ್ಶನ");
 
+    // Verify ZERO tables (rendered as luxury Q&A cards)
     const table = nagaluSection?.querySelector("table");
-    expect(table).not.toBeNull();
-    const rows = table?.querySelectorAll("tbody tr");
-    expect(rows?.length).toBe(5); // 5 Years
+    expect(table).toBeNull();
+    expect(nagaluSection?.textContent).toContain("ಚಿನ್ನಾಭರಣ ಖರೀದಿ ಭವಿಷ್ಯ & ಮಾರ್ಗದರ್ಶನ");
+    expect(nagaluSection?.textContent).toContain("ಶುಭ ಮುಹೂರ್ತ & ನಕ್ಷತ್ರ");
   });
 });

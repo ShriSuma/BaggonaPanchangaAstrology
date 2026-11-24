@@ -708,31 +708,53 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 </span>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-amber-700/40 bg-white/70 shadow-xs">
-                <table className="w-full text-xs font-serif border-collapse">
-                  <thead>
-                    <tr className="bg-amber-200/80 text-amber-950 border-b border-amber-700/40 text-left font-bold">
-                      <th className="p-2.5 pl-3">{isKn ? "ಗ್ರಹ" : isMr ? "ग्रह" : isHi ? "ग्रह" : isTe ? "గ్రహం" : isTa ? "கிரகம்" : "Graha"}</th>
-                      <th className="p-2.5">{isKn ? "ಸ್ಪಷ್ಟಾಂಶ (ಅಂಶ)" : isMr ? "अंश (स्पष्ट)" : isHi ? "अंश (डिग्री)" : isTe ? "అంశలు" : isTa ? "பாகை" : "Degree"}</th>
-                      <th className="p-2.5">{isKn ? "ರಾಶಿ" : isMr ? "राशी" : isHi ? "राशि" : isTe ? "రాశి" : isTa ? "ராசி" : "Rashi"}</th>
-                      <th className="p-2.5">{isKn ? "ಭಾವ (ಸ್ಥಾನ)" : isMr ? "भाव" : isHi ? "भाव" : isTe ? "భావం" : isTa ? "பாவம்" : "House"}</th>
-                      <th className="p-2.5">{isKn ? "ನಕ್ಷತ್ರ & ಪಾದ" : isMr ? "नक्षत्र व चरण" : isHi ? "नक्षत्र एवं पाद" : isTe ? "నక్షత్రం & పాదం" : isTa ? "நட்சத்திரம் & பாதம்" : "Nakshatra & Pada"}</th>
-                      <th className="p-2.5 pr-3">{isKn ? "ಅವಸ್ಥೆ & ಬಲ" : isMr ? "अवस्था व बल" : isHi ? "अवस्था एवं बल" : isTe ? "అవస్థ & బలం" : isTa ? "அவஸ்தை & பலம்" : "Dignity"}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-amber-700/20 text-amber-950">
-                    {data.planetaryCalculations.map((p, pIdx) => (
-                      <tr key={p.planetName || pIdx} className={pIdx % 2 === 0 ? "bg-amber-50/40" : "bg-white/50"}>
-                        <td className="p-2 pl-3 font-black text-amber-900">{p.localizedName}</td>
-                        <td className="p-2 font-mono font-bold">{p.degreeFormatted}</td>
-                        <td className="p-2 font-bold">{p.localizedRashi}</td>
-                        <td className="p-2 font-bold">{formatNumber6L(p.house, lang)} {isKn ? "ನೇ ಭಾವ" : isMr ? "वे भाव" : isHi ? "वें भाव" : "H"}</td>
-                        <td className="p-2">{p.nakshatra}</td>
-                        <td className="p-2 pr-3 font-semibold text-amber-900">{p.dignity}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* ── Natal 9-Graha Sphuta & Bhava Dignities: Q&A + Narrative Cards (Zero Tables) ── */}
+              <div className="space-y-3">
+                <div className="rounded-xl border border-amber-700/30 bg-amber-100/40 p-4 shadow-2xs">
+                  <div className="flex items-center gap-2 mb-1.5 text-amber-900 font-bold text-sm">
+                    <span className="text-amber-800">❖</span>
+                    <span>
+                      {isKn ? "ಪ್ರಶ್ನೆ: ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ನವಗ್ರಹಗಳ ಸ್ಥಿತಿ, ರಾಶಿ ಮತ್ತು ಭಾವ ಬಲ ಹೇಗಿದೆ?"
+                        : isMr ? "प्रश्न: जन्म कुंडलीतील नवग्रहांची स्थिती, राशी व भाव बल कसे आहे?"
+                        : isHi ? "प्रश्न: जन्म कुंडली में नवग्रहों की स्थिति, राशि एवं भाव बल कैसा है?"
+                        : isTe ? "ప్రశ్న: జన్మ కుండలిలో నవగ్రహాల స్థితి, రాశి & భావ బలం ఎలా ఉంది?"
+                        : isTa ? "கேள்வி: ஜாதகத்தில் நவகிரகங்களின் நிலை, ராசி மற்றும் பாவ பலம் எவ்வாறு உள்ளது?"
+                        : "Question: What is the dignitary placement and house strength of natal planets?"}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-amber-950 font-serif">
+                    {isKn ? "ಜಾತಕರ ಜನ್ಮ ಕುಂಡಲಿಯ ನವಗ್ರಹಗಳು ವಿಶಿಷ್ಟ ನಕ್ಷತ್ರ ಮತ್ತು ರಾಶಿಗಳಲ್ಲಿ ಸ್ಥಿತವಾಗಿದ್ದು, ಜೀವನದ ಕರ್ಮ ಪ್ರಭಾವವನ್ನು ನಿರ್ಣಯಿಸುತ್ತವೆ. ಪ್ರತಿಯೊಂದು ಗ್ರಹದ ಸ್ಪಷ್ಟಾಂಶ, ಸ್ಥಾನ ಮತ್ತು ಅವಸ್ಥೆಯ ವಿವರ ಇಲ್ಲಿದೆ:"
+                      : isMr ? "जातकाच्या जन्म पत्रिकेतील नवग्रह विशिष्ट नक्षत्र व राशीत स्थित असून, कर्माचे फळ निर्देशित करतात. ग्रहांची स्थिती खालीलप्रमाणे आहे:"
+                      : isHi ? "जातक की जन्म कुंडली में नवग्रह विशिष्ट नक्षत्र एवं राशियों में स्थित होकर प्रारब्ध फल का निर्धारण करते हैं। ग्रहों का विवरण इस प्रकार है:"
+                      : isTe ? "జాతకంలో నవగ్రహాలు విశిష్ట నక్షత్రాలు మరియు రాశులలో ఉండి జీవిత ఫలితాలను నిర్దేశిస్తాయి. గ్రహాల వివరాలు ఇక్కడ ఉన్నాయి:"
+                      : isTa ? "ஜாதகத்தில் நவகிரகங்கள் குறிப்பிட்ட நட்சத்திரம் மற்றும் ராசியில் அமைந்து பலன்களைத் தருகின்றன. கிரக நிலைகள் பின்வருமாறு:"
+                      : "The natal planetary positions determine the karmic contours of life. Here is the dignitary status and placement of each graha:"}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">
+                  {data.planetaryCalculations.map((p, pIdx) => (
+                    <div key={p.planetName || pIdx} className="rounded-xl border border-amber-700/30 bg-white/70 p-3 shadow-2xs space-y-1">
+                      <div className="flex items-center justify-between gap-1 border-b border-amber-700/20 pb-1">
+                        <span className="font-black text-amber-950 text-sm flex items-center gap-1">
+                          <span className="text-amber-700">✦</span>
+                          {p.localizedName}
+                        </span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                          {p.dignity}
+                        </span>
+                      </div>
+                      <div className="text-xs text-amber-900 font-serif space-y-0.5">
+                        <p className="font-semibold text-amber-950">
+                          {p.localizedRashi} ({p.degreeFormatted}) • {formatNumber6L(p.house, lang)} {isKn ? "ನೇ ಭಾವ" : isMr ? "वे भाव" : isHi ? "वें भाव" : "H"}
+                        </p>
+                        <p className="text-amber-800/80">
+                          {isKn ? "ನಕ್ಷತ್ರ" : isMr ? "नक्षत्र" : isHi ? "नक्षत्र" : "Nakshatra"}: {p.nakshatra}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -795,36 +817,55 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 </div>
               </div>
 
-              {/* 5-Year Year-by-Year Nagalu Timeline Table */}
-              <div className="overflow-x-auto rounded-xl border border-amber-700/40 bg-white/80 shadow-xs">
-                <table className="w-full text-xs font-serif border-collapse">
-                  <thead>
-                    <tr className="bg-amber-200/80 text-amber-950 border-b border-amber-700/40 text-left font-bold">
-                      <th className="p-2.5 pl-3">{isKn ? "ವರ್ಷ & ಸಂವತ್ಸರ" : isMr ? "वर्ष व संवत्सर" : isHi ? "वर्ष एवं संवत्सर" : "Year & Samvatsara"}</th>
-                      <th className="p-2.5">{isKn ? "ನಗನಾಣ್ಯ ಯೋಗ ಬಲ" : isMr ? "सुवर्ण संचय योग" : isHi ? "स्वर्णिम योग" : "Suitability"}</th>
-                      <th className="p-2.5">{isKn ? "ಚಿನ್ನಾಭರಣ ಖರೀದಿ ಭವಿಷ್ಯ & ಮಾರ್ಗದರ್ಶನ" : isMr ? "दागिने खरेदी भविष्य व मार्गदर्शन" : isHi ? "स्वर्ण क्रय फलादेश एवं मार्गदर्शन" : "Gold & Jewelry Forecast"}</th>
-                      <th className="p-2.5 pr-3">{isKn ? "ಶುಭ ಮುಹೂರ್ತ & ನಕ್ಷತ್ರ" : isMr ? "शुभ मुहूर्त व नक्षत्र" : isHi ? "शुभ मुहूर्त एवं नक्षत्र" : "Auspicious Muhurta"}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-amber-700/20 text-amber-950">
-                    {data.nagaluRoadmap.yearlyTimeline.map((yrItem, idx) => (
-                      <tr key={yrItem.yearIndex || idx} className={idx % 2 === 0 ? "bg-amber-50/40" : "bg-white/50"}>
-                        <td className="p-2.5 pl-3 font-bold text-amber-900 whitespace-nowrap">
-                          {yrItem.yearRange}
-                          <span className="block text-[10px] text-amber-700 font-normal">{yrItem.samvatsara}</span>
-                        </td>
-                        <td className="p-2.5 whitespace-nowrap">
-                          <span className="text-amber-600 font-bold">{yrItem.starRating}</span>
-                          <span className="ml-1.5 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900">
-                            {formatNumber6L(yrItem.suitabilityScore, lang)}%
+              {/* 5-Year Year-by-Year Nagalu Timeline - Zero Tables (Warm Q&A + Narrative Cards) */}
+              <div className="space-y-4">
+                <div className="rounded-xl border border-amber-700/30 bg-amber-100/50 p-4 shadow-2xs">
+                  <div className="flex items-center gap-2 mb-1.5 text-amber-900 font-bold text-sm">
+                    <span className="text-amber-800">❖</span>
+                    <span>
+                      {isKn ? "ಚಿನ್ನಾಭರಣ ಖರೀದಿ ಭವಿಷ್ಯ & ಮಾರ್ಗದರ್ಶನ — ಮುಂಬರುವ ೫ ವರ್ಷಗಳಲ್ಲಿ ನಗನಾಣ್ಯ ಖರೀದಿಗೆ ಅತ್ಯಂತ ಶುಭ ಕಾಲ ಯಾವುದು?"
+                        : isMr ? "दागिने खरेदी भविष्य व मार्गदर्शन — पुढील ५ वर्षांत सुवर्ण व दागिने खरेदीसाठी सर्वोत्तम काळ कोणता?"
+                        : isHi ? "स्वर्ण क्रय फलादेश एवं मार्गदर्शन — आगामी ५ वर्षों में स्वर्ण एवं आभूषण क्रय हेतु सर्वश्रेष्ठ काल कौन सा है?"
+                        : isTe ? "బంగారు ఆభరణాల కొనుగోలు మార్గదర్శనం — రాబోయే 5 సంవత్సరాలలో బంగారం మరియు ఆభరణాల కొనుగోలుకు అనుకూల సమయం ఏది?"
+                        : isTa ? "தங்க நகைகள் வாங்கும் வழிகாட்டல் — அடுத்த 5 ஆண்டுகளில் தங்கம் மற்றும் ஆபரணங்கள் வாங்க உகந்த காலம் எது?"
+                        : "Gold & Jewelry Forecast — Which are the most auspicious windows for acquiring gold in the next 5 years?"}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-amber-950 font-serif">
+                    {isKn ? "ಜಾತಕರ ೨ನೇ ಧನಭಾವ ಹಾಗೂ ಗುರು-ಶುಕ್ರರ ಶುಭ ಗೋಚಾರದ ಆಧಾರದ ಮೇಲೆ ಪ್ರತಿ ವರ್ಷದ ಸುವರ್ಣ ಯೋಗ ಬಲ ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತಗಳನ್ನು ನಿಖರವಾಗಿ ವಿಶ್ಲೇಷಿಸಲಾಗಿದೆ:"
+                      : isMr ? "द्वितीय धनभाव व गुरु-शुक्राच्या शुभ गोचरावर आधारित प्रत्येक वर्षातील सुवर्ण योग व शुभ मुहूर्त खालीलप्रमाणे आहेत:"
+                      : isHi ? "द्वितीय धन भाव एवं गुरु-शुक्र के शुभ गोचर के आधार पर प्रतिवर्ष स्वर्णिम योग एवं शुभ मुहूर्त का विश्लेषण:"
+                      : isTe ? "ద్వితీయ ధనభావం మరియు గురు-శుక్రుల గోచార బలం ఆధారంగా ప్రతి సంవత్సరం బంగారు ఆభరణాల యోగం:"
+                      : isTa ? "2ம் இடம் மற்றும் குரு-சுக்கிரன் பலத்தின் அடிப்படையில் 5 ஆண்டுகளுக்கான தங்க நகைகள் வாங்கும் யோகம்:"
+                      : "Based on the 2nd house of wealth and Jupiter-Venus transits, here is the year-by-year jewelry and gold acquisition outlook:"}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {data.nagaluRoadmap.yearlyTimeline.map((yrItem, idx) => (
+                    <div key={yrItem.yearIndex || idx} className="rounded-xl border border-amber-700/30 bg-white/85 p-4 shadow-xs space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-700/20 pb-2">
+                        <div>
+                          <span className="text-sm font-black text-amber-950">{yrItem.yearRange}</span>
+                          <span className="ml-2 text-xs text-amber-800 font-semibold">({yrItem.samvatsara})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-amber-600 font-bold text-sm">{yrItem.starRating}</span>
+                          <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900">
+                            {formatNumber6L(yrItem.suitabilityScore, lang)}% {isKn ? "ಯೋಗ ಬಲ" : "Score"}
                           </span>
-                        </td>
-                        <td className="p-2.5 leading-relaxed">{yrItem.prediction}</td>
-                        <td className="p-2.5 pr-3 font-semibold text-amber-900 whitespace-nowrap">{yrItem.auspiciousMuhurta}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+                      <p className="text-sm text-amber-950 font-serif leading-relaxed">
+                        {yrItem.prediction}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 bg-amber-50/80 px-3 py-1.5 rounded-lg border border-amber-200">
+                        <span className="text-amber-700">✨</span>
+                        <span>{isKn ? "ಶುಭ ಮುಹೂರ್ತ & ನಕ್ಷತ್ರ" : isMr ? "शुभ मुहूर्त व नक्षत्र" : isHi ? "शुभ मुहूर्त एवं नक्षत्र" : "Auspicious Muhurta"}: {yrItem.auspiciousMuhurta}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -994,43 +1035,52 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 {t("milestoneMatrixSubtitle")}
               </p>
 
-              <div className="border border-amber-700/40 rounded-xl overflow-hidden bg-white shadow-xs">
-                <table className="w-full text-left text-xs border-collapse font-serif">
-                  <thead>
-                    <tr className="bg-amber-900 text-amber-100 text-xs uppercase tracking-wider font-bold">
-                      <th className="p-3 border-r border-amber-800/60 w-[24%]">{t("colDimension")}</th>
-                      <th className="p-3 border-r border-amber-800/60 w-[18%]">{t("colWindow")}</th>
-                      <th className="p-3 border-r border-amber-800/60 w-[20%]">{t("colCatalyst")}</th>
-                      <th className="p-3 border-r border-amber-800/60 w-[12%] text-center">{t("colProbability")}</th>
-                      <th className="p-3 w-[26%]">{t("colAdvice")}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-amber-200">
-                    {data.milestoneMatrix.map((m, mIdx) => (
-                      <tr key={`milestone-${m.id || mIdx}`} className={mIdx % 2 === 0 ? "bg-amber-50/40" : "bg-white"}>
-                        <td className="p-3 font-black text-amber-950 border-r border-amber-200 text-sm">
-                          {m.dimensionTitle}
-                        </td>
-                        <td className="p-3 font-bold text-amber-900 border-r border-amber-200">
-                          <span className="bg-amber-100/90 px-2 py-0.5 rounded border border-amber-300">
+              {/* Milestone Narrative Cards - Zero Tables */}
+              <div className="space-y-4">
+                <div className="rounded-xl border border-amber-700/30 bg-amber-100/50 p-4 shadow-2xs">
+                  <div className="flex items-center gap-2 mb-1.5 text-amber-900 font-bold text-sm">
+                    <span className="text-amber-800">❖</span>
+                    <span>
+                      {isKn ? "ಪ್ರಶ್ನೆ: ಮುಂದಿನ ೫ ವರ್ಷಗಳಲ್ಲಿ ನನ್ನ ಜೀವನದ ಪ್ರಮುಖ ತಿರುವುಗಳು ಹಾಗೂ ಮೈಲಿಗಲ್ಲುಗಳು ಯಾವಾಗ ಸಂಭವಿಸಲಿವೆ?"
+                        : isMr ? "प्रश्न: पुढील ५ वर्षांत माझ्या आयुष्यातील महत्त्वाचे टप्पे व यश कधी घडणार?"
+                        : isHi ? "प्रश्न: आगामी ५ वर्षों में मेरे जीवन के महत्वपूर्ण मोड़ एवं उपलब्धियां कब घटित होंगी?"
+                        : isTe ? "ప్రశ్న: రాబోయే 5 సంవత్సరాలలో నా జీవితంలో ముఖ్యమైన మైలురాళ్లు ఎప్పుడు సాధ్యమవుతాయి?"
+                        : isTa ? "கேள்வி: அடுத்த 5 ஆண்டுகளில் என் வாழ்க்கையின் முக்கிய மைல்கற்கள் எப்போது நிகழும்?"
+                        : "Question: When will the major life breakthroughs and milestones occur across the next 5 years?"}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-amber-950 font-serif">
+                    {t("milestoneMatrixSubtitle")}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {data.milestoneMatrix.map((m, mIdx) => (
+                    <div key={`milestone-${m.id || mIdx}`} className="rounded-xl border border-amber-700/30 bg-white/90 p-4 shadow-xs space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-700/20 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-amber-700 text-base">✦</span>
+                          <span className="font-black text-amber-950 text-base font-serif">{m.dimensionTitle}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="bg-amber-100 text-amber-900 text-xs font-black px-2.5 py-1 rounded-md border border-amber-300">
                             {m.timingWindow}
                           </span>
-                        </td>
-                        <td className="p-3 text-amber-900 border-r border-amber-200 leading-snug">
-                          {m.planetaryCatalyst}
-                        </td>
-                        <td className="p-3 text-center border-r border-amber-200">
-                          <span className="font-black px-2.5 py-0.5 rounded-full bg-amber-100/80 text-amber-950 border border-amber-300">
+                          <span className="bg-amber-800/10 text-amber-950 text-xs font-black px-2.5 py-1 rounded-full border border-amber-700/30">
                             {m.probabilityScore}
                           </span>
-                        </td>
-                        <td className="p-3 text-amber-950 leading-relaxed">
-                          {m.actionAdvice}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+                      <div className="text-xs text-amber-800 font-medium">
+                        <span className="font-bold text-amber-950">{isKn ? "ಗ್ರಹ ಪ್ರೇರಕ" : "Planetary Catalyst"}: </span>
+                        {m.planetaryCatalyst}
+                      </div>
+                      <p className="text-sm text-amber-950 font-serif leading-relaxed">
+                        {m.actionAdvice}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -1171,41 +1221,60 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   </h4>
                 </div>
 
-                <div className="border border-amber-700/40 rounded-xl overflow-hidden bg-white shadow-2xs">
-                  <table className="w-full text-left text-xs border-collapse font-serif">
-                    <thead>
-                      <tr className="bg-amber-900 text-amber-100 text-xs uppercase tracking-wider font-bold">
-                        <th className="p-3 border-r border-amber-800/60 w-[20%]">{isKn ? "ದೋಷ ನಾಮ" : isMr ? "दोषाचे नाव" : isHi ? "दोष नाम" : "Dosha"}</th>
-                        <th className="p-3 border-r border-amber-800/60 w-[16%] text-center">{isKn ? "ತೀವ್ರತೆ / ಸ್ಥಿತಿ" : isMr ? "तीव्रता / स्थिती" : isHi ? "तीव्रता / स्थिति" : "Severity"}</th>
-                        <th className="p-3 border-r border-amber-800/60 w-[34%]">{isKn ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಪ್ರಭಾವ" : isMr ? "पुढील ५ वर्षांतील प्रभाव" : isHi ? "आगामी ५ वर्षों में प्रभाव" : "5-Year Impact"}</th>
-                        <th className="p-3 w-[30%]">{isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ಗೋಕರ್ಣ ಸೇವೆ & ಮಂತ್ರ" : isMr ? "गोकर्ण शांती सेवा व मंत्र" : isHi ? "गोकर्ण शांति सेवा एवं मंत्र" : "Gokarna Seva & Mantra"}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-amber-200 text-xs">
-                      {data.doshaAnalysis.detectedDoshas.map((item, dIdx) => (
-                        <tr key={`dosha-${item.id || dIdx}`} className={dIdx % 2 === 0 ? "bg-amber-50/40" : "bg-white"}>
-                          <td className="p-3 font-black text-amber-950 border-r border-amber-200 text-sm">
-                            {item.name}
-                          </td>
-                          <td className="p-3 text-center border-r border-amber-200">
-                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] ${item.severity === "critical" || item.severity === "high"
-                              ? "bg-amber-200/90 text-amber-950 border border-amber-400 font-black shadow-2xs"
-                              : "bg-amber-100/70 text-amber-900 border border-amber-300 font-bold"
-                              }`}>
-                              {item.severityBadge}
-                            </span>
-                          </td>
-                          <td className="p-3 text-amber-950 border-r border-amber-200 leading-relaxed font-serif">
-                            {item.manifestationIn5Years}
-                          </td>
-                          <td className="p-3 text-amber-900 leading-relaxed font-serif space-y-1">
-                            <p className="font-bold text-amber-950">{item.pariharaGokarna}</p>
-                            <p className="text-[11px] text-amber-800 font-mono italic">🕉️ {item.mantra}</p>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Dosha Narrative Cards - Zero Tables */}
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-amber-700/30 bg-amber-100/50 p-4 shadow-2xs">
+                    <div className="flex items-center gap-2 mb-1.5 text-amber-900 font-bold text-sm">
+                      <span className="text-amber-800">❖</span>
+                      <span>
+                        {isKn ? "ಪ್ರಶ್ನೆ: ಈ ದೋಷಗಳು ೫ ವರ್ಷಗಳಲ್ಲಿ ಯಾವ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಡೆತಡೆ ಉಂಟುಮಾಡುತ್ತವೆ ಹಾಗೂ ಪರಿಹಾರವೇನು?"
+                          : isMr ? "प्रश्न: हे दोष पुढील ५ वर्षांत कोणत्या क्षेत्रात अडथळे आणतील व उपाय काय?"
+                          : isHi ? "प्रश्न: ये दोष आगामी ५ वर्षों में किस क्षेत्र में बाधा उत्पन्न करेंगे एवं इनका उपाय क्या है?"
+                          : isTe ? "ప్రశ్న: ఈ దోషాలు 5 సంవత్సరాలలో ఏ రంగంలో ఆటంకాలు కలిగిస్తాయి & పరిహారం ఏమిటి?"
+                          : isTa ? "கேள்வி: இந்த தோஷங்கள் 5 ஆண்டுகளில் எங்கு தடையை உருவாக்கும் மற்றும் சாந்தி பரிகாரம் என்ன?"
+                          : "Question: How will these doshas manifest obstruction over the next 5 years, and what is the Vedic remedy?"}
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-amber-950 font-serif">
+                      {isKn ? "ಪ್ರತಿಯೊಂದು ದೋಷದ ತೀವ್ರತೆ, ಮುಂಬರುವ ೫ ವರ್ಷಗಳಲ್ಲಿ ಅದರ ಪರಿಣಾಮ ಹಾಗೂ ಗೋಕರ್ಣ ಸನ್ನಿಧಾನದ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ:"
+                        : isMr ? "प्रत्येक दोषाची तीव्रता, पुढील ५ वर्षांतील परिणाम व गोकर्ण शांती विधान:"
+                        : isHi ? "प्रत्येक दोष की तीव्रता, आगामी ५ वर्षों में उसका प्रभाव एवं गोकर्ण शांति विधान:"
+                        : isTe ? "ప్రతి దోషం యొక్క తీవ్రత, రాబోయే 5 సంవత్సరాలలో ప్రభావం & గోకర్ణ శాంతి పూజ:"
+                        : isTa ? "ஒவ்வொரு தோஷத்தின் தீவிரம், 5 ஆண்டு தாக்கம் மற்றும் கோகர்ண சாந்தி சேவை:"
+                        : "Detailed severity, 5-year manifestation, and consecrated Gokarna parihara for each detected dosha:"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {data.doshaAnalysis.detectedDoshas.map((item, dIdx) => (
+                      <div key={`dosha-${item.id || dIdx}`} className="rounded-xl border border-amber-700/30 bg-white/90 p-4 shadow-xs space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-700/20 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-700 text-base">⚠️</span>
+                            <span className="font-black text-amber-950 text-base font-serif">{item.name}</span>
+                          </div>
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs ${item.severity === "critical" || item.severity === "high"
+                            ? "bg-amber-200/90 text-amber-950 border border-amber-400 font-black shadow-2xs"
+                            : "bg-amber-100/70 text-amber-900 border border-amber-300 font-bold"
+                            }`}>
+                            {item.severityBadge}
+                          </span>
+                        </div>
+                        <div className="text-sm text-amber-950 font-serif leading-relaxed">
+                          <span className="font-bold text-amber-900">{isKn ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಪ್ರಭಾವ: " : isMr ? "पुढील ५ वर्षांतील प्रभाव: " : isHi ? "आगामी ५ वर्षों में प्रभाव: " : "5-Year Impact: "}</span>
+                          {item.manifestationIn5Years}
+                        </div>
+                        <div className="rounded-lg bg-amber-50/80 p-2.5 border border-amber-200 text-xs font-serif space-y-1">
+                          <p className="font-bold text-amber-950">
+                            🏛️ {isKn ? "ಗೋಕರ್ಣ ಶಾಂತಿ ಸೇವೆ: " : isMr ? "गोकर्ण शांती सेवा: " : isHi ? "गोकर्ण शांति सेवा: " : "Gokarna Seva: "}{item.pariharaGokarna}
+                          </p>
+                          <p className="text-[11px] text-amber-800 font-mono italic">
+                            🕉️ {item.mantra}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -1619,27 +1688,42 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   </h4>
                 </div>
 
-                <div className="border border-amber-700/40 rounded-xl overflow-hidden bg-white shadow-2xs">
-                  <table className="w-full text-left text-xs border-collapse font-serif">
-                    <thead>
-                      <tr className="bg-amber-900 text-amber-100 text-xs uppercase tracking-wider font-bold">
-                        <th className="p-3 border-r border-amber-800/60 w-[18%]">{isKn ? "ವರ್ಷಾವಧಿ" : isMr ? "कालावधी" : isHi ? "कालावधि" : "Year"}</th>
-                        <th className="p-3 border-r border-amber-800/60 w-[24%]">{isMinor ? (isKn ? "ಶೈಕ್ಷಣಿಕ/ಬಾಲ ನಿಧಿ ನಿಲುವು" : isMr ? "शैक्षणिक निधी स्थिती" : isHi ? "शैक्षणिक कोष स्थिति" : isTe ? "విద్యా నిధి స్థితి" : isTa ? "கல்வி நிதி நிலை" : "Educational Fund Stance") : (isKn ? "ಆರ್ಥಿಕ ನಿಲುವು" : isMr ? "आर्थिक स्थिती" : isHi ? "आर्थिक स्थिति" : "Stance")}</th>
-                        <th className="p-3 border-r border-amber-800/60 w-[30%]">{isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ಕ್ರಮ" : isMr ? "प्रमुख कृती" : isHi ? "प्रमुख कार्य" : "Key Action"}</th>
-                        <th className="p-3 w-[28%]">{isKn ? "ಅನುಕೂಲಕರ ವಲಯಗಳು" : isMr ? "अनुकूल क्षेत्रे" : isHi ? "अनुकूल क्षेत्र" : "Sectors"}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-amber-200 text-xs">
-                      {data.financialRoadmap.map((row, rIdx) => (
-                        <tr key={`fin-${rIdx}`} className={rIdx % 2 === 0 ? "bg-amber-50/40" : "bg-white"}>
-                          <td className="p-3 font-black text-amber-950 border-r border-amber-200">{row.yearRange}</td>
-                          <td className="p-3 font-bold text-amber-900 border-r border-amber-200">{row.financialStance}</td>
-                          <td className="p-3 text-amber-950 border-r border-amber-200 leading-snug">{row.keyAction}</td>
-                          <td className="p-3 font-bold text-amber-900">{row.targetSectors}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Financial Roadmap Narrative Cards - Zero Tables */}
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-amber-700/30 bg-amber-100/50 p-4 shadow-2xs">
+                    <div className="flex items-center gap-2 mb-1.5 text-amber-900 font-bold text-sm">
+                      <span className="text-amber-800">❖</span>
+                      <span>
+                        {isKn ? "ಪ್ರಶ್ನೆ: ೫ ವರ್ಷಗಳ ಅವಧಿಯಲ್ಲಿ ಧನಲಾಭ, ಹೂಡಿಕೆ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯ ನಿಖರ ಮಾರ್ಗಸೂಚಿ ಯಾವುದು?"
+                          : isMr ? "प्रश्न: ५ वर्षांत धनलाभ, गुंतवणूक व आर्थिक स्थिरतेचा अचूक मार्ग कोणता?"
+                          : isHi ? "प्रश्न: ५ वर्षों की अवधि में धनलाभ, निवेश एवं वित्तीय स्थिरता का स्पष्ट मार्ग क्या है?"
+                          : isTe ? "ప్రశ్న: 5 సంవత్సరాల కాలంలో ధనలాభం, పెట్టుబడులు & ఆర్థిక స్థిరత్వం ఎలా ఉంటాయి?"
+                          : isTa ? "கேள்வி: 5 ஆண்டுகளில் பணவரவு, சேமிப்பு மற்றும் நிதி நிலைத்தன்மைக்கான வழிகாட்டல் என்ன?"
+                          : "Question: What is the roadmap for wealth accumulation, investments, and financial security over 5 years?"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {data.financialRoadmap.map((row, rIdx) => (
+                      <div key={`fin-${rIdx}`} className="rounded-xl border border-amber-700/30 bg-white/90 p-4 shadow-xs space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-700/20 pb-2">
+                          <span className="text-sm font-black text-amber-950">{row.yearRange}</span>
+                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                            {row.financialStance}
+                          </span>
+                        </div>
+                        <p className="text-sm text-amber-950 font-serif leading-relaxed">
+                          <span className="font-bold text-amber-900">{isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ಕ್ರಮ: " : "Recommended Action: "}</span>
+                          {row.keyAction}
+                        </p>
+                        <div className="text-xs text-amber-800 bg-amber-50/70 p-2 rounded-lg border border-amber-200">
+                          <span className="font-bold text-amber-950">{isKn ? "ಅನುಕೂಲಕರ ವಲಯಗಳು: " : "Favorable Sectors: "}</span>
+                          {row.targetSectors}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -1769,27 +1853,42 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   <span>🔱</span>
                   <span>{isKn ? "೫ ವರ್ಷಗಳ ನಿರ್ದಿಷ್ಟ ಗೋಕರ್ಣ ಪರಿಹಾರಗಳ ಕಾರ್ಯಕ್ರಮ" : isMr ? "५ वर्षांचे विशिष्ट गोकर्ण उपाय व सेवा" : isHi ? "५-वर्षीय विशिष्ट गोकर्ण परिहार एवं सेवा" : "Year-Specific Gokarna Shanti Remedies"}</span>
                 </span>
-                <div className="border border-amber-700/40 rounded-xl overflow-hidden bg-white shadow-2xs">
-                  <table className="w-full text-left text-xs border-collapse font-serif">
-                    <thead>
-                      <tr className="bg-amber-900 text-amber-100 text-xs uppercase tracking-wider font-bold">
-                        <th className="p-2.5 border-r border-amber-800/60 w-[18%]">{isKn ? "ವರ್ಷಾವಧಿ" : isMr ? "कालावधी" : isHi ? "कालावधि" : "Year"}</th>
-                        <th className="p-2.5 border-r border-amber-800/60 w-[28%]">{isKn ? "ಗ್ರಹ ಪ್ರಭಾವ / ಸವಾಲು" : isMr ? "ग्रह प्रभाव / आव्हान" : isHi ? "ग्रह प्रभाव / चुनौती" : "Transit Challenge"}</th>
-                        <th className="p-2.5 border-r border-amber-800/60 w-[34%]">{isKn ? "ಗೋಕರ್ಣ ಸೇವಾ ಸಂಕಲ್ಪ" : isMr ? "गोकर्ण सेवा संकल्प" : isHi ? "गोकर्ण सेवा संकल्प" : "Gokarna Seva"}</th>
-                        <th className="p-2.5 w-[20%]">{isKn ? "ಮಂತ್ರ" : isMr ? "मंत्र" : isHi ? "मंत्र" : "Mantra"}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-amber-200">
-                      {data.yearSpecificRemedies.map((yrRem, yrIdx) => (
-                        <tr key={`rem-${yrIdx}`} className={yrIdx % 2 === 0 ? "bg-amber-50/40" : "bg-white"}>
-                          <td className="p-2.5 font-black text-amber-950 border-r border-amber-200">{yrRem.gregorianRange}</td>
-                          <td className="p-2.5 font-bold text-amber-900 border-r border-amber-200">{yrRem.transitChallenge}</td>
-                          <td className="p-2.5 text-amber-950 border-r border-amber-200 leading-snug">{yrRem.gokarnaSeva}</td>
-                          <td className="p-2.5 text-amber-950 font-bold">{yrRem.mantra}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Year-Specific Gokarna Remedies Narrative Cards - Zero Tables */}
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-amber-700/30 bg-amber-100/50 p-4 shadow-2xs">
+                    <div className="flex items-center gap-2 mb-1.5 text-amber-900 font-bold text-sm">
+                      <span className="text-amber-800">❖</span>
+                      <span>
+                        {isKn ? "ಪ್ರಶ್ನೆ: ಪ್ರತಿ ವರ್ಷ ಎದುರಾಗುವ ಗ್ರಹ ದೋಷಗಳಿಗೆ ಗೋಕರ್ಣ ಸನ್ನಿಧಾನದ ನಿರ್ದಿಷ್ಟ ಸೇವೆಗಳಾವುವು?"
+                          : isMr ? "प्रश्न: प्रत्येक वर्षी ग्रह दोषांवर मात करण्यासाठी गोकर्ण क्षेत्रातील विशिष्ट सेवा कोणत्या?"
+                          : isHi ? "प्रश्न: प्रतिवर्ष ग्रह जनित बाधाओं के निवारण हेतु गोकर्ण क्षेत्र की विशिष्ट सेवाएं कौन सी हैं?"
+                          : isTe ? "ప్రశ్న: ప్రతి సంవత్సరం గ్రహ దోషాల నివారణకు గోకర్ణ క్షేత్రంలో చేయించాల్సిన సేవలు ఏమిటి?"
+                          : isTa ? "கேள்வி: ஆண்டுதோறும் ஏற்படும் கிரக தோஷங்களை நீக்க கோகர்ண க்ஷேத்திரத்தில் செய்ய வேண்டிய சேவைகள் யாவை?"
+                          : "Question: What are the specific annual Gokarna temple services and mantras to counteract transit challenges?"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {data.yearSpecificRemedies.map((yrRem, yrIdx) => (
+                      <div key={`rem-${yrIdx}`} className="rounded-xl border border-amber-700/30 bg-white/90 p-4 shadow-xs space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-700/20 pb-2">
+                          <span className="text-sm font-black text-amber-950">{yrRem.gregorianRange}</span>
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                            {yrRem.transitChallenge}
+                          </span>
+                        </div>
+                        <p className="text-sm text-amber-950 font-serif leading-relaxed">
+                          <span className="font-bold text-amber-900">🏛️ {isKn ? "ಗೋಕರ್ಣ ಸೇವಾ ಸಂಕಲ್ಪ: " : "Gokarna Seva: "}</span>
+                          {yrRem.gokarnaSeva}
+                        </p>
+                        <div className="text-xs font-bold text-amber-900 bg-amber-50/70 p-2 rounded-lg border border-amber-200">
+                          <span>📿 {isKn ? "ದೈನಂದಿನ ಮಂತ್ರ: " : "Daily Mantra: "}</span>
+                          <span className="text-amber-950">{yrRem.mantra}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

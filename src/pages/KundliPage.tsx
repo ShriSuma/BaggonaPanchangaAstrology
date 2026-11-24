@@ -16,6 +16,9 @@ import { translateText } from "../utils/translator";
 import JSZip from "jszip";
 import { prepareBhavishyaV1Data, captureBhavishyaV1Pdf, type BhavishyaV1Payload } from "../features/premiumPdf/bhavishyaV1Service";
 import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
+import { prepareSampoornaMaster25Data, captureSampoornaMaster25Pdf, type SampoornaMaster25Payload } from "../services/sampoornaMaster25Service";
+import { SampoornaMaster25PdfTemplate } from "../components/sampoornaMaster25/SampoornaMaster25PdfTemplate";
+import { type SixLang } from "../features/fiveYearPrediction/fiveYearLocale";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "../core/birthTime";
 import { GRAHA_L5, RASHI_L5, pick, type GrahaKey } from "../features/premiumPdf/premiumPdfLocale";
@@ -23,6 +26,26 @@ import {
   buildPersonalizedMarriageText,
   buildPersonalizedChildrenText
 } from "../components/RamanBhavishya/BhavishyaView";
+
+const getMaster25ButtonLabel = (lang?: string) => {
+  const l = (lang || "kn").toLowerCase();
+  if (l.startsWith("kn")) return "ಸಂಪೂರ್ಣ ೨೫-ಅಧ್ಯಾಯಗಳ ಮಹಾ ವರದಿ (ವರ್ತಮಾನ + ಮುಂದಿನ ೫ ವರ್ಷಗಳು)";
+  if (l.startsWith("hi")) return "संपूर्ण २५-अध्यायों की महा रिपोर्ट (वर्तमान + आगामी ५ वर्ष)";
+  if (l.startsWith("mr")) return "संपूर्ण २५-अध्यायांचा महा अहवाल (वर्तमान + पुढील ५ वर्षे)";
+  if (l.startsWith("te")) return "సంపూర్ణ 25-అధ్యాయాల మహా నివేదిక (వర్తమానం + రాబోయే 5 సంవత్సరాలు)";
+  if (l.startsWith("ta")) return "முழுமையான 25-அத்தியாயங்கள் மகா அறிக்கை (தற்போது + அடுத்த 5 ஆண்டுகள்)";
+  return "Download Complete 25-Chapter Master Report (Present + Next 5 Years)";
+};
+
+const getMaster25ButtonSub = (lang?: string) => {
+  const l = (lang || "kn").toLowerCase();
+  if (l.startsWith("kn")) return "ವರ್ತಮಾನ ಗೋಚಾರ • ಬೃಗು ಬಿಂದು • ೫ ವರ್ಷಗಳ ಸಚಿತ್ರ ಭವಿಷ್ಯ • ಗೋಕರ್ಣ ರಕ್ಷಾ ಕವಚ";
+  if (l.startsWith("hi")) return "वर्तमान गोचर • भृगु बिंदु • ५ वर्षों का विस्तृत भविष्यफल • गोकर्ण रक्षा कवच";
+  if (l.startsWith("mr")) return "वर्तमान गोचर • भृगु बिंदू • ५ वर्षांचे सविस्तर भविष्य • गोकर्ण रक्षा कवच";
+  if (l.startsWith("te")) return "ప్రస్తుత గోచారం • భృగు బిందు • 5 సంవత్సరాల భవిష్యత్ దర్శనం • గోకర్ణ రక్షా కవచం";
+  if (l.startsWith("ta")) return "தற்போதைய கோச்சாரம் • பிருகு பிந்து • 5 ஆண்டு விரிவான எதிர்காலம் • கோகர்ண ஆசி";
+  return "Current Transits • Bhrigu Bindu • 5-Year Future Horizon • Sri Kshetra Gokarna Blessing";
+};
 
 const toGrahaKey = (planet: any): GrahaKey => String(planet) as GrahaKey;
 import type { KundliViewerSession } from "../stores/kundliViewerStore";
@@ -161,6 +184,11 @@ export default function KundliPage(): JSX.Element {
   const [qrCardDataUrl, setQrCardDataUrl] = useState<string>("");
   const [premiumBhavishyaPayload, setPremiumBhavishyaPayload] = useState<BhavishyaV1Payload | null>(null);
   const premiumBhavishyaPdfRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingMaster25Pdf, setIsGeneratingMaster25Pdf] = useState(false);
+  const [master25Progress, setMaster25Progress] = useState(0);
+  const [master25ProgressMsg, setMaster25ProgressMsg] = useState("");
+  const [master25Payload, setMaster25Payload] = useState<SampoornaMaster25Payload | null>(null);
+  const master25PdfRef = useRef<HTMLDivElement>(null);
 
   // Lock body scroll and listen for Escape key when modals are open
   useEffect(() => {
@@ -1442,6 +1470,74 @@ export default function KundliPage(): JSX.Element {
 
   const handlePremiumDownload = handleOpenPackageSelection;
 
+  const handleDownloadMaster25Pdf = async () => {
+    if (!effectiveSession) {
+      alert("Kundli session not available. Please calculate Kundli first.");
+      return;
+    }
+    try {
+      setIsGeneratingMaster25Pdf(true);
+      setMaster25Progress(10);
+      const rawLang = ((pdfLanguage || i18n.language || "kn").slice(0, 2)).toLowerCase();
+      const validLang: SixLang = (["kn", "hi", "mr", "te", "ta", "en"].includes(rawLang) ? rawLang : "kn") as SixLang;
+
+      setMaster25ProgressMsg(
+        validLang === "kn"
+          ? "೧/೪ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಜಾತಕ ಗಣಿತ ಪರಿಶೀಲನೆ..."
+          : validLang === "hi"
+          ? "१/४ जन्म कुंडली एवं गणितीय सत्यापन..."
+          : validLang === "mr"
+          ? "१/४ जन्म कुंडली व गणितीय पडताळणी..."
+          : validLang === "te"
+          ? "1/4 జన్మ కుండలి మరియు గణిత పరిశీలన..."
+          : validLang === "ta"
+          ? "1/4 ஜாதக கணித சரிபார்ப்பு..."
+          : "1/4 Verifying natal astronomical mathematics..."
+      );
+
+      const payload = await prepareSampoornaMaster25Data(effectiveSession, validLang, {
+        onProgress: (pct, msg) => {
+          setMaster25Progress(pct);
+          setMaster25ProgressMsg(msg);
+        }
+      });
+
+      setMaster25Payload(payload);
+      setMaster25Progress(70);
+      await new Promise((r) => setTimeout(r, 600));
+
+      if (!master25PdfRef.current) {
+        throw new Error("Master 25 PDF template container not found");
+      }
+
+      const rawDevoteeName = (form.name || "jataka").toLowerCase().replace(/[^a-z0-9]/g, "-");
+      const fileName = `baggona-sampoorna-25-master-report-${rawDevoteeName || "jataka"}.pdf`;
+
+      await captureSampoornaMaster25Pdf(master25PdfRef.current, fileName, true, {
+        lang: validLang,
+        payload,
+        onProgress: (pct, msg) => {
+          setMaster25Progress(70 + Math.floor((pct / 100) * 30));
+          setMaster25ProgressMsg(msg);
+        }
+      });
+
+      setMaster25Progress(100);
+      setMaster25ProgressMsg(
+        validLang === "kn"
+          ? "🎉 ಸಂಪೂರ್ಣ ೨೫-ಅಧ್ಯಾಯಗಳ ಮಹಾ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಪೂರ್ಣಗೊಂಡಿದೆ!"
+          : validLang === "hi"
+          ? "🎉 संपूर्ण २५-अध्यायों की महा रिपोर्ट डाउनलोड पूर्ण!"
+          : "🎉 25-Chapter Sampoorna Master Report Ready!"
+      );
+    } catch (err: any) {
+      console.error("Failed to generate 25-Chapter Sampoorna Master Report PDF:", err);
+      alert(err?.message || "Failed to generate 25-Chapter Sampoorna Master Report PDF. Please try again.");
+    } finally {
+      setIsGeneratingMaster25Pdf(false);
+    }
+  };
+
   const narrativeUrlConfigured = Boolean(import.meta.env.VITE_NARRATIVE_API_URL);
   const narrativeReady = narrativeConsent && narrativeUrlConfigured;
 
@@ -2361,6 +2457,34 @@ export default function KundliPage(): JSX.Element {
                     </button>
                   </div>
 
+                  {/* Complete 25-Chapter Master Report Gold Premium Download Button */}
+                  <button
+                    type="button"
+                    disabled={isGeneratingMaster25Pdf || isGeneratingPremiumBundle || isTranslating || isGeneratingDashaPdf}
+                    className={`w-full rounded-2xl bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700 hover:from-amber-500 hover:via-yellow-400 hover:to-amber-600 px-6 py-4 text-amber-950 font-extrabold text-base tracking-wide shadow-2xl hover:shadow-yellow-500/40 hover:scale-[1.01] active:scale-[0.99] transition-all flex flex-col items-center justify-center gap-1.5 border-2 border-yellow-300 ${
+                      (isGeneratingMaster25Pdf || isGeneratingPremiumBundle || isTranslating || isGeneratingDashaPdf) ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+                    }`}
+                    onClick={handleDownloadMaster25Pdf}
+                  >
+                    <div className="flex items-center gap-2 text-base md:text-lg font-black text-amber-950">
+                      {isGeneratingMaster25Pdf ? (
+                        <div className="w-5 h-5 border-2 border-amber-950 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <span className="text-2xl">🔱</span>
+                      )}
+                      <span>
+                        {isGeneratingMaster25Pdf
+                          ? `${master25Progress}% ${pdfLanguage === "kn" ? "ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : pdfLanguage === "hi" ? "तैयार हो रहा है..." : "Generating..."}`
+                          : getMaster25ButtonLabel(pdfLanguage || i18n.language)}
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-amber-900 tracking-normal text-center">
+                      {isGeneratingMaster25Pdf && master25ProgressMsg
+                        ? master25ProgressMsg
+                        : getMaster25ButtonSub(pdfLanguage || i18n.language)}
+                    </span>
+                  </button>
+
                   {/* Single Janana Kundali Download Button */}
                   <button
                     type="button"
@@ -2568,6 +2692,30 @@ export default function KundliPage(): JSX.Element {
             premiumData={premiumBhavishyaPayload.premiumData}
             ageYears={premiumBhavishyaPayload.ageYears}
             lang={pdfLanguage}
+          />
+        </div>
+      )}
+
+      {/* Hidden Sampoorna Master 25-Chapter PDF Template Container conforming to baggona-pdf-layout-guard */}
+      {effectiveSession && master25Payload && (
+        <div
+          id="sampoorna-master-25-pdf-render-host"
+          style={{
+            position: "fixed",
+            left: 0,
+            top: 0,
+            width: 900,
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: -1,
+            overflow: "hidden",
+            height: 0
+          }}
+          aria-hidden="true"
+        >
+          <SampoornaMaster25PdfTemplate
+            ref={master25PdfRef}
+            data={master25Payload}
           />
         </div>
       )}
