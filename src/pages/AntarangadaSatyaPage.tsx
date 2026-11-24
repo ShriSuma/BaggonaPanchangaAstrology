@@ -342,6 +342,14 @@ export const ANTARANGA_UI_STRINGS: Record<
     generatingKundliPdfStage: string;
     generatingRemedyPdfStage: string;
     paymentVerifiedSuccess: string;
+
+    // 15-Day Daily Darshana Calendar QR Bonus & Upsell
+    calendarBonusBadge: string;
+    calendarBonusFreeLabel: string;
+    calendarBonusTitle: string;
+    calendarBonusDesc: string;
+    calendarBonusCashDeskUpsell: string;
+    calendarBonusBullet: string;
   }
 > = {
   kn: {
@@ -485,7 +493,13 @@ export const ANTARANGA_UI_STRINGS: Record<
     allAlreadyDownloadedAlert: "ಎಲ್ಲಾ PDF ಗಳನ್ನು ಈಗಾಗಲೇ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ. ಮರು-ಡೌನ್‌ಲೋಡ್ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ.",
     generatingKundliPdfStage: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
     generatingRemedyPdfStage: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
-    paymentVerifiedSuccess: "ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ!"
+    paymentVerifiedSuccess: "ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ!",
+    calendarBonusBadge: "ವಿಶೇಷ ಉಚಿತ ಬೋನಸ್",
+    calendarBonusFreeLabel: "೧೦೦% ಉಚಿತ ಬೋನಸ್",
+    calendarBonusTitle: "ನಿಮ್ಮ PDF ಒಳಗೆ ೧೫ ದಿನಗಳ ವೈಯಕ್ತಿಕ 'ದೈನಂದಿನ ದರ್ಶನ' ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ QR ಕೋಡ್ ಉಚಿತ!",
+    calendarBonusDesc: "ಈ ವರದಿಯೊಂದಿಗೆ ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್‌ಗೆ ನೇರ ಸಿಂಕ್ ಆಗುವ ೧೫ ದಿನಗಳ ನಿಖರ ತಾರಾಬಲ, ಶುಭ ಮುಹೂರ್ತ, ರಾಹು ಕಾಲ, ಗುಳಿಕ ಕಾಲ ಹಾಗೂ ಯಮಗಂಡ ಕಾಲದ ಅಲರ್ಟ್‌ಗಳು ಲಭ್ಯ.",
+    calendarBonusCashDeskUpsell: "ಪೂರ್ಣ ೩೦ ದಿನಗಳ ವೈಯಕ್ತಿಕ ಕ್ಯಾಲೆಂಡರ್ ಪ್ರತ್ಯೇಕವಾಗಿ ಬೇಕೇ? ಕ್ಯಾಶ್ ಡೆಸ್ಕ್‌ನಲ್ಲಿ ₹೩೦೦ ಪಾವತಿಸಿ ತಕ್ಷಣ ಪಡೆಯಿರಿ.",
+    calendarBonusBullet: "ಉಚಿತ ೧೫ ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನ ಕ್ಯಾಲೆಂಡರ್ QR ಕೋಡ್ (ಫೋನ್‌ಗೆ ನೇರ ಸಿಂಕ್)"
   },
   en: {
     topMantra: "॥ Sri Kshetra Gokarna Mahabaleshwara Prasanna ॥",
@@ -628,7 +642,13 @@ export const ANTARANGA_UI_STRINGS: Record<
     allAlreadyDownloadedAlert: "All PDFs have already been downloaded. Re-downloading is disabled.",
     generatingKundliPdfStage: "Generating Baggona Panchanga Janma Kundali PDF...",
     generatingRemedyPdfStage: "Generating Sacred Gokarna Remedy PDF...",
-    paymentVerifiedSuccess: "Payment verified successfully!"
+    paymentVerifiedSuccess: "Payment verified successfully!",
+    calendarBonusBadge: "Special Free Bonus",
+    calendarBonusFreeLabel: "100% Free Bonus Included",
+    calendarBonusTitle: "FREE 15-Day Personal 'Daily Darshana' Google Calendar QR Code Inside Your PDF!",
+    calendarBonusDesc: "Syncs directly to your phone calendar featuring daily Tarabala, Auspicious Muhurta, Rahu Kala, Gulika Kala, and Yamaganda Kala alerts every morning.",
+    calendarBonusCashDeskUpsell: "Want the full 30-Day Personal Calendar separately? Pay ₹300 at the Cash Desk to get it instantly.",
+    calendarBonusBullet: "FREE 15-Day Daily Darshana Calendar QR Code (Direct Phone Sync)"
   },
   hi: {
     topMantra: "॥ श्री गोकर्ण महाबलेश्वर स्वामी प्रसन्न ॥",
@@ -771,7 +791,13 @@ export const ANTARANGA_UI_STRINGS: Record<
     allAlreadyDownloadedAlert: "सभी PDF पहले ही डाउनलोड की जा चुकी हैं। पुनः डाउनलोड प्रतिबंधित है।",
     generatingKundliPdfStage: "बग्गोण पंचांग जन्म कुंडली PDF तैयार हो रही है...",
     generatingRemedyPdfStage: "श्री क्षेत्र गोकर्ण सिद्ध उपाय रिपोर्ट तैयार हो रही है...",
-    paymentVerifiedSuccess: "भुगतान सफलतापूर्वक सत्यापित हो गया!"
+    paymentVerifiedSuccess: "भुगतान सफलतापूर्वक सत्यापित हो गया!",
+    calendarBonusBadge: "विशेष निःशुल्क बोनस",
+    calendarBonusFreeLabel: "१००% निःशुल्क बोनस शामिल",
+    calendarBonusTitle: "आपकी PDF के भीतर १५-दिवसीय व्यक्तिगत 'दैनिक दर्शन' गूगल कैलेंडर QR कोड निःशुल्क!",
+    calendarBonusDesc: "आपके फोन कैलेंडर में सीधे सिंक होकर प्रतिदिन ताराबल, शुभ मुहूर्त, राहु काल, गुलिक काल एवं यमगंड काल के दैनिक अलर्ट प्रदान करता है।",
+    calendarBonusCashDeskUpsell: "क्या पूरा ३०-दिवसीय व्यक्तिगत कैलेंडर अलग से चाहते हैं? कैश डेस्क पर ₹३०० देकर तुरंत प्राप्त करें।",
+    calendarBonusBullet: "निःशुल्क १५-दिवसीय दैनिक दर्शन कैलेंडर QR कोड (फोन में सीधा सिंक)"
   },
   te: {
     topMantra: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ప్రసన్నం ॥",
@@ -914,7 +940,13 @@ export const ANTARANGA_UI_STRINGS: Record<
     allAlreadyDownloadedAlert: "అన్ని PDFలు ఇప్పటికే డౌన్‌లోడ్ చేయబడ్డాయి. తిరిగి డౌన్‌లోడ్ చేయడం నిరోధించబడింది.",
     generatingKundliPdfStage: "బగ్గోణ పంచాంగ జన్మ కుండలి PDF సిద్ధమవుతోంది...",
     generatingRemedyPdfStage: "శ్రీ గోకర్ణ దైవిక పరిహార నివేదిక సిద్ధమవుతోంది...",
-    paymentVerifiedSuccess: "చెల్లింపు విజయవంతంగా ధృవీకరించబడింది!"
+    paymentVerifiedSuccess: "చెల్లింపు విజయవంతంగా ధృవీకరించబడింది!",
+    calendarBonusBadge: "ప్రత్యేక ఉచిత బోనస్",
+    calendarBonusFreeLabel: "100% ఉచిత బోనస్ లభ్యం",
+    calendarBonusTitle: "మీ PDF లోపల 15 రోజుల వ్యక్తిగత 'డైలీ దర్శన' గూగుల్ క్యాలెండర్ QR కోడ్ ఉచితం!",
+    calendarBonusDesc: "మీ ఫోన్ క్యాలెండర్‌కు నేరుగా సింక్ అయ్యేలా రోజువారీ తారాబలం, శుభ ముహూర్తం, రాహు కాలం, గుళిక కాలం మరియు యమగండ కాలం వివరాలు అందుతాయి.",
+    calendarBonusCashDeskUpsell: "పూర్తి 30 రోజుల వ్యక్తిగత క్యాలెండర్ ప్రత్యేకంగా కావాలా? క్యాష్ డెస్క్ వద్ద ₹300 చెల్లించి వెంటనే పొందండి.",
+    calendarBonusBullet: "ఉచిత 15 రోజుల డైలీ దర్శన క్యాలెండర్ QR కోడ్ (ఫోన్ నేరుగా సింక్)"
   },
   ta: {
     topMantra: "॥ ஸ்ரீ கோகர்ணம் மகாபலேஸ்வர சுவாமி பிரசன்னம் ॥",
@@ -1057,7 +1089,13 @@ export const ANTARANGA_UI_STRINGS: Record<
     allAlreadyDownloadedAlert: "அனைத்து PDFகளும் ஏற்கனவே பதிவிறக்கப்பட்டுவிட்டன. மீண்டும் பதிவிறக்குவது முடக்கப்பட்டுள்ளது.",
     generatingKundliPdfStage: "பக்கோணா பஞ்சாங்க ஜென்ம குண்டலி PDF தயாராகிறது...",
     generatingRemedyPdfStage: "ஸ்ரீ கோகர்ணம் பரிகார அறிக்கை தயாராகிறது...",
-    paymentVerifiedSuccess: "கட்டணம் வெற்றிகரமாக சரிபார்க்கப்பட்டது!"
+    paymentVerifiedSuccess: "கட்டணம் வெற்றிகரமாக சரிபார்க்கப்பட்டது!",
+    calendarBonusBadge: "சிறப்பு இலவச போனஸ்",
+    calendarBonusFreeLabel: "100% இலவச போனஸ் சேர்க்கப்பட்டுள்ளது",
+    calendarBonusTitle: "உங்கள் PDF-ல் 15 நாட்கள் தனிப்பயனாக்கப்பட்ட 'தினசரி தரிசனம்' கூகுள் காலண்டர் QR குறியீடு இலவசம்!",
+    calendarBonusDesc: "உங்கள் போன் காலண்டரில் நேரடியாக இணையும் தினசரி தாராபலம், சுப முகூர்த்தம், ராகு காலம், குளிகை காலம் மற்றும் எமகண்ட காலம் எச்சரிக்கைகள் கிடைக்கும்.",
+    calendarBonusCashDeskUpsell: "முழு 30 நாட்கள் தனிப்பயனாக்கப்பட்ட காலண்டர் தனித்தனியாக வேண்டுமா? கேஷ் கவுண்டரில் ₹300 செலுத்தி உடனடியாகப் பெறுங்கள்.",
+    calendarBonusBullet: "இலவச 15 நாட்கள் தினசரி தரிசனம் காலண்டர் QR குறியீடு (போன் நேரடி இணைப்பு)"
   },
   ml: {
     topMantra: "॥ ശ്രീ ഗോകർണം മഹാബലേശ്വര സ്വാമി പ്രസന്നം ॥",
@@ -1200,7 +1238,13 @@ export const ANTARANGA_UI_STRINGS: Record<
     allAlreadyDownloadedAlert: "എല്ലാ PDFകളും ഇതിനകം ഡൗൺലോഡ് ചെയ്തു കഴിഞ്ഞു. വീണ്ടും ഡൗൺലോഡ് ചെയ്യുന്നത് തടഞ്ഞിരിക്കുന്നു.",
     generatingKundliPdfStage: "ബഗ്ഗോണ പഞ്ചാംഗ ജന്മ കുണ്ഡലി PDF തയ്യാറാകുന്നു...",
     generatingRemedyPdfStage: "ശ്രീ ഗോകർണം ദിവ്യ പരിഹാര റിപ്പോർട്ട് തയ്യാറാകുന്നു...",
-    paymentVerifiedSuccess: "പേയ്‌മെന്റ് വിജയകരമായി സ്ഥിരീകരിച്ചു!"
+    paymentVerifiedSuccess: "പേയ്‌മെന്റ് വിജയകരമായി സ്ഥിരീകരിച്ചു!",
+    calendarBonusBadge: "പ്രത്യേക സൗജന്യ ബോണസ്",
+    calendarBonusFreeLabel: "100% സൗജന്യ ബോണസ് ലഭ്യമാണ്",
+    calendarBonusTitle: "നിങ്ങളുടെ PDF-ൽ 15 ദിവസത്തെ വ്യക്തിഗത 'ദൈനംദിന ദർശന' ഗൂഗിൾ കലണ്ടർ QR കോഡ് സൗജന്യം!",
+    calendarBonusDesc: "നിങ്ങളുടെ ഫോൺ കലണ്ടറിലേക്ക് നേരിട്ട് സമന്വയിപ്പിക്കുന്ന തരത്തിൽ പ്രതിദിന താരാബലം, ശുഭ മുഹൂർത്തം, രാഹു കാലം, ഗുളിക കാലം, യമഗണ്ഡ കാലം അലർട്ടുകൾ ലഭിക്കും.",
+    calendarBonusCashDeskUpsell: "പൂർണ്ണമായ 30 ദിവസത്തെ വ്യക്തിഗത കലണ്ടർ പ്രത്യേകം വേണമെന്നുണ്ടോ? ക്യാഷ് ഡെസ്കിൽ ₹300 നൽകി ഉടൻ നേടൂ.",
+    calendarBonusBullet: "സൗജന്യ 15 ദിവസത്തെ ദൈനംദിന ദർശന കലണ്ടർ QR കോഡ് (ഫോൺ നേരിട്ടുള്ള സിങ്ക്)"
   },
   mr: {
     topMantra: "॥ श्री गोकर्ण महाबळेश्वर स्वामी प्रसन्न ॥",
@@ -1343,7 +1387,13 @@ export const ANTARANGA_UI_STRINGS: Record<
     allAlreadyDownloadedAlert: "सर्व PDF आधीच डाउनलोड झाल्या आहेत. पुन्हा डाउनलोड करणे प्रतिबंधित आहे.",
     generatingKundliPdfStage: "बग्गोण पंचांग जन्म पत्रिका PDF तयार होत आहे...",
     generatingRemedyPdfStage: "श्री क्षेत्र गोकर्ण सिद्ध उपाय अहवाल तयार होत आहे...",
-    paymentVerifiedSuccess: "पेमेंट यशस्वीरीत्या पडताळले गेले!"
+    paymentVerifiedSuccess: "पेमेंट यशस्वीरीत्या पडताळले गेले!",
+    calendarBonusBadge: "विशेष मोफत बोनस",
+    calendarBonusFreeLabel: "१००% मोफत बोनस समाविष्ट",
+    calendarBonusTitle: "आपल्या PDF मध्ये १५ दिवसांचा वैयक्तिक 'दैनिक दर्शन' गुगल कॅलेंडर QR कोड मोफत!",
+    calendarBonusDesc: "आपल्या मोबाईल कॅलेंडरशी थेट सिंक होऊन रोज ताराबल, शुभ मुहूर्त, राहू काळ, गुलिक काळ व यमगंड काळ याचे अलर्ट मिळतील.",
+    calendarBonusCashDeskUpsell: "संपूर्ण ३० दिवसांचे वैयक्तिक कॅलेंडर हवे असल्यास कॅश डेस्कवर ₹३०० देऊन लगेच मिळवा.",
+    calendarBonusBullet: "मोफत १५ दिवसांचे दैनिक दर्शन कॅलेंडर QR कोड (मोबाईल थेट सिंक)"
   }
 };
 
@@ -3479,6 +3529,33 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 </p>
               </div>
 
+                            {/* Extra Free Bonus & ₹300 Cash Desk Upsell Card */}
+              <div className="rounded-2xl border-2 border-amber-500/80 bg-gradient-to-r from-amber-100 via-orange-50 to-amber-100 p-4 shadow-md text-left space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🎁</span>
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-950 bg-amber-400/80 px-2.5 py-0.5 rounded-full border border-amber-600/30">
+                      {ui.calendarBonusBadge}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-bold text-amber-900 bg-amber-200/60 px-2 py-0.5 rounded-md border border-amber-700/20">
+                    {ui.calendarBonusFreeLabel}
+                  </span>
+                </div>
+                <h5 className="text-sm font-black text-amber-950 font-serif leading-snug">
+                  {ui.calendarBonusTitle}
+                </h5>
+                <p className="text-[11px] text-stone-800 leading-relaxed font-serif">
+                  {ui.calendarBonusDesc}
+                </p>
+                <div className="pt-2 border-t border-amber-400/40 flex items-center justify-between flex-wrap gap-2 text-[11px] text-amber-900 font-serif">
+                  <span className="font-bold flex items-center gap-1">
+                    <span>💡</span>
+                    <span>{ui.calendarBonusCashDeskUpsell}</span>
+                  </span>
+                </div>
+              </div>
+
               {/* Comparative Package Selector Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
                 {/* Package 1: Standard Vedic Destiny (₹350) */}
@@ -3513,6 +3590,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     <li className="flex items-center gap-1.5 text-emerald-700 font-medium">
                       <span>✓</span>
                       <span>Baggona Panchanga Janma Kundali PDF</span>
+                    </li>
+                    <li className="flex items-center gap-1.5 text-amber-900 font-bold">
+                      <span>✨</span>
+                      <span>{ui.calendarBonusBullet}</span>
                     </li>
                   </ul>
                   <div className="mt-3 text-right">
@@ -3563,6 +3644,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     <li className="flex items-center gap-1.5 text-amber-900 font-bold">
                       <span>✓</span>
                       <span>Sacred Gokarna Remedy & Japa Mantra PDF (+₹100)</span>
+                    </li>
+                    <li className="flex items-center gap-1.5 text-amber-900 font-bold">
+                      <span>✨</span>
+                      <span>{ui.calendarBonusBullet}</span>
                     </li>
                   </ul>
                   <div className="mt-3 text-right">

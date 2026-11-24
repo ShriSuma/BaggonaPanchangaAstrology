@@ -269,58 +269,136 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
       {/* ── 25 CHAPTERS (HOOK-FIRST PRIORITY ORDER) ────────────────────────── */}
       {data.chapters.map((chapter) => (
-        <div
-          key={`chapter-${chapter.chapterNumber}`}
-          data-section={`chapter-${chapter.chapterNumber}`}
-          className={`${sectionClass} mb-6 z-10`}
-        >
-          {/* Section Sub-Header Pill when Section changes */}
-          {(chapter.chapterNumber === 1 ||
-            chapter.chapterNumber === 7 ||
-            chapter.chapterNumber === 12 ||
-            chapter.chapterNumber === 17 ||
-            chapter.chapterNumber === 23) && (
-            <div className="mb-6 pb-2 border-b border-amber-800/20 flex items-center justify-between">
-              <span className="text-xs font-black tracking-widest uppercase text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full border border-amber-700/20">
-                {chapter.sectionTitle}
-              </span>
-              <span className="text-xs text-amber-700/70 font-serif">
-                {isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಅಧಿಕೃತ ಹಸ್ತಪ್ರತಿ" : "Baggona Panchanga Master Folio"}
-              </span>
+        <React.Fragment key={`chapter-${chapter.chapterNumber}`}>
+          {/* 15-Day Personal Daily Darshana Google Calendar QR Section - Rendered Right Before Chapter 25 */}
+          {chapter.chapterNumber === 25 && data.calendarQrSection && (
+            <div
+              data-section="fifteen-day-calendar-qr"
+              className={`${sectionClass} mb-8 z-10 page-break-before`}
+            >
+              {/* Section Sub-Header Pill */}
+              <div className="mb-6 pb-2 border-b border-amber-800/20 flex items-center justify-between">
+                <span className="text-xs font-black tracking-widest uppercase text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full border border-amber-700/20">
+                  📅 {data.calendarQrSection.badge}
+                </span>
+                <span className="text-xs text-amber-700/70 font-serif">
+                  {data.calendarQrSection.priestName} ({data.calendarQrSection.priestPhoneDisplay})
+                </span>
+              </div>
+
+              {/* Luxury Card for 15-Day Calendar QR */}
+              <div className="rounded-2xl border-2 border-amber-600/50 bg-gradient-to-br from-amber-50/95 via-orange-50/90 to-amber-100/95 p-8 shadow-lg space-y-6">
+                <div className="text-center space-y-2">
+                  <span className="inline-block px-3 py-1 rounded-full bg-amber-400 text-stone-950 text-xs font-black tracking-wide uppercase shadow-2xs">
+                    {data.calendarQrSection.badge}
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-amber-950 font-serif">
+                    {data.calendarQrSection.title}
+                  </h3>
+                  <p className="text-base text-amber-950 font-serif leading-relaxed max-w-2xl mx-auto">
+                    {data.calendarQrSection.description}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center pt-2">
+                  {/* QR Code Container */}
+                  <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl border-2 border-amber-300 shadow-md text-center">
+                    <img
+                      src={data.calendarQrSection.qrDataUrl}
+                      alt="15-Day Daily Darshana Google Calendar QR"
+                      className="w-56 h-56 object-contain"
+                    />
+                    <span className="text-xs font-bold text-amber-900 mt-3 font-serif">
+                      📷 {data.calendarQrSection.scanInstructions}
+                    </span>
+                    <span className="text-[11px] text-stone-500 mt-1 font-serif">
+                      {data.calendarQrSection.priestName} • {data.calendarQrSection.priestPhoneDisplay}
+                    </span>
+                  </div>
+
+                  {/* Feature List */}
+                  <div className="space-y-4 text-left">
+                    <h4 className="text-sm font-black uppercase tracking-wider text-amber-900 border-b border-amber-300 pb-1">
+                      ✨ {isKn ? "ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಸಿಗುವ ದೈನಂದಿನ ಸೌಲಭ್ಯಗಳು" : isMr ? "कॅलेंडरमध्ये मिळणाऱ्या दैनंदिन सुविधा" : isHi ? "कैलेंडर में प्राप्त दैनिक सुविधाएं" : isTe ? "క్యాలెండర్‌లో లభించే రోజువారీ సదుపాయాలు" : isTa ? "காலண்டரில் கிடைக்கும் தினசரி வசதிகள்" : "Included Daily Darshana Features"}
+                    </h4>
+                    <ul className="space-y-3">
+                      {data.calendarQrSection.features.map((feat, fIdx) => (
+                        <li key={fIdx} className="flex items-start gap-2.5 text-sm font-serif text-amber-950 leading-relaxed">
+                          <span className="text-amber-700 font-bold text-base leading-none mt-0.5">✓</span>
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 30-Day Cash Desk Upsell Box */}
+                <div className="mt-4 p-4 rounded-xl border-2 border-dashed border-amber-600/60 bg-amber-200/40 text-center space-y-1">
+                  <div className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                    <span>🔔</span>
+                    <span>{data.calendarQrSection.upsellNoticeTitle}</span>
+                  </div>
+                  <p className="text-sm font-serif text-amber-950 leading-relaxed font-bold">
+                    "{data.calendarQrSection.upsellNoticeText}"
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Chapter Banner */}
-          {renderChapterBanner(chapter)}
-
-          {/* Contemplation Ribbon */}
-          {renderContemplationRibbon(chapter.question)}
-
-          {/* Chapter Narrative Paragraphs in Luxury Parchment Card (ZERO Tables) */}
-          <div className="p-6 rounded-xl border border-amber-700/30 bg-amber-100/30 space-y-4 shadow-xs">
-            {chapter.paragraphs.map((p, pIdx) => (
-              <p
-                key={pIdx}
-                className="text-lg leading-relaxed text-amber-950 font-serif text-justify"
-              >
-                {p}
-              </p>
-            ))}
-
-            {/* Optional Practical Guidance Card */}
-            {chapter.practicalGuidance && (
-              <div className="mt-4 p-4 rounded-lg border border-amber-600/30 bg-amber-50/80 shadow-2xs space-y-1">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
-                  <span>💡</span>
-                  <span>{isKn ? "ಆಚರಣಾ ಮಾರ್ಗದರ್ಶನ" : "Practical Guidance"}</span>
+          <div
+            key={`chapter-${chapter.chapterNumber}`}
+            data-section={`chapter-${chapter.chapterNumber}`}
+            className={`${sectionClass} mb-6 z-10`}
+          >
+            {/* Section Sub-Header Pill when Section changes */}
+            {(chapter.chapterNumber === 1 ||
+              chapter.chapterNumber === 7 ||
+              chapter.chapterNumber === 12 ||
+              chapter.chapterNumber === 17 ||
+              chapter.chapterNumber === 23) && (
+              <div className="mb-6 pb-2 border-b border-amber-800/20 flex items-center justify-between">
+                <span className="text-xs font-black tracking-widest uppercase text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full border border-amber-700/20">
+                  {chapter.sectionTitle}
                 </span>
-                <p className="text-sm font-serif text-amber-950 leading-relaxed italic">
-                  {chapter.practicalGuidance}
-                </p>
+                <span className="text-xs text-amber-700/70 font-serif">
+                  {isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಅಧಿಕೃತ ಹಸ್ತಪ್ರತಿ" : "Baggona Panchanga Master Folio"}
+                </span>
               </div>
             )}
+
+            {/* Chapter Banner */}
+            {renderChapterBanner(chapter)}
+
+            {/* Contemplation Ribbon */}
+            {renderContemplationRibbon(chapter.question)}
+
+            {/* Chapter Narrative Paragraphs in Luxury Parchment Card (ZERO Tables) */}
+            <div className="p-6 rounded-xl border border-amber-700/30 bg-amber-100/30 space-y-4 shadow-xs">
+              {chapter.paragraphs.map((p, pIdx) => (
+                <p
+                  key={pIdx}
+                  className="text-lg leading-relaxed text-amber-950 font-serif text-justify"
+                >
+                  {p}
+                </p>
+              ))}
+
+              {/* Optional Practical Guidance Card */}
+              {chapter.practicalGuidance && (
+                <div className="mt-4 p-4 rounded-lg border border-amber-600/30 bg-amber-50/80 shadow-2xs space-y-1">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                    <span>💡</span>
+                    <span>{isKn ? "ಆಚರಣಾ ಮಾರ್ಗದರ್ಶನ" : "Practical Guidance"}</span>
+                  </span>
+                  <p className="text-sm font-serif text-amber-950 leading-relaxed italic">
+                    {chapter.practicalGuidance}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </React.Fragment>
       ))}
 
       {/* ── CHAPTER 25 CULMINATION: FAMILY HOOK & PRIEST BOOKING ──────────── */}

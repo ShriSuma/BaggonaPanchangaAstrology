@@ -258,4 +258,127 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       }
     }
   });
+
+  it("7. Verifies that EVERY SINGLE CHAPTER (1 to 25) contains AT LEAST 3 full paragraphs", async () => {
+    const session = {
+      result: mockAdultKundli,
+      input: mockAdultDevotee
+    };
+
+    const payload = await prepareSampoornaMaster25Data(session, "kn");
+    expect(payload.chapters).toHaveLength(25);
+
+    payload.chapters.forEach((ch) => {
+      expect(
+        ch.paragraphs.length,
+        `Chapter ${ch.chapterNumber} (${ch.title}) must have at least 3 paragraphs, but found ${ch.paragraphs.length}`
+      ).toBeGreaterThanOrEqual(3);
+
+      // Verify each paragraph has substantial depth (at least 60 characters)
+      ch.paragraphs.forEach((p, pIdx) => {
+        expect(
+          p.trim().length,
+          `Chapter ${ch.chapterNumber} paragraph ${pIdx + 1} is too brief: "${p}"`
+        ).toBeGreaterThanOrEqual(60);
+      });
+    });
+  });
+
+  it("8. Verifies presence and richness of all Core V1 Chapters (Yogas, Doshas, Dasha, Jyotishya Saramsha)", async () => {
+    const session = {
+      result: mockAdultKundli,
+      input: mockAdultDevotee
+    };
+
+    const payload = await prepareSampoornaMaster25Data(session, "kn");
+
+    // Chapter 7: Current Mahadasha & Bhukti Reality
+    const ch7 = payload.chapters.find((c) => c.chapterNumber === 7);
+    expect(ch7).toBeDefined();
+    expect(ch7?.title).toContain("ಮಹಾದಶೆ");
+    expect(ch7?.paragraphs.length).toBeGreaterThanOrEqual(3);
+
+    // Chapter 11: Special Planetary Yogas (Rajayogas, Gajakesari, Budhaditya)
+    const ch11 = payload.chapters.find((c) => c.chapterNumber === 11);
+    expect(ch11).toBeDefined();
+    expect(ch11?.title).toContain("ರಾಜಯೋಗ");
+    expect(ch11?.paragraphs.length).toBeGreaterThanOrEqual(3);
+    const ch11Text = ch11?.paragraphs.join(" ") || "";
+    expect(ch11Text).toContain("ರಾಜಯೋಗ");
+    expect(ch11Text).toContain("ಗಜಕೇಸರಿ");
+    expect(ch11Text).toContain("ಬುಧಾದಿತ್ಯ");
+
+    // Chapter 23: Comprehensive Dosha Diagnostics (Kuja, Pitru, Sarpa, Maandi)
+    const ch23 = payload.chapters.find((c) => c.chapterNumber === 23);
+    expect(ch23).toBeDefined();
+    expect(ch23?.title).toContain("ದೋಷ");
+    expect(ch23?.paragraphs.length).toBeGreaterThanOrEqual(3);
+    const ch23Text = ch23?.paragraphs.join(" ") || "";
+    expect(ch23Text).toContain("ಕುಜ");
+    expect(ch23Text).toContain("ಸರ್ಪ");
+    expect(ch23Text).toContain("ಮಾಂದಿ");
+
+    // Chapter 25: Chief Astrologer's Final Summary (Jyotishya Saramsha) & Gokarna Ashirvada
+    const ch25 = payload.chapters.find((c) => c.chapterNumber === 25);
+    expect(ch25).toBeDefined();
+    expect(ch25?.title).toContain("ಜ್ಯೋತಿಷ್ಯ ಸಾರಾಂಶ");
+    expect(ch25?.paragraphs.length).toBeGreaterThanOrEqual(3);
+    const ch25Text = ch25?.paragraphs.join(" ") || "";
+    expect(ch25Text).toContain("ಗೋಕರ್ಣ");
+    expect(ch25Text).toContain("ಆಶೀರ್ವಾದ");
+  });
+
+  it("9. Verifies 15-Day Daily Darshana Calendar QR Code generation, Chaitanya Pandit branding and DOM rendering before Chapter 25", async () => {
+    const session = {
+      result: mockAdultKundli,
+      input: mockAdultDevotee
+    };
+
+    const payload = await prepareSampoornaMaster25Data(session, "kn");
+
+    // 1. Verify calendarQrSection is generated
+    expect(payload.calendarQrSection).toBeDefined();
+    const qrSec = payload.calendarQrSection!;
+
+    expect(qrSec.title).toContain("೧೫ ದಿನಗಳ");
+    expect(qrSec.badge).toContain("೧೫ ದಿನಗಳ");
+    expect(qrSec.priestName).toContain("ಚೈತನ್ಯ ಪಂಡಿತ್");
+    expect(qrSec.priestPhone).toBe("+91 94821 09844");
+    expect(qrSec.qrDataUrl).toMatch(/^data:image\/png;base64,/);
+    expect(qrSec.googleCalendarUrl).toContain("calendar.google.com");
+    expect(decodeURIComponent(qrSec.googleCalendarUrl)).toContain("COUNT=15");
+
+    // Features include Tarabala, Auspicious Muhurta, Rahu Kala, Gulika Kala, Yamaganda Kala
+    const allFeaturesText = qrSec.features.join(" ");
+    expect(allFeaturesText).toContain("ತಾರಾಬಲ");
+    expect(allFeaturesText).toContain("ಮುಹೂರ್ತ");
+    expect(allFeaturesText).toContain("ರಾಹು ಕಾಲ");
+    expect(allFeaturesText).toContain("ಗುಳಿಕ ಕಾಲ");
+    expect(allFeaturesText).toContain("ಯಮಗಂಡ ಕಾಲ");
+
+    // Upsell note for 30-day cash desk
+    expect(qrSec.upsellNoticeText).toContain("₹೩೦೦");
+    expect(qrSec.upsellNoticeText).toContain("ಕ್ಯಾಶ್ ಡೆಸ್ಕ್");
+
+    // 2. Render Template and verify DOM placement
+    const { container } = render(<SampoornaMaster25PdfTemplate data={payload} />);
+
+    // Calendar QR section must be rendered
+    const calSectionEl = container.querySelector('[data-section="fifteen-day-calendar-qr"]');
+    expect(calSectionEl).not.toBeNull();
+
+    // Verify it is placed before chapter 25
+    const ch25El = container.querySelector('[data-section="chapter-25"]');
+    expect(ch25El).not.toBeNull();
+
+    // In DOM tree, calSectionEl precedes ch25El
+    const position = calSectionEl!.compareDocumentPosition(ch25El!);
+    // DOCUMENT_POSITION_FOLLOWING is 4
+    expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    const calHtml = calSectionEl!.textContent || "";
+    expect(calHtml).toContain("ಚೈತನ್ಯ ಪಂಡಿತ್");
+    expect(calHtml).toContain("+91 94821 09844");
+    expect(calHtml).toContain("₹೩೦೦");
+  });
 });
