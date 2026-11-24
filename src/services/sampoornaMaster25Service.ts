@@ -14,7 +14,8 @@ import { savePdfBlob } from "../utils/pdfGenerator";
 import type { KundliOutput, KundliInput, PlanetPosition as AstroPlanetPosition } from "../core/AstroTypes";
 import { PlanetName } from "../core/AstroTypes";
 import type { SixLang } from "../features/fiveYearPrediction/fiveYearLocale";
-import { pick6, formatNumber6L, RASHI_6L, GRAHA_6L } from "../features/fiveYearPrediction/fiveYearLocale";
+export type { SixLang };
+import { pick6, formatNumber6L, RASHI_6L, GRAHA_6L, NAKSHATRA_6L, WEEKDAY_6L } from "../features/fiveYearPrediction/fiveYearLocale";
 import { ageDecimalYearsAt } from "../core/birthTime";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
@@ -36,6 +37,7 @@ import {
 import {
   calculateSecretAccuracyProfile,
   PLANETARY_YOGI_ATTRIBUTES,
+  getYogiAttributes6L,
   type SecretAccuracyProfile
 } from "../engine/secretAccuracyEngine";
 
@@ -292,9 +294,10 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
 
 export async function prepareSampoornaMaster25Data(
   sessionOrData: any,
-  targetLang: SixLang = "kn",
+  langArg: SixLang = "kn",
   options?: { onProgress?: (pct: number, msg: string) => void }
 ): Promise<SampoornaMaster25Payload> {
+  const targetLang: SixLang = (sessionOrData?.targetLanguage as SixLang) || langArg || "kn";
   options?.onProgress?.(10, pick6({
     kn: "೧. ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಜಾತಕ ಗಣಿತ ಪರಿಶೀಲನೆ...",
     mr: "१. जन्म कुंडली व गणितीय पडताळणी...",
@@ -387,24 +390,79 @@ export async function prepareSampoornaMaster25Data(
   const CHALDEAN_HORA_ORDER = ["Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars"];
   const currentWeekday = now.getDay();
   const dayRulerIdx = [0, 3, 4, 2, 5, 1, 6][currentWeekday]; // Sun, Mon, Tue, Wed, Thu, Fri, Sat
-  const currentHoraPlanet = CHALDEAN_HORA_ORDER[(dayRulerIdx + (currentHour % 24)) % 7];
+  const currentHoraPlanetRaw = CHALDEAN_HORA_ORDER[(dayRulerIdx + (currentHour % 24)) % 7];
+  const horaLordName = GRAHA_6L[currentHoraPlanetRaw]?.[targetLang] || currentHoraPlanetRaw;
+
+  // Parashari Rashi Dispositors
+  const RASHI_DISPOSITORS_MAP: PlanetName[] = [
+    PlanetName.Mars,    // 0: Aries
+    PlanetName.Venus,   // 1: Taurus
+    PlanetName.Mercury, // 2: Gemini
+    PlanetName.Moon,    // 3: Cancer
+    PlanetName.Sun,     // 4: Leo
+    PlanetName.Mercury, // 5: Virgo
+    PlanetName.Venus,   // 6: Libra
+    PlanetName.Mars,    // 7: Scorpio
+    PlanetName.Jupiter, // 8: Sagittarius
+    PlanetName.Saturn,  // 9: Capricorn
+    PlanetName.Saturn,  // 10: Aquarius
+    PlanetName.Jupiter  // 11: Pisces
+  ];
+  const lagnaLordGraha = RASHI_DISPOSITORS_MAP[lagnaRashiIdx] || PlanetName.Mars;
+  const moonLordGraha = RASHI_DISPOSITORS_MAP[moonRashiIdx] || PlanetName.Venus;
+  const lagnaLord = GRAHA_6L[lagnaLordGraha]?.[targetLang] || lagnaLordGraha;
+  const moonLord = GRAHA_6L[moonLordGraha]?.[targetLang] || moonLordGraha;
 
   // Panchanga elements
   const lat = input?.latitude || 14.5479;
   const lng = input?.longitude || 74.3188;
   const pin = input?.pincode ? String(input.pincode) : "";
   const traditional = calculateTraditionalBaggona(birthDate, birthTime, lat, lng, "lahiri", pin);
-  const tithiName = (targetLang === "kn" ? traditional.tithiKn : traditional.tithi) || "Shukla Pratipat";
-  const nakshatraName = result.moonSign ? (result.planets.find(p => p.name === PlanetName.Moon)?.nakshatra?.english || "Rohini") : "Rohini";
+  
+  const tithiName =
+    targetLang === "kn"
+      ? (traditional.tithiKn || traditional.tithi || "ಶುಕ್ಲ ಪ್ರತಿಪದೆ")
+      : targetLang === "mr"
+      ? (traditional.tithi5L?.hi || traditional.tithi5L?.en || traditional.tithi || "शुक्ल प्रतिपदा")
+      : (traditional.tithi5L?.[targetLang] || (targetLang === "en" ? traditional.tithi : traditional.tithiKn) || "Shukla Pratipat");
+
+  const moonPlanet = result.planets.find(p => p.name === PlanetName.Moon);
+  const moonNakIdx = moonPlanet?.nakshatra?.index ?? (result.moonSign ? Math.floor(((result.moonSign.index * 30) + (moonPlanet?.degree ?? 0)) / 13.333333) % 27 : 0);
+  const nakshatraName = NAKSHATRA_6L[moonNakIdx]?.[targetLang] || NAKSHATRA_6L[moonNakIdx]?.en || "Rohini";
   const nakshatraPada = result.moonPada || 1;
-  const yogaName = traditional.yoga || "Siddha";
-  const karanaName = traditional.karana || "Bava";
-  const weekdayName = (targetLang === "kn" ? traditional.weekdayKn : traditional.weekday) || "Sunday";
+
+  const yogaName =
+    targetLang === "kn"
+      ? (traditional.yogaKn || traditional.yoga || "ಸಿದ್ಧಿ ಯೋಗ")
+      : targetLang === "mr"
+      ? (traditional.yoga5L?.hi || traditional.yoga || "सिद्धि योग")
+      : (traditional.yoga5L?.[targetLang] || traditional.yoga || "Siddha");
+
+  const karanaName =
+    targetLang === "kn"
+      ? (traditional.karanaKn || traditional.karana || "ಬವ ಕರಣ")
+      : targetLang === "mr"
+      ? (traditional.karana5L?.hi || traditional.karana || "बव करण")
+      : (traditional.karana5L?.[targetLang] || traditional.karana || "Bava");
+
+  const weekdayIdx = typeof traditional.weekdayIndex === "number" ? traditional.weekdayIndex : (isNaN(birthDt.getDay()) ? 0 : birthDt.getDay());
+  const weekdayName = WEEKDAY_6L[weekdayIdx]?.[targetLang] || WEEKDAY_6L[weekdayIdx]?.en || "Sunday";
+
+  const ayanamshaName = pick6({
+    kn: "ಲಾಹಿರಿ ಅಯನಾಂಶ",
+    mr: "लाहिरी अयनांश",
+    hi: "लाहिड़ी अयनांश",
+    te: "లాహిరి అయనాంశ",
+    ta: "லாகிரி அயனாம்சம்",
+    en: "Lahiri Ayanamsha"
+  }, targetLang);
 
   // Dasha-Bhukti
   const bhuktiInfo = findBhuktiAtAge(result, ageDecimal);
-  const currentMahadasha = String(bhuktiInfo?.maha?.planet || "Jupiter");
-  const currentBhuktiLord = String(bhuktiInfo?.bhukti || "Saturn");
+  const rawMaha = String(bhuktiInfo?.maha?.planet || "Jupiter");
+  const rawBhukti = String(bhuktiInfo?.bhukti || "Saturn");
+  const currentMahadasha = GRAHA_6L[rawMaha]?.[targetLang] || rawMaha;
+  const currentBhuktiLord = GRAHA_6L[rawBhukti]?.[targetLang] || rawBhukti;
   const bhuktiEndAge = bhuktiInfo?.bhuktiEndAge || (ageDecimal + 1);
   const yearsUntilBhuktiEnd = Math.max(0.1, bhuktiEndAge - ageDecimal);
   const bhuktiEndDt = new Date(Date.now() + yearsUntilBhuktiEnd * 365.25 * 86400000);
@@ -412,9 +470,22 @@ export async function prepareSampoornaMaster25Data(
   const isDashaSandhi = yearsUntilBhuktiEnd < 0.5;
 
   // South Indian Accuracy Variables
-  const yogiPlanetName = secretProfile.yogiPlanet || "Jupiter";
-  const yogiAttrs = PLANETARY_YOGI_ATTRIBUTES[yogiPlanetName] || PLANETARY_YOGI_ATTRIBUTES.Jupiter;
-  const avayogiPlanetName = secretProfile.avayogiPlanet || "Rahu";
+  const rawYogi = secretProfile.yogiPlanet || "Jupiter";
+  const rawAvayogi = secretProfile.avayogiPlanet || "Rahu";
+  const yogiPlanetName = GRAHA_6L[rawYogi]?.[targetLang] || rawYogi;
+  const avayogiPlanetName = GRAHA_6L[rawAvayogi]?.[targetLang] || rawAvayogi;
+  const yogiAttrs6L = getYogiAttributes6L(rawYogi, targetLang);
+  const localizedYogiColor = yogiAttrs6L.color;
+  const localizedYogiDirection = yogiAttrs6L.direction;
+  const localizedYogiDay = yogiAttrs6L.wealthDay;
+  const localizedYogiGemstone = yogiAttrs6L.gemstone;
+  const localizedYogiDeity = yogiAttrs6L.deity;
+
+  const yogiNakIdx = typeof secretProfile.yogiNakshatraIndex === "number" ? secretProfile.yogiNakshatraIndex : 7;
+  const avayogiNakIdx = typeof secretProfile.avayogiNakshatraIndex === "number" ? secretProfile.avayogiNakshatraIndex : 5;
+  const yogiNakshatra = NAKSHATRA_6L[yogiNakIdx]?.[targetLang] || NAKSHATRA_6L[yogiNakIdx]?.en || "Pushya";
+  const avayogiNakshatra = NAKSHATRA_6L[avayogiNakIdx]?.[targetLang] || NAKSHATRA_6L[avayogiNakIdx]?.en || "Ardra";
+
   const bhriguBinduRashiName = RASHI_6L[secretProfile.bhriguBinduRashi]?.[targetLang] || "Taurus";
   const bhriguDeg = (secretProfile.bhriguBinduDegree || 15).toFixed(1);
 
@@ -443,12 +514,17 @@ export async function prepareSampoornaMaster25Data(
     moonRashiName: RASHI_6L[moonRashiIdx]?.[targetLang] || "Taurus",
     nakshatraName,
     nakshatraPada,
-    currentHoraPlanet,
+    currentHoraPlanet: horaLordName,
     currentMahadasha,
     currentBhuktiLord,
     isDashaSandhi,
     yogiPlanetName,
-    yogiAttrs,
+    yogiAttrs: yogiAttrs6L,
+    localizedYogiColor,
+    localizedYogiDirection,
+    localizedYogiDay,
+    localizedYogiGemstone,
+    localizedYogiDeity,
     avayogiPlanetName,
     bhriguBinduRashiName,
     bhriguDeg,
@@ -673,31 +749,31 @@ export async function prepareSampoornaMaster25Data(
     ageCategory,
     targetLanguage: targetLang,
     lagnaName: RASHI_6L[lagnaRashiIdx]?.[targetLang] || "Aries",
-    lagnaLord: GRAHA_6L[result.lagnaRashi ? "Sun" : "Mars"]?.[targetLang] || "Mars",
+    lagnaLord,
     moonRashi: RASHI_6L[moonRashiIdx]?.[targetLang] || "Taurus",
-    moonLord: GRAHA_6L["Venus"]?.[targetLang] || "Venus",
+    moonLord,
     nakshatraName,
     nakshatraPada,
     tithiName,
     weekdayName,
     yogaName,
     karanaName,
-    horaLord: currentHoraPlanet,
-    ayanamsha: "Lahiri Ayanamsha",
+    horaLord: horaLordName,
+    ayanamsha: ayanamshaName,
     currentMahadasha,
     currentBhukti: currentBhuktiLord,
     bhuktiEndDate,
     isDashaSandhi,
     yogiPlanet: yogiPlanetName,
-    yogiNakshatra: "Pushya",
+    yogiNakshatra,
     yogiRashi: RASHI_6L[secretProfile.yogiRashi]?.[targetLang] || "Cancer",
-    yogiColor: targetLang === "kn" ? yogiAttrs.colorKn : yogiAttrs.colorEn,
-    yogiDirection: targetLang === "kn" ? yogiAttrs.directionKn : yogiAttrs.directionEn,
-    yogiDay: targetLang === "kn" ? yogiAttrs.wealthDayKn : yogiAttrs.wealthDayEn,
-    yogiGemstone: targetLang === "kn" ? yogiAttrs.gemstoneKn : yogiAttrs.gemstoneEn,
-    yogiDeity: targetLang === "kn" ? yogiAttrs.deityKn : yogiAttrs.deityEn,
+    yogiColor: localizedYogiColor,
+    yogiDirection: localizedYogiDirection,
+    yogiDay: localizedYogiDay,
+    yogiGemstone: localizedYogiGemstone,
+    yogiDeity: localizedYogiDeity,
     avayogiPlanet: avayogiPlanetName,
-    avayogiNakshatra: "Ardra",
+    avayogiNakshatra,
     avayogiRashi: RASHI_6L[secretProfile.avayogiRashi]?.[targetLang] || "Gemini",
     bhriguBinduDegreeFormatted: `${bhriguDeg}°`,
     bhriguBinduRashi: bhriguBinduRashiName,
@@ -738,6 +814,11 @@ interface SynthesisContext {
   isDashaSandhi: boolean;
   yogiPlanetName: string;
   yogiAttrs: any;
+  localizedYogiColor: string;
+  localizedYogiDirection: string;
+  localizedYogiDay: string;
+  localizedYogiGemstone: string;
+  localizedYogiDeity: string;
   avayogiPlanetName: string;
   bhriguBinduRashiName: string;
   bhriguDeg: string;
@@ -752,8 +833,9 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     devoteeName, ageCategory, targetLang,
     lagnaRashiName, moonRashiName, nakshatraName, nakshatraPada,
     currentHoraPlanet, currentMahadasha, currentBhuktiLord,
-    isDashaSandhi, yogiPlanetName, yogiAttrs, avayogiPlanetName,
-    bhriguBinduRashiName, maandiHouse, nowYear
+    isDashaSandhi, yogiPlanetName, yogiAttrs,
+    localizedYogiColor, localizedYogiDirection, localizedYogiDay, localizedYogiGemstone, localizedYogiDeity,
+    avayogiPlanetName, bhriguBinduRashiName, maandiHouse, nowYear
   } = ctx;
 
   const isMinor = ageCategory === "infant" || ageCategory === "early_child" || ageCategory === "child" || ageCategory === "teen";
@@ -1130,12 +1212,12 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ರಹಸ್ಯ ದಕ್ಷಿಣ ಭಾರತೀಯ ಗಣಿತದ ಪ್ರಕಾರ (ಸೂರ್ಯ ಸ್ಪಷ್ಟ + ಚಂದ್ರ ಸ್ಪಷ್ಟ + ೯೩° ೨೦'), ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಪರಮ ಶ್ರೇಷ್ಠ 'ಯೋಗಿ ಗ್ರಹ' '${yogiPlanetName}' ಆಗಿದೆ. ಈ ಯೋಗಿ ಗ್ರಹವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅದೃಷ್ಟ, ಧನಲಾಭ ಹಾಗೂ ಗೌರವವನ್ನು ಆಕರ್ಷಿಸುವ ದೈವಿಕ ಆಯಸ್ಕಾಂತವಾಗಿದೆ. ಯೋಗಿ ಗ್ರಹಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಶುಭ ದಿನ '${ctx.yogiAttrs?.wealthDayKn || "ಗುರುವಾರ"}', ಶುಭ ಬಣ್ಣ '${ctx.yogiAttrs?.colorKn || "ಹಳದಿ"}', ಹಾಗೂ ಮಂಗಳಕರ ದಿಕ್ಕು '${ctx.yogiAttrs?.directionKn || "ಈಶಾನ್ಯ"}'. ಯಾವುದೇ ಪ್ರಮುಖ ಆರ್ಥಿಕ ಒಪ್ಪಂದ ಅಥವಾ ಹೊಸ ಉದ್ಯಮವನ್ನು ಈ ದಿನದಂದು ಆರಂಭಿಸಿದರೆ ವಿಜಯ ನಿಶ್ಚಿತ.`,
-        mr: `${devoteeName}, दक्षिण भारतीय गूढ गणितानुसार (सूर्य स्पष्ट + चंद्र स्पष्ट + ९३° २०'), आपल्या पत्रिकेचा सर्वश्रेष्ठ 'योगी ग्रह' '${yogiPlanetName}' आहे. हा ग्रह आपल्या जीवनात धन, वैभव व यश खेचून आणणारा चुंबकीय ग्रह आहे. या ग्रहाचा शुभ वार '${ctx.yogiAttrs?.wealthDayKn || "गुरुवार"}', शुभ रंग '${ctx.yogiAttrs?.colorKn || "पिवळा"}' व शुभ दिशा '${ctx.yogiAttrs?.directionKn || "ईशान्य"}' आहे. नवीन व्यवहार या दिवशी सुरू केल्यास मोठा लाभ होतो.`,
-        hi: `${devoteeName}, प्राचीन दक्षिण भारतीय रहस्य गणित (सूर्य स्पष्ट + चंद्र स्पष्ट + ९३° २०') के अनुसार, आपकी कुंडली का परम कल्याणकारी 'योगी ग्रह' '${yogiPlanetName}' है। यह ग्रह आपके जीवन में धन, ऐश्वर्य एवं सौभाग्य को आकर्षित करने वाला दिव्य चुंबक है। इस ग्रह का शुभ दिन '${ctx.yogiAttrs?.wealthDayKn || "गुरुवार"}', शुभ रंग '${ctx.yogiAttrs?.colorKn || "पीला"}' एवं शुभ दिशा '${ctx.yogiAttrs?.directionKn || "ईशान"}' है। महत्वपूर्ण वित्तीय निर्णय इस दिन लेना अत्यंत श्रेयस्कर है।`,
-        te: `${devoteeName}, దక్షిణ భారత రహస్య జ్యోతిష లెక్కల ప్రకారం మీ 'యోగి గ్రహం' '${yogiPlanetName}'. ఈ గ్రహం మీకు సంపద, గౌరవం తెచ్చిపెట్టే అద్భుత గ్రహం. దీని శుభ వారం, రంగు మరియు దిశలను అనుసరించడం ద్వారా గొప్ప విజయాలు లభిస్తాయి.`,
-        ta: `${devoteeName}, ரகசிய ஜோதிடக் கணக்கீட்டின்படி உங்கள் 'யோகி கிரகம்' '${yogiPlanetName}'. இந்த கிரகம் அதிர்ஷ்டத்தையும் தனலாபத்தையும் அள்ளித் தரும். இதன் சுப நிறம் மற்றும் கிழமைகளில் முக்கிய பணிகளைத் தொடங்கினால் வெற்றி நிச்சயம்.`,
-        en: `${devoteeName}, derived via classical South Indian mathematical coordinates ((Sun + Moon + 93°20') % 360), your authentic Yogi Wealth Magnet is '${yogiPlanetName}'. This celestial ally is your innate attractor of prosperity, financial breakthroughs, and prestige. Aligning significant commercial launches with its auspicious day, color, and compass direction acts as a celestial catalyst.`
+        kn: `${devoteeName}, ರಹಸ್ಯ ದಕ್ಷಿಣ ಭಾರತೀಯ ಗಣಿತದ ಪ್ರಕಾರ (ಸೂರ್ಯ ಸ್ಪಷ್ಟ + ಚಂದ್ರ ಸ್ಪಷ್ಟ + ೯೩° ೨೦'), ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಪರಮ ಶ್ರೇಷ್ಠ 'ಯೋಗಿ ಗ್ರಹ' '${yogiPlanetName}' ಆಗಿದೆ. ಈ ಯೋಗಿ ಗ್ರಹವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅದೃಷ್ಟ, ಧನಲಾಭ ಹಾಗೂ ಗೌರವವನ್ನು ಆಕರ್ಷಿಸುವ ದೈವಿಕ ಆಯಸ್ಕಾಂತವಾಗಿದೆ. ಯೋಗಿ ಗ್ರಹಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಶುಭ ದಿನ '${localizedYogiDay}', ಶುಭ ಬಣ್ಣ '${localizedYogiColor}', ಹಾಗೂ ಮಂಗಳಕರ ದಿಕ್ಕು '${localizedYogiDirection}'. ಯಾವುದೇ ಪ್ರಮುಖ ಆರ್ಥಿಕ ಒಪ್ಪಂದ ಅಥವಾ ಹೊಸ ಉದ್ಯಮವನ್ನು ಈ ದಿನದಂದು ಆರಂಭಿಸಿದರೆ ವಿಜಯ ನಿಶ್ಚಿತ.`,
+        mr: `${devoteeName}, दक्षिण भारतीय गूढ गणितानुसार (सूर्य स्पष्ट + चंद्र स्पष्ट + ९३° २०'), आपल्या पत्रिकेचा सर्वश्रेष्ठ 'योगी ग्रह' '${yogiPlanetName}' आहे. हा ग्रह आपल्या जीवनात धन, वैभव व यश खेचून आणणारा चुंबकीय ग्रह आहे. या ग्रहाचा शुभ वार '${localizedYogiDay}', शुभ रंग '${localizedYogiColor}' व शुभ दिशा '${localizedYogiDirection}' आहे. नवीन व्यवहार या दिवशी सुरू केल्यास मोठा लाभ होतो.`,
+        hi: `${devoteeName}, प्राचीन दक्षिण भारतीय रहस्य गणित (सूर्य स्पष्ट + चंद्र स्पष्ट + ९३° २०') के अनुसार, आपकी कुंडली का परम कल्याणकारी 'योगी ग्रह' '${yogiPlanetName}' है। यह ग्रह आपके जीवन में धन, ऐश्वर्य एवं सौभाग्य को आकर्षित करने वाला दिव्य चुंबक है। इस ग्रह का शुभ दिन '${localizedYogiDay}', शुभ रंग '${localizedYogiColor}' एवं शुभ दिशा '${localizedYogiDirection}' है। महत्वपूर्ण वित्तीय निर्णय इस दिन लेना अत्यंत श्रेयस्कर है।`,
+        te: `${devoteeName}, దక్షిణ భారత రహస్య జ్యోతిష లెక్కల ప్రకారం మీ 'యోగి గ్రహం' '${yogiPlanetName}'. ఈ గ్రహం మీకు సంపద, గౌరవం తెచ్చిపెట్టే అద్భుత గ్రహం. దీని శుభ వారం '${localizedYogiDay}', రంగు '${localizedYogiColor}' మరియు దిశ '${localizedYogiDirection}' లను అనుసరించడం ద్వారా గొప్ప విజయాలు లభిస్తాయి.`,
+        ta: `${devoteeName}, ரகசிய ஜோதிடக் கணக்கீட்டின்படி உங்கள் 'யோகி கிரகம்' '${yogiPlanetName}'. இந்த கிரகம் அதிர்ஷ்டத்தையும் தனலாபத்தையும் அள்ளித் தரும். இதன் சுப கிழமை '${localizedYogiDay}', சுப நிறம் '${localizedYogiColor}' மற்றும் சுப திசை '${localizedYogiDirection}' ஆகியவற்றை பின்பற்றி முக்கிய பணிகளைத் தொடங்கினால் வெற்றி நிச்சயம்.`,
+        en: `${devoteeName}, derived via classical South Indian mathematical coordinates ((Sun + Moon + 93°20') % 360), your authentic Yogi Wealth Magnet is '${yogiPlanetName}'. This celestial ally is your innate attractor of prosperity, financial breakthroughs, and prestige. Aligning significant commercial launches with its auspicious day '${localizedYogiDay}', wealth frequency color '${localizedYogiColor}', and sacred direction '${localizedYogiDirection}' acts as a celestial catalyst.`
       }, targetLang),
       pick6({
         kn: `ಮತ್ತೊಂದೆಡೆ, ಯೋಗಿ ಬಿಂದುವಿಗೆ ೧೮೬° ೪೦' ದೂರದಲ್ಲಿರುವ 'ಅವಯೋಗಿ ಗ್ರಹ' '${avayogiPlanetName}' ಆಗಿದೆ. ಈ ಅವಯೋಗಿ ಗ್ರಹವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಖರ್ಚು, ತಪ್ಪು ಹೂಡಿಕೆ ಅಥವಾ ನಂಬಿಕೆ ದ್ರೋಹದ ಮೂಲಕ ಹಣ ನಷ್ಟವಾಗುವಂತೆ ಮಾಡುವ ಗುಪ್ತ ಶತ್ರುವಾಗಿದೆ. ಈ ಗ್ರಹಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ವಾರ ಅಥವಾ ತಿಥಿಗಳಲ್ಲಿ ಯಾವುದೇ ಸಾಲ ನೀಡುವುದು, ಹೊಸ ಪಾಲುದಾರಿಕೆ ಮಾಡುವುದು ಅಥವಾ ಜೂಜು-ಊಹಾತ್ಮಕ ಹೂಡಿಕೆ ಮಾಡುವುದನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ತಪ್ಪಿಸಬೇಕು.`,
@@ -1163,12 +1245,12 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       en: "Wealth Magnet Activation"
     }, targetLang),
     practicalGuidance: pick6({
-      kn: `ಮುಖ್ಯ ಆರ್ಥಿಕ ಕೆಲಸಗಳಿಗೆ ಯೋಗಿ ಬಣ್ಣವಾದ '${ctx.yogiAttrs?.colorKn || "ಹಳದಿ"}' ಬಣ್ಣದ ವಸ್ತ್ರ ಅಥವಾ ಕರವಸ್ತ್ರವನ್ನು ಬಳಸಿ.`,
-      mr: `महत्त्वाच्या आर्थिक व्यवहारांच्या वेळी योगी ग्रहाचा शुभ रंग आवर्जून वापरा.`,
-      hi: `महत्वपूर्ण वित्तीय कार्यों के समय अपने योगी रंग के वस्त्र अथवा रुमाल का प्रयोग करें।`,
-      te: `ముఖ్యమైన పనులకు వెళ్లేటప్పుడు మీ యోగి రంగు వస్త్రాన్ని లేదా రుమాలును ధరించండి.`,
-      ta: `முக்கிய பண விஷயங்களுக்கு செல்லும்போது யோகி நிற கைக்குட்டையை உடன் வைத்திருக்கவும்.`,
-      en: `Incorporate your Yogi planet's lucky color into your attire or pocket square during high-stakes financial negotiations.`
+      kn: `ಮುಖ್ಯ ಆರ್ಥಿಕ ಕೆಲಸಗಳಿಗೆ ಯೋಗಿ ಬಣ್ಣವಾದ '${localizedYogiColor}' ಬಣ್ಣದ ವಸ್ತ್ರ ಅಥವಾ ಕರವಸ್ತ್ರವನ್ನು ಬಳಸಿ.`,
+      mr: `महत्त्वाच्या आर्थिक व्यवहारांच्या वेळी योगी ग्रहाचा शुभ रंग (${localizedYogiColor}) आवर्जून वापरा.`,
+      hi: `महत्वपूर्ण वित्तीय कार्यों के समय अपने योगी रंग (${localizedYogiColor}) के वस्त्र अथवा रुमाल का प्रयोग करें।`,
+      te: `ముఖ్యమైన పనులకు వెళ్లేటప్పుడు మీ యోగి రంగు (${localizedYogiColor}) వస్త్రాన్ని లేదా రుమాలును ధరించండి.`,
+      ta: `முக்கிய பண விஷயங்களுக்கு செல்லும்போது யோகி நிற (${localizedYogiColor}) கைக்குட்டையை உடன் வைத்திருக்கவும்.`,
+      en: `Incorporate your Yogi planet's lucky color (${localizedYogiColor}) into your attire or pocket square during high-stakes financial negotiations.`
     }, targetLang)
   });
 
@@ -1776,7 +1858,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
           : `वैवाहिक सौख्यासाठी: शुक्रवारी गौरी-शंकराची पूजा करा. गोकर्णात उमा-महेश्वर पूजा केल्याने दाम्पत्य जीवनातील वाद मिटून प्रेम वाढेल.`,
         hi: isMinor
           ? `पारिवारिक सुख-शांति हेतु मंगलवार अथवा शुक्रवार को घर में गुग्गल धूप दें।`
-          : `दांपत्य सुख एवं अखंड सौभाग्य हेतु: शुक्रवार को उमा-महेश्वर अथवा शिव-पार्वती की आराधना करें। श्री गोಕರ್ಣ धाम में उमा-महेश्वर पूजा का संकल्प कराने से दांपत्य के समस्त क्लेश शांत होते हैं।`,
+          : `दांपत्य सुख एवं अखंड सौभाग्य हेतु: शुक्रवार को उमा-महेश्वर अथवा शिव-पार्वती की आराधना करें। श्री गोकर्ण धाम में उमा-महेश्वर पूजा का संकल्प कराने से दांपत्य के समस्त क्लेश शांत होते हैं।`,
         te: isMinor
           ? `ఇంటికి దిష్టి తగలకుండా మంగళ లేదా శుక్రవారాల్లో ధూపం వేయండి.`
           : `దాంపత్య సౌఖ్యం కొరకు: శుక్రవారం పార్వతీ-పరమేశ్వరులను పూజించండి. గోకర్ణంలో ఉమా-మహేశ్వర పూజ చేయించడం వల్ల అనుకూలత పెరుగుతుంది.`,
@@ -1871,7 +1953,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ಸಂತಾನ ಶ್ರೇಯಸ್ಸು ಹಾಗೂ ವಂಶೋದ್ಧಾರಕ್ಕಾಗಿ ಪರಿಹಾರ: ಪ್ರತಿ ಗುರುವಾರ 'ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ' ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ೨೧ ಬಾರಿ ಜಪಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಅಥವಾ ನಾಗ ಪ್ರತಿಷ್ಠಾಪನಾ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಮಾಡಿಸುವುದರಿಂದ ಪಿತೃ-ಸರ್ಪ ದೋಷಗಳು ಶಮನವಾಗಿ, ಮಕ್ಕಳ ಭವಿಷ್ಯವು ಬಂಗಾರದಂತೆ ಹೊಳೆಯುತ್ತದೆ.`,
         mr: `संतती कल्याणासाठी: दर गुरुवारी 'संतान गोपाल मंत्र' किंवा गायत्री मंत्र २१ वेळा म्हणा. गोकर्णात रुद्राभिषेक केल्याने मुलांचे भविष्य उज्ज्वल होईल.`,
-        hi: `संतति कल्याण एवं कुल की वृद्धि हेतु: प्रत्येक गुरुवार को २१ बार 'संतान गोपाल मंत्र' अथवा 'गायत्री मंत्र' का जप करें। श्री गोಕರ್ण धाम में रुद्राभिषेक का संकल्प लेने से पूर्वजन्म के दोष शांत होते हैं और संतानों का भाग्योदय होता है।`,
+        hi: `संतति कल्याण एवं कुल की वृद्धि हेतु: प्रत्येक गुरुवार को २१ बार 'संतान गोपाल मंत्र' अथवा 'गायत्री मंत्र' का जप करें। श्री गोकर्ण धाम में रुद्राभिषेक का संकल्प लेने से पूर्वजन्म के दोष शांत होते हैं और संतानों का भाग्योदय होता है।`,
         te: `సంతాన క్షేమం కొరకు: గురువారం నాడు సంతాన గోపాల మంత్రం లేదా గాయత్రి మంత్రం 21 సార్లు జపించండి. గోకర్ణంలో పూజ చేయించడం శ్రేయస్కరం.`,
         ta: `சந்தான நலனுக்கு: வியாழக்கிழமைகளில் 'சந்தான கோபால மந்திரம்' அல்லது காயத்ரி மந்திரம் 21 முறை சொல்லவும். கோகர்ணத்தில் வழிபாடு செய்வது பிள்ளைகளின் எதிர்காலத்தை பிரகாசமாக்கும்.`,
         en: `To empower the family lineage: chant the Santana Gopala Mantra or Sacred Gayatri 21 times on Thursdays. Sponsoring an auspicious Sankalpa at Sri Kshetra Gokarna dissolves latent Pitru or Sarpa friction and blesses children with longevity and renown.`
@@ -1930,7 +2012,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗಾಗಿ ಪರಿಹಾರ: ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಧನ್ವಂತರಿ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ. ತಾಮ್ರದ ಲೋಟದಲ್ಲಿ ರಾತ್ರಿ ಇಟ್ಟ ನೀರನ್ನು ಮುಂಜಾನೆ ಖಾಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ ಕುಡಿಯುವುದು ದೇಹದ ಕಲ್ಮಶಗಳನ್ನು ಹೊರಹಾಕುತ್ತದೆ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಮೃತ್ಯುಂಜಯ ಹೋಮ ಅಥವಾ ಆಯುಷ್ಯ ಹೋಮದ ಸಂಕಲ್ಪ ಮಾಡಿಸುವುದರಿಂದ ಅಪಮೃತ್ಯು ಭಯ ನಿವಾರಣೆಯಾಗಿ ಪರಿಪೂರ್ಣ ಆರೋಗ್ಯ ಲಭಿಸುತ್ತದೆ.`,
         mr: `दीर्घायुष्यासाठी उपाय: रोज सकाळी धन्वंतरी मंत्राचा जप करा. तांब्याच्या भांड्यातील पाणी प्या. गोकर्णात महामृत्युंजय जप केल्याने सर्व आजार दूर होऊन दीर्घायुष्य लाभेल.`,
-        hi: `दीर्घायु एवं आरोग्य हेतु: नित्य प्रातः भगवान धन्वंतरि का स्मरण करें एवं ताम्रपात्र में रखा जल ग्रहण करें। श्री गोಕರ್ण धाम में महामृत्युंजय जप अथवा आयुष्मंत होम का संकल्प कराने से अकाल व्याधियों का नाश होकर पूर्णायु प्राप्त होती है।`,
+        hi: `दीर्घायु एवं आरोग्य हेतु: नित्य प्रातः भगवान धन्वंतरि का स्मरण करें एवं ताम्रपात्र में रखा जल ग्रहण करें। श्री गोकर्ण धाम में महामृत्युंजय जप अथवा आयुष्मंत होम का संकल्प कराने से अकाल व्याधियों का नाश होकर पूर्णायु प्राप्त होती है।`,
         te: `దీర్ఘాయువు కొరకు: రోజూ ధన్వంతరి మంత్రం జపించండి. రాగి పాత్రలోని నీటిని తాగండి. గోకర్ణంలో మహా మృత్యుంజయ పూజ చేయించడం వల్ల సంపూర్ణ ఆరోగ్యం లభిస్తుంది.`,
         ta: `ஆரோக்கிய பரிகாரம்: தினமும் தன்வந்திரி மந்திரம் சொல்லவும். தாமிர பாத்திரத்தில் வைத்த நீரை காலையில் பருகவும். கோகர்ணத்தில் மிருத்யுஞ்சய பூஜை செய்வது பூரண ஆயுளையும் ஆரோக்கியத்தையும் தரும்.`,
         en: `To fortify longevity and dissolve chronic ailments: invoke Lord Dhanvantari each morning, consuming water stored overnight in a pure copper vessel. Sponsoring a consecrated Maha Mrityunjaya Sankalpa at Sri Kshetra Gokarna erects an impenetrable energetic shield around your physical body.`
@@ -2002,7 +2084,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ಈ ತ್ರೈಮಾಸಿಕದ ದೈವಿಕ ರಕ್ಷಣೆಗಾಗಿ: ಮಂಗಳವಾರ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಹನುಮಂತನಿಗೆ ಕುಂಕುಮಾರ್ಚನೆ ಮಾಡಿಸಿ. ನಿಮ್ಮ ನಿತ್ಯ ಪೂಜೆಯಲ್ಲಿ 'ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ' ಸ್ಮರಣೆಯು ಯಾವುದೇ ಹಠಾತ್ ಅಡೆತಡೆಗಳು ಬಾರದಂತೆ ನೋಡಿಕೊಳ್ಳುತ್ತದೆ.`,
         mr: `या काळासाठी उपाय: मंगळवारी मारुती किंवा गणपतीची पूजा करा. गोकर्ण महाबळेश्वराचे नित्य स्मरण सर्व अडथळे दूर करेल.`,
-        hi: `इस तिमाही का सुरक्षा कवच: मंगलवार को हनुमान चालीसा का पाठ करें एवं सिंदूर अर्पित करें। नित्य श्री गोಕರ್ण महाबलेश्वर का स्मरण समस्त विघ्नों का शमन करेगा।`,
+        hi: `इस तिमाही का सुरक्षा कवच: मंगलवार को हनुमान चालीसा का पाठ करें एवं सिंदूर अर्पित करें। नित्य श्री गोकर्ण महाबलेश्वर का स्मरण समस्त विघ्नों का शमन करेगा।`,
         te: `ఈ మూడు నెలల రక్షణ కొరకు: మంగళవారం హనుమాన్ చాలీసా పఠించండి. గోకర్ణ మహాబలేశ్వరుని స్మరించడం వల్ల ఆటంకాలు తొలగుతాయి.`,
         ta: `இந்த காலாண்டிற்கான பரிகாரம்: செவ்வாய்க்கிழமைகளில் அனுமன் சாலிசா சொல்லவும். கோகர்ண மகாபலேஸ்வரரை வழிபட எந்தத் தடைகளும் அகலும்.`,
         en: `To safeguard this 90-day trajectory: invoke Lord Hanuman or Kartikeya on Tuesdays, offering sindoor or red flowers. A daily invocation of Sri Kshetra Gokarna Mahabaleshwara dissolves unexpected logistical blockages.`
@@ -2061,7 +2143,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ಈ ಸುವರ್ಣ ತಿರುವನ್ನು ಭದ್ರಪಡಿಸಿಕೊಳ್ಳಲು: ನಿಮ್ಮ ಇಷ್ಟದೇವತೆಗೆ ಪಾಯಸ ನೈವೇದ್ಯ ಅರ್ಪಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಮಹಾಪೂಜೆ ಮಾಡಿಸುವುದರಿಂದ, ಬೃಗು ಬಿಂದುವಿನ ಶಕ್ತಿಯು ಪೂರ್ಣ ಪ್ರಮಾಣದಲ್ಲಿ ಫಲ ನೀಡಿ ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಶಾಶ್ವತ ನೆಮ್ಮದಿಯನ್ನು ನೀಡುತ್ತದೆ.`,
         mr: `या यशासाठी: कुलदेवतेला खिरीचा नैवेद्य दाखवा व गोकर्ण महाबळेश्वर क्षेत्रात पूजा करा. यामुळे घरात सुख-समृद्धी नांदेल.`,
-        hi: `इस शुभ फल को चिरस्थायी बनाने हेतु: इष्टदेव को मिष्ठान्न का भोग लगाएं एवं श्री गोಕರ್ण धाम में विशेष पूजा का संकल्प लें। इससे घर-परिवार में सुख-समृद्धि का वास होगा।`,
+        hi: `इस शुभ फल को चिरस्थायी बनाने हेतु: इष्टदेव को मिष्ठान्न का भोग लगाएं एवं श्री गोकर्ण धाम में विशेष पूजा का संकल्प लें। इससे घर-परिवार में सुख-समृद्धि का वास होगा।`,
         te: `ఈ శుభ యోగాన్ని సద్వినియోగం చేసుకోవడానికి ఇష్టదైవానికి పాయసం నైవేద్యం పెట్టండి. గోకర్ణంలో పూజ చేయించడం వల్ల శాశ్వత శాంతి లభిస్తుంది.`,
         ta: `இந்த நல்ல நேரத்தை பயன்படுத்திக் கொள்ள: இஷ்ட தெய்வத்திற்கு பாயாசம் படைத்து வழிபடவும். கோகர்ணத்தில் வழிபாடு செய்ய குடும்பத்தில் சுபகாரியங்கள் தடையின்றி நடக்கும்.`,
         en: `To anchor this turning point: offer sweet milk-rice (Payasa) at your home altar, and sponsor a dedicated Archana at Sri Kshetra Gokarna to magnetize and stabilize the auspicious Bhrigu Bindu wave.`
@@ -2120,8 +2202,8 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ವಾರ್ಷಿಕ ಸಂಕಲ್ಪ ರಕ್ಷೆ: ವರ್ಷಕ್ಕೊಮ್ಮೆ ನಿಮ್ಮ ಹುಟ್ಟಿದ ಹಬ್ಬ ಅಥವಾ ವಿವಾಹ ವಾರ್ಷಿಕೋತ್ಸವದಂದು ಗೋಪೂಜೆ ನೆರವೇರಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಮತ್ತು ಕುಟುಂಬದ ಹೆಸರಿನಲ್ಲಿ ವಾರ್ಷಿಕ ಸಂಕಲ್ಪ ಪೂಜೆ ಮಾಡಿಸುವುದು ವರ್ಷವಿಡೀ ದೈವಿಕ ರಕ್ಷಣೆಯನ್ನು ಒದಗಿಸುತ್ತದೆ.`,
         mr: `वार्षिक संकल्पासाठी: वाढदिवसाला किंवा लग्नाच्या वाढदिवसाला गोपूजा करा व गोकर्णात संकल्प पूजा करून देवाचे आशीर्वाद घ्या.`,
-        hi: `वार्षिक संकल्प रक्षा: अपने जन्मदिवस अथवा विवाह वर्षगांठ के अवसर पर गोमाता की पूजा करें एवं श्री गोಕರ್ಣ महाबलेश्वर धाम में वार्षिक संकल्प कराएं; वर्ष पर्यन्त ईश्वरीय कृपा बनी रहेगी।`,
-        te: `వార్షిక రక్షణ కొరకు: మీ పుట్టినరోజున గోపూజ చేయండి. గోಕರ್ణంలో సంకల్ప పూజ చేయించడం వల్ల ఏడాది పొడవునా రక్షణ లభిస్తుంది.`,
+        hi: `वार्षिक संकल्प रक्षा: अपने जन्मदिवस अथवा विवाह वर्षगांठ के अवसर पर गोमाता की पूजा करें एवं श्री गोकर्ण महाबलेश्वर धाम में वार्षिक संकल्प कराएं; वर्ष पर्यन्त ईश्वरीय कृपा बनी रहेगी।`,
+        te: `వార్షిక రక్షణ కొరకు: మీ పుట్టినరోజున గోపూజ చేయండి. గోకర్ణంలో సంకల్ప పూజ చేయించడం వల్ల ఏడాది పొడవునా రక్షణ లభిస్తుంది.`,
         ta: `ஆண்டு சங்கல்பம்: உங்கள் பிறந்தநாளில் கோபூஜை செய்யவும். கோகர்ணத்தில் குடும்ப பெயரில் சங்கல்ப பூஜை செய்ய ஆண்டு முழுவதும் பாதுகாப்பு கிட்டும்.`,
         en: `Annual divine seal: perform Go-Puja (cow veneration) on your solar return. Sponsoring an annual Sankalpa Archana at Sri Kshetra Gokarna weaves a canopy of protection throughout the entire 12-month cycle.`
       }, targetLang)
@@ -2179,7 +2261,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ವರ್ಷ ೨ ರ ದೈವಿಕ ಬಲವರ್ಧನೆಗೆ: ಪ್ರತಿ ಗುರುವಾರ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ಶ್ರೀ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಪಂಚಾಮೃತ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದು ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು ನೀಡುತ್ತದೆ.`,
         mr: `या वर्षाच्या यशासाठी: विष्णू सहस्रनाम म्हणा व गोकर्णात पंचामृत अभिषेक करा.`,
-        hi: `वर्ष २ की सफलता हेतु: नित्य अथवा गुरुवार को विष्णु सहस्रनाम का पाठ करें एवं श्री गोಕರ್ण धाम में पंचामृत अभिषेक कराएं।`,
+        hi: `वर्ष २ की सफलता हेतु: नित्य अथवा गुरुवार को विष्णु सहस्रनाम का पाठ करें एवं श्री गोकर्ण धाम में पंचामृत अभिषेक कराएं।`,
         te: `విష్ణు సహస్రనామ పారాయణ చేయండి. గోకర్ణంలో పంచామృతాభిషేకం శ్రేయస్కరం.`,
         ta: `விஷ்ணு சகஸ்ரநாமம் படிக்கவும். கோகர்ணத்தில் பஞ்சாமிர்த அபிஷேகம் செய்வது உத்தமம்.`,
         en: `To energize Year 2's expansion: recite the Vishnu Sahasranama on Thursdays, and sponsor a sacred Panchamrita Abhisheka at Sri Kshetra Gokarna to consecrate newly acquired responsibilities.`
@@ -2238,7 +2320,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ಆಧ್ಯಾತ್ಮಿಕ ರಕ್ಷಣೆಗಾಗಿ: ತೀರ್ಥಕ್ಷೇತ್ರ ಯಾತ್ರೆಗಳನ್ನು ಕೈಗೊಳ್ಳಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರ ಹೋಮ ಮಾಡಿಸುವುದರಿಂದ, ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ಹಾಗೂ ವಂಶದ ಕೀರ್ತಿಯು ಚಿರಸ್ಥಾಯಿಯಾಗಲಿದೆ.`,
         mr: `आध्यात्मिक प्रगतीसाठी: तीर्थयात्रा करा व गोकर्णात रुद्र होम करा.`,
-        hi: `आध्यात्मिक उन्नयन हेतु: तीर्थाटन करें एवं श्री गोಕರ್ण क्षेत्र में रुद्र होम का अनुष्ठान कराएं; कुल की कीर्ति अक्षुण्ण रहेगी।`,
+        hi: `आध्यात्मिक उन्नयन हेतु: तीर्थाटन करें एवं श्री गोकर्ण क्षेत्र में रुद्र होम का अनुष्ठान कराएं; कुल की कीर्ति अक्षुण्ण रहेगी।`,
         te: `తీర్థయాత్రలు చేయండి. గోకర్ణంలో రుద్ర హోమం చేయించడం వల్ల ఆయురారోగ్యాలు లభిస్తాయి.`,
         ta: `புண்ணிய ஸ்தலங்களுக்கு யாத்திரை செல்லவும். கோகர்ணத்தில் ருத்ர ஹோமம் செய்வது ஆயுளையும் புகழையும் தரும்.`,
         en: `To sustain this elevated plateau: undertake sacred pilgrimages. Sponsoring a solemn Rudra Homa at Sri Kshetra Gokarna grounds unbroken longevity and generational harmony.`
@@ -2297,7 +2379,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ಕೃತಜ್ಞತೆಯ ಪರಮ ಸಮರ್ಪಣೆ: ಸಕಲ ಸಿದ್ಧಿಗಳನ್ನು ಕರುಣಿಸಿದ ಭಗವಂತನಿಗೆ ಕೃತಜ್ಞತೆ ಸಲ್ಲಿಸಲು, ಸಕುಟುಂಬ ಸಮೇತರಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನಕ್ಕೆ ಭೇಟಿ ನೀಡಿ ಕೃತಜ್ಞತಾ ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸಿ. ಗೋಕರ್ಣದ ದೈವಿಕ ಆಶೀರ್ವಾದವು ನಿಮ್ಮ ಮುಂದಿನ ಪೀಳಿಗೆಯನ್ನು ಸದಾ ರಕ್ಷಿಸಲಿದೆ.`,
         mr: `कृतज्ञता: गोकर्ण महाबळेश्वर क्षेत्री सपरिवार जाऊन कृतज्ञतापूर्वक पूजा करा. ईश्वराचा आशीर्वाद आपल्या कुटुंबावर सदैव राहील.`,
-        hi: `कृतज्ञता समर्पण: समस्त सिद्धियों के प्रदाता ईश्वर के प्रति कृतज्ञता ज्ञापित करने हेतु सपरिवार श्री गोಕರ್ण महाबलेश्वर धाम की यात्रा करें एवं धन्यवाद पूजा संपन्न कराएं; शिव कृपा आपके वंश की रक्षा करेगी।`,
+        hi: `कृतज्ञता समर्पण: समस्त सिद्धियों के प्रदाता ईश्वर के प्रति कृतज्ञता ज्ञापित करने हेतु सपरिवार श्री गोकर्ण महाबलेश्वर धाम की यात्रा करें एवं धन्यवाद पूजा संपन्न कराएं; शिव कृपा आपके वंश की रक्षा करेगी।`,
         te: `కృతజ్ఞతగా కుటుంబ సమేతంగా గోకర్ణ మహాబలేశ్వరుని దర్శించుకుని పూజలు చేయండి. ఈశ్వర కృప మీ వంశానికి రక్ష.`,
         ta: `இறைவனுக்கு நன்றி செலுத்த குடும்பத்துடன் கோகர்ண மகாபலேஸ்வரர் சன்னதிக்கு சென்று நன்றி வழிபாடு செய்யுங்கள்; ஈசன் அருள் தலைமுறைக்கும் காக்கும்.`,
         en: `The concluding act of sacred gratitude: journey with your entire family to Sri Kshetra Gokarna Mahabaleshwara to offer a heartfelt Mahapuja of thanksgiving, sealing your household under eternal divine protection.`
@@ -2369,7 +2451,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ ಪ್ರೋಟೋಕಾಲ್: ಸಮಸ್ತ ಕುಜ, ಸರ್ಪ, ಪಿತೃ ಹಾಗೂ ಮಾಂದಿ ದೋಷಗಳ ಶಾಶ್ವತ ನಿವಾರಣೆಗಾಗಿ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ 'ಸರ್ಪ ಸಂಸ್ಕಾರ', 'ತಿಲ ಹೋಮ' ಅಥವಾ 'ಮಹಾ ರುದ್ರಾಭಿಷೇಕ' ಸಂಕಲ್ಪ ಮಾಡಿಸಿ. ಗೋಕರ್ಣದ ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ತರ್ಪಣ ನೀಡಿ ಆತ್ಮಲಿಂಗವನ್ನು ಸ್ಪರ್ಶಿಸಿ ಪ್ರಾರ್ಥಿಸುವುದರಿಂದ ಸಕಲ ಕರ್ಮ ದೋಷಗಳು ಭಸ್ಮವಾಗಿ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ವಿಜಯ ಲಭಿಸುತ್ತದೆ.`,
         mr: `गोकर्ण क्षेत्रातील सिद्ध उपाय: मंगळ, सर्प, पितृ व मांदी दोषांच्या कायमस्वरूपी मुक्तीसाठी श्री क्षेत्र गोकर्ण महाबळेश्वर सानिध्यात 'महा रुद्राभिषेक' किंवा 'तिल होम' संकल्प करा. कोटीतीर्थात स्नान करून आत्मलिंगाचे दर्शन घेतल्याने सर्व संचित दोषांचा नाश होतो.`,
-        hi: `श्री गोಕರ್ण तीर्थ का प्रामाणिक उपाय विधान: समस्त मंगल, सर्प, पितृ एवं मांदी दोषों की स्थायी शांति हेतु पावन श्री गोಕರ್ण महाबलेश्वर सन्निधि में 'महा रुद्राभिषेक', 'तिल होम' अथवा 'नागबलि' का संकल्प लें। कोटितीर्थ में तर्पण एवं आत्मलिंग के स्पर्श दर्शन से समस्त प्रारब्ध दोष भस्म होकर अक्षुण्ण विजय प्राप्त होती है।`,
+        hi: `श्री गोकर्ण तीर्थ का प्रामाणिक उपाय विधान: समस्त मंगल, सर्प, पितृ एवं मांदी दोषों की स्थायी शांति हेतु पावन श्री गोकर्ण महाबलेश्वर सन्निधि में 'महा रुद्राभिषेक', 'तिल होम' अथवा 'नागबलि' का संकल्प लें। कोटितीर्थ में तर्पण एवं आत्मलिंग के स्पर्श दर्शन से समस्त प्रारब्ध दोष भस्म होकर अक्षुण्ण विजय प्राप्त होती है।`,
         te: `గోకర్ణ క్షేత్రంలో పరిహారాలు: కుజ, సర్ప, పితృ మరియు మాంది దోషాల శాంతి కొరకు శ్రీ గోకర్ణ మహాబలేశ్వరుని సన్నిధిలో 'మహా రుద్రాభిషేకం' లేదా 'తిల హోమం' చేయించండి. కోటితీర్థ స్నానం, ఆత్మలింగ దర్శనం వల్ల సమస్త దోషాలు తొలగిపోతాయి.`,
         ta: `ஸ்ரீ கோகர்ண க்ஷேத்திர சாஸ்திர பரிகாரம்: செவ்வாய், சர்ப்ப, பித்ரு மற்றும் மாந்தி தோஷங்கள் நீங்க ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியில் 'மகா ருத்ராபிஷேகம்' அல்லது 'தில ஹோமம்' செய்யவும். கோடி தீர்த்தத்தில் நீராடி ஆத்மலிங்கத்தை வழிபட அனைத்து தோஷங்களும் நீங்கி அமைதி உண்டாகும்.`,
         en: `The sacred Gokarna remedial protocol: for permanent dissolution of Kuja, Sarpa, Pitru, and Maandi knots, sponsor an authentic Maha Rudrabhisheka or Tila Homa at Sri Kshetra Gokarna Mahabaleshwara. Offering sacred Tarpana at Kotiteertha and praying before the primordial Atma Linga purifies ancestral karma and installs enduring peace.`
@@ -2428,7 +2510,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಮಹಾ ಮಂತ್ರ ಸಂಪರ್ಕ: ಶ್ರೀ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಆತ್ಮಲಿಂಗವು ರಾವಣನಿಂದ ಪ್ರತಿಷ್ಠಾಪಿಸಲ್ಪಟ್ಟ ಪರಮ ಶಿವಲಿಂಗವಾಗಿದ್ದು, ಸಮಸ್ತ ಇಷ್ಟಾರ್ಥಗಳನ್ನು ಸಿದ್ಧಿಸುವ ಕಾಮಧೇನುವಾಗಿದೆ. ನಿಮ್ಮ ಮನೆಯ ಪೂಜಾ ಕೋಣೆಯಲ್ಲಿ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಭಸ್ಮ ಅಥವಾ ಪ್ರಸಾದವನ್ನು ಇಟ್ಟು ನಮಸ್ಕರಿಸುವುದು ನಿಮ್ಮ ಮಂತ್ರ ಸಿದ್ಧಿಯನ್ನು ನೂರ್ಮಡಿಗೊಳಿಸುತ್ತದೆ.`,
         mr: `गोकर्ण महाबळेश्वर महामंत्र: गोकर्णचे आत्मलिंग हे सर्व इच्छा पूर्ण करणारे महास्थान आहे. गोकर्णचा पवित्र भस्म कपाळावर लावल्याने मंत्र सिद्धी लवकर होते.`,
-        hi: `श्री गोಕರ್ण महाबलेश्वर सन्निधि का पावन संपर्क: गोकर्ण का आत्मलिंग साक्षात सदाशिव का साक्षात विग्रह है। घर के पूजा स्थल पर गोकर्ण का पवित्र भस्म अथवा प्रसाद स्थापित कर नमन करने से आपकी मंत्र साधना शीघ्र सिद्ध होती है।`,
+        hi: `श्री गोकर्ण महाबलेश्वर सन्निधि का पावन संपर्क: गोकर्ण का आत्मलिंग साक्षात सदाशिव का साक्षात विग्रह है। घर के पूजा स्थल पर गोकर्ण का पवित्र भस्म अथवा प्रसाद स्थापित कर नमन करने से आपकी मंत्र साधना शीघ्र सिद्ध होती है।`,
         te: `గోకర్ణ ఆత్మలింగం ఎంతో మహిమాన్వితమైనది. పూజా గదిలో గోకర్ణ ప్రసాదాన్ని ఉంచి పూజించడం వల్ల జప సిద్ధి కలుగుతుంది.`,
         ta: `கோகர்ண மகாபலேஸ்வரர் அருள் தொடர்பு: கோகர்ண ஆத்மலிங்கம் சகல விருப்பங்களையும் நிறைவேற்றும் திருத்தலமாகும். கோகர்ண விபூதியை நெற்றியில் தரிக்க மந்திர சித்தி எளிதில் கிட்டும்.`,
         en: `Connection with the primordial Gokarna Atma Linga: Sri Kshetra Gokarna preserves the original Atma Linga of Lord Shiva. Keeping consecrated Gokarna Vibhuti at your altar and applying it to your Ajna chakra before daily Japa accelerates cognitive purity and spiritual focus.`
@@ -2504,7 +2586,16 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang)
   });
 
-  return chapters;
+  return chapters.map((ch) => ({
+    ...ch,
+    paragraphs: ch.paragraphs.map((p) => {
+      let cleaned = cleanDegreesFromText(cleanPunctuationArtifacts(p));
+      if (targetLang !== "en") {
+        cleaned = cleanEnglishFromRegionalText(cleaned, targetLang);
+      }
+      return cleaned;
+    })
+  }));
 }
 
 // ============================================================================

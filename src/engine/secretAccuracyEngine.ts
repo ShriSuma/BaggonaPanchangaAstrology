@@ -182,6 +182,416 @@ export const PLANETARY_YOGI_ATTRIBUTES: Record<
   }
 };
 
+export interface YogiAttributeSet6L {
+  color: Record<SixLang, string>;
+  direction: Record<SixLang, string>;
+  wealthDay: Record<SixLang, string>;
+  gemstone: Record<SixLang, string>;
+  deity: Record<SixLang, string>;
+}
+
+export const YOGI_ATTRIBUTES_6L: Record<Planet, YogiAttributeSet6L> = {
+  Sun: {
+    color: {
+      kn: "ಮಾಣಿಕ್ಯದ ಕೆಂಪು / ತಾಮ್ರದ ಬಣ್ಣ",
+      mr: "तांबूस लाल / सोनेरी रंग",
+      hi: "माणिक्य लाल / तांबे का रंग",
+      te: "ఎరుపు / రాగి రంగు",
+      ta: "சிவப்பு / தாமிர நிறம்",
+      en: "Ruby Red / Copper Gold"
+    },
+    direction: {
+      kn: "ಪೂರ್ವ",
+      mr: "पूर्व",
+      hi: "पूर्व",
+      te: "తూర్పు",
+      ta: "கிழக்கு",
+      en: "East"
+    },
+    wealthDay: {
+      kn: "ಭಾನುವಾರ",
+      mr: "रविवार",
+      hi: "रविवार",
+      te: "ఆదివారం",
+      ta: "ஞாயிறு",
+      en: "Sunday"
+    },
+    gemstone: {
+      kn: "ಮಾಣಿಕ್ಯ",
+      mr: "माणिक",
+      hi: "माणिक्य",
+      te: "మాణిక్యం",
+      ta: "மாணிக்கம்",
+      en: "Natural Ruby (Manikya)"
+    },
+    deity: {
+      kn: "ಶ್ರೀ ಸೂರ್ಯ ನಾರಾಯಣ",
+      mr: "श्री सूर्यनारायण",
+      hi: "श्री सूर्य नारायण",
+      te: "సూర్యనారాయణ స్వామి",
+      ta: "சூரிய நாராயணர்",
+      en: "Surya Narayana"
+    }
+  },
+  Moon: {
+    color: {
+      kn: "ಹಾಲು ಬಿಳುಪು / ಮುತ್ತಿನ ಬೆಳ್ಳಿ ಬಣ್ಣ",
+      mr: "दुधाळ पांढरा / मोत्याचा रंग",
+      hi: "दुग्ध धवल / मोती श्वेत",
+      te: "పాల తెలుపు / ముత్యపు రంగు",
+      ta: "பால் வெள்ளை / முத்து நிறம்",
+      en: "Milky White / Pearl Silver"
+    },
+    direction: {
+      kn: "ವಾಯವ್ಯ",
+      mr: "वायव्य",
+      hi: "वायव्य",
+      te: "వాయువ్యం",
+      ta: "வடமேற்கு",
+      en: "North-West"
+    },
+    wealthDay: {
+      kn: "ಸೋಮವಾರ",
+      mr: "सोमवार",
+      hi: "सोमवार",
+      te: "సోమవారం",
+      ta: "திங்கள்",
+      en: "Monday"
+    },
+    gemstone: {
+      kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು",
+      mr: "नैसर्गिक मोती",
+      hi: "प्राकृतिक मोती",
+      te: "సహజ ముత్యం",
+      ta: "இயற்கை முத்து",
+      en: "Natural Pearl"
+    },
+    deity: {
+      kn: "ಶ್ರೀ ಗೌರಿ ಪಾರ್ವತಿ",
+      mr: "माता पार्वती / गौरी",
+      hi: "माता पार्वती / गौरी",
+      te: "గౌరీ పార్వతి",
+      ta: "கௌரி பார்வதி",
+      en: "Gauri Parvati"
+    }
+  },
+  Mars: {
+    color: {
+      kn: "ಹವಳದ ಕೆಂಪು / ಸಿಂಧೂರ ಕೆಂಪು",
+      mr: "पोवळा लाल / सिंदूरी लाल",
+      hi: "मूंगा लाल / सिंदूरी लाल",
+      te: "పగడపు ఎరుపు / సింధూరం",
+      ta: "பவள சிவப்பு / குங்கும நிறம்",
+      en: "Coral Scarlet / Sindoor Red"
+    },
+    direction: {
+      kn: "ದಕ್ಷಿಣ",
+      mr: "दक्षिण",
+      hi: "दक्षिण",
+      te: "దక్షిణం",
+      ta: "தெற்கு",
+      en: "South"
+    },
+    wealthDay: {
+      kn: "ಮಂಗಳವಾರ",
+      mr: "मंगळवार",
+      hi: "मंगलवार",
+      te: "మంగళవారం",
+      ta: "செவ்வாய்",
+      en: "Tuesday"
+    },
+    gemstone: {
+      kn: "ಕೆಂಪು ಹವಳ",
+      mr: "लाल पोवळे",
+      hi: "लाल मूंगा",
+      te: "ఎరుపు పగడం",
+      ta: "சிவப்பு பவளம்",
+      en: "Red Coral (Moonga)"
+    },
+    deity: {
+      kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ",
+      mr: "श्री कार्तिकेय / सुब्रह्मण्य",
+      hi: "श्री कार्तिकेय / सुब्रह्मण्य स्वामी",
+      te: "సుబ్రహ్మణ్య స్వామి",
+      ta: "முருகப்பெருமான்",
+      en: "Lord Kartikeya / Subrahmanya"
+    }
+  },
+  Mercury: {
+    color: {
+      kn: "ಮರಕತ ಹಸಿರು / ಗಿಳಿ ಹಸಿರು",
+      mr: "पाचू हिरवा / पोपटी हिरवा",
+      hi: "पन्ना हरा / तोते का रंग",
+      te: "పచ్చ / చిలుక పచ్చ",
+      ta: "மரகத பச்சை / கிளி பச்சை",
+      en: "Emerald Green / Parrot Green"
+    },
+    direction: {
+      kn: "ಉತ್ತರ",
+      mr: "उत्तर",
+      hi: "उत्तर",
+      te: "ఉత్తరం",
+      ta: "வடக்கு",
+      en: "North"
+    },
+    wealthDay: {
+      kn: "ಬುಧವಾರ",
+      mr: "बुधवार",
+      hi: "बुधवार",
+      te: "బుధవారం",
+      ta: "புதன்",
+      en: "Wednesday"
+    },
+    gemstone: {
+      kn: "ಪಚ್ಚೆ (ಮರಕತ)",
+      mr: "पाचू",
+      hi: "पन्ना (मरकत)",
+      te: "పచ్చ (మరకతం)",
+      ta: "மரகதம்",
+      en: "Natural Emerald (Panna)"
+    },
+    deity: {
+      kn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣು / ಮಹಾಗಣಪತಿ",
+      mr: "श्री महाविष्णू / महागणपती",
+      hi: "श्री महाविष्णु / महागणपति",
+      te: "మహావిష్ణువు / మహాగణపతి",
+      ta: "மகாவிஷ்ணு / மகாகணபதி",
+      en: "Lord Vishnu / Mahaganapati"
+    }
+  },
+  Jupiter: {
+    color: {
+      kn: "ಕನಕ ಹಳದಿ / ಕೇಸರಿ",
+      mr: "सुवर्णी पिवळा / केशरी",
+      hi: "स्वर्णिम पीला / केसरिया",
+      te: "బంగారు పసుపు / కాషాయం",
+      ta: "தங்க மஞ்சள் / காவி",
+      en: "Golden Yellow / Saffron"
+    },
+    direction: {
+      kn: "ಈಶಾನ್ಯ",
+      mr: "ईशान्य",
+      hi: "ईशान",
+      te: "ఈశాన్యం",
+      ta: "வடகிழக்கு",
+      en: "North-East (Ishanya)"
+    },
+    wealthDay: {
+      kn: "ಗುರುವಾರ",
+      mr: "गुरुवार",
+      hi: "गुरुवार",
+      te: "గురువారం",
+      ta: "வியாழன்",
+      en: "Thursday"
+    },
+    gemstone: {
+      kn: "ಪುಷ್ಯರಾಗ",
+      mr: "पुष्कराज",
+      hi: "पुखराज",
+      te: "పుష్యరాగం",
+      ta: "புஷ்பராகம்",
+      en: "Yellow Sapphire (Pushparaja)"
+    },
+    deity: {
+      kn: "ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ / ದತ್ತಾತ್ರೇಯ",
+      mr: "श्री गुरु दत्तात्रेय / बृहस्पती",
+      hi: "श्री गुरु दत्तात्रेय / बृहस्पति",
+      te: "గురు రాఘవేంద్ర / దత్తాత్రేయ",
+      ta: "குரு தட்சிணாமூர்த்தி",
+      en: "Lord Shiva / Brihaspati / Dattatreya"
+    }
+  },
+  Venus: {
+    color: {
+      kn: "ವಜ್ರದ ಹೊಳಪು / ಶುದ್ಧ ಕೆನೆ ಬಿಳುಪು",
+      mr: "शुभ्र पांढरा / चंदेरी",
+      hi: "शुभ्र श्वेत / रेशमी आभा",
+      te: "శుద్ధ తెలుపు / మెరుపు",
+      ta: "பளபளப்பான வெள்ளை / கிரீம்",
+      en: "Diamond Sparkle / Pure Cream"
+    },
+    direction: {
+      kn: "ಆಗ್ನೇಯ",
+      mr: "आग्नेय",
+      hi: "आग्नेय",
+      te: "ఆగ్నేయం",
+      ta: "தென்கிழக்கு",
+      en: "South-East (Agneya)"
+    },
+    wealthDay: {
+      kn: "ಶುಕ್ರವಾರ",
+      mr: "शुक्रवार",
+      hi: "शुक्रवार",
+      te: "శుక్రవారం",
+      ta: "வெள்ளி",
+      en: "Friday"
+    },
+    gemstone: {
+      kn: "ವಜ್ರ / ಶ್ವೇತ ಜಿರ್ಕಾನ್",
+      mr: "हिरा / पांढरा झिरकॉन",
+      hi: "हीरा / श्वेत जरकन",
+      te: "వజ్రం / శ్వేత జిర్కాన్",
+      ta: "வைரம் / வெள்ளை ஜிர்கான்",
+      en: "Diamond / White Zircon"
+    },
+    deity: {
+      kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ",
+      mr: "श्री महालक्ष्मी",
+      hi: "श्री महालक्ष्मी",
+      te: "శ్రీ మహాలక్ష్మి",
+      ta: "ஸ்ரீ மகாலட்சுமி",
+      en: "Maha Lakshmi"
+    }
+  },
+  Saturn: {
+    color: {
+      kn: "ಕಡು ನೀಲಿ / ಇಂದ್ರನೀಲ",
+      mr: "गडद निळा / जांभळा",
+      hi: "गहरा नीला / जामुनी",
+      te: "ముదురు నీలం / ఇంద్రనీలం",
+      ta: "அடர் நீலம் / கருநீலம்",
+      en: "Deep Indigo / Royal Navy Blue"
+    },
+    direction: {
+      kn: "ಪಶ್ಚಿಮ",
+      mr: "पश्चिम",
+      hi: "पश्चिम",
+      te: "పడమర",
+      ta: "மேற்கு",
+      en: "West"
+    },
+    wealthDay: {
+      kn: "ಶನಿವಾರ",
+      mr: "शनिवार",
+      hi: "शनिवार",
+      te: "శనివారం",
+      ta: "சனி",
+      en: "Saturday"
+    },
+    gemstone: {
+      kn: "ಇಂದ್ರನೀಲ / ಜಾಂಬೂವಂತ ರತ್ನ",
+      mr: "नीलम",
+      hi: "नीलम / जामुनिया",
+      te: "నీలం",
+      ta: "நீலக்கல்",
+      en: "Blue Sapphire (Neelam)"
+    },
+    deity: {
+      kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ / ಆಂಜನೇಯ",
+      mr: "श्री महाबळेश्वर / मारुती",
+      hi: "श्री गोकर्ण महाबलेश्वर / हनुमान",
+      te: "గోకర్ణ మహాబలేశ్వర / ఆంజనేయ",
+      ta: "ஸ்ரீ மகாபலேஸ்வரர் / அனுமன்",
+      en: "Lord Mahabaleshwara / Hanuman"
+    }
+  },
+  Rahu: {
+    color: {
+      kn: "ಧೂಮ್ರ ಬಣ್ಣ / ಕಂದು ಬೂದು",
+      mr: "धुरकट / राखाडी",
+      hi: "धूम्र वर्ण / स्लेटी",
+      te: "పొగ రంగు / బూడిద",
+      ta: "புகை நிறம் / சாம்பல்",
+      en: "Smoky Grey / Steel Blue"
+    },
+    direction: {
+      kn: "ನೈಋತ್ಯ",
+      mr: "नैऋत्य",
+      hi: "नैऋत्य",
+      te: "నైరుతి",
+      ta: "தென்மேற்கு",
+      en: "South-West (Nairutya)"
+    },
+    wealthDay: {
+      kn: "ಶನಿವಾರ ಸಂಜೆ",
+      mr: "शनिवार संध्याकाळ",
+      hi: "शनिवार सायंकाल",
+      te: "శనివారం సాయంత్రం",
+      ta: "சனிக்கிழமை மாலை",
+      en: "Saturday (Evening)"
+    },
+    gemstone: {
+      kn: "ಗೋಮೇಧಿಕ",
+      mr: "गोमेद",
+      hi: "गोमेद",
+      te: "గోమేధికం",
+      ta: "கோமேதகம்",
+      en: "Hessonite Garnet (Gomedha)"
+    },
+    deity: {
+      kn: "ಶ್ರೀ ದುರ್ಗಾ ಪರಮೇಶ್ವರಿ",
+      mr: "श्री दुर्गा माता",
+      hi: "माँ दुर्गा",
+      te: "దుర్గా దేవి",
+      ta: "துர்க்கை அம்மன்",
+      en: "Maa Durga / Sharadamba"
+    }
+  },
+  Ketu: {
+    color: {
+      kn: "ಮಿಶ್ರಿತ ಕಾವಿ / ಕಂದು ಕಿತ್ತಳೆ",
+      mr: "तपकिरी / भगवा",
+      hi: "मिश्रित गेरुआ / कत्थई",
+      te: "కాషాయం / గోధుమ రంగు",
+      ta: "கலப்பு காவி / பழுப்பு",
+      en: "Multi-color / Earthy Ochre"
+    },
+    direction: {
+      kn: "ಮಧ್ಯ / ಬ್ರಹ್ಮ ಸ್ಥಾನ",
+      mr: "मध्य / ईशान्य",
+      hi: "मध्य / ब्रह्म स्थान",
+      te: "మధ్య స్థానం",
+      ta: "மையம்",
+      en: "Centre / Upward"
+    },
+    wealthDay: {
+      kn: "ಮಂಗಳವಾರ",
+      mr: "मंगळवार",
+      hi: "मंगलवार",
+      te: "మంగళవారం",
+      ta: "செவ்வாய்",
+      en: "Tuesday"
+    },
+    gemstone: {
+      kn: "ವೈಡೂರ್ಯ",
+      mr: "लहसुनिया",
+      hi: "लहसुनिया (वैडूर्य)",
+      te: "వైడూర్యం",
+      ta: "வைடூரியம்",
+      en: "Cat's Eye (Vaidurya)"
+    },
+    deity: {
+      kn: "ಶ್ರೀ ಗಣೇಶ / ಕೇತು ಗ್ರಹ",
+      mr: "श्री गणपती",
+      hi: "श्री गणेश",
+      te: "వినాయకుడు",
+      ta: "விநாயகர்",
+      en: "Lord Ganesha / Ketu Graha"
+    }
+  }
+};
+
+export function getYogiAttributes6L(
+  planet: Planet | string,
+  lang: SixLang
+): {
+  color: string;
+  direction: string;
+  wealthDay: string;
+  gemstone: string;
+  deity: string;
+} {
+  const normPlanet = normalizePlanetName(planet);
+  const p = YOGI_ATTRIBUTES_6L[normPlanet] || YOGI_ATTRIBUTES_6L.Jupiter;
+  return {
+    color: p.color[lang] || p.color.en,
+    direction: p.direction[lang] || p.direction.en,
+    wealthDay: p.wealthDay[lang] || p.wealthDay.en,
+    gemstone: p.gemstone[lang] || p.gemstone.en,
+    deity: p.deity[lang] || p.deity.en
+  };
+}
+
 // ============================================================================
 // PART 1: SECRET ACCURACY CALCULATIONS
 // ============================================================================

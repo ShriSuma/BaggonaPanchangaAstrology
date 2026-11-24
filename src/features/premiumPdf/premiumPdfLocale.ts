@@ -345,9 +345,9 @@ export const PDF_T: Record<string, L5> = {
   dashaGocharaCompassSubtitle: {
     en: "॥ Gochara-Dasha Samanvayena Sarvakarya Siddhih ॥",
     kn: "॥ ಗೋಚಾರ-ದಶಾ ಸಮನ್ವಯೇನ ಸರ್ವಕಾರ್ಯ ಸಿದ್ಧಿಃ ॥",
-    te: "॥ గోచార-దಶಾ ಸಮನ್ವಯೇన సర్వకార్య సిద్ధిః ॥",
+    te: "॥ గోచార-దశా సమన్వయేన సర్వకార్య సిద్ధిః ॥",
     ta: "॥ கோச்சார-திசா ஒருங்கிணைப்பால் சர்வகாரிய சித்தி ॥",
-    hi: "॥ गोचार-दशा समन्वयेन सर्वकार्य सिद्धిః ॥"
+    hi: "॥ गोचार-दशा समन्वयेन सर्वकार्य सिद्धिः ॥"
   },
   prashnaGuidanceTitle: {
     en: "Prashna Insight & Immediate Guidance",
@@ -715,14 +715,14 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
       .replace(/\b(wealth|finance)\b/gi, "ಸಂಪತ್ತು")
       .replace(/\b(marriage)\b/gi, "ವಿವಾಹ")
       .replace(/\b(children|progeny)\b/gi, "ಸಂತಾನ");
-  } else if (lang.startsWith("hi")) {
+  } else if (lang.startsWith("hi") || lang.startsWith("mr")) {
     cleaned = cleaned
-      .replace(/\b(attitude|mindset)\b/gi, "मनोवृत्ति")
-      .replace(/\b(career)\b/gi, "करियर")
-      .replace(/\b(health)\b/gi, "स्वास्थ्य")
-      .replace(/\b(wealth|finance)\b/gi, "धन")
-      .replace(/\b(marriage)\b/gi, "विवाह")
-      .replace(/\b(children|progeny)\b/gi, "संतान");
+      .replace(/\b(attitude|mindset)\b/gi, lang.startsWith("mr") ? "मनोवृत्ती" : "मनोवृत्ति")
+      .replace(/\b(career)\b/gi, lang.startsWith("mr") ? "करिअर / नोकरी" : "करियर")
+      .replace(/\b(health)\b/gi, lang.startsWith("mr") ? "आरोग्य" : "स्वास्थ्य")
+      .replace(/\b(wealth|finance)\b/gi, lang.startsWith("mr") ? "धन / वित्त" : "धन")
+      .replace(/\b(marriage)\b/gi, lang.startsWith("mr") ? "विवाह" : "विवाह")
+      .replace(/\b(children|progeny)\b/gi, lang.startsWith("mr") ? "संतती" : "संतान");
   } else if (lang.startsWith("te")) {
     cleaned = cleaned
       .replace(/\b(attitude|mindset)\b/gi, "మనోభావం")
@@ -769,7 +769,7 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
       .replace(/(?:^|[- \t\r\n,.(–—])(?:ಕರು|ಗಾರು)\s*(?:ಅವರೇ)?(?=[- \t\r\n,.(–—!]|$)/gu, " ಅವರೇ")
       .replace(/(?:^|[- \t\r\n,.(–—])(?:ಅಭಿಮಾನಿ|ಅಭಿಮಾನಿಯಾದ)\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?\s*/gu, "")
       .replace(/(?:ಅವರೇ\s*){2,}/gu, "ಅವರೇ ");
-  } else if (lang.startsWith("hi")) {
+  } else if (lang.startsWith("hi") || lang.startsWith("mr")) {
     // Strip non-Devanagari Indic scripts: Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam (\u0980-\u0D7F)
     cleaned = cleaned.replace(/[\u0980-\u0D7F]/gu, "");
   } else if (lang.startsWith("te")) {
@@ -778,6 +778,9 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
   } else if (lang.startsWith("ta")) {
     // Strip non-Tamil Indic scripts: Devanagari (\u0900-\u0B7F), Telugu, Kannada, Malayalam (\u0C00-\u0D7F)
     cleaned = cleaned.replace(/[\u0900-\u0B7F\u0C00-\u0D7F]/gu, "");
+  } else if (lang.startsWith("ml")) {
+    // Strip non-Malayalam Indic scripts (\u0900-\u0CFF)
+    cleaned = cleaned.replace(/[\u0900-\u0CFF]/gu, "");
   }
 
   // 4b. Strip orphan colons, solitary numbers with colons/crosses/dots left behind after Latin removal (e.g. ": 7 × ..")
@@ -794,6 +797,8 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:ನಿಮ್ಮ|ಮತ್ತು|ಹಾಗೂ|ಅಥವಾ|ಆದರೆ|ಏಕೆಂದರೆ|ಎಂದು|ಈ|ಆ|ಒಂದು|ಕೂಡ|ಇಂದ)\s*$/gu, "");
   } else if (lang.startsWith("hi")) {
     cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:आपका|आपकी|आपके|और|तथा|एवं|किंतु|परंतु|क्योंकि|कि|यह|वह|एक)\s*$/gu, "");
+  } else if (lang.startsWith("mr")) {
+    cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:आपले|आपली|आपल्या|आणि|व|किंवा|परंतु|कारण|हे|ते|एक)\s*$/gu, "");
   } else if (lang.startsWith("te")) {
     cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:మీ|మరియు|కాని|ఎందుకంటే|ఈ|ಆ)\s*$/gu, "");
   } else if (lang.startsWith("ta")) {

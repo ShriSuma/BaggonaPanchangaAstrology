@@ -244,6 +244,20 @@ export const GRAHA_7L: Record<GrahaKey, Record<AntarangaLang, string>> = {
   Ketu: { kn: "ಕೇತು", en: "Ketu", hi: "केतु", te: "కేతువు", ta: "கேது", ml: "കേതു", mr: "केतू" }
 };
 
+export function toGrahaKey(val: any): GrahaKey {
+  const s = String(val || "").toLowerCase();
+  if (s.includes("sun") || s.includes("ravi") || s.includes("surya")) return "Sun";
+  if (s.includes("moon") || s.includes("chandra")) return "Moon";
+  if (s.includes("mars") || s.includes("kuja") || s.includes("mangal")) return "Mars";
+  if (s.includes("mercury") || s.includes("budha")) return "Mercury";
+  if (s.includes("jupiter") || s.includes("guru") || s.includes("brihaspati")) return "Jupiter";
+  if (s.includes("venus") || s.includes("shukra")) return "Venus";
+  if (s.includes("saturn") || s.includes("shani")) return "Saturn";
+  if (s.includes("rahu")) return "Rahu";
+  if (s.includes("ketu")) return "Ketu";
+  return "Jupiter";
+}
+
 // 7-Language Localized Nakshatra Names
 export const NAKSHATRA_7L: Record<number, Record<AntarangaLang, string>> = {
   0: { kn: "ಅಶ್ವಿನಿ", en: "Ashwini", hi: "अश्विनी", te: "అశ్విని", ta: "அஸ்வினி", ml: "അശ്വതി", mr: "अश्विनी" },
@@ -869,8 +883,8 @@ export function generateAntarangaSatya(
 
   let mahaKey: GrahaKey = "Jupiter";
   let bhuktiKey: GrahaKey = "Saturn";
-  let activeMahadasha = `${GRAHA_7L[mahaKey]?.[baseLang] || "Jupiter"}${mahaSuffix[baseLang] || mahaSuffix.en}`;
-  let activeBhukti = `${GRAHA_7L[bhuktiKey]?.[baseLang] || "Saturn"}${bhuktiSuffix[baseLang] || bhuktiSuffix.en}`;
+  let activeMahadasha = `${GRAHA_7L[mahaKey]?.[baseLang] || GRAHA_7L["Jupiter"]?.[baseLang] || "Jupiter"}${mahaSuffix[baseLang] || mahaSuffix.en}`;
+  let activeBhukti = `${GRAHA_7L[bhuktiKey]?.[baseLang] || GRAHA_7L["Saturn"]?.[baseLang] || "Saturn"}${bhuktiSuffix[baseLang] || bhuktiSuffix.en}`;
 
   try {
     const ageDec = ageDecimalYearsAt(
@@ -884,10 +898,10 @@ export function generateAntarangaSatya(
     if (bhukti) {
       const mahaLord = bhukti.maha?.planet ?? PlanetName.Jupiter;
       const bhuktiLord = bhukti.bhukti ?? PlanetName.Saturn;
-      mahaKey = String(mahaLord) as GrahaKey;
-      bhuktiKey = String(bhuktiLord) as GrahaKey;
-      const mahaName = GRAHA_7L[mahaKey]?.[baseLang] || String(mahaLord);
-      const bhuktiName = GRAHA_7L[bhuktiKey]?.[baseLang] || String(bhuktiLord);
+      mahaKey = toGrahaKey(mahaLord);
+      bhuktiKey = toGrahaKey(bhuktiLord);
+      const mahaName = GRAHA_7L[mahaKey]?.[baseLang] || GRAHA_7L[mahaKey]?.en || String(mahaLord);
+      const bhuktiName = GRAHA_7L[bhuktiKey]?.[baseLang] || GRAHA_7L[bhuktiKey]?.en || String(bhuktiLord);
       activeMahadasha = `${mahaName}${mahaSuffix[baseLang] || mahaSuffix.en}`;
       activeBhukti = `${bhuktiName}${bhuktiSuffix[baseLang] || bhuktiSuffix.en}`;
     }
@@ -1413,10 +1427,10 @@ export function calculateCosmicLifeVoltage(
     if (bhukti) {
       const mahaLord = bhukti.maha?.planet ?? PlanetName.Jupiter;
       const bhuktiLord = bhukti.bhukti ?? PlanetName.Saturn;
-      const mahaKey = String(mahaLord) as GrahaKey;
-      const bhuktiKey = String(bhuktiLord) as GrahaKey;
-      const mahaName = GRAHA_7L[mahaKey]?.[lang] || String(mahaLord);
-      const bhuktiName = GRAHA_7L[bhuktiKey]?.[lang] || String(bhuktiLord);
+      const mahaKey = toGrahaKey(mahaLord);
+      const bhuktiKey = toGrahaKey(bhuktiLord);
+      const mahaName = GRAHA_7L[mahaKey]?.[lang] || GRAHA_7L[mahaKey]?.en || String(mahaLord);
+      const bhuktiName = GRAHA_7L[bhuktiKey]?.[lang] || GRAHA_7L[bhuktiKey]?.en || String(bhuktiLord);
       activeMahadasha = `${mahaName}${mahaSuffix[lang] || mahaSuffix.en}`;
       activeBhukti = `${bhuktiName}${bhuktiSuffix[lang] || bhuktiSuffix.en}`;
       if (bhukti.bhuktiStartAge && bhukti.bhuktiEndAge) {
@@ -2058,11 +2072,11 @@ export function calculateFreeLuckyElements(
   };
 
   return {
-    gemstone: gemstoneMap[lagnaIdx]?.[lang] || gemstoneMap[lagnaIdx]?.en || "ಮಾಣಿಕ್ಯ",
-    luckyDay: luckyDayMap[lagnaIdx]?.[lang] || luckyDayMap[lagnaIdx]?.en || "ಗುರುವಾರ",
+    gemstone: gemstoneMap[lagnaIdx]?.[lang] || (lang === "kn" ? "ಮಾಣಿಕ್ಯ" : gemstoneMap[lagnaIdx]?.en || "Ruby"),
+    luckyDay: luckyDayMap[lagnaIdx]?.[lang] || (lang === "kn" ? "ಗುರುವಾರ" : luckyDayMap[lagnaIdx]?.en || "Thursday"),
     luckyNumber: luckyNum,
-    luckyDirection: directionMap[lagnaIdx]?.[lang] || directionMap[lagnaIdx]?.en || "ಪೂರ್ವ",
-    luckyColor: colorMap[lagnaIdx]?.[lang] || colorMap[lagnaIdx]?.en || "ಹಳದಿ",
+    luckyDirection: directionMap[lagnaIdx]?.[lang] || (lang === "kn" ? "ಪೂರ್ವ" : directionMap[lagnaIdx]?.en || "East"),
+    luckyColor: colorMap[lagnaIdx]?.[lang] || (lang === "kn" ? "ಹಳದಿ" : colorMap[lagnaIdx]?.en || "Yellow"),
     ishtaDevata: ishtaMap[lang] || ishtaMap.en
   };
 }

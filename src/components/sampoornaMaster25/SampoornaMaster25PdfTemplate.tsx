@@ -193,7 +193,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
             <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
               <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಜನ್ಮ ದಿನಾಂಕ & ಸಮಯ" : isMr ? "जन्म तारीख व वेळ" : isHi ? "जन्म तिथि एवं समय" : "Birth Date & Time"}
+                {isKn ? "ಜನ್ಮ ದಿನಾಂಕ & ಸಮಯ" : isMr ? "जन्म तारीख व वेळ" : isHi ? "जन्म तिथि एवं समय" : isTe ? "జన్మ తేదీ & సమయం" : isTa ? "பிறந்த தேதி & நேரம்" : "Birth Date & Time"}
               </span>
               <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
                 {data.birthDate} • {data.birthTime}
@@ -203,7 +203,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             {/* Row 2: Lagna & Moon Rashi */}
             <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
               <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಜನ್ಮ ಲಗ್ನ & ಅಧಿಪತಿ" : isMr ? "जन्म लग्न व स्वामी" : isHi ? "जन्म लग्न एवं स्वामी" : "Janma Lagna & Lord"}
+                {isKn ? "ಜನ್ಮ ಲಗ್ನ & ಅಧಿಪತಿ" : isMr ? "जन्म लग्न व स्वामी" : isHi ? "जन्म लग्न एवं स्वामी" : isTe ? "జన్మ లగ్నం & అధిపతి" : isTa ? "பிறப்பு லக்னம் & அதிபதி" : "Janma Lagna & Lord"}
               </span>
               <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
                 {data.lagnaName} ({data.lagnaLord})
@@ -212,7 +212,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
             <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
               <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಚಂದ್ರ ರಾಶಿ & ಅಧಿಪತಿ" : isMr ? "चंद्र रास व स्वामी" : isHi ? "चंद्र राशि एवं स्वामी" : "Moon Sign & Lord"}
+                {isKn ? "ಚಂದ್ರ ರಾಶಿ & ಅಧಿಪತಿ" : isMr ? "चंद्र रास व स्वामी" : isHi ? "चंद्र राशि एवं स्वामी" : isTe ? "చంద్ర రాశి & అధిపతి" : isTa ? "சந்திர ராசி & அதிபதி" : "Moon Sign & Lord"}
               </span>
               <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
                 {data.moonRashi} ({data.moonLord})
@@ -222,16 +222,16 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             {/* Row 3: Nakshatra & Current Dasha-Bhukti */}
             <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
               <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ & ಪಾದ" : isMr ? "जन्म नक्षत्र व चरण" : isHi ? "जन्म नक्षत्र एवं पाद" : "Nakshatra & Pada"}
+                {isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ & ಪಾದ" : isMr ? "जन्म नक्षत्र व चरण" : isHi ? "जन्म नक्षत्र एवं पाद" : isTe ? "జన్మ నక్షత్రం & పాదం" : isTa ? "பிறந்த நட்சத்திரம் & பாதம்" : "Nakshatra & Pada"}
               </span>
               <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
-                {data.nakshatraName} ({isKn ? "ಪಾದ" : "Pada"} {data.nakshatraPada})
+                {data.nakshatraName} ({isKn ? "ಪಾದ" : isMr ? "चरण" : isHi ? "पाद" : isTe ? "పాదం" : isTa ? "பாதம்" : "Pada"} {data.nakshatraPada})
               </span>
             </div>
 
             <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
               <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಪ್ರಸ್ತುತ ಮಹಾದಶೆ - ಭುಕ್ತಿ" : isMr ? "सध्याची महादशा - भुक्ती" : isHi ? "वर्तमान महादशा - भुक्ति" : "Current Mahadasha - Bhukti"}
+                {isKn ? "ಪ್ರಸ್ತುತ ಮಹಾದಶೆ - ಭುಕ್ತಿ" : isMr ? "सध्याची महादशा - भुक्ती" : isHi ? "वर्तमान महादशा - भुक्ति" : isTe ? "ప్రస్తుత మహాదశ - భుక్తి" : isTa ? "தற்போதைய மகாதசை - புக்தி" : "Current Mahadasha - Bhukti"}
               </span>
               <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
                 {data.currentMahadasha} - {data.currentBhukti}
@@ -241,7 +241,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             {/* Row 4: Secret Accuracy Highlights (Yogi & Avayogi) */}
             <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
               <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಧನ ಪ್ರದಾಯಕ ಯೋಗಿ ಗ್ರಹ" : isMr ? "धन प्रदाता योगी ग्रह" : isHi ? "धन प्रदाता योगी ग्रह" : "Lucky Yogi Wealth Planet"}
+                {isKn ? "ಧನ ಪ್ರದಾಯಕ ಯೋಗಿ ಗ್ರಹ" : isMr ? "धन प्रदाता योगी ग्रह" : isHi ? "धन प्रदाता योगी ग्रह" : isTe ? "ధన ప్రదాత యోగి గ్రహం" : isTa ? "தன பிரदाता யோகி கிரகம்" : "Lucky Yogi Wealth Planet"}
               </span>
               <span className="text-lg font-bold text-amber-950 font-serif leading-relaxed text-amber-900">
                 ✨ {data.yogiPlanet} ({data.yogiRashi})
@@ -250,7 +250,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
             <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
               <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಅವಯೋಗಿ ಎಚ್ಚರಿಕೆ ಗ್ರಹ" : isMr ? "अवयोगी सावधान ग्रह" : isHi ? "अवयोगी चेतावनी ग्रह" : "Avayogi Obstacle Planet"}
+                {isKn ? "ಅವಯೋಗಿ ಎಚ್ಚರಿಕೆ ಗ್ರಹ" : isMr ? "अवयोगी सावधान ग्रह" : isHi ? "अवयोगी चेतावनी ग्रह" : isTe ? "అవయోగి హెచ్చరిక గ్రహం" : isTa ? "அவயோகி எச்சரிக்கை கிரகம்" : "Avayogi Obstacle Planet"}
               </span>
               <span className="text-lg font-bold text-amber-950 font-serif leading-relaxed text-red-900">
                 ⚠️ {data.avayogiPlanet} ({data.avayogiRashi})
@@ -262,6 +262,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             {isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪ್ರಾಚೀನ ದೈವಜ್ಞ ಪರಂಪರೆಯಂತೆ ೧೦೦% ನಿಖರ ಗಣಿತದಿಂದ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ."
               : isMr ? "श्री क्षेत्र गोकर्ण महाबळेश्वर सानिध्याच्या प्राचीन ज्योतिषी परंपरेनुसार १००% अचूक गणितावर आधारित."
               : isHi ? "श्री क्षेत्र गोकर्ण महाबलेश्वर सान्निध्य की प्रामाणिक दैवज्ञ परंपरा अनुसार १००% सटीक गणना आधारित।"
+              : isTe ? "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధాన ప్రాచీన జ్యోతిష సంప్రదాయం ప్రకారం 100% ఖచ్చితమైన గణితంతో రూపొందించబడింది."
+              : isTa ? "ஸ்ரீ க்ஷேத்திர கோகர்ண மகாபலேஸ்வரர் சன்னதியின் பாரம்பரிய ஜோதிட முறைப்படி 100% துல்லிய கணிதத்துடன் தயாரிக்கப்பட்டது."
               : "Prepared in accordance with the 100% deterministic Sri Kshetra Gokarna Jyotishya tradition."}
           </div>
         </div>
@@ -389,7 +391,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 <div className="mt-4 p-4 rounded-lg border border-amber-600/30 bg-amber-50/80 shadow-2xs space-y-1">
                   <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
                     <span>💡</span>
-                    <span>{isKn ? "ಆಚರಣಾ ಮಾರ್ಗದರ್ಶನ" : "Practical Guidance"}</span>
+                    <span>{isKn ? "ಆಚರಣಾ ಮಾರ್ಗದರ್ಶನ" : isMr ? "कृती मार्गदर्शन" : isHi ? "व्यावहारिक मार्गदर्शन" : isTe ? "ఆచరణ మార్గదర్శకం" : isTa ? "நடைமுறை வழிகாட்டல்" : "Practical Guidance"}</span>
                   </span>
                   <p className="text-sm font-serif text-amber-950 leading-relaxed italic">
                     {chapter.practicalGuidance}
@@ -407,7 +409,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
         <div className="rounded-2xl border-2 border-amber-700/50 bg-gradient-to-br from-amber-100/95 via-orange-50/90 to-amber-100/95 p-6 shadow-md mb-8 relative overflow-hidden">
           <div className="flex items-center gap-2 mb-2 text-amber-900 font-extrabold text-base">
             <span className="text-xl">🛡️</span>
-            <span>{isKn ? "ಕುಟುಂಬ ರಕ್ಷಾ ದೈವಿಕ ಸಂದೇಶ" : isMr ? "कौटुंबिक संरक्षण संदेश" : isHi ? "पारिवारिक रक्षा दिव्य संदेश" : "Family Protection Cosmic Hook"}</span>
+            <span>{isKn ? "ಕುಟುಂಬ ರಕ್ಷಾ ದೈವಿಕ ಸಂದೇಶ" : isMr ? "कौटुंबिक संरक्षण संदेश" : isHi ? "पारिवारिक रक्षा दिव्य संदेश" : isTe ? "కుటుంబ రక్షా దైవిక సందేశం" : isTa ? "குடும்ப பாதுகாப்பு தெய்வீக செய்தி" : "Family Protection Cosmic Hook"}</span>
           </div>
           <p className="text-base text-amber-950 font-serif leading-relaxed text-justify font-medium">
             "{data.familyProtectionHook}"
@@ -417,7 +419,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
         {/* Dosha Parihara & Seva Booking Contact Block (PINNED TO CHAITANYA PANDIT) */}
         <div className="rounded-2xl border-2 border-amber-700/60 bg-amber-900 text-amber-50 p-8 shadow-xl relative overflow-hidden text-center sm:text-left">
           <div className="absolute top-3 right-4 text-xs font-black text-amber-300 uppercase tracking-widest">
-            {isKn ? "ಅಧಿಕೃತ ಸೇವಾ ಸನ್ನಿಧಾನ" : "Official Sanctuary Contact"}
+            {isKn ? "ಅಧಿಕೃತ ಸೇವಾ ಸನ್ನಿಧಾನ" : isMr ? "अधिकृत सेवा सान्निध्य" : isHi ? "आधिकारिक सेवा सान्निध्य" : isTe ? "అధికారిక సేవా సన్నిధానం" : isTa ? "அதிகாரப்பூர்வ சேவா சன்னதி" : "Official Sanctuary Contact"}
           </div>
 
           <div className="space-y-4">
@@ -445,7 +447,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div className="text-center sm:text-right shrink-0">
                 <span className="text-[11px] uppercase tracking-wider text-amber-300 block font-bold mb-1">
-                  {isKn ? "ನೇರ ಕರೆ / ವಾಟ್ಸಾಪ್ ಬುಕಿಂಗ್" : "Direct Call / WhatsApp"}
+                  {isKn ? "ನೇರ ಕರೆ / ವಾಟ್ಸಾಪ್ ಬುಕಿಂಗ್" : isMr ? "थेट कॉल / व्हॉट्सॲप" : isHi ? "सीधे कॉल / व्हाट्सएप" : isTe ? "నేరుగా కాల్ / వాట్సాప్" : isTa ? "நேரடி அழைப்பு / வாட்ஸ்அப்" : "Direct Call / WhatsApp"}
                 </span>
                 <a
                   href={`tel:${data.priestBooking.phone}`}
@@ -461,6 +463,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {isKn ? "ಗಮನಿಸಿ: ನಿಮ್ಮ ಹೆಸರು, ಜನ್ಮ ನಕ್ಷತ್ರ ಮತ್ತು ಗೋತ್ರವನ್ನು ತಿಳಿಸಿ ನೇರವಾಗಿ ಮುಖ್ಯ ಅರ್ಚಕರೊಂದಿಗೆ ಸಂಕಲ್ಪ ಪೂಜೆ ಕಾಯ್ದಿರಿಸಿ."
                 : isMr ? "टीप: आपले नाव, नक्षत्र व गोत्र सांगून थेट मुख्य पुरोहितांशी पूजा संकल्प निश्चित करा."
                 : isHi ? "सूचना: अपना नाम, नक्षत्र एवं गोत्र बताकर सीधे मुख्य अर्चक से संकल्प पूजा सुनिश्चित करें।"
+                : isTe ? "గమనిక: మీ పేరు, నక్షత్రం మరియు గోత్రం తెలిపి నేరుగా ప్రధాన అర్చకులతో పూజా సంకల్పం ఖరారు చేసుకోండి."
+                : isTa ? "குறிப்பு: உங்கள் பெயர், நட்சத்திரம் மற்றும் கோத்திரத்தைக் கூறி நேரடியாக தலைமை அர்ச்சகரிடம் பூஜை சங்கல்பத்தை பதிவு செய்யவும்."
                 : "Note: Quote your birth star and Gotra to confirm authentic Sankalpa Puja with the Chief Priest."}
             </p>
           </div>
@@ -472,6 +476,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             {isKn ? "॥ ಸರ್ವೇ ಜನಾಃ ಸುಖಿನೋ ಭವಂತು • ಸಮಸ್ತ ಸನ್ಮಂಗಳಾನಿ ಭವಂತು ॥"
               : isMr ? "॥ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ॥"
               : isHi ? "॥ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ॥"
+              : isTe ? "॥ సర్వే జనాః సుఖినో భవన్తు • సమస్త సన్మంగళాని భవన్తు ॥"
+              : isTa ? "॥ ஸர்வே ஜனா: ஸுகினோ பவந்து • சமஸ்த சன்மங்களானி பவந்து ॥"
               : "|| Sarve Bhavantu Sukhinah Sarve Santu Niramayah ||"}
           </p>
           <p className="text-sm font-bold uppercase tracking-wider text-amber-800">
