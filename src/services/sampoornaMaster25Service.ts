@@ -2750,55 +2750,120 @@ export async function captureSampoornaMaster25Pdf(
       throw new Error("Calculated PDF height is zero. Cannot generate empty PDF.");
     }
 
-    const MAX_SAFE_PAGE_HEIGHT_MM = 5000;
-    const pages: { sections: typeof renderedSections; heightMm: number }[] = [];
+    // Standard A4 Portrait Dimensions (210mm x 297mm)
+    const A4_WIDTH_MM = 210;
+    const A4_HEIGHT_MM = 297;
+    const USABLE_PAGE_HEIGHT_MM = 270;
 
-    if (totalPdfHeightMm <= MAX_SAFE_PAGE_HEIGHT_MM) {
-      pages.push({ sections: renderedSections, heightMm: totalPdfHeightMm });
-    } else {
-      const targetPageHeightMm = Math.ceil(totalPdfHeightMm / 2);
-      let currentPageSections: typeof renderedSections = [];
-      let currentPageHeightMm = 0;
+    interface SectionToRender {
+      imgData: string;
+      heightMm: number;
+      renderHeightMm: number;
+      name: string;
+    }
 
-      for (let i = 0; i < renderedSections.length; i++) {
-        const sec = renderedSections[i];
-        const remainingSections = renderedSections.length - i;
-        if (currentPageSections.length >= 3 && currentPageHeightMm >= targetPageHeightMm && remainingSections >= 2) {
-          pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
-          currentPageSections = [sec];
-          currentPageHeightMm = sec.heightMm;
-        } else {
-          currentPageSections.push(sec);
-          currentPageHeightMm += sec.heightMm;
+    interface PageRecord {
+      sections: SectionToRender[];
+      totalHeightMm: number;
+    }
+
+    const pages: PageRecord[] = [];
+    let currentSections: SectionToRender[] = [];
+    let currentHeight = 0;
+
+    for (let i = 0; i < renderedSections.length; i++) {
+      const sec = renderedSections[i];
+      const isChapter = sec.name.startsWith("chapter-");
+      const isCalendarQr = sec.name.includes("calendar-qr");
+      const isCulmination = sec.name.includes("family") || sec.name.includes("priest");
+
+      // Chapters, Calendar QR, and Culmination sections each start on a fresh page
+      const forceNewPage = (isChapter || isCalendarQr || isCulmination) && currentSections.length > 0;
+      const fitsOnCurrent = !forceNewPage && (currentHeight + sec.heightMm <= USABLE_PAGE_HEIGHT_MM);
+
+      if (fitsOnCurrent) {
+        currentSections.push({
+          imgData: sec.imgData,
+          heightMm: sec.heightMm,
+          renderHeightMm: sec.heightMm,
+          name: sec.name
+        });
+        currentHeight += sec.heightMm;
+      } else {
+        if (currentSections.length > 0) {
+          pages.push({ sections: currentSections, totalHeightMm: currentHeight });
+          currentSections = [];
+          currentHeight = 0;
         }
-      }
-      if (currentPageSections.length > 0) {
-        pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
+
+        const renderH = sec.heightMm > USABLE_PAGE_HEIGHT_MM ? USABLE_PAGE_HEIGHT_MM : sec.heightMm;
+        currentSections.push({
+          imgData: sec.imgData,
+          heightMm: sec.heightMm,
+          renderHeightMm: renderH,
+          name: sec.name
+        });
+        currentHeight = renderH;
       }
     }
 
-    const firstPage = pages[0];
+    if (currentSections.length > 0) {
+      pages.push({ sections: currentSections, totalHeightMm: currentHeight });
+    }
+
     const pdf = new jsPDF({
       orientation: "p",
       unit: "mm",
-      format: [pdfWidthMm, firstPage.heightMm],
+      format: [A4_WIDTH_MM, A4_HEIGHT_MM],
       compress: true
     });
+
+    const totalPages = pages.length;
 
     for (let pIdx = 0; pIdx < pages.length; pIdx++) {
       const page = pages[pIdx];
       if (pIdx > 0) {
-        pdf.addPage([pdfWidthMm, page.heightMm], "p");
+        pdf.addPage([A4_WIDTH_MM, A4_HEIGHT_MM], "p");
       }
 
+      // 1. Royal Warm Ivory Background (#FFF7ED)
       pdf.setFillColor(255, 247, 237);
-      pdf.rect(0, 0, pdfWidthMm, page.heightMm, "F");
+      pdf.rect(0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, "F");
 
-      let currentY = 0;
-      for (const sec of page.sections) {
-        pdf.addImage(sec.imgData, "JPEG", 0, currentY, pdfWidthMm, sec.heightMm, undefined, "FAST");
-        currentY += sec.heightMm;
+      // 2. Double Gold Decorative Border
+      pdf.setDrawColor(180, 83, 9); // amber-700
+      pdf.setLineWidth(0.5);
+      pdf.rect(6, 6, A4_WIDTH_MM - 12, A4_HEIGHT_MM - 12);
+
+      pdf.setDrawColor(217, 119, 6); // amber-500
+      pdf.setLineWidth(0.2);
+      pdf.rect(7.5, 7.5, A4_WIDTH_MM - 15, A4_HEIGHT_MM - 15);
+
+      // 3. Render Sections (Centered vertically if single compact section, top-aligned with margin otherwise)
+      let currentY = 10;
+      if (page.sections.length === 1 && page.totalHeightMm < 250) {
+        currentY = Math.max(10, Math.floor((A4_HEIGHT_MM - 16 - page.totalHeightMm) / 2));
       }
+
+      for (const sec of page.sections) {
+        pdf.addImage(sec.imgData, "JPEG", 0, currentY, A4_WIDTH_MM, sec.renderHeightMm, undefined, "FAST");
+        currentY += sec.renderHeightMm;
+      }
+
+      // 4. Running Footer on every page
+      const footerY = 290;
+      pdf.setDrawColor(180, 83, 9);
+      pdf.setLineWidth(0.2);
+      pdf.line(10, footerY - 2, A4_WIDTH_MM - 10, footerY - 2);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(146, 64, 14); // amber-800
+      pdf.text("BAGGONA PANCHANGA  *  SRI KSHETRA GOKARNA", 12, footerY + 2);
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(7.5);
+      pdf.text(`${pIdx + 1} / ${totalPages}`, A4_WIDTH_MM - 12, footerY + 2, { align: "right" });
     }
 
     if (autoSave) {

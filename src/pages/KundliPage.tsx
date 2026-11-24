@@ -1510,8 +1510,12 @@ export default function KundliPage(): JSX.Element {
         throw new Error("Master 25 PDF template container not found");
       }
 
-      const rawDevoteeName = (form.name || "jataka").toLowerCase().replace(/[^a-z0-9]/g, "-");
-      const fileName = `baggona-sampoorna-25-master-report-${rawDevoteeName || "jataka"}.pdf`;
+      const cleanDevoteeName = (form.name || "jataka")
+        .trim()
+        .replace(/[\/\\?%*:|"<>]/g, "")
+        .replace(/\s+/g, "_");
+      const slugName = cleanDevoteeName.replace(/^-+|-+$/g, "") || "jataka";
+      const fileName = `baggona-sampoorna-25-master-report-${slugName}.pdf`;
 
       await captureSampoornaMaster25Pdf(master25PdfRef.current, fileName, true, {
         lang: validLang,

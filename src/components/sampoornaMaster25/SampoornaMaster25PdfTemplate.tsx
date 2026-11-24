@@ -78,39 +78,48 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
     else if (isTa) badgeText = `அத்தியாயம் ${taDigits[chapter.chapterNumber] || chapter.chapterNumber}`;
     else badgeText = `Chapter ${chapter.chapterNumber}`;
 
+    // Clean duplicate chapter prefixes from title if already present
+    const cleanChapterTitle = (chapter.title || "").replace(
+      /^(ಅಧ್ಯಾಯ|अध्याय|అధ్యాయం|அத்தியாயம்|Chapter)\s*(\d+|[೦-೯]+|[०-९]+|[౦-౯]+|[௦-௯]+)\s*[:\-–—]?\s*/i,
+      ""
+    );
+
     return (
       <div className="border-b-2 border-amber-700/40 pb-4 mb-6 relative">
-        <div className="flex items-center justify-between gap-4 mb-2">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/10 text-amber-900 rounded-full border border-amber-800/30">
-            <span className="text-amber-800 text-sm">{chapter.icon}</span>
-            <span className="text-xs font-black tracking-widest uppercase">
-              {badgeText}
-            </span>
+        {/* Float-based header for 100% horizontal alignment in html2canvas (ZERO <table> tags) */}
+        <div style={{ width: "100%", marginBottom: "10px", position: "relative" }}>
+          <div style={{ float: "left" }}>
+            <div style={{ display: "inline-block", padding: "4px 14px", backgroundColor: "rgba(146, 64, 14, 0.1)", color: "#78350f", borderRadius: "9999px", border: "1px solid rgba(146, 64, 14, 0.3)" }}>
+              <span style={{ fontSize: "12px", fontWeight: 900, letterSpacing: "1px" }}>
+                ❖ {badgeText}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-amber-800/60 text-sm font-serif">
-            <span>❖</span>
-            <span className="h-px w-12 bg-amber-700/30" />
-            <span>ॐ</span>
+          <div style={{ float: "right", color: "rgba(146, 64, 14, 0.6)", fontSize: "13px", paddingTop: "4px", fontFamily: "serif" }}>
+            <span>❖ &nbsp;──────&nbsp; ॐ</span>
           </div>
+          <div style={{ clear: "both" }} />
         </div>
+
         <h2 className="text-2xl sm:text-3xl font-extrabold text-amber-950 font-serif tracking-normal leading-relaxed">
-          {badgeText}: {chapter.title}
+          {cleanChapterTitle}
         </h2>
       </div>
     );
   };
 
-  // Contemplation Question Ribbon (Exact V1 Style)
+  // Contemplation Question Ribbon (Exact V1 Style - Zero Tables, Absolute Bullet to Prevent Breakage)
   const renderContemplationRibbon = (questionText: string) => {
     return (
-      <div className="rounded-xl border-2 border-amber-700/30 bg-gradient-to-r from-amber-100/90 via-orange-50/80 to-amber-100/90 p-5 mb-6 shadow-xs relative overflow-hidden">
-        <div className="flex items-center gap-2 mb-2 text-amber-900 text-xs font-black tracking-widest uppercase">
-          <span className="text-amber-800">❖</span>
-          <span>{isKn ? "ಆತ್ಮ ಪ್ರಶ್ನೆ & ದೈವಿಕ ದರ್ಶನ" : isMr ? "आत्म प्रश्न व चिंतन" : isHi ? "आत्म प्रश्न एवं चिंतन" : isTe ? "ఆత్మ ప్రశ్న & చింతన" : isTa ? "ஆத்ம கேள்வி & சிந்தனை" : "Soul Contemplation Inquest"}</span>
+      <div style={{ borderRadius: "12px", border: "2px solid rgba(180, 83, 9, 0.35)", background: "linear-gradient(to right, rgba(254, 243, 199, 0.95), rgba(255, 247, 237, 0.9), rgba(254, 243, 199, 0.95))", padding: "16px 20px", marginBottom: "20px" }}>
+        <div style={{ display: "block", marginBottom: "8px", color: "#78350f", fontSize: "11px", fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase" }}>
+          ❖ {isKn ? "ಆತ್ಮ ಪ್ರಶ್ನೆ & ದೈವಿಕ ದರ್ಶನ" : isMr ? "आत्म प्रश्न व चिंतन" : isHi ? "आत्म प्रश्न एवं चिंतन" : isTe ? "ఆత్మ ప్రశ్న & చింతన" : isTa ? "ஆத்ம கேள்வி & சிந்தனை" : "Soul Contemplation Inquest"}
         </div>
-        <div className="flex items-start gap-3">
-          <span className="text-xl text-amber-800 leading-none pt-0.5">❖</span>
-          <p className="text-lg font-bold text-amber-950 leading-relaxed font-serif italic">
+        <div style={{ position: "relative", paddingLeft: "26px" }}>
+          <span style={{ position: "absolute", left: "0px", top: "2px", color: "#92400e", fontSize: "16px", lineHeight: "1" }}>
+            ❖
+          </span>
+          <p style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#451a03", lineHeight: 1.6, fontStyle: "italic", fontFamily: activeFontFamily }}>
             {questionText}
           </p>
         </div>
@@ -278,14 +287,19 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               data-section="fifteen-day-calendar-qr"
               className={`${sectionClass} mb-8 z-10 page-break-before`}
             >
-              {/* Section Sub-Header Pill */}
-              <div className="mb-6 pb-2 border-b border-amber-800/20 flex items-center justify-between">
-                <span className="text-xs font-black tracking-widest uppercase text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full border border-amber-700/20">
-                  📅 {data.calendarQrSection.badge}
-                </span>
-                <span className="text-xs text-amber-700/70 font-serif">
-                  {data.calendarQrSection.priestName} ({data.calendarQrSection.priestPhoneDisplay})
-                </span>
+              {/* Section Sub-Header Pill (ZERO <table> tags) */}
+              <div style={{ width: "100%", borderBottom: "1px solid rgba(146, 64, 14, 0.2)", paddingBottom: "8px", marginBottom: "18px", position: "relative" }}>
+                <div style={{ float: "left" }}>
+                  <span className="text-xs font-black tracking-widest uppercase text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full border border-amber-700/20">
+                    📅 {data.calendarQrSection.badge}
+                  </span>
+                </div>
+                <div style={{ float: "right" }}>
+                  <span className="text-xs text-amber-700/70 font-serif">
+                    {data.calendarQrSection.priestName} ({data.calendarQrSection.priestPhoneDisplay})
+                  </span>
+                </div>
+                <div style={{ clear: "both" }} />
               </div>
 
               {/* Luxury Card for 15-Day Calendar QR */}
@@ -353,19 +367,24 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             data-section={`chapter-${chapter.chapterNumber}`}
             className={`${sectionClass} mb-6 z-10`}
           >
-            {/* Section Sub-Header Pill when Section changes */}
+            {/* Section Sub-Header Pill when Section changes (ZERO <table> tags) */}
             {(chapter.chapterNumber === 1 ||
               chapter.chapterNumber === 7 ||
               chapter.chapterNumber === 12 ||
               chapter.chapterNumber === 17 ||
               chapter.chapterNumber === 23) && (
-              <div className="mb-6 pb-2 border-b border-amber-800/20 flex items-center justify-between">
-                <span className="text-xs font-black tracking-widest uppercase text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full border border-amber-700/20">
-                  {chapter.sectionTitle}
-                </span>
-                <span className="text-xs text-amber-700/70 font-serif">
-                  {isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಅಧಿಕೃತ ಹಸ್ತಪ್ರತಿ" : "Baggona Panchanga Master Folio"}
-                </span>
+              <div style={{ width: "100%", borderBottom: "1px solid rgba(146, 64, 14, 0.2)", paddingBottom: "8px", marginBottom: "18px", position: "relative" }}>
+                <div style={{ float: "left" }}>
+                  <span className="text-xs font-black tracking-widest uppercase text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full border border-amber-700/20">
+                    {chapter.sectionTitle}
+                  </span>
+                </div>
+                <div style={{ float: "right" }}>
+                  <span className="text-xs text-amber-700/70 font-serif">
+                    {isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಅಧಿಕೃತ ಹಸ್ತಪ್ರತಿ" : "Baggona Panchanga Master Folio"}
+                  </span>
+                </div>
+                <div style={{ clear: "both" }} />
               </div>
             )}
 
