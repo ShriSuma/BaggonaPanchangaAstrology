@@ -2044,6 +2044,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         const m25 = await prepareSampoornaMaster25Data(
           {
             kundli,
+            placeLabel: selectedCityName,
             input: {
               name: devoteeName.trim(),
               birthDate,
@@ -2130,6 +2131,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         void prepareSampoornaMaster25Data(
           {
             kundli: computedKundli,
+            placeLabel: selectedCityName,
             input: {
               name: devoteeName.trim(),
               birthDate,
@@ -4145,13 +4147,16 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       <div
         style={{
           position: "fixed",
-          left: "-99999px",
-          top: "0px",
-          width: "900px",
+          left: 0,
+          top: 0,
+          width: 900,
           zIndex: -1,
-          opacity: 0.01,
-          pointerEvents: "none"
+          opacity: 0,
+          pointerEvents: "none",
+          overflow: "hidden",
+          height: 0
         }}
+        aria-hidden="true"
       >
         {/* 1. 5-Year Master Destiny PDF Template */}
         <div ref={fiveYearPdfRef}>

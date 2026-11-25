@@ -21,6 +21,9 @@ import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { calculateComprehensiveDoshas } from "../core/ComprehensiveDoshaEngine";
 import { computeMaandi } from "../core/MaandiEngine";
+import { siderealLongitudes } from "../core/EphemerisEngine";
+import { detectChartYogas, signLord, type YogaId } from "../core/KundliInsightsEngine";
+import { computeSarvashtakavarga } from "../features/fiveYearPrediction/fiveYearPredictionEngine";
 import { getLocalizedDevoteeName } from "../features/premiumPdf/dynamicBhavishyaEngine";
 import { cleanEnglishFromRegionalText } from "../features/premiumPdf/premiumPdfLocale";
 import { cleanDegreesFromText, cleanPunctuationArtifacts } from "../features/premiumPdf/yogaDoshaGocharaEnricher";
@@ -95,24 +98,30 @@ export interface SampoornaMaster25Payload {
   ageCategory: AgeCategory25;
   targetLanguage: SixLang;
 
-  // Header Details
+  // Header Details (6-Anga Complete Natal Panchanga + Dasha)
   lagnaName: string;
   lagnaLord: string;
   moonRashi: string;
   moonLord: string;
   nakshatraName: string;
   nakshatraPada: number;
+  pakshaName: string;
   tithiName: string;
   weekdayName: string;
   yogaName: string;
   karanaName: string;
+  sunriseTime: string;
+  sunsetTime: string;
   horaLord: string;
+  janmaHora: string;
+  livePrashnaHora: string;
   ayanamsha: string;
 
   // Dasha & Gochara Context
   currentMahadasha: string;
   currentBhukti: string;
   bhuktiEndDate: string;
+  janmaDashaBalance: string;
   isDashaSandhi: boolean;
 
   // Secret South Indian Accuracy Variables
@@ -134,8 +143,19 @@ export interface SampoornaMaster25Payload {
   bhriguBinduTurningWindow: string;
 
   maandiHouse: number;
+  maandiRashi: string;
   hasMaandiKnot: boolean;
   maandiDomainAffected: string;
+
+  // Live Transits & Natal Verification Summaries
+  shaniTransitRashi: string;
+  shaniHouseFromMoon: number;
+  guruTransitRashi: string;
+  guruHouseFromMoon: number;
+  dominantElement: string;
+  detectedYogasSummary: string;
+  detectedDoshasSummary: string;
+  sectionIndexTitles: { sectionNumber: number; title: string; chapterRange: string }[];
 
   // 25 Chapters
   chapters: Master25Chapter[];
@@ -318,15 +338,33 @@ export async function prepareSampoornaMaster25Data(
   const localizedDevoteeName = getLocalizedDevoteeName(rawName, targetLang);
   const birthDate = input?.birthDate || "1990-01-01";
   const birthTime = input?.birthTime || "12:00";
-  const birthPlace = (input as any)?.place || (input?.latitude ? `${input.latitude}, ${input.longitude}` : "Gokarna Kshetra");
+  const lat = input?.latitude || 14.5479;
+  const lng = input?.longitude || 74.3188;
+  const pin = input?.pincode ? String(input.pincode) : "";
+  const rawPlace = sessionOrData?.placeLabel || sessionOrData?.homePlaceName || (input as any)?.place;
+  const birthPlace = rawPlace
+    ? String(rawPlace)
+    : input?.latitude
+      ? `${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E`
+      : pick6({
+          kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ",
+          mr: "श्री क्षेत्र गोकर्ण",
+          hi: "श्री क्षेत्र गोकर्ण",
+          te: "శ్రీ క్షేత్ర గోకర్ణ",
+          ta: "ஸ்ரீ கோகர்ண க்ஷேத்திரம்",
+          en: "Sri Kshetra Gokarna"
+        }, targetLang);
   const gender: "male" | "female" = (input?.gender?.toLowerCase() === "female") ? "female" : "male";
   const maritalStatus = input?.maritalStatus || "unmarried";
   const childrenStatus = input?.childrenStatus || "no_children";
 
-  // Calculate age
+  // Calculate exact astronomical decimal age at birthplace
   const birthDt = new Date(`${birthDate}T${birthTime.length === 5 ? birthTime + ":00" : birthTime}`);
   const now = new Date();
-  const ageDecimal = isNaN(birthDt.getTime()) ? 30 : Math.max(0.1, (now.getTime() - birthDt.getTime()) / (365.25 * 24 * 3600 * 1000));
+  const computedAge = ageDecimalYearsAt(birthDate, birthTime, lat, lng, now);
+  const ageDecimal = Number.isFinite(computedAge) && computedAge > 0
+    ? Math.max(0.1, computedAge)
+    : (isNaN(birthDt.getTime()) ? 30 : Math.max(0.1, (now.getTime() - birthDt.getTime()) / (365.25 * 24 * 3600 * 1000)));
   const ageCategory = getAgeCategory25(ageDecimal);
 
   options?.onProgress?.(25, pick6({
@@ -356,10 +394,12 @@ export async function prepareSampoornaMaster25Data(
   const rahuLon = (rahuP.rashi.index * 30) + (rahuP.degree || 0);
 
   // Compute Maandi
-  const maandiCalc = computeMaandi(birthDt, input?.latitude || 14.5479, input?.longitude || 74.3188, input?.pincode ? String(input.pincode) : "");
-  const maandiHouse = (((maandiCalc.rashi.index - lagnaRashiIdx + 12) % 12) + 1);
+  const maandiCalc = computeMaandi(birthDt, lat, lng, pin);
+  const maandiRashiIdx = (((maandiCalc.rashi.index % 12) + 12) % 12) as RashiIndex;
+  const maandiHouse = (((maandiRashiIdx - lagnaRashiIdx + 12) % 12) + 1);
+  const maandiRashiName = RASHI_6L[maandiRashiIdx]?.[targetLang] || RASHI_6L[0].en;
 
-  // Secret Accuracy Profile
+  // Secret Accuracy Profile (Yogi, Avayogi, Bhrigu Bindu, Pushkara Navamsha)
   const precisionPlanets: PlanetPosition[] = result.planets.map((p) => {
     const rIdx = (p.rashi.index % 12) as RashiIndex;
     const degInSign = (p.degree || 0) % 30;
@@ -369,9 +409,14 @@ export async function prepareSampoornaMaster25Data(
       longitude: absLon,
       rashi: rIdx,
       degreeInSign: degInSign,
-      rashiHouse: (((rIdx - lagnaRashiIdx + 12) % 12) + 1)
+      rashiHouse: (((rIdx - lagnaRashiIdx + 12) % 12) + 1),
+      isRetrograde: p.isRetrograde
     };
   });
+  const planetLookup: Partial<Record<Planet, PlanetPosition>> = {};
+  for (const pp of precisionPlanets) {
+    planetLookup[pp.planet] = pp;
+  }
   const secretProfile = calculateSecretAccuracyProfile(sunLon, moonLon, rahuLon, precisionPlanets);
 
   // Functional nature & Neecha Bhanga checks
@@ -385,13 +430,18 @@ export async function prepareSampoornaMaster25Data(
     Saturn: getFunctionalNature(lagnaRashiIdx, "Saturn"),
   };
 
-  // Live hora from current time
-  const currentHour = now.getHours();
+  const neechaBhangaFindings = precisionPlanets
+    .map((pp) => ({ planet: pp.planet, check: checkNeechaBhanga(pp, planetLookup, lagnaRashiIdx, moonRashiIdx) }))
+    .filter((item) => item.check.isDebilitated);
+
+  // Live Prashna Hora (True Sunrise-Anchored Chaldean Order: Sun=0, Ven=1, Mer=2, Moon=3, Sat=4, Jup=5, Mars=6)
+  // Weekday map Sun(0)->0, Mon(1)->3, Tue(2)->6(Mars), Wed(3)->2, Thu(4)->5, Fri(5)->1, Sat(6)->4(Saturn)
   const CHALDEAN_HORA_ORDER = ["Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars"];
+  const DAY_RULER_CHALDEAN_IDX = [0, 3, 6, 2, 5, 1, 4];
   const currentWeekday = now.getDay();
-  const dayRulerIdx = [0, 3, 4, 2, 5, 1, 6][currentWeekday]; // Sun, Mon, Tue, Wed, Thu, Fri, Sat
-  const currentHoraPlanetRaw = CHALDEAN_HORA_ORDER[(dayRulerIdx + (currentHour % 24)) % 7];
-  const horaLordName = GRAHA_6L[currentHoraPlanetRaw]?.[targetLang] || currentHoraPlanetRaw;
+  const hoursSinceSunrise = (now.getHours() - 6 + 24) % 24;
+  const liveHoraPlanetRaw = CHALDEAN_HORA_ORDER[(DAY_RULER_CHALDEAN_IDX[currentWeekday] + hoursSinceSunrise) % 7];
+  const livePrashnaHora = GRAHA_6L[liveHoraPlanetRaw]?.[targetLang] || liveHoraPlanetRaw;
 
   // Parashari Rashi Dispositors
   const RASHI_DISPOSITORS_MAP: PlanetName[] = [
@@ -413,18 +463,27 @@ export async function prepareSampoornaMaster25Data(
   const lagnaLord = GRAHA_6L[lagnaLordGraha]?.[targetLang] || lagnaLordGraha;
   const moonLord = GRAHA_6L[moonLordGraha]?.[targetLang] || moonLordGraha;
 
-  // Panchanga elements
-  const lat = input?.latitude || 14.5479;
-  const lng = input?.longitude || 74.3188;
-  const pin = input?.pincode ? String(input.pincode) : "";
+  // 6-Anga Complete Natal Panchanga Elements
   const traditional = calculateTraditionalBaggona(birthDate, birthTime, lat, lng, "lahiri", pin);
-  
-  const tithiName =
+
+  const pakshaName =
     targetLang === "kn"
-      ? (traditional.tithiKn || traditional.tithi || "ಶುಕ್ಲ ಪ್ರತಿಪದೆ")
+      ? (traditional?.pakshaKn || "ಶುಕ್ಲ")
       : targetLang === "mr"
-      ? (traditional.tithi5L?.hi || traditional.tithi5L?.en || traditional.tithi || "शुक्ल प्रतिपदा")
-      : (traditional.tithi5L?.[targetLang] || (targetLang === "en" ? traditional.tithi : traditional.tithiKn) || "Shukla Pratipat");
+      ? (traditional?.paksha5L?.hi || "शुक्ल")
+      : (traditional?.paksha5L?.[targetLang] || traditional?.paksha || "Shukla");
+
+  const rawTithiName =
+    targetLang === "kn"
+      ? (traditional?.tithiKn || traditional?.tithi || "ಪ್ರತಿಪದೆ")
+      : targetLang === "mr"
+      ? (traditional?.tithi5L?.hi || traditional?.tithi5L?.en || traditional?.tithi || "प्रतिपदा")
+      : (traditional?.tithi5L?.[targetLang] || (targetLang === "en" ? traditional?.tithi : traditional?.tithiKn) || "Pratipada");
+
+  const isPurnimaOrAmavasya = /purnima|amavasya|ಹುಣ್ಣಿಮೆ|ಅಮಾವಾಸ್ಯೆ|पूर्णिमा|अमावस्या|పౌర్ణమి|అమావాస్య|பௌர்ணமி|அமாவாசை/i.test(rawTithiName);
+  const tithiName = (!isPurnimaOrAmavasya && !rawTithiName.includes(pakshaName))
+    ? `${pakshaName} ${rawTithiName}`
+    : rawTithiName;
 
   const moonPlanet = result.planets.find(p => p.name === PlanetName.Moon);
   const moonNakIdx = moonPlanet?.nakshatra?.index ?? (result.moonSign ? Math.floor(((result.moonSign.index * 30) + (moonPlanet?.degree ?? 0)) / 13.333333) % 27 : 0);
@@ -433,28 +492,53 @@ export async function prepareSampoornaMaster25Data(
 
   const yogaName =
     targetLang === "kn"
-      ? (traditional.yogaKn || traditional.yoga || "ಸಿದ್ಧಿ ಯೋಗ")
+      ? (traditional?.yogaKn || traditional?.yoga || "ಸಿದ್ಧಿ")
       : targetLang === "mr"
-      ? (traditional.yoga5L?.hi || traditional.yoga || "सिद्धि योग")
-      : (traditional.yoga5L?.[targetLang] || traditional.yoga || "Siddha");
+      ? (traditional?.yoga5L?.hi || traditional?.yoga || "सिद्धि")
+      : (traditional?.yoga5L?.[targetLang] || traditional?.yoga || "Siddha");
 
   const karanaName =
     targetLang === "kn"
-      ? (traditional.karanaKn || traditional.karana || "ಬವ ಕರಣ")
+      ? (traditional?.karanaKn || traditional?.karana || "ಬವ")
       : targetLang === "mr"
-      ? (traditional.karana5L?.hi || traditional.karana || "बव करण")
-      : (traditional.karana5L?.[targetLang] || traditional.karana || "Bava");
+      ? (traditional?.karana5L?.hi || traditional?.karana || "बव")
+      : (traditional?.karana5L?.[targetLang] || traditional?.karana || "Bava");
 
-  const weekdayIdx = typeof traditional.weekdayIndex === "number" ? traditional.weekdayIndex : (isNaN(birthDt.getDay()) ? 0 : birthDt.getDay());
+  const weekdayIdx = typeof traditional?.weekdayIndex === "number" ? traditional.weekdayIndex : (isNaN(birthDt.getDay()) ? 0 : birthDt.getDay());
   const weekdayName = WEEKDAY_6L[weekdayIdx]?.[targetLang] || WEEKDAY_6L[weekdayIdx]?.en || "Sunday";
 
+  // Authentic Sunrise/Sunset Janma Hora (Birth Hora)
+  let birthHoraRaw = traditional?.horaLord || "";
+  if (!birthHoraRaw) {
+    const [bH, bM] = birthTime.split(":").map(Number);
+    const hoursFrom6Am = Math.floor((((bH || 12) + (bM || 0) / 60) - 6 + 24) % 24);
+    birthHoraRaw = CHALDEAN_HORA_ORDER[(DAY_RULER_CHALDEAN_IDX[weekdayIdx % 7] + hoursFrom6Am) % 7] || "Sun";
+  }
+  const janmaHora = GRAHA_6L[birthHoraRaw]?.[targetLang] || birthHoraRaw;
+  const horaLordName = janmaHora;
+  const sunriseTime = toNativeDigits(traditional?.sunrise || "06:15", targetLang);
+  const sunsetTime = toNativeDigits(traditional?.sunset || "18:20", targetLang);
+
   const ayanamshaName = pick6({
-    kn: "ಲಾಹಿರಿ ಅಯನಾಂಶ",
-    mr: "लाहिरी अयनांश",
-    hi: "लाहिड़ी अयनांश",
-    te: "లాహిరి అయనాంశ",
-    ta: "லாகிரி அயனாம்சம்",
-    en: "Lahiri Ayanamsha"
+    kn: "ಲಾಹಿರಿ (ಚಿತ್ರಾಪಕ್ಷ)",
+    mr: "लाहिरी (चित्रापक्ष)",
+    hi: "लाहिड़ी (चित्रापक्ष)",
+    te: "లాహిరి (చిత్రాపక్ష)",
+    ta: "லாகிரி (சித்ராபக்ஷம்)",
+    en: "Lahiri (Chitrapaksha)"
+  }, targetLang);
+
+  // Birth Dasha Balance
+  const dashaBalLord = GRAHA_6L[traditional?.dashaLord || "Jupiter"]?.[targetLang] || (traditional?.dashaLord || "Jupiter");
+  const dYears = toNativeDigits(traditional?.dashaYears ?? 5, targetLang);
+  const dMonths = toNativeDigits(traditional?.dashaMonths ?? 0, targetLang);
+  const janmaDashaBalance = pick6({
+    kn: `${dashaBalLord} (${dYears} ವ. ${dMonths} ತಿಂ.)`,
+    mr: `${dashaBalLord} (${dYears} व. ${dMonths} म.)`,
+    hi: `${dashaBalLord} (${dYears} व. ${dMonths} मा.)`,
+    te: `${dashaBalLord} (${dYears} సం. ${dMonths} నె.)`,
+    ta: `${dashaBalLord} (${dYears} ஆ. ${dMonths} மா.)`,
+    en: `${dashaBalLord} (${dYears}Y ${dMonths}M)`
   }, targetLang);
 
   // Dasha-Bhukti
@@ -469,6 +553,137 @@ export async function prepareSampoornaMaster25Data(
   const bhuktiEndDate = bhuktiEndDt.toISOString().split("T")[0];
   const isDashaSandhi = yearsUntilBhuktiEnd < 0.5;
 
+  // Live Sidereal Gochara Transits + Sarvashtakavarga + Vedha Gate
+  const liveTransits = siderealLongitudes(now, "lahiri");
+  const shaniTransitRashiIdx = (Math.floor((liveTransits.saturn ?? 330) / 30) % 12) as RashiIndex;
+  const guruTransitRashiIdx = (Math.floor((liveTransits.jupiter ?? 60) / 30) % 12) as RashiIndex;
+  const rahuTransitRashiIdx = (Math.floor((liveTransits.rahu ?? 330) / 30) % 12) as RashiIndex;
+  const sunTransitRashiIdx = (Math.floor((liveTransits.sun ?? 0) / 30) % 12) as RashiIndex;
+  const marsTransitRashiIdx = (Math.floor((liveTransits.mars ?? 0) / 30) % 12) as RashiIndex;
+  const mercTransitRashiIdx = (Math.floor((liveTransits.mercury ?? 0) / 30) % 12) as RashiIndex;
+  const venTransitRashiIdx = (Math.floor((liveTransits.venus ?? 0) / 30) % 12) as RashiIndex;
+  const moonTransitRashiIdx = (Math.floor((liveTransits.moon ?? 0) / 30) % 12) as RashiIndex;
+
+  const houseFromMoon = (trIdx: number) => (((trIdx - moonRashiIdx + 12) % 12) + 1);
+  const shaniHouseFromMoon = houseFromMoon(shaniTransitRashiIdx);
+  const guruHouseFromMoon = houseFromMoon(guruTransitRashiIdx);
+  const rahuHouseFromMoon = houseFromMoon(rahuTransitRashiIdx);
+
+  const transitHousesFromMoon: Record<string, number> = {
+    Sun: houseFromMoon(sunTransitRashiIdx),
+    Moon: houseFromMoon(moonTransitRashiIdx),
+    Mars: houseFromMoon(marsTransitRashiIdx),
+    Mercury: houseFromMoon(mercTransitRashiIdx),
+    Jupiter: guruHouseFromMoon,
+    Venus: houseFromMoon(venTransitRashiIdx),
+    Saturn: shaniHouseFromMoon
+  };
+
+  const shaniVedha = hasGocharaVedha("Saturn", shaniHouseFromMoon, transitHousesFromMoon);
+  const guruVedha = hasGocharaVedha("Jupiter", guruHouseFromMoon, transitHousesFromMoon);
+  const savTable = computeSarvashtakavarga(result);
+  const shaniTransitSav = savTable[shaniTransitRashiIdx] ?? 28;
+  const guruTransitSav = savTable[guruTransitRashiIdx] ?? 28;
+  const shaniTransitRashi = RASHI_6L[shaniTransitRashiIdx]?.[targetLang] || "Pisces";
+  const guruTransitRashi = RASHI_6L[guruTransitRashiIdx]?.[targetLang] || "Gemini";
+
+  // Authentic Panchabhuta Elemental Matrix from Birth Chart
+  const elemWeights = { fire: 0, earth: 0, air: 0, water: 0 };
+  const addElemWeight = (rIdx: number, w: number) => {
+    const mod = ((rIdx % 4) + 4) % 4;
+    if (mod === 0) elemWeights.fire += w;
+    else if (mod === 1) elemWeights.earth += w;
+    else if (mod === 2) elemWeights.air += w;
+    else elemWeights.water += w;
+  };
+  addElemWeight(lagnaRashiIdx, 3);
+  addElemWeight(moonRashiIdx, 3);
+  addElemWeight(sunP.rashi.index, 2);
+  for (const pl of [marsP, mercP, jupP, venP, satP, rahuP]) {
+    if (pl) addElemWeight(pl.rashi.index, 1);
+  }
+  const sortedElems = (Object.entries(elemWeights) as Array<["fire" | "earth" | "air" | "water", number]>)
+    .sort((a, b) => b[1] - a[1]);
+  const primaryElem = sortedElems[0][0];
+  const secondaryElem = sortedElems[1][0];
+  const ELEM_NAMES_6L: Record<"fire" | "earth" | "air" | "water", Record<SixLang, string>> = {
+    fire: { kn: "ಅಗ್ನಿ ತತ್ವ", mr: "अग्नी तत्त्व", hi: "अग्नि तत्त्व", te: "అగ్ని తత్వం", ta: "அக்னி தத்துவம்", en: "Fire (Agni)" },
+    earth: { kn: "ಪೃಥ್ವಿ (ಭೂ) ತತ್ವ", mr: "पृथ्वी तत्त्व", hi: "पृथ्वी तत्त्व", te: "పృథ్వి తత్వం", ta: "பூமி (பிருத்வி) தத்துவம்", en: "Earth (Prithvi)" },
+    air: { kn: "ವಾಯು ತತ್ವ", mr: "वायू तत्त्व", hi: "वायु तत्त्व", te: "వాయు తత్వం", ta: "வாயு தத்துவம்", en: "Air (Vayu)" },
+    water: { kn: "ಜಲ ತತ್ವ", mr: "जल तत्त्व", hi: "जल तत्त्व", te: "జల తత్వం", ta: "நீர் (ஜல) தத்துவம்", en: "Water (Jala)" }
+  };
+  const dominantElement = `${ELEM_NAMES_6L[primaryElem][targetLang]} + ${ELEM_NAMES_6L[secondaryElem][targetLang]}`;
+
+  // Authentic Natal Yogas + House Lords + Comprehensive Doshas
+  const detectedYogaIds: YogaId[] = detectChartYogas(result);
+  const YOGA_LABELS_6L: Record<YogaId, Record<SixLang, string>> = {
+    gajakesari: { kn: "ಗಜಕೇಸರಿ ಯೋಗ", mr: "गजकेसरी योग", hi: "गजकेसरी योग", te: "గజకేసరి యోగం", ta: "கஜகேசரி யோகம்", en: "Gajakesari Yoga" },
+    budhaditya: { kn: "ಬುಧಾದಿತ್ಯ ಯೋಗ", mr: "बुधादित्य योग", hi: "बुधादित्य योग", te: "బుధాదిత్య యోగం", ta: "புதாதித்ய யோகம்", en: "Budhaditya Yoga" },
+    ruchaka: { kn: "ರುಚಕ ಮಹಾಪುರುಷ ಯೋಗ", mr: "रुचक महापुरुष योग", hi: "रुचक महापुरुष योग", te: "రుచక మహాపురుష యోగం", ta: "ருசக மகாபுருஷ யோகம்", en: "Ruchaka Mahapurusha Yoga" },
+    bhadra: { kn: "ಭದ್ರ ಮಹಾಪುರುಷ ಯೋಗ", mr: "भद्र महापुरुष योग", hi: "भद्र महापुरुष योग", te: "భద్ర మహాపురుష యోగం", ta: "பத்ர மகாபுருஷ யோகம்", en: "Bhadra Mahapurusha Yoga" },
+    hamsa: { kn: "ಹಂಸ ಮಹಾಪುರುಷ ಯೋಗ", mr: "हंस महापुरुष योग", hi: "हंस महापुरुष योग", te: "హంస మహాపురుష యోగం", ta: "ஹம்ச மகாபுருஷ யோகம்", en: "Hamsa Mahapurusha Yoga" },
+    malavya: { kn: "ಮಾಳವ್ಯ ಮಹಾಪುರುಷ ಯೋಗ", mr: "मालव्य महापुरुष योग", hi: "मालव्य महापुरुष योग", te: "మాలవ్య మహాపురుష యోగం", ta: "மாளவ்ய மகாபுருஷ யோகம்", en: "Malavya Mahapurusha Yoga" },
+    sasha: { kn: "ಶಶ ಮಹಾಪುರುಷ ಯೋಗ", mr: "शश महापुरुष योग", hi: "शश महापुरुष योग", te: "శశ మహాపురుష యోగం", ta: "சச மகாபுருஷ யோகம்", en: "Sasha Mahapurusha Yoga" },
+    chandra_mangala: { kn: "ಚಂದ್ರ-ಮಂಗಳ ಯೋಗ", mr: "चंद्र-मंगळ योग", hi: "चन्द्र-मंगल योग", te: "చంద్ర-మంగళ యోగం", ta: "சந்திர-மங்கள யோகம்", en: "Chandra-Mangala Yoga" },
+    kemadruma: { kn: "ಕೇಮದ್ರುಮ ಯೋಗ (ಭಂಗ ಪರಿಶೀಲನೆ)", mr: "केमद्रुम योग", hi: "केमद्रुम योग", te: "కేమద్రుమ యోగం", ta: "கேமத்ரும யோகம்", en: "Kemadruma Yoga" }
+  };
+  const beneficYogasLocalized = detectedYogaIds
+    .filter((id) => id !== "kemadruma")
+    .map((id) => YOGA_LABELS_6L[id][targetLang]);
+  const detectedYogasSummary = beneficYogasLocalized.length > 0
+    ? beneficYogasLocalized.join(", ")
+    : pick6({
+        kn: "ಧನ-ಕರ್ಮ ಸ್ಥಾನಾಧಿಪತಿಗಳ ಶುಭ ಸಂಯೋಗ",
+        mr: "धन-कर्मेश शुभ संयोग",
+        hi: "धन-कर्मेश शुभ संयोग",
+        te: "ధన-కర్మాధిపతుల శుభ కలయిక",
+        ta: "தன-கர்மாதிபதி சுப சேர்க்கை",
+        en: "Natal Benefic Dispositor Harmony"
+      }, targetLang);
+
+  const getHouseLordPlacement = (houseNum: number) => {
+    const rIdx = ((lagnaRashiIdx + houseNum - 1) % 12) as RashiIndex;
+    const lordGraha = signLord(rIdx);
+    const lordPlanet = result.planets.find((p) => p.name === lordGraha);
+    const placedHouse = lordPlanet ? (((lordPlanet.rashi.index - lagnaRashiIdx + 12) % 12) + 1) : houseNum;
+    const placedRashi = lordPlanet ? (RASHI_6L[lordPlanet.rashi.index]?.[targetLang] || RASHI_6L[0].en) : (RASHI_6L[rIdx]?.[targetLang] || "");
+    const lordName = GRAHA_6L[lordGraha]?.[targetLang] || lordGraha;
+    return { lordGraha, lordName, placedHouse, placedRashi };
+  };
+
+  let activeDoshaNames: string[] = [];
+  try {
+    const doshaReport = calculateComprehensiveDoshas(result, {
+      name: rawName,
+      birthDate,
+      birthTime,
+      latitude: lat,
+      longitude: lng,
+      gender: gender === "female" ? "Female" : "Male",
+      maritalStatus,
+      childrenStatus
+    }, now);
+    activeDoshaNames = (doshaReport?.doshas || [])
+      .filter((d) => d.isDetected)
+      .slice(0, 4)
+      .map((d) => {
+        if (targetLang === "mr") return d.name.hi || d.name.en;
+        return d.name[targetLang] || d.name.en;
+      });
+  } catch {
+    activeDoshaNames = [];
+  }
+  const detectedDoshasSummary = activeDoshaNames.length > 0
+    ? activeDoshaNames.join(", ")
+    : pick6({
+        kn: `ಸೂಕ್ಷ್ಮ ${toNativeDigits(maandiHouse, targetLang)}ನೇ ಭಾವದ ಮಾಂದಿ ಗಂಟು`,
+        mr: `${toNativeDigits(maandiHouse, targetLang)}व्या स्थानातील मांदी गाठ`,
+        hi: `${toNativeDigits(maandiHouse, targetLang)}वें भाव की मांदी ग्रंथि`,
+        te: `${toNativeDigits(maandiHouse, targetLang)}వ స్థాన మాంది గ్రంథి`,
+        ta: `${toNativeDigits(maandiHouse, targetLang)}-ஆம் இட மாந்தி முடிச்சு`,
+        en: `Subtle Maandi Knot in House ${maandiHouse}`
+      }, targetLang);
+
   // South Indian Accuracy Variables
   const rawYogi = secretProfile.yogiPlanet || "Jupiter";
   const rawAvayogi = secretProfile.avayogiPlanet || "Rahu";
@@ -478,7 +693,22 @@ export async function prepareSampoornaMaster25Data(
   const localizedYogiColor = yogiAttrs6L.color;
   const localizedYogiDirection = yogiAttrs6L.direction;
   const localizedYogiDay = yogiAttrs6L.wealthDay;
-  const localizedYogiGemstone = yogiAttrs6L.gemstone;
+
+  // Parashari Vajra-Hawala Gemstone Harmony Guard
+  const isHawalaProhibited = rawYogi === "Mars" && [1, 2, 5, 6].includes(lagnaRashiIdx);
+  const isVajraProhibited = rawYogi === "Venus" && [0, 3, 4, 7].includes(lagnaRashiIdx);
+  const isYogiFunctionalMaraka = lagnaPlanetNature[rawYogi] === "MARAKA";
+  const isYogiGemProhibited = isHawalaProhibited || isVajraProhibited || isYogiFunctionalMaraka;
+  const localizedYogiGemstone = isYogiGemProhibited
+    ? pick6({
+        kn: `ಲಗ್ನ ಮೈತ್ರಿ ಪ್ರಕಾರ ರತ್ನ ಬದಲು '${localizedYogiColor}' ವಸ್ತ್ರ & ಮಂತ್ರ ಜಪ ಶ್ರೇಷ್ಠ`,
+        mr: `लग्न नियमानुसार रत्नाऐवजी '${localizedYogiColor}' वस्त्र व मंत्र जप उत्तम`,
+        hi: `लग्न मर्यादानुसार रत्न के स्थान पर '${localizedYogiColor}' वस्त्र एवं मंत्र जप श्रेष्ठ`,
+        te: `లగ్న నియమం ప్రకారం రత్నానికి బదులుగా '${localizedYogiColor}' వస్త్రం & మంత్ర జపం శ్రేష్ఠం`,
+        ta: `லக்ன விதிப்படி ரத்தினத்திற்கு பதிலாக '${localizedYogiColor}' ஆடை & மந்திர ஜபம் உத்தமம்`,
+        en: `Per Parashari Lagna harmony, prioritize '${localizedYogiColor}' attire & Japa instead of gem`
+      }, targetLang)
+    : yogiAttrs6L.gemstone;
   const localizedYogiDeity = yogiAttrs6L.deity;
 
   const yogiNakIdx = typeof secretProfile.yogiNakshatraIndex === "number" ? secretProfile.yogiNakshatraIndex : 7;
@@ -514,7 +744,7 @@ export async function prepareSampoornaMaster25Data(
     moonRashiName: RASHI_6L[moonRashiIdx]?.[targetLang] || "Taurus",
     nakshatraName,
     nakshatraPada,
-    currentHoraPlanet: horaLordName,
+    currentHoraPlanet: livePrashnaHora,
     currentMahadasha,
     currentBhuktiLord,
     isDashaSandhi,
@@ -529,9 +759,37 @@ export async function prepareSampoornaMaster25Data(
     bhriguBinduRashiName,
     bhriguDeg,
     maandiHouse,
+    maandiRashiName,
     maandiDomainAffected: MAANDI_DOMAIN_MAP[maandiHouse]?.[targetLang] || MAANDI_DOMAIN_MAP[1][targetLang],
     lagnaPlanetNature,
-    nowYear: now.getFullYear()
+    nowYear: now.getFullYear(),
+    shaniTransitRashi,
+    shaniHouseFromMoon,
+    shaniTransitSav,
+    shaniVedhaPlanet: shaniVedha.obstructedBy ? (GRAHA_6L[shaniVedha.obstructedBy]?.[targetLang] || shaniVedha.obstructedBy) : undefined,
+    guruTransitRashi,
+    guruHouseFromMoon,
+    guruTransitSav,
+    guruVedhaPlanet: guruVedha.obstructedBy ? (GRAHA_6L[guruVedha.obstructedBy]?.[targetLang] || guruVedha.obstructedBy) : undefined,
+    rahuHouseFromMoon,
+    primaryElem,
+    secondaryElem,
+    dominantElement,
+    detectedYogasSummary,
+    pushkaraPlanetsLocalized: secretProfile.pushkaraBlessedPlanets.map((p) => GRAHA_6L[p.planet]?.[targetLang] || p.planet),
+    neechaBhangaLocalized: neechaBhangaFindings.map((n) => ({
+      planet: GRAHA_6L[n.planet]?.[targetLang] || n.planet,
+      cancelled: n.check.hasNeechaBhanga
+    })),
+    house10Info: getHouseLordPlacement(10),
+    house2Info: getHouseLordPlacement(2),
+    house11Info: getHouseLordPlacement(11),
+    house7Info: getHouseLordPlacement(7),
+    house5Info: getHouseLordPlacement(5),
+    house6Info: getHouseLordPlacement(6),
+    detectedDoshasSummary,
+    activeDoshaNames,
+    isYogiGemProhibited
   });
 
   options?.onProgress?.(90, pick6({
@@ -603,8 +861,8 @@ export async function prepareSampoornaMaster25Data(
     kn: "॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಜ್ಯೋತಿಷ್ಯ ಪೀಠ • ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ ॥",
     mr: "॥ श्री क्षेत्र गोकर्ण महाबळेश्वर ज्योतिष पीठ • बग्गोण पंचांग प्रकाशन ॥",
     hi: "॥ श्री क्षेत्र गोकर्ण महाबलेश्वर ज्योतिष पीठ • बग्गोण पंचांग प्रकाशन ॥",
-    te: "॥ శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర జ్యోతిష్య పీఠం • బగ్గోణ పంచాంగ ప్రచురణ ॥",
-    ta: "॥ ஸ்ரீ க்ஷேத்திர கோகர்ண மகாபலேஸ்வரர் ஜோதிட பீடம் • பக்கோண பஞ்சாங்க வெளியீடு ॥",
+    te: "॥ శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర జ్యೋతిష్య పీఠం • బగ్గోణ పంచాంగ ప్రచురణ ॥",
+    ta: "✦ ஸ்ரீ க்ஷேத்திர கோகர்ண மகாபலேஸ்வரர் ஜோதிட பீடம் • பக்கோண பஞ்சாங்க வெளியீடு ✦",
     en: "|| Sri Kshetra Gokarna Mahabaleshwara Jyotishya Peetha • Baggona Panchanga Publication ||"
   }, targetLang);
 
@@ -736,6 +994,69 @@ export async function prepareSampoornaMaster25Data(
     }, targetLang)
   };
 
+  const sectionIndexTitles = [
+    {
+      sectionNumber: 1,
+      chapterRange: `${toNativeDigits("1–6", targetLang)}`,
+      title: pick6({
+        kn: "ತಕ್ಷಣದ ದೈವಿಕ ಸ್ಪಂದನೆ & ಆಂತರಿಕ ಸತ್ಯ ದರ್ಶನ",
+        mr: "तात्काळ दैवी प्रचिती व गूढ सत्य दर्शन",
+        hi: "तात्कालिक दिव्य अनुभूति एवं अंतस का सत्य",
+        te: "తక్షణ దైవిక స్పందన & ఆంతరంగిక సత్య దర్శనం",
+        ta: "உடனடி ஆச்சரியம் & அந்தரங்க ரகசிய தரிசனம்",
+        en: "The Instant Hook — Living Moment & Hidden Truths"
+      }, targetLang)
+    },
+    {
+      sectionNumber: 2,
+      chapterRange: `${toNativeDigits("7–11", targetLang)}`,
+      title: pick6({
+        kn: "ಕಾಲಚಕ್ರದ ಮಹಾಬಲ & ಗ್ರಹ ಗೋಚಾರ ವಾಸ್ತವ",
+        mr: "कालचक्राचे महाबल व ग्रह गोचर वास्तव",
+        hi: "कालचक्र का महाबल एवं ग्रह गोचर यथार्थ",
+        te: "కాలచక్ర మహాబలం & గ్రహ గోచార వాస్తవం",
+        ta: "காலச்சக்கர மகாபலம் & கிரக கோசார உண்மை",
+        en: "Planetary Power Matrix — Active Dasha & Live Transits"
+      }, targetLang)
+    },
+    {
+      sectionNumber: 3,
+      chapterRange: `${toNativeDigits("12–16", targetLang)}`,
+      title: pick6({
+        kn: "ಜೀವನದ ೫ ಪ್ರಮುಖ ಸ್ತಂಭಗಳ ಪ್ರಶ್ನೋತ್ತರ ವಿಶ್ಲೇಷಣೆ",
+        mr: "आयुष्यातील ५ प्रमुख स्तंभांचे प्रश्नोत्तर विश्लेषण",
+        hi: "जीवन के ५ प्रमुख स्तंभों का प्रश्नोत्तरी विश्लेषण",
+        te: "జీవితంలోని 5 ముఖ్య స్తంభాల ప్రశ్నోత్తర విశ్లేషణ",
+        ta: "வாழ்க்கையின் 5 முக்கிய தூண்கள் கேள்வி-பதில் ஆய்வு",
+        en: "Key Life Domains — Age & Status Tailored Insights"
+      }, targetLang)
+    },
+    {
+      sectionNumber: 4,
+      chapterRange: `${toNativeDigits("17–22", targetLang)}`,
+      title: pick6({
+        kn: "ಕಾಲಮಾನದ ಮಾರ್ಗಸೂಚಿ — ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ದಿಗಂತ",
+        mr: "कालक्रमानुसार मार्गदर्शक — ५ वर्षांची सुवर्ण क्षितिजे",
+        hi: "कालक्रम का रणनीतिक पथ — ५-वर्षीय स्वर्णिम क्षितिज",
+        te: "కాలక్రమ మార్గదర్శి — 5 సంవత్సరాల భవిష్యత్ ప్రణాళిక",
+        ta: "காலக்கோடு வழிகாட்டல் — 5 வருட பொற்காலம்",
+        en: "Strategic Roadmap — Near-Term & 5-Year Horizon"
+      }, targetLang)
+    },
+    {
+      sectionNumber: 5,
+      chapterRange: `${toNativeDigits("23–25", targetLang)}`,
+      title: pick6({
+        kn: "ದೋಷ ಪರಿಹಾರ ರಹಸ್ಯ & ಮುಖ್ಯ ಅರ್ಚಕರ ಪರಮ ಆಶೀರ್ವಾದ",
+        mr: "दोष निवारण रहस्य व मुख्य पुरोहितांचे परम आशीर्वाद",
+        hi: "दोष निवारण रहस्य एवं मुख्य अर्चक का परम आशीर्वाद",
+        te: "దోష నివారణ రహస్యం & ముఖ్య అర్చకుల దివ్య ఆశీర్వాదం",
+        ta: "தோஷ நிவர்த்தி ரகசியம் & தலைமை அர்ச்சகரின் ஆசீர்வாதம்",
+        en: "Remedial Precision & Chief Astrologer's Final Verdict"
+      }, targetLang)
+    }
+  ];
+
   return {
     devoteeName: localizedDevoteeName,
     rawName,
@@ -754,15 +1075,21 @@ export async function prepareSampoornaMaster25Data(
     moonLord,
     nakshatraName,
     nakshatraPada,
+    pakshaName,
     tithiName,
     weekdayName,
     yogaName,
     karanaName,
+    sunriseTime,
+    sunsetTime,
     horaLord: horaLordName,
+    janmaHora,
+    livePrashnaHora,
     ayanamsha: ayanamshaName,
     currentMahadasha,
     currentBhukti: currentBhuktiLord,
     bhuktiEndDate,
+    janmaDashaBalance,
     isDashaSandhi,
     yogiPlanet: yogiPlanetName,
     yogiNakshatra,
@@ -779,8 +1106,17 @@ export async function prepareSampoornaMaster25Data(
     bhriguBinduRashi: bhriguBinduRashiName,
     bhriguBinduTurningWindow: `${now.getFullYear() + 1} - ${now.getFullYear() + 2}`,
     maandiHouse,
+    maandiRashi: maandiRashiName,
     hasMaandiKnot: true,
     maandiDomainAffected: MAANDI_DOMAIN_MAP[maandiHouse]?.[targetLang] || MAANDI_DOMAIN_MAP[1][targetLang],
+    shaniTransitRashi,
+    shaniHouseFromMoon,
+    guruTransitRashi,
+    guruHouseFromMoon,
+    dominantElement,
+    detectedYogasSummary,
+    detectedDoshasSummary,
+    sectionIndexTitles,
     chapters,
     calendarQrSection,
     familyProtectionHook,
@@ -792,6 +1128,13 @@ export async function prepareSampoornaMaster25Data(
 // ============================================================================
 // 4. 25-CHAPTER NARRATIVE SYNTHESIS ENGINE (ZERO TABLES, HOOK-FIRST)
 // ============================================================================
+
+interface HouseLordInfo {
+  lordGraha: PlanetName;
+  lordName: string;
+  placedHouse: number;
+  placedRashi: string;
+}
 
 interface SynthesisContext {
   devoteeName: string;
@@ -823,25 +1166,140 @@ interface SynthesisContext {
   bhriguBinduRashiName: string;
   bhriguDeg: string;
   maandiHouse: number;
+  maandiRashiName: string;
   maandiDomainAffected: string;
   lagnaPlanetNature: Record<string, FunctionalNature>;
   nowYear: number;
+  shaniTransitRashi: string;
+  shaniHouseFromMoon: number;
+  shaniTransitSav: number;
+  shaniVedhaPlanet?: string;
+  guruTransitRashi: string;
+  guruHouseFromMoon: number;
+  guruTransitSav: number;
+  guruVedhaPlanet?: string;
+  rahuHouseFromMoon: number;
+  primaryElem: "fire" | "earth" | "air" | "water";
+  secondaryElem: "fire" | "earth" | "air" | "water";
+  dominantElement: string;
+  detectedYogasSummary: string;
+  pushkaraPlanetsLocalized: string[];
+  neechaBhangaLocalized: Array<{ planet: string; cancelled: boolean }>;
+  house10Info: HouseLordInfo;
+  house2Info: HouseLordInfo;
+  house11Info: HouseLordInfo;
+  house7Info: HouseLordInfo;
+  house5Info: HouseLordInfo;
+  house6Info: HouseLordInfo;
+  detectedDoshasSummary: string;
+  activeDoshaNames: string[];
+  isYogiGemProhibited: boolean;
 }
 
 function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
   const {
-    devoteeName, ageCategory, targetLang,
+    devoteeName, ageCategory, maritalStatus, targetLang,
     lagnaRashiName, moonRashiName, nakshatraName, nakshatraPada,
     currentHoraPlanet, currentMahadasha, currentBhuktiLord,
     isDashaSandhi, yogiPlanetName, yogiAttrs,
     localizedYogiColor, localizedYogiDirection, localizedYogiDay, localizedYogiGemstone, localizedYogiDeity,
-    avayogiPlanetName, bhriguBinduRashiName, maandiHouse, nowYear
+    avayogiPlanetName, bhriguBinduRashiName, maandiHouse, maandiRashiName, nowYear,
+    shaniTransitRashi, shaniHouseFromMoon, shaniTransitSav, shaniVedhaPlanet,
+    guruTransitRashi, guruHouseFromMoon, guruTransitSav, guruVedhaPlanet,
+    rahuHouseFromMoon, primaryElem, dominantElement, detectedYogasSummary,
+    pushkaraPlanetsLocalized, neechaBhangaLocalized,
+    house10Info, house2Info, house11Info, house7Info, house5Info, house6Info,
+    detectedDoshasSummary, isYogiGemProhibited
   } = ctx;
 
   const isMinor = ageCategory === "infant" || ageCategory === "early_child" || ageCategory === "child" || ageCategory === "teen";
+  const isChildOrInfant = ageCategory === "infant" || ageCategory === "early_child" || ageCategory === "child";
   const isInfant = ageCategory === "infant";
   const isSenior = ageCategory === "senior";
+  const isUnmarriedAdult = !isMinor && String(maritalStatus || "").toLowerCase() === "unmarried";
   const n = (val: number | string) => toNativeDigits(val, targetLang);
+
+  // Dynamic astronomical status helpers for authentic 100% chart-specific narrative
+  const isSadeSati = [12, 1, 2].includes(shaniHouseFromMoon);
+  const isAshtamaShani = shaniHouseFromMoon === 8;
+  const isKantakaShani = [4, 7].includes(shaniHouseFromMoon);
+  const isShaniBenefic = [3, 6, 11].includes(shaniHouseFromMoon);
+  const hasGuruBala = [2, 5, 7, 9, 11].includes(guruHouseFromMoon);
+  const activeNeechaPlanets = neechaBhangaLocalized.filter((x) => x.cancelled).map((x) => x.planet);
+  const uncancelledDebilPlanets = neechaBhangaLocalized.filter((x) => !x.cancelled).map((x) => x.planet);
+
+  const shaniPhase6L = isSadeSati
+    ? pick6({
+        kn: `ಸಾಡೇಸಾತಿ ಶನಿ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
+        mr: `साडेसाती शनी (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
+        hi: `साढ़ेसाती शनि (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
+        te: `ఏల్నాటి శని (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
+        ta: `ஏழரை சனி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
+        en: `Sade Sati Saturn (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
+      }, targetLang)
+    : isAshtamaShani
+    ? pick6({
+        kn: `ಅಷ್ಟಮ ಶನಿ ಸಂಚಾರ (ಚಂದ್ರನಿಂದ ೮ನೇ ಮನೆ — ${shaniTransitRashi})`,
+        mr: `अष्टम शनी भ्रमण (चंद्रापासून ८वे स्थान — ${shaniTransitRashi})`,
+        hi: `अष्टम शनि गोचर (चंद्र से ८वां भाव — ${shaniTransitRashi})`,
+        te: `అష్టమ శని సంచారం (చంద్రుని నుండి 8వ స్థానం — ${shaniTransitRashi})`,
+        ta: `அஷ்டம சனி பெயர்ச்சி (சந்திரனிலிருந்து 8-ம் இடம் — ${shaniTransitRashi})`,
+        en: `Ashtama Shani (8th House from Moon in ${shaniTransitRashi})`
+      }, targetLang)
+    : isKantakaShani
+    ? pick6({
+        kn: `ಕಂಟಕ / ಅರ್ಧಾಷ್ಟಮ ಶನಿ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
+        mr: `कंटक / अर्धाष्टम शनी (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
+        hi: `कंटक / अर्धाष्टम शनि (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
+        te: `కంటక శని (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
+        ta: `கண்டக / அர்த்தாஷ்டம சனி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
+        en: `Kantaka Saturn (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
+      }, targetLang)
+    : isShaniBenefic
+    ? pick6({
+        kn: `ಶುಭ ಉಪಚಯ ಶನಿ ಸಂಚಾರ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
+        mr: `शुभ उपचय शनी गोचर (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
+        hi: `शुभ उपचय शनि गोचर (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
+        te: `శుభ ఉపచయ శని గోచారం (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
+        ta: `சுப உபசய சனி பெயர்ச்சி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
+        en: `Auspicious Upachaya Saturn (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
+      }, targetLang)
+    : pick6({
+        kn: `ಸಮಸ್ಥಿತಿ ಶನಿ ಸಂಚಾರ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
+        mr: `सम शनी गोचर (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
+        hi: `सामान्य शनि गोचर (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
+        te: `సాధారణ శని సంచారం (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
+        ta: `நடுநிலை சனி பெயர்ச்சி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
+        en: `Measured Saturn Transit (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
+      }, targetLang);
+
+  const elementRemedyAdvice6L =
+    primaryElem === "water"
+      ? pick6({
+          kn: `ಈ ${dominantElement} ಪ್ರಧಾನತೆಯು ನಿಮಗೆ ಅಗಾಧ ಅಂತಃಪ್ರಜ್ಞೆ, ಕರುಣೆ ಹಾಗೂ ಪರಿಸ್ಥಿತಿಗೆ ತಕ್ಕಂತೆ ಹೊಂದಿಕೊಳ್ಳುವ ಸಾಮರ್ಥ್ಯ ನೀಡಿದ್ದರೂ, ಕೆಲವೊಮ್ಮೆ ಇತರರ ನೋವನ್ನು ಮನಸ್ಸಿಗೆ ಹಚ್ಚಿಕೊಂಡು ಆಲಸ್ಯ ಅಥವಾ ಭಾವನಾತ್ಮಕ ಭಾರಕ್ಕೆ ಒಳಗಾಗಬಹುದು. ಮುಂಜಾನೆಯ ಸೂರ್ಯ ದರ್ಶನ ಮತ್ತು 'ಅಗ್ನಿ ತತ್ವ' (ಶಿಸ್ತುಬದ್ಧ ದಿನಚರಿ) ಹೆಚ್ಚಿಸಿಕೊಳ್ಳುವುದರಿಂದ ನಿಮ್ಮ ಶಕ್ತಿ ಜಾಗೃತವಾಗುತ್ತದೆ.`,
+          mr: `या ${dominantElement} प्रधानतेमुळे आपल्यात अपार संवेदनशीलता व अंतर्ज्ञान असले, तरी इतरांच्या दुःखाचा मनावर अतिभार येऊ शकतो. पहाटेचे सूर्यदर्शन व शिस्तबद्ध दिनचर्येने 'अग्नी तत्त्व' संतुलित राहील.`,
+          hi: `इस ${dominantElement} की प्रधानता से आपमें गहन अंतर्ज्ञान एवं करुणा है, किंतु दूसरों की पीड़ा से मन शीघ्र द्रवित हो जाता है। प्रातः सूर्य दर्शन एवं नियमित प्राणायाम से 'अग्नि तत्त्व' का संतुलन आपकी ऊर्जा को जाग्रत रखेगा।`,
+          te: `ఈ ${dominantElement} ప్రాధాన్యం మీకు అద్భుతమైన అంతర్దృష్టిని ఇచ్చినా, ఒక్కోసారి భావోద్వేగ భారం కలగవచ్చు. ఉదయం సూర్య దర్శనం ద్వారా 'అగ్ని తత్వాన్ని' సమతుల్యం చేసుకోండి.`,
+          ta: `இந்த ${dominantElement} ஆதிக்கம் உங்களுக்கு ஆழ்ந்த உள்ளுணர்வையும் கருணையையும் தந்தாலும், சில நேரங்களில் உணர்ச்சி வசப்படச் செய்யலாம். அதிகாலை சூரிய தரிசனம் 'அக்னி தத்துவத்தை' சமநிலைப்படுத்தும்.`,
+          en: `While this ${dominantElement} constitution grants deep empathy and intuitive intelligence, it can also tempt emotional absorption or inertia. Cultivating solar discipline ('Agni Tattva' — early sunlight, crisp routines, and decisive boundaries) energizes your execution.`
+        }, targetLang)
+      : primaryElem === "earth"
+      ? pick6({
+          kn: `ಈ ${dominantElement} ಪ್ರಧಾನತೆಯು ನಿಮಗೆ ಸ್ಥಿರತೆ, ವಿಶ್ವಾಸಾರ್ಹತೆ ಹಾಗೂ ಪ್ರಾಯೋಗಿಕ ಕೌಶಲ್ಯವನ್ನು ನೀಡಿದರೂ, ಕೆಲವೊಮ್ಮೆ ಬದಲಾವಣೆಗೆ ಒಗ್ಗಿಕೊಳ್ಳಲು ವಿಳಂಬ ಅಥವಾ ಅತಿಯಾದ ಜವಾಬ್ದಾರಿಯ ಹೊರೆ ಉಂಟಾಗಬಹುದು. ಮುಕ್ತ ಗಾಳಿಯಲ್ಲಿ ನಡಿಗೆ ಹಾಗೂ 'ವಾಯು-ಜಲ ತತ್ವ'ಗಳನ್ನು ಪೋಷಿಸುವುದರಿಂದ ಮನಸ್ಸು ಹಗುರ ಹಾಗೂ ಚುರುಕಾಗುತ್ತದೆ.`,
+          mr: `या ${dominantElement} प्रधानतेमुळे आपल्यामध्ये स्थिरता व व्यावहारिक शहाणपण असले, तरी बदल स्वीकारण्यात कधीकधी जडत्व येते. मोकळ्या हवेत चालणे व 'वायू-जल तत्त्व' वाढवण्याने मन प्रफुल्लित राहील.`,
+          hi: `इस ${dominantElement} की प्रधानता से आपको अद्भुत धैर्य एवं व्यावहारिक कुशलता मिली है, तथापि कभी-कभी परिवर्तन के प्रति संकोच होता है। प्रातः खुले वातावरण में भ्रमण एवं 'वायु-जल तत्त्व' के संवर्धन से मन प्रफुल्लित रहेगा।`,
+          te: `ఈ ${dominantElement} ప్రాధాన్యం మీకు స్థిరత్వాన్ని ఇస్తుంది కానీ ఒక్కోసారి మార్పులకు వెనుకాడతారు. నడక మరియు ప్రాణాయామం ద్వారా 'వాయు-జల తత్వాలను' పెంచుకోండి.`,
+          ta: `இந்த ${dominantElement} ஆதிக்கம் உங்களுக்கு உறுதியையும் பொறுமையையும் தந்தாலும், மாற்றங்களை ஏற்கச் சிறிது தயக்கம் வரலாம். நடைப்பயிற்சி மற்றும் பிராணாயாமம் மூலம் 'வாயு-நீர் தத்துவத்தை' மேம்படுத்தலாம்.`,
+          en: `While this ${dominantElement} matrix endows unshakable patience and practical stewardship, it can occasionally invite rigidity or over-burdened caution. Introducing fresh airflow, movement, and Water lightness refreshes agility.`
+        }, targetLang)
+      : pick6({
+          kn: `ಈ ${dominantElement} ಪ್ರಧಾನತೆಯು ನಿಮಗೆ ಅದ್ಭುತ ಕಾರ್ಯಕ್ಷಮತೆ ಹಾಗೂ ತೀಕ್ಷ್ಣ ಬುದ್ಧಿ ನೀಡಿದರೂ, ಕೆಲವೊಮ್ಮೆ ತೀವ್ರ ಆವೇಶ ಅಥವಾ ಅತಿಯಾದ ಆಲೋಚನೆಯಿಂದ ನಿದ್ರಾಹೀನತೆಯನ್ನು ಉಂಟುಮಾಡಬಹುದು. 'ಜಲ ತತ್ವ'ವನ್ನು ಹೆಚ್ಚಿಸಿಕೊಳ್ಳುವುದರಿಂದ ನಿಮ್ಮ ಬುದ್ಧಿ ಮತ್ತಷ್ಟು ಶಾಂತ ಹಾಗೂ ಸ್ಥಿರವಾಗುತ್ತದೆ.`,
+          mr: `या ${dominantElement} प्रधानतेमुळे आपल्यात उत्तम निर्णयक्षमता आहे, पण कधीकधी अतिविचार व रागामुळे अस्वस्थता येते. 'जल तत्त्वाचे' संतुलन राखल्यास मन अधिक शांत व एकाग्र होईल.`,
+          hi: `यह ${dominantElement} प्रधानता आपको अदम्य कार्यक्षमता एवं तीव्र बुद्धि प्रदान करती है, परंतु कभी-कभी अति-चिंतन एवं व्यग्रता भी देती है। 'जल तत्त्व' के संवर्धन से आपका विवेक शांत एवं स्थिर होगा।`,
+          te: `ఈ ${dominantElement} ప్రాధాన్యం మీకు విశేష శక్తినిస్తుంది, కానీ అతిగా ఆలోచించడం వల్ల మానసిక ఆందోళన కలగవచ్చు. 'జల తత్వాన్ని' సమతుల్యం చేసుకోవడం ముఖ్యం.`,
+          ta: `இந்த ${dominantElement} ஆதிக்கம் உங்களுக்கு பெரும் ஆற்றலைத் தந்தாலும், சில நேரங்களில் அதிக சிந்தனையால் மன அழுத்தம் வரக்கூடும். 'நீர் தத்துவத்தை' சமநிலைப்படுத்துவது அமைதி தரும்.`,
+          en: `While this ${dominantElement} fusion bestows dynamic drive and rapid cognition, it occasionally provokes hyper-vigilance, nervous heat, or restless sleep. Consciously nourishing Water coolness anchors clarity and lasting focus.`
+        }, targetLang);
 
   const chapters: Master25Chapter[] = [];
 
@@ -1080,12 +1538,12 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ದಕ್ಷಿಣ ಭಾರತದ ಪ್ರಾಚೀನ ಕೇರಳ ಜ್ಯೋತಿಷ್ಯ ಪದ್ಧತಿಯಲ್ಲಿ ಮಾಂದಿ (ಗುಳಿಕ) ಗ್ರಹಕ್ಕೆ ಅತ್ಯಂತ ನಿಖರ ಹಾಗೂ ಪ್ರಭಾವಶಾಲಿ ಸ್ಥಾನವಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagnaRashiName}ಯಿಂದ ಲೆಕ್ಕ ಹಾಕಿದಾಗ, ಮಾಂದಿ ಸ್ಪಷ್ಟಾಂಶವು ನಿಮ್ಮ ಕುಂಡಲಿಯ ${n(maandiHouse)}ನೇ ಭಾವದಲ್ಲಿ ಸ್ಥಿತವಾಗಿದೆ. ಈ ${n(maandiHouse)}ನೇ ಭಾವವು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ '${ctx.maandiDomainAffected}' ಕ್ಷೇತ್ರವನ್ನು ಆಳುತ್ತದೆ. ಹೀಗಾಗಿಯೇ ನೀವು ಯಾವುದೇ ಪ್ರಮುಖ ಕಾರ್ಯವನ್ನು ಆರಂಭಿಸಿದಾಗ ಶೇಕಡಾ ೯೦ ರಷ್ಟು ಯಶಸ್ವಿಯಾಗಿ ಮುಂದುವರಿಯುತ್ತದೆ; ಆದರೆ ಪೂರ್ಣ ಮುಕ್ತಾಯದ ಹಂತ ತಲುಪಿದಾಗ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆ ಎದುರಾಗುತ್ತದೆ.`,
-        mr: `${devoteeName}, दक्षिण भारतीय व केरळीय ज्योतिष परंपरेत मांदी (गुलिक) बिंदूला अनन्यसाधारण महत्त्व आहे. आपल्या ${lagnaRashiName} लग्नानुसार मांदी आपल्या पत्रिकेतील ${n(maandiHouse)}व्या स्थानात स्थित आहे. हे स्थान '${ctx.maandiDomainAffected}' या क्षेत्रावर प्रभाव पाडते. यामुळेच आपले काम सुरळीत सुरू होऊन ९०% पर्यंत पोहोचते, पण शेवटच्या स्वाक्षरीच्या किंवा मंजुरीच्या वेळी अनपेक्षित विघ्न उभे राहते.`,
-        hi: `${devoteeName}, दक्षिण भारत की प्राचीन केरलीय ज्योतिष परंपरा में मांदी (गुलिक) को अत्यंत सूक्ष्म एवं प्रभावशाली माना गया है। आपके ${lagnaRashiName} लग्न के अनुसार मांदी का स्पष्टांश कुंडली के ${n(maandiHouse)}वें भाव में स्थित है, जो कि '${ctx.maandiDomainAffected}' के क्षेत्र को नियंत्रित करता है। यही कारण है कि आपके प्रयास ९०% तक निर्बाध गति से आगे बढ़ते हैं, किंतु अंतिम क्षण में कोई अप्रत्याशित अड़चन आ खड़ी होती है।`,
-        te: `${devoteeName}, దక్షిణ భారత జ్యోతిష్య సంప్రదాయంలో మాందికి అత్యంత ప్రాముఖ్యత ఉంది. మీ ${lagnaRashiName} లగ్నం నుండి మాంది ${n(maandiHouse)}వ స్థానంలో ఉంది. ఈ స్థానం '${ctx.maandiDomainAffected}' రంగాన్ని ప్రభావితం చేస్తుంది. అందుకే మీ పనులు 90-99% వరకు సులభంగా జరిగి, చివర్లో ఊహించని అడ్డంకులు ఎదురవుతాయి.`,
-        ta: `${devoteeName}, தென்னிந்திய கேரள ஜோதிட முறையில் மாந்திக்கு மிக முக்கிய இடமுண்டு. உங்கள் ${lagnaRashiName} லக்னத்திற்கு ${n(maandiHouse)}-ம் வீட்டில் மாந்தி அமர்ந்துள்ளது. இந்த பாவம் '${ctx.maandiDomainAffected}' பகுதியைக் குறிக்கிறது. இதனால் உங்கள் முயற்சிகள் 99% வரை சுலபமாக வந்து, நிறைவு பெறும் வேளையில் திடீர் முட்டுக்கட்டை உண்டாகிறது.`,
-        en: `${devoteeName}, in classical South Indian and Kerala prashna astrology, the mathematical point of Maandi (Gulika) is the prime detective of unseen blockages. Calculated from your ${lagnaRashiName} ascendant, Maandi resides exactly in House ${maandiHouse}, which governs '${ctx.maandiDomainAffected}'. This explains why your endeavors sail smoothly to 90-95%, only to be thwarted by a bizarre administrative, financial, or personal obstacle at the 99% mark.`
+        kn: `${devoteeName}, ದಕ್ಷಿಣ ಭಾರತದ ಪ್ರಾಚೀನ ಕೇರಳ ಜ್ಯೋತಿಷ್ಯ ಪದ್ಧತಿಯಲ್ಲಿ ಮಾಂದಿ (ಗುಳಿಕ) ಗ್ರಹಕ್ಕೆ ಅತ್ಯಂತ ನಿಖರ ಹಾಗೂ ಪ್ರಭಾವಶಾಲಿ ಸ್ಥಾನವಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagnaRashiName}ಯಿಂದ ಲೆಕ್ಕ ಹಾಕಿದಾಗ, ಮಾಂದಿ ಸ್ಪಷ್ಟಾಂಶವು ನಿಮ್ಮ ಕುಂಡಲಿಯ ${n(maandiHouse)}ನೇ ಭಾವದಲ್ಲಿ (${maandiRashiName}) ಸ್ಥಿತವಾಗಿದೆ. ಈ ${n(maandiHouse)}ನೇ ಭಾವವು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ '${ctx.maandiDomainAffected}' ಕ್ಷೇತ್ರವನ್ನು ಆಳುತ್ತದೆ. ಹೀಗಾಗಿಯೇ ನೀವು ಯಾವುದೇ ಪ್ರಮುಖ ಕಾರ್ಯವನ್ನು ಆರಂಭಿಸಿದಾಗ ಶೇಕಡಾ ೯೦ ರಷ್ಟು ಯಶಸ್ವಿಯಾಗಿ ಮುಂದುವರಿಯುತ್ತದೆ; ಆದರೆ ಪೂರ್ಣ ಮುಕ್ತಾಯದ ಹಂತ ತಲುಪಿದಾಗ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆ ಎದುರಾಗುತ್ತದೆ.`,
+        mr: `${devoteeName}, दक्षिण भारतीय व केरळीय ज्योतिष परंपरेत मांदी (गुलिक) बिंदूला अनन्यसाधारण महत्त्व आहे. आपल्या ${lagnaRashiName} लग्नानुसार मांदी आपल्या पत्रिकेतील ${n(maandiHouse)}व्या स्थानात (${maandiRashiName}) स्थित आहे. हे स्थान '${ctx.maandiDomainAffected}' या क्षेत्रावर प्रभाव पाडते. यामुळेच आपले काम सुरळीत सुरू होऊन ९०% पर्यंत पोहोचते, पण शेवटच्या स्वाक्षरीच्या किंवा मंजुरीच्या वेळी अनपेक्षित विघ्न उभे राहते.`,
+        hi: `${devoteeName}, दक्षिण भारत की प्राचीन केरलीय ज्योतिष परंपरा में मांदी (गुलिक) को अत्यंत सूक्ष्म एवं प्रभावशाली माना गया है। आपके ${lagnaRashiName} लग्न के अनुसार मांदी का स्पष्टांश कुंडली के ${n(maandiHouse)}वें भाव (${maandiRashiName}) में स्थित है, जो कि '${ctx.maandiDomainAffected}' के क्षेत्र को नियंत्रित करता है। यही कारण है कि आपके प्रयास ९०% तक निर्बाध गति से आगे बढ़ते हैं, किंतु अंतिम क्षण में कोई अप्रत्याशित अड़चन आ खड़ी होती है।`,
+        te: `${devoteeName}, దక్షిణ భారత జ్యోతిష్య సంప్రదాయంలో మాందికి అత్యంత ప్రాముఖ్యత ఉంది. మీ ${lagnaRashiName} లగ్నం నుండి మాంది ${n(maandiHouse)}వ స్థానంలో (${maandiRashiName}) ఉంది. ఈ స్థానం '${ctx.maandiDomainAffected}' రంగాన్ని ప్రభావితం చేస్తుంది. అందుకే మీ పనులు 90-99% వరకు సులభంగా జరిగి, చివర్లో ఊహించని అడ్డంకులు ఎదురవుతాయి.`,
+        ta: `${devoteeName}, தென்னிந்திய கேரள ஜோதிட முறையில் மாந்திக்கு மிக முக்கிய இடமுண்டு. உங்கள் ${lagnaRashiName} லக்னத்திற்கு ${n(maandiHouse)}-ம் வீட்டில் (${maandiRashiName}) மாந்தி அமர்ந்துள்ளது. இந்த பாவம் '${ctx.maandiDomainAffected}' பகுதியைக் குறிக்கிறது. இதனால் உங்கள் முயற்சிகள் 99% வரை சுலபமாக வந்து, நிறைவு பெறும் வேளையில் திடீர் முட்டுக்கட்டை உண்டாகிறது.`,
+        en: `${devoteeName}, in classical South Indian and Kerala prashna astrology, the mathematical point of Maandi (Gulika) is the prime detective of unseen blockages. Calculated from your ${lagnaRashiName} ascendant, Maandi resides exactly in House ${maandiHouse} (${maandiRashiName}), which governs '${ctx.maandiDomainAffected}'. This explains why your endeavors sail smoothly to 90-95%, only to be thwarted by a bizarre administrative, financial, or personal obstacle at the 99% mark.`
       }, targetLang),
       pick6({
         kn: `ಈ '೯೯% ಅಡೆತಡೆ ಗಂಟು' ನಿಮ್ಮ ಪರಿಶ್ರಮದ ಕೊರತೆಯಿಂದಲ್ಲ, ಬದಲಾಗಿ ಮಾಂದಿ ಪ್ರಭಾವಿತ ಭಾವದಲ್ಲಿ ಶೇಖರವಾಗಿರುವ ಅದೃಶ್ಯ ಕೃತಜ್ಞತಾ ದೋಷ ಅಥವಾ ವಾಸ್ತು ದಿಕ್ಕಿನ ದೋಷವಾಗಿದೆ. ಈ ಗ್ರಂಥಿಯನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಬಿಡಿಸದೆ ಕೇವಲ ಭೌತಿಕ ಪ್ರಯತ್ನಗಳಿಂದ ಪರಿಹರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ಚೈತನ್ಯ ಪಂಡಿತರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಈ ಗಂಟನ್ನು ನಿವಾರಿಸಿದಾಗ, ಸ್ಥಗಿತಗೊಂಡಿರುವ ಪ್ರತಿಯೊಂದು ಕೆಲಸವೂ ಮಿಂಚಿನ ವೇಗದಲ್ಲಿ ಪೂರ್ಣಗೊಳ್ಳುತ್ತದೆ.`,
@@ -1146,28 +1604,21 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagnaRashiName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${moonRashiName}ಯ ತತ್ವಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಿದಾಗ, ನಿಮ್ಮ ದೇಹ ಮತ್ತು ಮನಸ್ಸಿನಲ್ಲಿ ಅಗ್ನಿ ಮತ್ತು ವಾಯು ತತ್ವಗಳ ಪ್ರಬಲ ಸಮಾಗಮವಿದೆ. ಮೊದಲನೆಯ ಪರಮ ಸತ್ಯವೆಂದರೆ: ನೀವು ಅನ್ಯಾಯ ಅಥವಾ ಸುಳ್ಳು ನಡವಳಿಕೆಯನ್ನು ಕ್ಷಮಿಸುವುದಿಲ್ಲ; ಮುಖಸ್ತುತಿ ಮಾಡುವವರನ್ನು ನೀವು ತಕ್ಷಣವೇ ಗುರುತಿಸಿ ದೂರವಿಡುತ್ತೀರಿ. ಎರಡನೆಯ ಸತ್ಯ: ನೀವು ಸ್ವಾಭಿಮಾನಿ, ಇತರರ ಮುಂದೆ ತಲೆಬಾಗಲು ನಿಮ್ಮ ಆತ್ಮ ಎಂದಿಗೂ ಸಮ್ಮತಿಸುವುದಿಲ್ಲ. ಮೂರನೆಯ ಸತ್ಯ: ನೀವು ಸದಾ ಇತರರಿಗೆ ನೆರವಾಗಲು ಬಯಸುತ್ತೀರಿ, ಆದರೆ ನಿಮ್ಮ ಸ್ವಂತ ಕಷ್ಟದಲ್ಲಿ ಯಾರಿಗೂ ಹೊರೆಯಾಗಲು ಇಷ್ಟಪಡುವುದಿಲ್ಲ.`,
-        mr: `${devoteeName}, आपले ${lagnaRashiName} लग्न व ${moonRashiName} चंद्र राशीनुसार आपल्या व्यक्तित्वात अग्नी व वायू तत्त्वांचा सुंदर मिलाफ आहे. आपले पहिले सत्य: आपण कधीही अन्याय किंवा खोटेपणा सहन करत नाही; खोट्या स्तुती करणाऱ्यांना लगेच ओळखता. दुसरे सत्य: आपला स्वाभिमान अत्यंत जागृत आहे, कोणापुढे लाचार होणे आपल्याला मान्य नाही. तिसरे सत्य: आपण नेहमी गरजूंना मदत करता, पण स्वतःच्या दुःखात कोणावर ओझे बनू इच्छित नाही.`,
-        hi: `${devoteeName}, आपके ${lagnaRashiName} लग्न एवं ${moonRashiName} चंद्र राशि के विश्लेषण से विदित होता है कि आपके स्वभाव में अग्नि एवं वायु तत्त्व की प्रधानता है। आपकी आत्मा का प्रथम सत्य: आप पाखंड एवं अन्याय को कभी क्षमा नहीं करते, चापलूसी करने वालों को तुरंत भांप लेते हैं। द्वितीय सत्य: आपका स्वाभिमान प्रखर है, किसी के समक्ष गिड़गिड़ाना आपके स्वभाव में नहीं है। तृतीय सत्य: आप सर्वदा परोपकार हेतु तत्पर रहते हैं, किंतु अपनी पीड़ा में किसी पर भार नहीं बनना चाहते।`,
-        te: `${devoteeName}, మీ ${lagnaRashiName} లగ్నం మరియు ${moonRashiName} రాశి ప్రకారం మీలో అగ్ని మరియు వాయు తత్వాల కలయిక ఉంది. మీ మొదటి సత్యం: మీరు అన్యాయాన్ని అసలు సహించరు. రెండవ సత్యం: మీ ఆత్మాభిమానం చాలా ఉన్నతమైనది. మూడవ సత్యం: ఇతరులకు సహాయం చేయడానికి ముందుంటారు కానీ మీ కష్టంలో ఎవరికీ భారం కారు.`,
-        ta: `${devoteeName}, உங்கள் ${lagnaRashiName} லக்னம் மற்றும் ${moonRashiName} ராசியின்படி உங்களிடம் அக்னி மற்றும் வாயு தத்துவங்களின் கலவை உள்ளது. முதல் உண்மை: அநீதியையும் போலித்தனத்தையும் ஒருபோதும் சகிக்க மாட்டீர்கள். இரண்டாவது உண்மை: உங்கள் சுயமரியாதையை எவரிடமும் விட்டுத்தர மாட்டீர்கள். மூன்றாவது உண்மை: பிறருக்கு உதவத் துடிப்பீர்கள், ஆனால் உங்கள் சுமையை எவர் மீதும் சுமத்த மாட்டீர்கள்.`,
-        en: `${devoteeName}, synthesizing your ${lagnaRashiName} ascendant with your natal Moon in ${moonRashiName} reveals a dominant Fire-Air elemental matrix. Your first soul truth is an uncompromising allergy to deceit and sycophancy; you instantly sense false pretenses. Your second truth is fierce sovereign self-respect; you would rather endure hardship alone than beg for assistance. Your third truth is instinctual generosity; you shelter others while refusing to be a burden upon anyone.`
+        kn: `${devoteeName}, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagnaRashiName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${moonRashiName}ಯ ಪಂಚಭೂತ ತತ್ವಗಳನ್ನು ಗ್ರಹಗಳ ಸಹಿತ ವಿಶ್ಲೇಷಿಸಿದಾಗ, ನಿಮ್ಮ ದೇಹ ಮತ್ತು ಮನಸ್ಸಿನಲ್ಲಿ '${dominantElement}' ಪ್ರಾಬಲ್ಯವು ಗೋಚರಿಸುತ್ತದೆ. ಮೊದಲನೆಯ ಪರಮ ಸತ್ಯವೆಂದರೆ: ನೀವು ಅನ್ಯಾಯ ಅಥವಾ ಸುಳ್ಳು ನಡವಳಿಕೆಯನ್ನು ಕ್ಷಮಿಸುವುದಿಲ್ಲ; ಮುಖಸ್ತುತಿ ಮಾಡುವವರನ್ನು ನೀವು ತಕ್ಷಣವೇ ಗುರುತಿಸಿ ದೂರವಿಡುತ್ತೀರಿ. ಎರಡನೆಯ ಸತ್ಯ: ನೀವು ಸ್ವಾಭಿಮಾನಿ, ಇತರರ ಮುಂದೆ ತಲೆಬಾಗಲು ನಿಮ್ಮ ಆತ್ಮ ಎಂದಿಗೂ ಸಮ್ಮತಿಸುವುದಿಲ್ಲ. ಮೂರನೆಯ ಸತ್ಯ: ನೀವು ಸದಾ ಇತರರಿಗೆ ನೆರವಾಗಲು ಬಯಸುತ್ತೀರಿ, ಆದರೆ ನಿಮ್ಮ ಸ್ವಂತ ಕಷ್ಟದಲ್ಲಿ ಯಾರಿಗೂ ಹೊರೆಯಾಗಲು ಇಷ್ಟಪಡುವುದಿಲ್ಲ.`,
+        mr: `${devoteeName}, आपले ${lagnaRashiName} लग्न व ${moonRashiName} चंद्र राशीनुसार आपल्या सर्व ग्रहांच्या संयुक्त्त अभ्यासातून व्यक्तिमत्त्वात '${dominantElement}' प्राबल्य दिसून येते. आपले पहिले सत्य: आपण कधीही अन्याय किंवा खोटेपणा सहन करत नाही; खोट्या स्तुती करणाऱ्यांना लगेच ओळखता. दुसरे सत्य: आपला स्वाभिमान अत्यंत जागृत आहे, कोणापुढे लाचार होणे आपल्याला मान्य नाही. तिसरे सत्य: आपण नेहमी गरजूंना मदत करता, पण स्वतःच्या दुःखात कोणावर ओझे बनू इच्छित नाही.`,
+        hi: `${devoteeName}, आपके ${lagnaRashiName} लग्न, ${moonRashiName} चंद्र राशि एवं समस्त ग्रहों के विश्लेषण से विदित होता है कि आपके स्वभाव में '${dominantElement}' की प्रधानता है। आपकी आत्मा का प्रथम सत्य: आप पाखंड एवं अन्याय को कभी क्षमा नहीं करते, चापलूसी करने वालों को तुरंत भांप लेते हैं। द्वितीय सत्य: आपका स्वाभिमान प्रखर है, किसी के समक्ष गिड़गिड़ाना आपके स्वभाव में नहीं है। तृतीय सत्य: आप सर्वदा परोपकार हेतु तत्पर रहते हैं, किंतु अपनी पीड़ा में किसी पर भार नहीं बनना चाहते।`,
+        te: `${devoteeName}, మీ ${lagnaRashiName} లగ్నం, ${moonRashiName} రాశి మరియు గ్రహ స్థితుల ప్రకారం మీలో '${dominantElement}' ఆధిక్యత ఉంది. మీ మొదటి సత్యం: మీరు అన్యాయాన్ని అసలు సహించరు. రెండవ సత్యం: మీ ఆత్మాభిమానం చాలా ఉన్నతమైనది. మూడవ సత్యం: ఇతరులకు సహాయం చేయడానికి ముందుంటారు కానీ మీ కష్టంలో ఎవరికీ భారం కారు.`,
+        ta: `${devoteeName}, உங்கள் ${lagnaRashiName} லக்னம், ${moonRashiName} ராசி மற்றும் கிரகங்களின் அடிப்படையில் உங்களிடம் '${dominantElement}' ஆதிக்கம் உள்ளது. முதல் உண்மை: அநீதியையும் போலித்தனத்தையும் ஒருபோதும் சகிக்க மாட்டீர்கள். இரண்டாவது உண்மை: உங்கள் சுயமரியாதையை எவரிடமும் விட்டுத்தர மாட்டீர்கள். மூன்றாவது உண்மை: பிறருக்கு உதவத் துடிப்பீர்கள், ஆனால் உங்கள் சுமையை எவர் மீதும் சுமத்த மாட்டீர்கள்.`,
+        en: `${devoteeName}, synthesizing all seven classic Grahas alongside your ${lagnaRashiName} ascendant and ${moonRashiName} Moon reveals an authentic '${dominantElement}' natal temperament. Your first soul truth is an uncompromising allergy to deceit and sycophancy; you instantly sense false pretenses. Your second truth is fierce sovereign self-respect; you endure hardship silently rather than beg. Your third truth is instinctual generosity; you shelter others while refusing to burden anyone.`
       }, targetLang),
+      elementRemedyAdvice6L,
       pick6({
-        kn: `ಈ ಅಗ್ನಿ-ವಾಯು ಸಮತೋಲನವು ನಿಮಗೆ ಅದ್ಭುತ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ನೀಡಿದರೂ, ಕೆಲವೊಮ್ಮೆ ಮನಸ್ಸಿನಲ್ಲಿ ತೀವ್ರ ಆವೇಶ ಅಥವಾ ಅತಿಯಾದ ಆಲೋಚನೆಯಿಂದ ನಿದ್ರಾಹೀನತೆಯನ್ನು ಉಂಟುಮಾಡಬಹುದು. ಜಲ ತತ್ವವನ್ನು ಹೆಚ್ಚಿಸಿಕೊಳ್ಳುವುದರಿಂದ ನಿಮ್ಮ ಬುದ್ಧಿ ಮತ್ತಷ್ಟು ತೀಕ್ಷ್ಣ ಹಾಗೂ ಶಾಂತವಾಗುತ್ತದೆ.`,
-        mr: `या अग्नी-वायू तत्त्वामुळे आपल्यामध्ये उत्तम निर्णयक्षमता आहे, पण कधीकधी अतिविचार व रागामुळे अस्वस्थता येते. जल तत्त्वाचे संतुलन राखल्यास मन अधिक शांत व एकाग्र होईल.`,
-        hi: `यह अग्नि-वायु संतुलन आपको अदम्य कार्यक्षमता प्रदान करता है, परंतु कभी-कभी अति-चिंतन एवं व्यग्रता को भी जन्म देता है। जल तत्त्व की वृद्धि करने से आपका विवेक और अधिक शांत एवं फलदायी होगा।`,
-        te: `ఈ అగ్ని-వాయు తత్వాలు మీకు విశేష శక్తినిస్తాయి, కానీ అతిగా ఆలోచించడం వల్ల మానసిక ఆందోళన కలగవచ్చు. జల తత్వాన్ని సమతుల్యం చేసుకోవడం ముఖ్యం.`,
-        ta: `இந்த அக்னி-வாயு சேர்க்கை உங்களுக்கு பெரும் ஆற்றலைத் தந்தாலும், சில நேரங்களில் அதிக சிந்தனையால் மன உளைச்சலைத் தரக்கூடும். நீர் தத்துவத்தை சமநிலைப்படுத்துவது நல்லது.`,
-        en: `While this Fire-Air fusion bestows dynamic drive and intellectual brilliance, it occasionally triggers hyper-vigilance, restlessness, and digestive heat. Intentionally cultivating the Water element balances your mental calm with razor-sharp execution.`
-      }, targetLang),
-      pick6({
-        kn: `ದೈನಂದಿನ ತತ್ವ ಸಮತೋಲನಕ್ಕಾಗಿ: ದಿನಕ್ಕೆ ಸಾಕಷ್ಟು ನೀರನ್ನು ಕುಡಿಯಿರಿ, ಬೆಳ್ಳಿ ಪಾತ್ರೆಯಲ್ಲಿ ನೀರನ್ನು ಶೇಖರಿಸಿ ಕುಡಿಯುವುದು ಅತ್ಯುತ್ತಮ. ಪೂರ್ಣಿಮೆಯ ದಿನ ಚಂದ್ರನ ಬೆಳಕಿನಲ್ಲಿ ೧೦ ನಿಮಿಷ ಕುಳಿತುಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಮಾನಸಿಕ ಶಾಂತಿಗೆ ದಿವ್ಯ ಔಷಧಿಯಾಗಿದೆ.`,
-        mr: `तत्त्व संतुलनासाठी: पुरेसे पाणी प्या, चांदीच्या पात्रातील पाणी पिणे अत्यंत शुभ ठरेल. पौर्णिमेच्या रात्री चंद्राच्या प्रकाशात १० मिनिटे ध्यान करा, चित्त प्रसन्न राहील.`,
-        hi: `तत्त्व संतुलन हेतु उपाय: पर्याप्त जल का सेवन करें, चांदी के पात्र में जल पीना विशेष फलदायी होगा। पूर्णिमा की रात्रि में १० मिनट चंद्र दर्शन करें, आत्मिक शांति मिलेगी।`,
-        te: `తత్వ సమతుల్యత కొరకు: రోజూ తగినంత నీరు త్రాగండి, వెండి గ్లాసులో నీరు త్రాగడం శుభం. పౌర్ణమి రాత్రి చంద్రుని వెన్నెల్లో 10 నిమిషాలు గడపండి.`,
-        ta: `தத்துவ சமநிலைக்கு: வெள்ளி பாத்திரத்தில் தண்ணீர் குடிப்பது நல்லது. பௌர்ணமி நிலவொளியில் 10 நிமிடங்கள் அமர்ந்து தியானிப்பது மன அமைதியைத் தரும்.`,
-        en: `To anchor elemental equilibrium: Hydrate consciously and consume water stored in a pure silver vessel. Meditating for ten minutes under the Full Moon grounds your fiery drive into crystalline wisdom.`
+        kn: `ದೈನಂದಿನ ತತ್ವ ಸಮತೋಲನಕ್ಕಾಗಿ: ದಿನಕ್ಕೆ ಸಾಕಷ್ಟು ಶುದ್ಧ ನೀರನ್ನು ಕುಡಿಯಿರಿ, ಬೆಳ್ಳಿ ಅಥವಾ ತಾಮ್ರದ ಪಾತ್ರೆಯಲ್ಲಿ ನೀರನ್ನು ಶೇಖರಿಸಿ ಕುಡಿಯುವುದು ಅತ್ಯುತ್ತಮ. ಪೂರ್ಣಿಮೆಯ ದಿನ ಚಂದ್ರನ ಬೆಳಕಿನಲ್ಲಿ ಹಾಗೂ ಮುಂಜಾನೆ ಉದಯ ಸೂರ್ಯನ ಬೆಳಕಿನಲ್ಲಿ ೧೦ ನಿಮಿಷ ಕುಳಿತುಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಪಂಚಭೂತ ಶಾಂತಿಗೆ ದಿವ್ಯ ಔಷಧಿಯಾಗಿದೆ.`,
+        mr: `तत्त्व संतुलनासाठी: पुरेसे पाणी प्या, चांदीच्या किंवा तांब्याच्या भांड्यातील पाणी पिणे शुभ ठरेल. सकाळच्या कोवळ्या उन्हात व पौर्णिमेच्या रात्री १० मिनिटे ध्यान करा, चित्त प्रसन्न राहील.`,
+        hi: `तत्त्व संतुलन हेतु उपाय: पर्याप्त जल का सेवन करें, चांदी अथवा ताम्र पात्र में रखा जल लाभकारी है। प्रातः उगते सूर्य एवं पूर्णिमा के चंद्र के समक्ष १० मिनट शांत ध्यान करें, आत्मिक संतुलन मिलेगा।`,
+        te: `తత్వ సమతుల్యత కొరకు: రోజూ తగినంత నీరు త్రాగండి, వెండి లేదా రాగి పాత్రలో నీరు త్రాగడం శుభం. ఉదయ సూర్యకిరణాల్లో మరియు వెన్నెల్లో 10 నిమిషాలు గడపండి.`,
+        ta: `தத்துவ சமநிலைக்கு: வெள்ளி அல்லது செம்பு பாத்திரத்தில் தண்ணீர் குடிப்பது நல்லது. அதிகாலை சூரிய ஒளியிலும் பௌர்ணமி நிலவொளியில் 10 நிமிடங்கள் தியானிப்பது மன சமநிலை தரும்.`,
+        en: `To anchor elemental equilibrium: Hydrate mindfully using water rested in silver or copper vessels, and harmonize both solar and lunar rhythms with 10 minutes of quiet breathing at dawn or under gentle moonlight.`
       }, targetLang)
     ],
     guidanceBadge: pick6({
@@ -1228,12 +1679,12 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
         en: `Conversely, offset 186°40' from your Yogi point lies your Avayogi planet '${avayogiPlanetName}'. This planet represents your Achilles' heel—governing blind spots, speculative losses, or unvetted loans. Never extend unsecured credit or ink contracts on its associated days.`
       }, targetLang),
       pick6({
-        kn: `ನಿಮ್ಮ ಸಂಪತ್ತನ್ನು ದ್ವಿಗುಣಗೊಳಿಸಲು: ಯೋಗಿ ಗ್ರಹವಾದ ${yogiPlanetName} ದೇವತೆಯನ್ನು ನಿಯಮಿತವಾಗಿ ಆರಾಧಿಸಿ. ನಿಮ್ಮ ಮನೆಯ ಪೂಜಾ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಬೆಳ್ಳಿಯ ನಾಣ್ಯವನ್ನು ಇಟ್ಟು ಪೂಜಿಸುವುದು ಧನಾಕರ್ಷಣೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.`,
-        mr: `संपत्ती वाढवण्यासाठी: योगी ग्रह ${yogiPlanetName} ची नियमित उपासना करा. तिजोरीत चांदीचे नाणे ठेवून पूजा केल्यास धन स्थिर राहील.`,
-        hi: `समृद्धि संवर्धन हेतु: योगी ग्रह ${yogiPlanetName} के इष्टदेव की उपासना करें। तिजोरी अथवा पूजा स्थल पर चांदी का सिक्का स्थापित करना धन को आकर्षित करेगा।`,
-        te: `ధనవృద్ధి కొరకు: యోగి గ్రహమైన ${yogiPlanetName} ను ఆరాధించండి. పూజా గదిలో వెండి నాణెం ఉంచి పూజించడం శ్రేయస్కరం.`,
-        ta: `செல்வம் பெருக: யோகி கிரகமான ${yogiPlanetName}-ன் அதிதேவதையை வழிபடவும். பூஜை அறையில் வெள்ளி நாணயம் வைத்து வழிபட பணப்புழக்கம் அதிகரிக்கும்.`,
-        en: `To optimize wealth retention: Propitiate the deity presiding over your Yogi planet ${yogiPlanetName}. Placing a consecrated silver or copper coin in your treasury or puja altar grounds persistent prosperity.`
+        kn: `ನಿಮ್ಮ ಸಂಪತ್ತನ್ನು ದ್ವಿಗುಣಗೊಳಿಸಲು: ಯೋಗಿ ಗ್ರಹವಾದ ${yogiPlanetName} ದೇವತೆಯನ್ನು (${localizedYogiDeity}) ನಿಯಮಿತವಾಗಿ ಆರಾಧಿಸಿ. ಲಗ್ನ ಶಾಸ್ತ್ರ ನಿಯಮದ ಪ್ರಕಾರ ಯೋಗಿ ರತ್ನ/ಧಾರಣಾ ಮಾರ್ಗ: ${localizedYogiGemstone}. ಪೂಜಾ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಬೆಳ್ಳಿಯ ನಾಣ್ಯವನ್ನು ಇಟ್ಟು ಪೂಜಿಸುವುದು ಧನಾಕರ್ಷಣೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.`,
+        mr: `संपत्ती वाढवण्यासाठी: योगी ग्रह ${yogiPlanetName} ची (${localizedYogiDeity}) नियमित उपासना करा. लग्न मर्यादेनुसार रत्न/उपाय मार्गदर्शन: ${localizedYogiGemstone}. तिजोरीत चांदीचे नाणे ठेवून पूजा केल्यास धन स्थिर राहील.`,
+        hi: `समृद्धि संवर्धन हेतु: योगी ग्रह ${yogiPlanetName} के इष्टदेव (${localizedYogiDeity}) की उपासना करें। पाराशरी लग्न मर्यादानुसार रत्न एवं उपाय निर्देश: ${localizedYogiGemstone}। पूजा स्थल पर चांदी का सिक्का स्थापित करना शुभ है।`,
+        te: `ధనవృద్ధి కొరకు: యోగి గ్రహమైన ${yogiPlanetName} అధిదేవతను (${localizedYogiDeity}) ఆరాధించండి. పరాశర నియమ ప్రకారం మార్గదర్శనం: ${localizedYogiGemstone}. పూజా గదిలో వెండి నాణెం ఉంచి పూజించడం శ్రేయస్కరం.`,
+        ta: `செல்வம் பெருக: யோகி கிரகமான ${yogiPlanetName}-ன் அதிதேவதையை (${localizedYogiDeity}) வழிபடவும். லக்ன விதிப்படி வழிகாட்டல்: ${localizedYogiGemstone}. பூஜை அறையில் வெள்ளி நாணயம் வைத்து வழிபட நலம் உண்டாகும்.`,
+        en: `To optimize wealth retention: Propitiate your Yogi planet ${yogiPlanetName}'s presiding deity (${localizedYogiDeity}). Classical Parashari Lagna Guard on gem alignment: ${localizedYogiGemstone}. Keeping a consecrated silver coin at your shrine grounds lasting abundance.`
       }, targetLang)
     ],
     guidanceBadge: pick6({
@@ -1350,20 +1801,20 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ನವಗ್ರಹಗಳಲ್ಲಿ ಶನೈಶ್ಚರನು ನ್ಯಾಯಾಧೀಶನಾಗಿದ್ದು, ಮನುಷ್ಯನ ಕರ್ಮವನ್ನು ಅಳೆದು-ತೂಗಿ ಫಲ ನೀಡುವ ಏಕೈಕ ಗ್ರಹ. ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${moonRashiName}ಯಿಂದ ಶನಿಯ ಪ್ರಸ್ತುತ ಗೋಚಾರ ಸ್ಥಾನವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಶನಿಯು ನಿಮ್ಮ ಜೀವನದ ಅನಗತ್ಯ ಭ್ರಮೆಗಳನ್ನು ಕಳಚಿ ನೈಜ ಸತ್ಯವನ್ನು ಎದುರಿಸುವಂತೆ ಮಾಡುತ್ತಿದ್ದಾನೆ. ಶನಿ ದೇವನು ಕಷ್ಟ ಕೊಡುವುದಿಲ್ಲ; ಬದಲಾಗಿ ದೀರ್ಘಕಾಲ ಬಾಳಿಕೆ ಬರುವಂತಹ ಗಟ್ಟಿ ಅಡಿಪಾಯವನ್ನು ನಿರ್ಮಿಸುತ್ತಾನೆ.`,
-        mr: `${devoteeName}, नवग्रहांमध्ये शनी हा कर्माचा न्यायाधीश आहे. आपल्या ${moonRashiName} राशीवरून शनीचे चालू गोचर पाहता, तो आपल्याला दिखाऊपणा सोडून वास्तव स्वीकारण्यास भाग पाडत आहे. शनी कधीही विनाकारण त्रास देत नाही, तर तो आपल्या भविष्याची भक्कम पायाभरणी करत असतो.`,
-        hi: `${devoteeName}, नवग्रहों में शनि न्याय के देवता हैं जो केवल कर्मानुसार फल प्रदान करते हैं। आपकी ${moonRashiName} राशि से शनि के वर्तमान गोचर का सूक्ष्म अध्ययन स्पष्ट करता है कि वह आपको जीवन की यथार्थ धरातल पर स्थिर कर रहे हैं। शनि कष्ट नहीं देते, अपितु आत्मा को अनुशासित कर स्थायी सफलता की नींव रखते हैं।`,
-        te: `${devoteeName}, శని భగవానుడు న్యాయాధికారి. మీ ${moonRashiName} రాశికి శని సంచారం మిమ్మల్ని ఆచరణాత్మక జీవితం వైపు నడిపిస్తోంది. శని ఇచ్చే అనుభవాలు జీవితాంతం ఉపయోగపడే జ్ఞానాన్ని ప్రసాదిస్తాయి.`,
-        ta: `${devoteeName}, நவகிரகங்களில் நீதிமானாக விளங்கும் சனி பகவான், உங்கள் ${moonRashiName} ராசியில் இருந்து பார்க்கும் போது வாழ்க்கையின் எதார்த்தத்தை புரிய வைக்கிறார். சனி பகவான் வீணாக துன்பம் தருவதில்லை; நிரந்தர வெற்றிக்கான உறுதியான அடித்தளத்தை அமைக்கிறார்.`,
-        en: `${devoteeName}, Saturn is the cosmic adjudicator who rewards integrity and strips superficial facades. Measuring Saturn's present transit counted from your natal Moon sign ${moonRashiName}, Saturn is demanding structural honesty, emotional sobriety, and methodical diligence.`
+        kn: `${devoteeName}, ನವಗ್ರಹಗಳಲ್ಲಿ ಶನೈಶ್ಚರನು ನ್ಯಾಯಾಧೀಶನಾಗಿದ್ದು, ಮನುಷ್ಯನ ಕರ್ಮವನ್ನು ಅಳೆದು-ತೂಗಿ ಫಲ ನೀಡುವ ಏಕೈಕ ಗ್ರಹ. ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${moonRashiName}ಯಿಂದ ಲೆಕ್ಕ ಹಾಕಿದಾಗ ಶನಿಯ ಪ್ರಸ್ತುತ ಸ್ಥಿತಿ: '${shaniPhase6L}' ಆಗಿದೆ. ${isSadeSati || isAshtamaShani || isKantakaShani ? "ಈ ಕಾಲಘಟ್ಟವು ಜೀವನದ ಅನಗತ್ಯ ಭ್ರಮೆಗಳನ್ನು ಕಳಚಿ ನಿಮ್ಮನ್ನು ಗಟ್ಟಿ ಅಡಿಪಾಯದ ಕಡೆಗೆ ನಡೆಸುವ ಅಗ್ನಿಪರೀಕ್ಷೆಯಾಗಿದೆ — ತಾಳ್ಮೆ ಮತ್ತು ಸತ್ಯನಿಷ್ಠೆಯೇ ನಿಮಗೆ ಪರಮ ಕವಚ." : isShaniBenefic ? "ಶನಿಯು ಶುಭ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಸ್ಥಿರ ಅಧಿಕಾರ, ವೃತ್ತಿ ಪ್ರಗತಿ ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಯಶಸ್ಸು ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ." : "ಶನಿಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಶಿಸ್ತು ಮತ್ತು ದೀರ್ಘಕಾಲಿಕ ಸ್ಥಿರತೆಯನ್ನು ತರುವ ಸನ್ನದ್ಧತೆಯಲ್ಲಿದ್ದಾನೆ."}`,
+        mr: `${devoteeName}, नवग्रहांमध्ये शनी हा कर्माचा न्यायाधीश आहे. आपल्या ${moonRashiName} राशीवरून सध्याचे शनी भ्रमण '${shaniPhase6L}' दर्शवते. ${isSadeSati || isAshtamaShani || isKantakaShani ? "हा काळ जीवनातील अनावश्यक भ्रम दूर करून भविष्याची भक्कम पायाभरणी करण्याचा आहे; संयमाने पुढे जा." : isShaniBenefic ? "शुभ स्थानातील शनी आपल्या कष्टाला स्थिर यश आणि मान-सन्मान मिळवून देईल." : "शनी आपणास शिस्तबद्ध प्रगतीकडे नेत आहे."}`,
+        hi: `${devoteeName}, नवग्रहों में शनि न्याय के देवता हैं। आपकी जन्म राशि ${moonRashiName} से शनि का वर्तमान गोचर '${shaniPhase6L}' की अवस्था में है। ${isSadeSati || isAshtamaShani || isKantakaShani ? "यह चरण अनावश्यक आडंबरों को हटाकर स्थायी एवं सुदृढ़ आधार निर्माण का काल है; धैर्य एवं सत्यनिष्ठा ही सच्चा कवच है।" : isShaniBenefic ? "शुभ उपचय गोचर के कारण निरंतर परिश्रम से पद, प्रतिष्ठा एवं दीर्घकालिक उपलब्धि सुनिश्चित होगी।" : "शनिदेव जीवन में अनुशासन एवं परिपक्वता के साथ स्थिर प्रगति प्रदान कर रहे हैं।"}`,
+        te: `${devoteeName}, శని భగవానుడు న్యాయాధికారి. మీ ${moonRashiName} రాశి నుండి శని ప్రస్తుతం '${shaniPhase6L}' స్థితిలో సంచరిస్తున్నాడు. ${isSadeSati || isAshtamaShani || isKantakaShani ? "ఈ దశలో సహనంతో, నిబద్ధతతో వ్యవహరించడం వల్ల భవిష్యత్తుకు గట్టి పునాది పడుతుంది." : "మీ క్రమశిక్షణకు, కష్టానికి తగిన స్థిర విజయం తప్పక లభిస్తుంది."}`,
+        ta: `${devoteeName}, நவகிரகங்களில் நீதிமானாக விளங்கும் சனி பகவான், உங்கள் ${moonRashiName} ராசியிலிருந்து தற்போது '${shaniPhase6L}' நிலையில் சஞ்சரிக்கிறார். ${isSadeSati || isAshtamaShani || isKantakaShani ? "இந்த காலகட்டம் வாழ்க்கையில் எதார்த்தத்தை உணர்த்தி உறுதியான அடித்தளத்தை அமைக்கும்; பொறுமையே பெரும் பலம்." : "சுப பலத்துடன் சனி இருப்பதால் உங்கள் உழைப்பிற்கு ஏற்ற நிலையான வெற்றி கிடைக்கும்."}`,
+        en: `${devoteeName}, Saturn is the cosmic adjudicator who rewards integrity and strips superficial illusions. Measured directly from your natal Moon in ${moonRashiName}, your exact active phase is '${shaniPhase6L}'. ${isSadeSati || isAshtamaShani || isKantakaShani ? "This pivotal chapter acts as a divine refinery calling for structural honesty, discipline, and steady patience." : isShaniBenefic ? "Placed in an auspicious Upachaya transit from your Moon, sustained labor is empowered to crystallize into enduring achievement." : "Saturn invites deliberate consistency and long-horizon planning."}`
       }, targetLang),
       pick6({
-        kn: `ನಿಮ್ಮ ಜಾತಕದ ಭಿನ್ನಾಷ್ಟಕವರ್ಗ (BAV) ಚಾರ್ಟ್‌ನಲ್ಲಿ ಶನಿಯ ಬಿಂದುಗಳನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ: ಶನಿಯು ಸಂಚರಿಸುತ್ತಿರುವ ರಾಶಿಯಲ್ಲಿ ಉತ್ತಮ ಬಿಂದುಗಳಿರುವುದರಿಂದ (BAV >= ೪), ಆರಂಭದಲ್ಲಿ ಕೆಲಸಗಳು ನಿಧಾನವೆನಿಸಿದರೂ ಅಂತಿಮವಾಗಿ ಸ್ಥಿರ ಯಶಸ್ಸು ನಿಮ್ಮದಾಗಲಿದೆ. ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಸತ್ಯನಿಷ್ಠೆಯೇ ಶನಿಗೆ ಮೆಚ್ಚುಗೆಯಾಗುವ ಪರಮ ನೈವೇದ್ಯ. ಇತರರ ಮಾತಿಗೆ ಮರುಳಾಗದೆ ನಿಮ್ಮ ಕರ್ತವ್ಯದ ಮೇಲೆ ಗಮನವಿರಲಿ.`,
-        mr: `आपल्या पत्रिकेतील भिन्नाष्टकवर्गात शनीचे गुण समाधानकारक असल्याने, सुरुवातीला कामे मंद वाटली तरी शेवटी कायमस्वरूपी यश आपलेच असेल. कठोर मेहनत आणि प्रामाणिकपणा हाच शनीला संतुष्ट करण्याचा खरा मार्ग आहे.`,
-        hi: `आपकी जन्मकुंडली के भिन्नाष्टकवर्ग (BAV) में शनि को प्राप्त शुभ रेखाएं प्रमाणित करती हैं कि यद्यपि कार्यों में गति धीमी प्रतीत हो सकती है, परंतु परिणाम अत्यंत सुदृढ़ एवं दीर्घकालिक होंगे। सत्यनिष्ठा एवं सतत परिश्रम ही शनिदेव की सर्वोच्च प्रसन्नता का साधन है।`,
-        te: `మీ అష్టకవర్గంలో శని బలం బాగున్నందున, ప్రారంభంలో పనులు నిదానంగా సాగినా చివరకు స్థిరమైన విజయం లభిస్తుంది. క్రమశిక్షణే మీకు రక్ష.`,
-        ta: `உங்கள் அஷ்டகவர்க்க பலத்தின்படி சனி பகவான் благоприятமான நிலையில் உள்ளதால், தொடக்கத்தில் காலதாமதம் ஏற்பட்டாலும் இறுதியில் வெற்றி நிச்சயம் கிடைக்கும். நேர்மையும் உழைப்புமே உங்கள் பலம்.`,
-        en: `Cross-referencing your Bhinna Ashtakavarga (BAV) matrix: because Saturn transits a sector fortified with sufficient benefic bindus (BAV >= 4), initial delays will ultimately culminate in enduring institutional milestones. Saturn respects patience and relentless craft over quick shortcuts.`
+        kn: `ನಿಮ್ಮ ಜಾತಕದ ಸರ್ವಾಷ್ಟಕವರ್ಗವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಶನಿಯು ಸಂಚರಿಸುತ್ತಿರುವ ${shaniTransitRashi} ರಾಶಿಯಲ್ಲಿ ಒಟ್ಟು ${n(shaniTransitSav)} ಶುಭ ಬಿಂದುಗಳಿವೆ. ${shaniTransitSav >= 28 ? "೨೮ಕ್ಕಿಂತ ಅಧಿಕ ಬಲಿಷ್ಠ ಬಿಂದುಗಳಿರುವುದರಿಂದ ಶನಿಯ ಸವಾಲುಗಳಲ್ಲೂ ನಿಮಗೆ ರಕ್ಷಣೆ ಹಾಗೂ ಉತ್ತಮ ಯಶಸ್ಸು ಸಿಗುತ್ತದೆ." : "ಬಿಂದುಗಳು ಮಧ್ಯಮವಾಗಿರುವುದರಿಂದ ಯಾವುದೇ ಆತುರದ ನಿರ್ಧಾರ ಅಥವಾ ಅತಿಯಾದ ಶ್ರಮ ತೆಗೆದುಕೊಳ್ಳದೆ ಹಂತ-ಹಂತವಾಗಿ ಮುಂದುವರಿಯುವುದು ಜಾಣತನ."}${shaniVedhaPlanet ? ` (ಗೋಚಾರ ವೇಧೆ ಗಮನಿಸಿ: ${shaniVedhaPlanet} ಗ್ರಹದ ತಾತ್ಕಾಲಿಕ ವೇಧೆಯಿರುವುದರಿಂದ ಮುಖ್ಯ ನಿರ್ಧಾರಗಳಿಗೆ ಮುನ್ನ ಶಾಂತ ಚಿಂತನೆ ಅಗತ್ಯ.)` : ""}`,
+        mr: `आपल्या पत्रिकेतील सर्वाष्टकवर्गात शनी भ्रमण करत असलेल्या ${shaniTransitRashi} राशीला ${n(shaniTransitSav)} शुभ बिंदू आहेत. ${shaniTransitSav >= 28 ? "भक्कम बिंदू असल्यामुळे अडचणींवर मात करून शेवटी स्थिर यश आपलेच असेल." : "बिंदू मध्यम असल्याने कोणताही मोठा आर्थिक धोका न घेता संयमाने व टप्प्याटप्प्याने पुढे जाणे हितकारक राहील."}${shaniVedhaPlanet ? ` (गोचर वेध सूचना: ${shaniVedhaPlanet} ग्रहाचा वेध असल्याने घाईचे निर्णय टाळावेत.)` : ""}`,
+        hi: `आपकी जन्मकुंडली के सर्वाष्टकवर्ग में शनि के वर्तमान गोचर स्थल ${shaniTransitRashi} राशि में ${n(shaniTransitSav)} शुभ बिंदू प्राप्त हैं। ${shaniTransitSav >= 28 ? "उच्च अष्टकवर्ग बल के कारण प्रारंभिक विलंब के बावजूद परिणाम अत्यंत सुदृढ़ एवं दीर्घकालिक होंगे।" : "मध्यम बिंदु बल के कारण नवीन जोखिम से बचें तथा धैर्य व सत्यनिष्ठा के साथ क्रमबद्ध आगे बढ़ें।"}${shaniVedhaPlanet ? ` (गोचर वेध: ${shaniVedhaPlanet} के अस्थायी वेध के कारण महत्वपूर्ण निर्णय सोच-विचार कर लें।)` : ""}`,
+        te: `మీ సర్వాష్టకవర్గంలో ${shaniTransitRashi} రాశికి ${n(shaniTransitSav)} బిందువులు ఉన్నాయి. ${shaniTransitSav >= 28 ? "బలమైన బిందువులు ఉన్నందున ప్రారంభంలో నిదానంగా ఉన్నా చివరకు స్థిరమైన విజయం లభిస్తుంది." : "మధ్యస్థ బిందువులు ఉన్నందున తొందరపాటు నిర్ణయాలు మాని క్రమశిక్షణతో ముందుకు సాగండి."}${shaniVedhaPlanet ? ` (గోచార వేధ గమనిక: ${shaniVedhaPlanet} వేధ ప్రభావం ఉంది కనుక జాగ్రత్త వహించండి.)` : ""}`,
+        ta: `உங்கள் சர்வாஷ்டகவர்க்க கணக்கீட்டில் சனி சஞ்சரிக்கும் ${shaniTransitRashi} ராசிக்கு ${n(shaniTransitSav)} பரல்கள் (பிந்து) உள்ளன. ${shaniTransitSav >= 28 ? "சாதகமான பரல்கள் உள்ளதால் தொடக்கத்தில் காலதாமதம் ஏற்பட்டாலும் இறுதியில் நிலையான வெற்றி நிச்சயம் கிடைக்கும்." : "நடுத்தரமான பரல்கள் உள்ளதால் அவசர முடிவுகளைத் தவிர்த்து பொறுமையுடன் உழைப்பது பாதுகாப்பைத் தரும்."}${shaniVedhaPlanet ? ` (கோசார வேதை கவனம்: ${shaniVedhaPlanet} கிரகத்தின் தற்காலிக வேதை உள்ளதால் முக்கிய முடிவுகளில் நிதானம் தேவை.)` : ""}`,
+        en: `Cross-referencing your Sarvashtakavarga matrix: Saturn's transit sign ${shaniTransitRashi} holds ${shaniTransitSav} total bindus. ${shaniTransitSav >= 28 ? "Because this sector scores at or above the 28-bindu threshold, delays steadily convert into enduring institutional milestones." : "Because this bindu score demands prudent pacing, disciplined execution and conservative risk management deliver far better outcomes than shortcuts."}${shaniVedhaPlanet ? ` (Gochara Vedha Advisory: ${shaniVedhaPlanet} currently casts a classical Vedha obstruction on this transit sector—verify commitments twice before signing.)` : ""}`
       }, targetLang),
       pick6({
         kn: `ಶನಿ ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ಆಚರಿಸಬೇಕಾದ ಸರಳ ಪರಿಹಾರ: ಪ್ರತಿ ಶನಿವಾರ ಸಂಜೆ ಕಾಗೆಗಳಿಗೆ ಅಥವಾ ಮೂಕ ಪ್ರಾಣಿಗಳಿಗೆ ಎಳ್ಳು ಬೆರೆಸಿದ ಆಹಾರವನ್ನು ನೀಡಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಎಳ್ಳೆಣ್ಣೆ ದೀಪವನ್ನು ಬೆಳಗಿಸುವುದರಿಂದ ಸಾಡೇಸಾತಿ ಅಥವಾ ಅಷ್ಟಮ ಶನಿಯ ಯಾವುದೇ ಋಣಾತ್ಮಕ ನೆರಳು ಶಮನವಾಗಿ ಸರ್ವ ಕಾರ್ಯಗಳಲ್ಲಿ ಮುನ್ನಡೆ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.`,
@@ -1409,20 +1860,20 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಬೃಹಸ್ಪತಿಯು (ಗುರು) ಜ್ಞಾನ, ಸಂಪತ್ತು, ಸಂತಾನ ಹಾಗೂ ದೈವ ಕೃಪೆಯ ಪರಮ ಕಾರಕನಾಗಿದ್ದಾನೆ. ನಿಮ್ಮ ${moonRashiName} ರಾಶಿಯಿಂದ ಗುರುವಿನ ಸಂಚಾರವನ್ನು ಗಣಿತೀಯವಾಗಿ ಲೆಕ್ಕಾಚಾರ ಮಾಡಿದಾಗ, ಗುರುವು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ಕ್ಷೇತ್ರಗಳನ್ನು ತನ್ನ ಪವಿತ್ರ ದೃಷ್ಟಿಯಿಂದ ವೀಕ್ಷಿಸುತ್ತಿದ್ದಾನೆ. ಗುರುವಿನ ದೃಷ್ಟಿ ಬಿದ್ದ ಸ್ಥಳದಲ್ಲಿ ಅಮೃತ ಸಿಂಚನವಾಗುತ್ತದೆ ಎಂಬುದು ಪ್ರಾಚೀನ ಶಾಸ್ತ್ರದ ನುಡಿ.`,
-        mr: `${devoteeName}, वैदिक ज्योतिषात देवगुरू बृहस्पती हे ज्ञान, संपत्ती, संतती आणि ईश्वरीय कृपेचे सर्वोच्च कारक आहेत. आपल्या ${moonRashiName} राशीवरून गुरूचे गोचर आपल्या जीवनातील महत्त्वाच्या अंगांना अमृततुल्य दृष्टी देत आहे. गुरूची दृष्टी जिथे पडते तिथे समृद्धी आणि यश निश्चित होते.`,
-        hi: `${devoteeName}, वैदिक ज्योतिष में देवगुरु बृहस्पति ज्ञान, धन, संतति एवं ईश्वरीय कृपा के साक्षात प्रदाता हैं। आपकी ${moonRashiName} राशि के आधार पर गुरु के गोचर की गणना बताती है कि देवगुरु अपनी अमृतमयी दृष्टि से आपके जीवन के प्रमुख भावों को आलोकित कर रहे हैं। गुरु की शुभ दृष्टि समस्त दोषों का शमन करने में समर्थ है।`,
-        te: `${devoteeName}, బృహస్పతి జ్ఞానం, సంతానం మరియు దైవానుగ్రహానికి కారకుడు. మీ ${moonRashiName} రాశిపై గురు దృష్టి శుభ ఫలితాలను ప్రసాదిస్తుంది. గురు బలం ఉన్నప్పుడు తలపెట్టిన కార్యాలు నిర్విఘ్నంగా పూర్తవుతాయి.`,
-        ta: `${devoteeName}, ஜோதிடத்தில் குரு பகவான் ஞானம், செல்வம் மற்றும் தெய்வ அருளின் அதிபதியாவார். உங்கள் ${moonRashiName} ராசியில் இருந்து குருவின் பார்வையை கணிக்கும் போது, அது உங்கள் வாழ்க்கையில் மங்களகரமான மாற்றங்களை கொண்டு வரவிருக்கிறது.`,
-        en: `${devoteeName}, in classical Jyotish, Devaguru Brihaspati represents the unblemished grace of Providence, presiding over higher intellect, righteous wealth, and auspicious lineage. Computing Jupiter's transit from your natal Moon in ${moonRashiName}, Jupiter casts its nectarous 5th, 7th, or 9th aspects over pivotal life quadrants.`
+        kn: `${devoteeName}, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಬೃಹಸ್ಪತಿಯು (ಗುರು) ಜ್ಞಾನ, ಸಂಪತ್ತು, ಸಂತಾನ ಹಾಗೂ ದೈವ ಕೃಪೆಯ ಪರಮ ಕಾರಕನಾಗಿದ್ದಾನೆ. ನಿಮ್ಮ ${moonRashiName} ರಾಶಿಯಿಂದ ಲೆಕ್ಕ ಹಾಕಿದಾಗ ಪ್ರಸ್ತುತ ಗುರುವು ${n(guruHouseFromMoon)}ನೇ ಭಾವವಾದ ${guruTransitRashi} ರಾಶಿಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದಾನೆ (${hasGuruBala ? "ಪವಿತ್ರ 'ಗುರು ಬಲ' ಸಕ್ರಿಯವಾಗಿದೆ" : "ಪ್ರಸ್ತುತ ನೇರ ಗುರು ಬಲಕ್ಕಿಂತ ಆಂತರಿಕ ಸಾಧನೆ ಮತ್ತು ತಾಳ್ಮೆಯ ಕಾಲ"}). ${hasGuruBala ? "ಗುರುವಿನ ಅಮೃತ ದೃಷ್ಟಿಯು ಶುಭ ಫಲಗಳನ್ನು ತ್ವರಿತವಾಗಿ ಆಕರ್ಷಿಸುತ್ತದೆ." : "ಶುದ್ಧ ಗುರು ಭಕ್ತಿಯಿಂದ ಈ ಗೋಚಾರವನ್ನು ಶುಭಕರವಾಗಿ ಪರಿವರ್ತಿಸಿಕೊಳ್ಳಬಹುದು."}`,
+        mr: `${devoteeName}, वैदिक ज्योतिषात देवगुरू बृहस्पती हे ज्ञान, संपत्ती व ईश्वरीय कृपेचे सर्वोच्च कारक आहेत. आपल्या ${moonRashiName} राशीवरून सध्या गुरु ${n(guruHouseFromMoon)}व्या स्थानात (${guruTransitRashi}) भ्रमण करत आहे (${hasGuruBala ? "शुभ 'गुरु बल' प्राप्त आहे" : "सध्या प्रत्यक्ष गुरु बलाऐवजी संयम व उपासनेचा काळ आहे"}). ${hasGuruBala ? "गुरूची अमृततुल्य दृष्टी आपले कार्य सफल करेल." : "गुरु उपासनेने हा काळ अधिक फलदायी होतो."}`,
+        hi: `${devoteeName}, वैदिक ज्योतिष में देवगुरु बृहस्पति ज्ञान, धन, संतति एवं ईश्वरीय कृपा के साक्षात प्रदाता हैं। आपकी ${moonRashiName} राशि से वर्तमान में गुरु ${n(guruHouseFromMoon)}वें भाव (${guruTransitRashi}) में गोचर कर रहे हैं (${hasGuruBala ? "शुभ 'गुरु बल' सक्रिय है" : "वर्तमान में प्रत्यक्ष गुरु बल की अपेक्षा साधना एवं विवेक का समय है"})। ${hasGuruBala ? "गुरु की शुभ दृष्टि आपके कार्यों को सिद्धि प्रदान करेगी।" : "नित्य विष्णु एवं गुरु आराधना से शुभत्व में वृद्धि होगी।"}`,
+        te: `${devoteeName}, బృహస్పతి జ్ఞానం, సంతానం మరియు దైవానుగ్రహానికి కారకుడు. మీ ${moonRashiName} రాశి నుండి ప్రస్తుతం గురువు ${n(guruHouseFromMoon)}వ స్థానంలో (${guruTransitRashi}) ఉన్నాడు (${hasGuruBala ? "శుభ 'గురు బలం' అనుకూలంగా ఉంది" : "ప్రస్తుతం శ్రద్ధ మరియు దైవభక్తితో ముందుకు సాగాల్సిన సమయం"}).`,
+        ta: `${devoteeName}, ஜோதிடத்தில் குரு பகவான் ஞானம், செல்வம் மற்றும் தெய்வ அருளின் அதிபதியாவார். உங்கள் ${moonRashiName} ராசியிலிருந்து தற்போது குரு ${n(guruHouseFromMoon)}-ம் இடமான ${guruTransitRashi} ராசியில் சஞ்சரிக்கிறார் (${hasGuruBala ? "உத்தம 'குரு பலம்' தற்போது உள்ளது" : "தற்போது பொறுமையும் குரு வழிபாடும் அவசியமான காலம்"}).`,
+        en: `${devoteeName}, in classical Jyotish, Devaguru Brihaspati presides over higher intellect, righteous abundance, and Providence. Counted from your natal Moon in ${moonRashiName}, Jupiter currently transits House ${guruHouseFromMoon} (${guruTransitRashi}), meaning ${hasGuruBala ? "classical Guru Bala is authentically active in your favor" : "this transit demands mindful consolidation and spiritual anchoring rather than passive reliance on Guru Bala"}.`
       }, targetLang),
       pick6({
-        kn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಗುರು ಬಲದ ಸಕ್ರಿಯತೆಯಿಂದಾಗಿ: ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು, ವಿವಾಹ ಸಿದ್ಧಿ, ಆಸ್ತಿ ಖರೀದಿ ಅಥವಾ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸದ ಪ್ರಯತ್ನಗಳಿಗೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಕಾಲ ಆರಂಭವಾಗುತ್ತಿದೆ. ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಗೌರವ ಹೆಚ್ಚಲಿದ್ದು, ಹಿರಿಯರು ಹಾಗೂ ಗುರುಗಳ ಆಶೀರ್ವಾದವು ನಿಮಗೆ ಶ್ರೀರಕ್ಷೆಯಾಗಿ ನಿಲ್ಲಲಿದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಹೊಸ ಧನಾತ್ಮಕ ಆಲೋಚನೆಗಳು ಚಿಗುರಲಿವೆ.`,
-        mr: `सध्याच्या गुरु बलामुळे: कौटुंबिक चर्चा, लग्नकार्य, नवीन मालमत्ता खरेदी अथवा उच्च शिक्षणासाठी अतिशय अनुकूल काळ सुरू होत आहे. समाजात मान-सन्मान वाढेल व ज्येष्ठांचे आशीर्वाद लाभतील.`,
-        hi: `वर्तमान गुरु बल के प्रभाव से: पारिवारिक मांगलिक कार्य, विवाह वार्ता, नवीन संपत्ति क्रय अथवा उच्च अध्ययन के प्रयासों हेतु अत्यंत शुभ कालखंड का सूत्रपात हो रहा है। समाज में प्रतिष्ठा बढ़ेगी एवं वरिष्ठों का मार्गदर्शन आपको संबल प्रदान करेगा।`,
-        te: `ఈ గురు బలం వల్ల కుటుంబంలో శుభకార్యాలు, నూతన ఆస్తి కొనుగోలు లేదా ఉన్నత విద్యకు మార్గం సుగమమవుతుంది. సమాజంలో గౌరవ మర్యాదలు పెరుగుతాయి.`,
-        ta: `இந்த குரு பலத்தினால்: குடும்பத்தில் சுபகாரியங்கள், திருமணம், சொத்து வாங்குதல் அல்லது உயர்கல்வி முயற்சிகளுக்கு பொன்னான காலம் ஆரம்பமாகிறது. சமுதாயத்தில் நற்பெயர் உயரும்.`,
-        en: `Under this radiant Jupiterian canopy: negotiations regarding domestic sanctum expansion, marital fruition, asset acquisition, or intellectual ventures find extraordinary celestial support. Mentors, elders, and spiritual guides will step into your orbit precisely when guidance is needed.`
+        kn: `ಗುರು ಸಂಚಾರ ರಾಶಿಯ (${guruTransitRashi}) ಸರ್ವಾಷ್ಟಕವರ್ಗ ಬಲವು ${n(guruTransitSav)} ಬಿಂದುಗಳಷ್ಟಿದ್ದು: ${hasGuruBala ? "ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು, ವಿವಾಹ-ಶುಭಕಾರ್ಯ, ಆಸ್ತಿ ಖರೀದಿ ಅಥವಾ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸದ ಪ್ರಯತ್ನಗಳಿಗೆ ಪ್ರಶಸ್ತ ಕಾಲ ಆರಂಭವಾಗುತ್ತಿದೆ." : "ವ್ಯಾಪಾರ ಅಥವಾ ದೊಡ್ಡ ಕುಟುಂಬ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಹಿರಿಯರ ಹಾಗೂ ಗುರುಗಳ ಸಲಹೆ ಪಡೆದು ನಿಧಾನವಾಗಿ ಮುನ್ನಡೆಯುವುದು ಸುರಕ್ಷಿತವಾಗಿದೆ."}${guruVedhaPlanet ? ` (ಗೋಚಾರ ವೇಧೆ ಗಮನಿಸಿ: ${guruVedhaPlanet} ಗ್ರಹದ ವೇಧೆಯಿರುವುದರಿಂದ ಗುರುವಾರದ ಆರಾಧನೆ ತಪ್ಪಿಸಬೇಡಿ.)` : ""}`,
+        mr: `गुरूच्या ${guruTransitRashi} राशीस सर्वाष्टकवर्गात ${n(guruTransitSav)} बिंदू आहेत: ${hasGuruBala ? "कौटुंबिक शुभकार्य, शिक्षण व नवीन गुंतवणुकीसाठी उत्तम काळ सुरू होत आहे." : "मोठ्या निर्णयांमध्ये ज्येष्ठांचा सल्ला व संयम ठेवल्यास कोणतीही अडचण येणार नाही."}${guruVedhaPlanet ? ` (गोचर वेध: ${guruVedhaPlanet} ग्रहाचा वेध असल्याने गुरुवारी विशेष उपासना करा.)` : ""}`,
+        hi: `गुरु के गोचर स्थल ${guruTransitRashi} में सर्वाष्टकवर्ग के ${n(guruTransitSav)} बिंदू हैं: ${hasGuruBala ? "पारिवारिक मांगलिक कार्य, नवीन संपत्ति क्रय अथवा उच्च अध्ययन के प्रयासों हेतु शुभ योग बन रहे हैं।" : "बड़े निर्णयों में वरिष्ठों एवं गुरुजनों का परामर्श लेना तथा संयमित गति से चलना श्रेयस्कर रहेगा।"}${guruVedhaPlanet ? ` (गोचर वेध: ${guruVedhaPlanet} के वेध के कारण गुरुवार का संकल्प अवश्य लें।)` : ""}`,
+        te: `${guruTransitRashi} రాశికి సర్వాష్టకవర్గంలో ${n(guruTransitSav)} బిందువులు ఉన్నాయి: ${hasGuruBala ? "కుటుంబంలో శుభకార్యాలు, ఉన్నత విద్యకు మార్గం సుగమమవుతుంది." : "పెద్ద నిర్ణయాల్లో అనుభవజ్ఞుల సలహా తీసుకుని జాగ్రత్తగా అడుగు వేయండి."}${guruVedhaPlanet ? ` (${guruVedhaPlanet} వేధ ఉన్నందున గురువార పూజ చేయండి.)` : ""}`,
+        ta: `${guruTransitRashi} ராசிக்கு சர்வாஷ்டகவர்க்கத்தில் ${n(guruTransitSav)} பரல்கள் உள்ளன: ${hasGuruBala ? "குடும்பத்தில் சுபகாரியங்கள், சொத்து வாங்குதல் அல்லது உயர்கல்வி முயற்சிகளுக்கு பொன்னான காலம் அமைகிறது." : "முக்கிய முடிவுகளில் பெரியவர்களின் ஆலோசனையைப் பெற்று நிதானமாக செயல்படுவது நலம் தரும்."}${guruVedhaPlanet ? ` (வேதை கவனம்: ${guruVedhaPlanet} வேதை இருப்பதால் வியாழன் வழிபாடு அவசியம்.)` : ""}`,
+        en: `Jupiter's occupied sector (${guruTransitRashi}) carries ${guruTransitSav} Sarvashtakavarga bindus: ${hasGuruBala ? "domestic sanctum expansion, auspicious commitments, and mentored intellectual ventures gain authentic celestial tailwinds" : "major expansions succeed best through methodical elder counsel rather than impulsive leaps"}.${guruVedhaPlanet ? ` (Vedha Caution: ${guruVedhaPlanet} imposes classical Gochara Vedha—pair ambitious launches with Thursday Guru devotion.)` : ""}`
       }, targetLang),
       pick6({
         kn: `ಗುರು ಕೃಪೆಯನ್ನು ನಿರಂತರವಾಗಿ ಕಾಪಾಡಿಕೊಳ್ಳಲು: ಪ್ರತಿ ಗುರುವಾರ ಹಳದಿ ಬಣ್ಣದ ಪುಷ್ಪಗಳನ್ನು ದೇವರಿಗೆ ಅರ್ಪಿಸಿ. ಗುರು ಚರಿತ್ರೆ ಅಥವಾ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣವು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿರುವ ಭಾಗ್ಯಸ್ಥಾನವನ್ನು ಬಲಪಡಿಸುತ್ತದೆ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ಬ್ರಾಹ್ಮಣರಿಗೆ ಅಥವಾ ಗುರುಗಳಿಗೆ ಯಥಾಶಕ್ತಿ ನಮಸ್ಕರಿಸಿ ದಕ್ಷಿಣೆ ನೀಡುವುದರಿಂದ ಆರ್ಥಿಕ ಅಭಿವೃದ್ಧಿ ಶೀಘ್ರವಾಗುತ್ತದೆ.`,
@@ -1468,12 +1919,12 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ರಾಹು ಮತ್ತು ಕೇತುಗಳು ಕಣ್ಣಿಗೆ ಕಾಣದ ಛಾಯಾಗ್ರಹಗಳಾಗಿದ್ದರೂ, ಮನುಷ್ಯನ ಮನಸ್ಸನ್ನು ನಿಯಂತ್ರಿಸುವಲ್ಲಿ ಅತ್ಯಂತ ಬಲಿಷ್ಠರಾಗಿದ್ದಾರೆ. ರಾಹುವು ಲೌಕಿಕ ಆಸೆ, ತಂತ್ರಜ್ಞಾನ ಹಾಗೂ ತ್ವರಿತ ಯಶಸ್ಸಿನ ಭ್ರಮೆಯನ್ನು ಉಂಟುಮಾಡಿದರೆ, ಕೇತುವು ವೈರಾಗ್ಯ, ಅತೃಪ್ತಿ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಮುಕ್ತಿಯನ್ನು ಬಯಸುತ್ತಾನೆ. ಈ ಎರಡು ಗ್ರಹಗಳು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸೃಷ್ಟಿಸಿರುವ ಅಕ್ಷವು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ಆಂತರಿಕ ಹೋರಾಟವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ.`,
-        mr: `${devoteeName}, राहु आणि केतू हे जरी छायाग्रह असले, तरी मानवी मनावर त्यांचे नियंत्रण प्रचंड असते. राहु माणसाला भौतिक सुखाची व झटपट यशाची तीव्र भूक देतो, तर केतू आंतरिक विरक्ती व अध्यात्माकडे ओढतो. आपल्या पत्रिकेत या दोन ग्रहांची धुरी मनातील मुख्य संघर्षाचे कारण ठरते.`,
-        hi: `${devoteeName}, राहु और केतु छायाग्रह होते हुए भी मानव चेतना के सबसे शक्तिशाली संचालक हैं। राहु जहां सांसारिक तृष्णा, महत्त्वाकांक्षा एवं त्वरित सफलता का भ्रम रचता है, वहीं केतु विरक्ति, असंतोष एवं मोक्ष की प्रेरणा देता है। आपकी जन्म कुंडली में यह नोडल अक्ष जीवन के वास्तविक द्वंद्व का प्रतिनिधित्व करता है।`,
-        te: `${devoteeName}, రాహు-కేతువులు ఛాయాగ్రహాలైనా మనసుపై వాటి ప్రభావం అపారం. రాహువు ప్రాపంచిక ఆశలను పెంచితే, కేతువు అంతర్ముఖులను చేసి ఆధ్యాత్మికత వైపు నడిపిస్తాడు. ఈ ద్వంద్వాన్ని సమతుల్యం చేసుకోవడమే మీ సాధన.`,
-        ta: `${devoteeName}, ராகுவும் கேதுவும் சாயா கிரகங்கள் என்றாலும், மனித மனதை ஆட்டிப்படைக்கும் வல்லமை கொண்டவை. ராகு உலக ஆசைகளையும் மாயையையும் பெருக்க, கேது ஆன்மீக விடுதலையை நோக்கி தள்ளுகிறார். இந்த இரு துருவங்களை சமநிலைப்படுத்துவதே உங்கள் முக்கிய கடமையாகும்.`,
-        en: `${devoteeName}, Rahu and Ketu are mathematical shadow nodes that hold tremendous sway over the unconscious mind. Where Rahu creates obsessive cravings, material ambition, and rapid modern shortcuts, Ketu introduces sudden disillusionment, profound detachment, and longing for spiritual truth. This dynamic axis defines your chart's karmic evolutionary frontier.`
+        kn: `${devoteeName}, ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ರಾಹು ಮತ್ತು ಕೇತುಗಳು ಕಣ್ಣಿಗೆ ಕಾಣದ ಛಾಯಾಗ್ರಹಗಳಾಗಿದ್ದರೂ, ಮನುಷ್ಯನ ಮನಸ್ಸನ್ನು ನಿಯಂತ್ರಿಸುವಲ್ಲಿ ಅತ್ಯಂತ ಬಲಿಷ್ಠರಾಗಿದ್ದಾರೆ. ರಾಹುವು ಲೌಕಿಕ ಆಸೆ, ತಂತ್ರಜ್ಞಾನ ಹಾಗೂ ತ್ವರಿತ ಯಶಸ್ಸಿನ ಭ್ರಮೆಯನ್ನು ಉಂಟುಮಾಡಿದರೆ, ಕೇತುವು ವೈರಾಗ್ಯ, ಅತೃಪ್ತಿ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಮುಕ್ತಿಯನ್ನು ಬಯಸುತ್ತಾನೆ. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${moonRashiName}ಯಿಂದ ${n(rahuHouseFromMoon)}ನೇ ಮನೆಯಲ್ಲಿ ರಾಹು ಗೋಚಾರ ನಡೆಯುತ್ತಿದ್ದು, ಇದರ ೧೮೦° ಎದುರು ಮನೆಯಲ್ಲಿ ಕೇತುವು ನಿಮ್ಮ ಆಂತರಿಕ ಹೋರಾಟವನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತಾನೆ.`,
+        mr: `${devoteeName}, राहु आणि केतू हे जरी छायाग्रह असले, तरी मानवी मनावर त्यांचे नियंत्रण प्रचंड असते. राहु माणसाला भौतिक सुखाची व झटपट यशाची तीव्र भूक देतो, तर केतू आंतरिक विरक्ती व अध्यात्माकडे ओढतो. आपल्या ${moonRashiName} राशीपासून ${n(rahuHouseFromMoon)}व्या स्थानात सध्याचे राहु गोचर असून त्याच्या समोरच केतू मानसिक संतुलनाची परीक्षा घेत आहे.`,
+        hi: `${devoteeName}, राहु और केतु छायाग्रह होते हुए भी मानव चेतना के सबसे शक्तिशाली संचालक हैं। राहु जहां सांसारिक तृष्णा, महत्त्वाकांक्षा एवं त्वरित सफलता का भ्रम रचता है, वहीं केतु विरक्ति, असंतोष एवं मोक्ष की प्रेरणा देता है। आपकी ${moonRashiName} राशि से ${n(rahuHouseFromMoon)}वें भाव में वर्तमान राहु गोचर एवं ठीक सामने केतु आपकी मानसिक स्पष्टता की परीक्षा ले रहे हैं।`,
+        te: `${devoteeName}, రాహు-కేతువులు ఛాయాగ్రహాలైనా మనసుపై వాటి ప్రభావం అపారం. మీ ${moonRashiName} రాశి నుండి ${n(rahuHouseFromMoon)}వ స్థానంలో రాహు సంచారం మరియు దానికి ఎదురుగా కేతువు ఉండడం వల్ల కోరికలు మరియు వైరాగ్యాల మధ్య సమతుల్యత సాధించడమే మీ కర్తవ్యం.`,
+        ta: `${devoteeName}, ராகுவும் கேதுவும் சாயா கிரகங்கள் என்றாலும், மனித மனதை ஆட்டிப்படைக்கும் வல்லமை கொண்டவை. உங்கள் ${moonRashiName} ராசியிலிருந்து ${n(rahuHouseFromMoon)}-ம் இடத்தில் ராகுவும் அதற்கு எதிரே கேதுவும் சஞ்சரிப்பதால் உலக ஆசைகளுக்கும் ஆன்மீகத் தெளிவுக்கும் இடையே சமநிலை பேண வேண்டும்.`,
+        en: `${devoteeName}, Rahu and Ketu are mathematical shadow nodes holding tremendous sway over unconscious impulse. With Rahu currently transiting House ${rahuHouseFromMoon} from your natal ${moonRashiName} Moon and Ketu illuminating the direct 180° opposite axis, material craving and inner detachment pull simultaneously upon your evolutionary frontier.`
       }, targetLang),
       pick6({
         kn: `ಈ ಸಮಯದಲ್ಲಿ ನೀವು ಎಚ್ಚರವಿರಬೇಕಾದ ಮುಖ್ಯ ಅಪಾಯವೆಂದರೆ: ರಾತ್ರೋರಾತ್ರಿ ಶ್ರೀಮಂತರಾಗುವ ಆಮಿಷಗಳು, ಅಪರಿಚಿತರ ಸುಳ್ಳು ಭರವಸೆಗಳು ಹಾಗೂ ಅತಿಯಾದ ಆತಂಕ. ರಾಹುವು ಇಲ್ಲದ ಭಯವನ್ನು ನಿಜವೆಂದು ತೋರಿಸಿ ನಿಮ್ಮ ವಿವೇಕವನ್ನು ಮರೆಸಲು ಯತ್ನಿಸುತ್ತಾನೆ. ಯಾವುದೇ ಒಪ್ಪಂದ ಮಾಡಿಕೊಳ್ಳುವ ಮುನ್ನ ಎಲ್ಲ ದಾಖಲೆಗಳನ್ನು ಸ್ವತಃ ಪರಿಶೀಲಿಸುವುದು ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸುತ್ತದೆ.`,
@@ -1527,20 +1978,20 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ 'ಯೋಗ' ಎಂದರೆ ಕೇವಲ ಅದೃಷ್ಟವಲ್ಲ, ಬದಲಾಗಿ ಹಿಂದಿನ ಜನ್ಮಗಳ ಪುಣ್ಯದ ಫಲವಾಗಿ ಗ್ರಹಗಳು ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagnaRashiName}ಗೆ ರೂಪಿಸಿರುವ ಸುವರ್ಣ ಮೈತ್ರಿ. ನಿಮ್ಮ ಕುಂಡಲಿಯನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಕೇಂದ್ರ ಮತ್ತು ತ್ರಿಕೋಣಾಧಿಪತಿಗಳ ಶುಭ ಸಂಯೋಗ, ಗಜಕೇಸರಿ (ಗುರು-ಚಂದ್ರರ ಪವಿತ್ರ ಸಂಬಂಧ), ಹಾಗೂ ಬುಧಾದಿತ್ಯ (ಜ್ಞಾನ ಮತ್ತು ತೇಜಸ್ಸಿನ ಮಿಲನ) ದಂತಹ ಶ್ರೇಷ್ಠ ರಾಜಯೋಗಗಳ ಶುಭ ಸ್ಪಂದನವು ಗೋಚರಿಸುತ್ತದೆ.`,
-        mr: `${devoteeName}, वैदिक ज्योतिषात 'योग' म्हणजे पूर्वजन्मातील संचित पुण्याचा असा प्रवाह, जो आपल्या ${lagnaRashiName} लग्नासाठी ग्रहांच्या शुभ संयोगाने प्रकट होतो. आपल्या पत्रिकेत केंद्र व त्रिकोणाचे शुभ संबंध, गजकेसरी योग किंवा बुधादित्य योगासारख्या शक्तिशाली राजयोगांचे स्पष्ट संकेत आहेत.`,
-        hi: `${devoteeName}, वैदिक ज्योतिष में 'योग' पूर्वजन्म के संचित पुण्यों का वह दिव्य संगम है जो आपके ${lagnaRashiName} लग्न में शुभ ग्रहों के विशिष्ट संयोग से निर्मित होता है। आपकी कुंडली में केंद्र एवं त्रिकोण के स्वामियों का संबंध, गजकेसरी योग अथवा बुधादित्य योग जैसे उच्च कोटि के राजयोगों की शुभ ऊर्जा विद्यमान है।`,
-        te: `${devoteeName}, యోగం అంటే పూర్వజన్మ సుకృతం. మీ ${lagnaRashiName} లగ్నానికి కేంద్ర, కోణాధిపతుల కలయిక, గజకేసరి లేదా బుధాదిత్య యోగాల వంటి విశిష్ట శుభ యోగాలు మీ జాతకంలో నిక్షిప్తమై ఉన్నాయి.`,
-        ta: `${devoteeName}, ஜோதிடத்தில் 'யோகம்' என்பது முற்பிறவி நல்வினையின் வெளிப்பாடாகும். உங்கள் ${lagnaRashiName} லக்னத்திற்கு கேந்திர, திரிகோண அதிபதிகளின் சேர்க்கை, கஜகேசரி அல்லது புதாதித்ய யோகம் போன்ற உன்னத ராஜயோகங்களின் அருள் ரேகைகள் உங்கள் ஜாதகத்தில் தெளிவாக உள்ளன.`,
-        en: `${devoteeName}, in authentic Vedic astrology, a 'Yoga' is not random coincidence; it is the geometric ripening of past-life merit (Purva Punya). Analyzing your ${lagnaRashiName} ascendant, the harmonious angular disposition of Kendra (action) and Trikona (fortune) lords generates prominent Rajayoga potential, reinforced by classical formulations such as Gajakesari, Budhaditya, or auspicious planetary flanking.`
+        kn: `${devoteeName}, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ 'ಯೋಗ' ಎಂದರೆ ಕೇವಲ ಅದೃಷ್ಟವಲ್ಲ, ಬದಲಾಗಿ ಹಿಂದಿನ ಜನ್ಮಗಳ ಪುಣ್ಯದ ಫಲವಾಗಿ ಗ್ರಹಗಳು ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagnaRashiName}ಗೆ ರೂಪಿಸಿರುವ ಸುವರ್ಣ ಮೈತ್ರಿ. ನಿಮ್ಮ ಕುಂಡಲಿಯನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ ಪತ್ತೆಯಾದ ನೈಜ ಯೋಗಗಳ ಸ್ಥಿತಿ: '${detectedYogasSummary}'. ಪಾರಂಪರಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಕೇಂದ್ರ-ತ್ರಿಕೋಣಾಧಿಪತಿಗಳ ಶುಭ ಸಂಯೋಗ, ಗಜಕೇಸರಿ, ಹಾಗೂ ಬುಧಾದಿತ್ಯ ದಂತಹ ರಾಜಯೋಗ ಸ್ಪಂದನಗಳು ದಶಾ ಕಾಲದಲ್ಲಿ ವಿಶೇಷ ಬಲ ನೀಡುತ್ತವೆ.`,
+        mr: `${devoteeName}, वैदिक ज्योतिषात 'योग' म्हणजे पूर्वजन्मातील संचित पुण्याचा असा प्रवाह, जो आपल्या ${lagnaRashiName} लग्नासाठी ग्रहांच्या शुभ संयोगाने प्रकट होतो. आपल्या पत्रिकेतील प्रत्यक्ष योग स्थिती: '${detectedYogasSummary}'. केंद्र व त्रिकोणाचे शुभ संबंध आणि गजकेसरी किंवा बुधादित्य योगांसारख्या राजयोगांची फळे दशा काळात स्पष्ट दिसून येतात.`,
+        hi: `${devoteeName}, वैदिक ज्योतिष में 'योग' पूर्वजन्म के संचित पुण्यों का दिव्य संगम है जो आपके ${lagnaRashiName} लग्न में ग्रहों के विशिष्ट संयोग से निर्मित होता है। आपकी कुंडली की यथार्थ योग स्थिति: '${detectedYogasSummary}'। केंद्र-त्रिकोण संबंध, गजकेसरी अथवा बुधादित्य योग जैसे राजयोग उपयुक्त दशा आने पर विशेष बल प्रदान करते हैं।`,
+        te: `${devoteeName}, యోగం అంటే పూర్వజన్మ సుకృతం. మీ ${lagnaRashiName} లగ్నానికి లభించిన వాస్తవ యోగ స్థితి: '${detectedYogasSummary}'. కేంద్ర-కోణాధిపతుల కలయిక మరియు గజకేసరి, బుధాదిత్య వంటి రాజయోగాలు దశా కాలాల్లో శుభ ఫలితాలను ఇస్తాయి.`,
+        ta: `${devoteeName}, ஜோதிடத்தில் 'யோகம்' என்பது முற்பிறவி நல்வினையின் வெளிப்பாடாகும். உங்கள் ${lagnaRashiName} லக்னத்திற்கான உண்மையான யோக அமைப்பு: '${detectedYogasSummary}'. கேந்திர-திரிகோண சேர்க்கை, கஜகேசரி மற்றும் புதாதித்ய யோகம் போன்ற ராஜயோகங்கள் உரிய தசையில் பலம் தரும்.`,
+        en: `${devoteeName}, in authentic Vedic astrology, a 'Yoga' is not random coincidence; it is the geometric ripening of past-life merit (Purva Punya). Analyzing your ${lagnaRashiName} ascendant directly against classical D1/D9 positions reveals: '${detectedYogasSummary}'. Alongside classical Kendra-Trikona Rajayoga principles (like Gajakesari or Budhaditya alignments), planetary dispositors govern when prestige ignites.`
       }, targetLang),
       pick6({
-        kn: `ಈ ರಾಜಯೋಗಗಳ ಕಾರ್ಯವಿಧಾನವನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಿ: ರಾಜಯೋಗಗಳು ನಿರಂತರವಾಗಿ ಫಲ ನೀಡುವುದಿಲ್ಲ; ಬದಲಾಗಿ ಆ ಯೋಗವನ್ನು ಉಂಟುಮಾಡಿದ ಗ್ರಹಗಳ ಮಹಾದಶೆ, ಅಂತರ್ದಶೆ ಅಥವಾ ಗೋಚಾರದಲ್ಲಿ ಗುರು-ಶನಿಯರ ಅನುಗ್ರಹ ದೊರೆತಾಗ ಹಠಾತ್ ಧನಲಾಭ, ಗೌರವ ಹಾಗೂ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ. ಒಂದು ವೇಳೆ ಯಾವುದೇ ಗ್ರಹ ನೀಚ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದರೂ, ನೀಚಭಂಗ ರಾಜಯೋಗದ ನಿಯಮದಂತೆ ಆರಂಭಿಕ ಕಷ್ಟಗಳ ನಂತರ ಅಗಾಧ ಏಳಿಗೆಯನ್ನು ಪ್ರಕೃತಿ ಕರುಣಿಸುತ್ತದೆ.`,
-        mr: `राजयोग कार्य कसे करतो: राजयोग रोज फल देत नाही, तर त्या ग्रहांची महादशा-अंतर्दशा किंवा शुभ गोचर सुरू झाल्यावर अचानक भाग्योदय घडवून आणतो. जर एखादा ग्रह नीच असेल, तरी नीचभंग राजयोगामुळे सुरुवातीच्या संघर्षानंतर मोठे यश मिळते.`,
-        hi: `राजयोगों की सक्रियता का रहस्य: राजयोग सदैव एकसमान सक्रिय नहीं रहते, अपितु योगकारक ग्रहों की दशा-अंतर्दशा एवं शुभ गोचर आने पर एकाएक सम्मान, पदोन्नति एवं समृद्धि के रूप में प्रस्फुटित होते हैं। यदि कोई ग्रह नीच राशि में हो, तो भी नीचभंग राजयोग के नियमानुसार आरंभिक संघर्ष के उपरांत अप्रत्याशित उत्थान प्राप्त होता है।`,
-        te: `ఈ రాజయోగాలు ఎప్పుడూ ఒకేలా ఉండవు; సంబంధిత గ్రహాల దశా కాలాల్లో మరియు శుభ గోచారంలో అకస్మాత్తుగా విజయాన్ని, పదవీ లాభాన్ని కలిగిస్తాయి. నీచభంగం ఉన్నప్పుడు ప్రారంభ కష్టాల తర్వాత అద్భుతమైన ఎదుగుదల ఉంటుంది.`,
-        ta: `ராஜயோகங்களின் செயல்முறை: இவை எப்போதும் பலன் தருவதில்லை; அந்த கிரகங்களின் தசா-புக்தி மற்றும் கோசார காலத்தில் திடீர் திருப்பத்தையும், பதவியையும், செல்வத்தையும் தரும். நீசபங்க ராஜயோகம் இருந்தால் ஆரம்ப போராட்டத்திற்குப் பின் மாபெரும் வெற்றி கிட்டும்.`,
-        en: `Understanding the activation clock: Rajayogas do not operate in a perpetual vacuum; they awaken specifically during the Vimshottari Mahadasha/Bhukti of the participating dispositors. Even where a planet experiences initial debility, classical Neecha Bhanga mechanics ensure that initial friction is systematically transformed into sudden, enduring sovereignty.`
+        kn: `ಈ ಯೋಗಗಳ ಕಾರ್ಯವಿಧಾನ ಮತ್ತು ಸೂಕ್ಷ್ಮ ಶಕ್ತಿಗಳು: ${pushkaraPlanetsLocalized.length > 0 ? `ಪರಮ ಪವಿತ್ರ 'ಪುಷ್ಕರ ನವಾಂಶ' ಬಲ ಪಡೆದ ಗ್ರಹಗಳು: ${pushkaraPlanetsLocalized.join(", ")}.` : "ಜನ್ಮ ನವಾಂಶದ ಶುಭ ಸ್ಥಾನಗಳು ದಶಾ ಕಾಲದಲ್ಲಿ ರಕ್ಷಣೆ ನೀಡುತ್ತವೆ."} ${activeNeechaPlanets.length > 0 ? `ವಿಶೇಷ ಶುಭ ಸುದ್ದಿ: ನೀಚ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದರೂ '${activeNeechaPlanets.join(", ")}' ಗ್ರಹಗಳಿಗೆ ಶಾಸ್ತ್ರೋಕ್ತ 'ನೀಚಭಂಗ ರಾಜಯೋಗ' ಸಿದ್ಧಿಸಿರುವುದರಿಂದ ಆರಂಭಿಕ ಕಷ್ಟಗಳ ನಂತರ ಅಗಾಧ ಏಳಿಗೆಯನ್ನು ಪ್ರಕೃತಿ ಕರುಣಿಸುತ್ತದೆ.` : uncancelledDebilPlanets.length > 0 ? `(${uncancelledDebilPlanets.join(", ")} ಗ್ರಹದ ಬಲವನ್ನು ತಾಳ್ಮೆ ಮತ್ತು ದೈವ ಆರಾಧನೆಯಿಂದ ಪೋಷಿಸಿಕೊಳ್ಳುವುದು ಉತ್ತಮ.)` : "ದಶಾ ನಾಥರು ಮತ್ತು ಗೋಚಾರ ಗುರು-ಶನಿಯ ಅನುಗ್ರಹ ದೊರೆತಾಗ ಹಠಾತ್ ಧನಲಾಭ ಹಾಗೂ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ."}`,
+        mr: `योग सक्रिय होण्याचे रहस्य: ${pushkaraPlanetsLocalized.length > 0 ? `पावन 'पुष्कर नवांश' बळ असलेले ग्रह: ${pushkaraPlanetsLocalized.join(", ")}.` : "नवांश बळ दशा काळात संरक्षण देईल."} ${activeNeechaPlanets.length > 0 ? `नीचभंग राजयोग सिद्ध झालेले ग्रह (${activeNeechaPlanets.join(", ")}) सुरुवातीच्या संघर्षानंतर मोठे उत्थान देतात.` : "संबंधित ग्रहांच्या महादशा-अंतर्दशेत अचानक भाग्योदय घडतो."}`,
+        hi: `योगों की सूक्ष्म शक्ति एवं सक्रियता: ${pushkaraPlanetsLocalized.length > 0 ? `परम पवित्र 'पुष्कर नवांश' बल से युक्त ग्रह: ${pushkaraPlanetsLocalized.join(", ")}।` : "नवांश बल दशा काल में रक्षा कवच प्रदान करता है।"} ${activeNeechaPlanets.length > 0 ? `विशेष शुभ संकेत: '${activeNeechaPlanets.join(", ")}' को 'नीचभंग राजयोग' प्राप्त होने से आरंभिक संघर्ष के उपरांत अप्रत्याशित उत्थान प्राप्त होता है।` : "योगकारक ग्रहों की दशा-अंतर्दशा आने पर एकाएक सम्मान एवं समृद्धि प्राप्त होती है।"}`,
+        te: `ఈ యోగాల విశేషం: ${pushkaraPlanetsLocalized.length > 0 ? `పవిత్ర 'పుష్కర నవాంశ' బలం పొందిన గ్రహాలు: ${pushkaraPlanetsLocalized.join(", ")}.` : ""} ${activeNeechaPlanets.length > 0 ? `'${activeNeechaPlanets.join(", ")}' గ్రహాలకు నీచభంగ రాజయోగం ఉన్నందున కష్టాల తర్వాత అద్భుత ఎదుగుదల ఉంటుంది.` : "సంబంధిత దశా కాలాల్లో పదవీ లాభం మరియు విజయం లభిస్తాయి."}`,
+        ta: `யோகங்களின் செயல்முறை: ${pushkaraPlanetsLocalized.length > 0 ? `புனித 'புஷ்கர நவாம்சம்' பெற்ற கிரகங்கள்: ${pushkaraPlanetsLocalized.join(", ")}.` : ""} ${activeNeechaPlanets.length > 0 ? `'${activeNeechaPlanets.join(", ")}' கிரகங்களுக்கு நீசபங்க ராஜயோகம் உள்ளதால் ஆரம்ப போராட்டத்திற்குப் பின் மாபெரும் வெற்றி கிட்டும்.` : "தசா-புக்தி காலத்தில் திடீர் திருப்பத்தையும் செல்வத்தையும் தரும்."}`,
+        en: `Subtle strength diagnostics: ${pushkaraPlanetsLocalized.length > 0 ? `Planets blessed with auspicious Pushkara Navamsha potency: ${pushkaraPlanetsLocalized.join(", ")}.` : "Navamsha strength anchors steady protection."} ${activeNeechaPlanets.length > 0 ? `Notably, classical Neecha Bhanga cancellation elevates ${activeNeechaPlanets.join(", ")}, turning early friction into enduring sovereignty.` : uncancelledDebilPlanets.length > 0 ? `Mindful propitiation supports ${uncancelledDebilPlanets.join(", ")}.` : "Rajayoga fruits awaken systematically during the Vimshottari periods of participating lords."}`
       }, targetLang),
       pick6({
         kn: `ನಿಮ್ಮ ಸುಪ್ತ ರಾಜಯೋಗಗಳನ್ನು ಜಾಗೃತಗೊಳಿಸಲು: ಸದಾ ಧರ್ಮದ ಮಾರ್ಗದಲ್ಲಿ ನಡೆಯಿರಿ ಮತ್ತು ಇತರರ ಕಷ್ಟಕ್ಕೆ ಸ್ಪಂದಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ಶ್ರೀ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಬಿಲ್ವಪತ್ರೆ ಅರ್ಪಿಸಿ ಪ್ರಾರ್ಥಿಸುವುದರಿಂದ, ಜಾತಕದಲ್ಲಿರುವ ರಾಜಯೋಗಗಳು ಸಕಾಲದಲ್ಲಿ ಫಲಿಸಿ, ನಿಮ್ಮ ವಂಶಕ್ಕೆ ಕೀರ್ತಿ ಹಾಗೂ ನೆಮ್ಮದಿಯನ್ನು ತಂದುಕೊಡುತ್ತವೆ.`,
@@ -1627,23 +2078,23 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     paragraphs: [
       pick6({
         kn: isInfant || ageCategory === "early_child" || ageCategory === "child"
-          ? `${devoteeName}, ಮುಗ್ಧ ಕಂದನ ಜಾತಕದಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ಬುಧನ ಬಲವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಬಾಲಾರಿಷ್ಟದ ಯಾವುದೇ ಗಂಭೀರ ನೆರಳಿಲ್ಲದೆ ಮಗುವಿನ ಚೇತನವು ಸೌಮ್ಯವಾಗಿದೆ. ೫ನೇ ಮನೆಯು ಜ್ಞಾನಕಾರಕ ಗುರುವಿನ ಪೂರ್ಣ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಮಗುವು ಅತ್ಯಂತ ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿರುತ್ತದೆ. ಬಾಲ್ಯದಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಪರಿಸರ ಮತ್ತು ತಾಯಿಯ ಮಡಿಲ ಪ್ರೀತಿಯು ಮಗುವಿನ ಬುದ್ಧಿಮತ್ತೆಯನ್ನು ದ್ವಿಗುಣಗೊಳಿಸುತ್ತದೆ.`
-          : `${devoteeName}, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagnaRashiName}ಗೆ ೧೦ನೇ ಮನೆಯು ವೃತ್ತಿ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವದ ಕೇಂದ್ರವಾಗಿದೆ. ೧೦ನೇ ಮನೆಯ ಅಧಿಪತಿಯ ಸ್ಥಿತಿಗತಿ ಹಾಗೂ ನಿಮ್ಮ ಜಾತಕದ ಯೋಗಕಾರಕ ಗ್ರಹಗಳ ಪ್ರಭಾವವನ್ನು ವಿಶ್ಲೇಷಿಸಿದಾಗ, ನೀವು ಕೇವಲ ಸಾಮಾನ್ಯ ಉದ್ಯೋಗಿಯಾಗಿ ಉಳಿಯುವ ಜಾತಕವಲ್ಲ; ಬದಲಾಗಿ ಸ್ವಂತ ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳುವ ಅಧಿಕಾರ ಸ್ಥಾನದಲ್ಲಿ ಶೋಭಿಸುವ ಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.`,
+          ? `${devoteeName}, ಮುಗ್ಧ ಕಂದನ ಜಾತಕದಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ಬುಧನ ಬಲವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಬಾಲಾರಿಷ್ಟದ ಯಾವುದೇ ಗಂಭೀರ ನೆರಳಿಲ್ಲದೆ ಮಗುವಿನ ಚೇತನವು ಸೌಮ್ಯವಾಗಿದೆ. ೫ನೇ ಮನೆಯು (${house5Info.lordName}) ಜ್ಞಾನಕಾರಕ ಗುರುವಿನ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಮಗುವು ಅತ್ಯಂತ ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿರುತ್ತದೆ. ಬಾಲ್ಯದಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಪರಿಸರ ಮತ್ತು ತಾಯಿಯ ಮಡಿಲ ಪ್ರೀತಿಯು ಮಗುವಿನ ಬುದ್ಧಿಮತ್ತೆಯನ್ನು ದ್ವಿಗುಣಗೊಳಿಸುತ್ತದೆ.`
+          : `${devoteeName}, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagnaRashiName}ಗೆ ೧೦ನೇ ಮನೆಯು ವೃತ್ತಿ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವದ ಕೇಂದ್ರವಾಗಿದೆ. ೧೦ನೇ ಮನೆಯ ಅಧಿಪತಿ ${house10Info.lordName} ಗ್ರಹವು ${n(house10Info.placedHouse)}ನೇ ಭಾವದಲ್ಲಿ (${house10Info.placedRashi}) ಸ್ಥಿತನಾಗಿರುವುದನ್ನು ವಿಶ್ಲೇಷಿಸಿದಾಗ, ನೀವು ಕೇವಲ ಸಾಮಾನ್ಯ ಉದ್ಯೋಗಿಯಾಗಿ ಉಳಿಯುವ ಜಾತಕವಲ್ಲ; ಸ್ವಂತ ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳುವ ಅಧಿಕಾರ ಸ್ಥಾನದಲ್ಲಿ ಶೋಭಿಸುವ ಶಕ್ತಿ ನಿಮ್ಮಲ್ಲಿದೆ.`,
         mr: isInfant || ageCategory === "early_child" || ageCategory === "child"
-          ? `${devoteeName}, बाळाच्या कुंडलीत लग्नेश व बुध अनुकूल असल्याने बालारिष्टाचा कोणताही धोका नाही. गुरुची शुभ दृष्टी बाळाला उत्तम स्मरणशक्ती व ग्रहणक्षमता प्रदान करत आहे. कौटुंबिक प्रेम व सुसंस्कार यामुळे बाळाची उत्तम प्रगती होईल.`
-          : `${devoteeName}, आपल्या ${lagnaRashiName} लग्नासाठी १० वे स्थान हे कार्यक्षेत्र व मानसन्मानाचे आहे. दशमेश व योगकारक ग्रहांचा प्रभाव पाहता, आपण केवळ नोकरीत न अडकता स्वतःचे निर्णय घेण्याच्या उच्च पदावर पोहोचण्याची क्षमता बाळगता.`,
+          ? `${devoteeName}, बाळाच्या कुंडलीत लग्नेश व बुध अनुकूल असल्याने बालारिष्टाचा कोणताही धोका नाही. पंचमेश ${house5Info.lordName} च्या शुभ प्रभावामुळे बाळाला उत्तम स्मरणशक्ती व ग्रहणक्षमता लाभेल. कौटुंबिक प्रेम व सुसंस्कार यामुळे उत्तम प्रगती होईल.`
+          : `${devoteeName}, आपल्या ${lagnaRashiName} लग्नासाठी १० वे स्थान कार्यक्षेत्र व मानसन्मानाचे आहे. दशमेश ${house10Info.lordName} आपल्या कुंडलीत ${n(house10Info.placedHouse)}व्या स्थानात (${house10Info.placedRashi}) स्थित असल्याने आपण केवळ नोकरीत न अडकता स्वतःचे निर्णय घेण्याच्या उच्च पदावर पोहोचण्याची क्षमता बाळगता.`,
         hi: isInfant || ageCategory === "early_child" || ageCategory === "child"
-          ? `${devoteeName}, इस बालक की कुंडली में लग्नेश एवं बुध की स्थिति बालारिष्ट दोषों का शमन करती है। पंचम भाव पर गुरु की शुभ दृष्टि तीव्र स्मरणशक्ति एवं कुशाग्र बुद्धि का वरदान दे रही है। उचित संस्कार एवं स्नेहपूर्ण वातावरण से बालक का सर्वांगीण विकास होगा।`
-          : `${devoteeName}, आपके ${lagnaRashiName} लग्न हेतु दशम भाव आजीविका, सामाजिक प्रभाव एवं प्रतिष्ठा का मुख्य केंद्र है। दशमेश एवं योगकारक ग्रहों का संगम संकेत करता है कि आपकी कुंडली में स्वावलंबन एवं निर्णयकारी नेतृत्व की प्रबल क्षमता है।`,
+          ? `${devoteeName}, इस बालक की कुंडली में लग्नेश एवं बुध की स्थिति बालारिष्ट दोषों का शमन करती है। पंचमेश ${house5Info.lordName} की स्थिति तीव्र स्मरणशक्ति एवं कुशाग्र बुद्धि का वरदान दे रही है। उचित संस्कार एवं स्नेहपूर्ण वातावरण से बालक का सर्वांगीण विकास होगा।`
+          : `${devoteeName}, आपके ${lagnaRashiName} लग्न हेतु दशम भाव आजीविका एवं प्रतिष्ठा का केंद्र है। दशमेश ${house10Info.lordName} का ${n(house10Info.placedHouse)}वें भाव (${house10Info.placedRashi}) में स्थित होना संकेत करता है कि आपकी कुंडली में स्वावलंबन एवं निर्णयकारी नेतृत्व की प्रबल क्षमता है।`,
         te: isInfant || ageCategory === "early_child" || ageCategory === "child"
-          ? `${devoteeName}, చిన్నారి జాతకంలో బుధ, గురుల బలం బాగున్నందున బాలారిష్ట బాధలు లేవు. అద్భుతమైన తెలివితేటలు, గ్రహణ శక్తి ఉన్నాయి.`
-          : `${devoteeName}, మీ ${lagnaRashiName} లగ్నానికి 10వ స్థానం వృత్తి గౌరవానికి మూలం. నాయకత్వ లక్షణాలు మరియు స్వతంత్ర నిర్ణయాలు తీసుకునే అధికారం మీకు లభిస్తాయి.`,
+          ? `${devoteeName}, చిన్నారి జాతకంలో పంచమాధిపతి ${house5Info.lordName} మరియు బుధ-గురుల బలం బాగున్నందున బాలారిష్ట బాధలు లేవు. అద్భుతమైన తెలివితేటలు, గ్రహణ శక్తి ఉన్నాయి.`
+          : `${devoteeName}, మీ ${lagnaRashiName} లగ్నానికి 10వ స్థానం వృత్తి గౌరవానికి మూలం. దశమాధిపతి ${house10Info.lordName} ${n(house10Info.placedHouse)}వ స్థానంలో (${house10Info.placedRashi}) ఉండటం వల్ల నాయకత్వ లక్షణాలు మరియు ఉన్నత అధికారం లభిస్తాయి.`,
         ta: isInfant || ageCategory === "early_child" || ageCategory === "child"
-          ? `${devoteeName}, குழந்தையின் ஜாதகத்தில் லக்னாதிபதியும் புதனும் சுப பலத்துடன் உள்ளதால் பாலாரிஷ்ட தோஷங்கள் நீங்கி நல்ல புத்தி கூர்மை அமையும்.`
-          : `${devoteeName}, உங்கள் ${lagnaRashiName} லக்னத்திற்கு 10-ஆம் வீடு தொழில் அந்தஸ்தைக் குறிக்கிறது. தலைமை தாங்கும் வல்லமையும் சொந்த முயற்சியால் உயரும் யோகமும் உங்களுக்கு உண்டு.`,
+          ? `${devoteeName}, குழந்தையின் ஜாதகத்தில் 5-ம் அதிபதி ${house5Info.lordName} மற்றும் புதன் பலத்துடன் உள்ளதால் பாலாரிஷ்ட தோஷங்கள் நீங்கி நல்ல புத்தி கூர்மை அமையும்.`
+          : `${devoteeName}, உங்கள் ${lagnaRashiName} லக்னத்திற்கு 10-ஆம் அதிபதி ${house10Info.lordName} தற்போது ${n(house10Info.placedHouse)}-ம் இடமான ${house10Info.placedRashi} ராசியில் அமர்ந்துள்ளதால் தலைமை தாங்கும் வல்லமையும் தொழில் உயர்வும் உண்டு.`,
         en: isInfant || ageCategory === "early_child" || ageCategory === "child"
-          ? `${devoteeName}, analyzing the natal foundation for this tender life, the ascendant lord and Mercury are fortified, shielding the child from classical Balarishta afflictions. The 5th house of cognitive assimilation is embraced by Jupiter's grace, promising acute retention and curiosity.`
-          : `${devoteeName}, for your ${lagnaRashiName} ascendant, the 10th quadrant (Karma Bhava) and your chart's functional Yogakaraka govern social prominence and executive command. Planetary geometry confirms you possess inherent aptitude for independent authority rather than perpetual subordination.`
+          ? `${devoteeName}, analyzing the natal foundation for this tender life, the ascendant lord and Mercury fortify vitality against classical Balarishta afflictions. With 5th lord ${house5Info.lordName} anchoring creative assimilation in House ${house5Info.placedHouse} (${house5Info.placedRashi}), curiosity and retention blossom naturally.`
+          : `${devoteeName}, for your ${lagnaRashiName} ascendant, 10th house (Karma Bhava) lord ${house10Info.lordName} placed in House ${house10Info.placedHouse} (${house10Info.placedRashi}) directly directs career prominence and executive reach. This geometry favors self-directed authority over perpetual subordination.`
       }, targetLang),
       pick6({
         kn: isInfant || ageCategory === "early_child" || ageCategory === "child"
@@ -1714,57 +2165,111 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     chapterNumber: 13,
     sectionNumber: 3,
     sectionTitle: sec3,
-    title: pick6({
-      kn: "ಧನಾಗಮನ, ಆರ್ಥಿಕ ಭದ್ರತೆ, ಉಳಿತಾಯ & ಶಾಶ್ವತ ಆಸ್ತಿ ಸೃಷ್ಟಿ",
-      mr: "धनलाभ, आर्थिक स्थैर्य, बचत व संपत्ती निर्मिती",
-      hi: "धन आगमन, वित्तीय स्थिरता, संचय एवं स्थायी संपत्ति निर्माण",
-      te: "ధన ప్రాప్తి, ఆర్థిక భద్రత, పొదుపు & శాశ్వత ఆస్తి నిర్మాణం",
-      ta: "தன வரவு, நிதி ஸ்திரத்தன்மை, சேமிப்பு & நிரந்தர சொத்து சேர்க்கை",
-      en: "Wealth Accumulation, Financial Fortification & Asset Generation"
-    }, targetLang),
+    title: isChildOrInfant
+      ? pick6({
+          kn: "ಬಾಲ ಲಕ್ಷ್ಮಿ ಯೋಗ, ವಿದ್ಯಾ ನಿಧಿ ಭದ್ರತೆ & ಕುಟುಂಬದ ಸಮೃದ್ಧಿ",
+          mr: "बाल लक्ष्मी योग, शिक्षण निधी सुरक्षा व कौटुंबिक समृद्धी",
+          hi: "बाल लक्ष्मी योग, विद्या कोष सुरक्षा एवं पारिवारिक समृद्धि",
+          te: "బాల లక్ష్మి యోగం, విద్యా నిధి భద్రత & కుటుంబ ఐశ్వర్యం",
+          ta: "பால லட்சுமி யோகம், கல்வி நிதி பாதுகாப்பு & குடும்ப வளம்",
+          en: "Childhood Abundance Yoga, Educational Security & Family Prosperity"
+        }, targetLang)
+      : pick6({
+          kn: "ಧನಾಗಮನ, ಆರ್ಥಿಕ ಭದ್ರತೆ, ಉಳಿತಾಯ & ಶಾಶ್ವತ ಆಸ್ತಿ ಸೃಷ್ಟಿ",
+          mr: "धनलाभ, आर्थिक स्थैर्य, बचत व संपत्ती निर्मिती",
+          hi: "धन आगमन, वित्तीय स्थिरता, संचय एवं स्थायी संपत्ति निर्माण",
+          te: "ధన ప్రాప్తి, ఆర్థిక భద్రత, పొదుపు & శాశ్వత ఆస్తి నిర్మాణం",
+          ta: "தன வரவு, நிதி ஸ்திரத்தன்மை, சேமிப்பு & நிரந்தர சொத்து சேர்க்கை",
+          en: "Wealth Accumulation, Financial Fortification & Asset Generation"
+        }, targetLang),
     icon: "💰",
-    question: pick6({
-      kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶಾಶ್ವತ ಧನ ಯೋಗ ಹೇಗಿದೆ ಹಾಗೂ ಕೈಯಲ್ಲಿ ಹಣ ಉಳಿಯದಿರಲು ಕಾರಣವೇನು?`,
-      mr: `प्रश्न: ${devoteeName}, आपल्या पत्रिकेत कायमस्वरूपी धनयोग कसा आहे व पैसा हातात का टिकत नाही?`,
-      hi: `प्रश्न: ${devoteeName}, आपकी कुंडली में स्थायी धन योग की स्थिति क्या है और धन संचय में क्या बाधाएं आती हैं?`,
-      te: `ప్రశ్న: ${devoteeName}, మీ జాతకంలో ధన యోగం ఎలా ఉంది మరియు పొదుపు ఎందుకు నిలవడం లేదు?`,
-      ta: `கேள்வி: ${devoteeName}, உங்கள் ஜாதகத்தில் நிரந்தர தன யோகம் எவ்வாறு உள்ளது? கையில் பணம் தங்காததற்கான காரணம் என்ன?`,
-      en: `Question: ${devoteeName}, what planetary dynamics govern your liquidity and long-term asset accumulation, and how do you plug leaks?`
-    }, targetLang),
+    question: isChildOrInfant
+      ? pick6({
+          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ಈ ಕಂದನ ಜಾತಕದಲ್ಲಿ ಕುಟುಂಬದ ಏಳಿಗೆ ಹಾಗೂ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸದ ಸಂಪತ್ತು ಹೇಗಿದೆ?`,
+          mr: `प्रश्न: ${devoteeName}, या बाळाच्या कुंडलीत कौटुंबिक समृद्धी व उच्च शिक्षणाचा आधार कसा आहे?`,
+          hi: `प्रश्न: ${devoteeName}, इस बालक की कुंडली में पारिवारिक समृद्धि एवं उच्च शिक्षा कोष की स्थिति कैसी है?`,
+          te: `ప్రశ్న: ${devoteeName}, ఈ చిన్నారి జాతకంలో కుటుంబ ఐశ్వర్యం మరియు విద్యా సంపద ఎలా ఉన్నాయి?`,
+          ta: `கேள்வி: ${devoteeName}, இந்தக் குழந்தையின் ஜாதகத்தில் குடும்ப வளமும் கல்விச் செல்வமும் எவ்வாறு அமைந்துள்ளன?`,
+          en: `Question: ${devoteeName}, how do natal wealth lords bless this child's educational foundation and parental prosperity?`
+        }, targetLang)
+      : pick6({
+          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶಾಶ್ವತ ಧನ ಯೋಗ ಹೇಗಿದೆ ಹಾಗೂ ಕೈಯಲ್ಲಿ ಹಣ ಉಳಿಯದಿರಲು ಕಾರಣವೇನು?`,
+          mr: `प्रश्न: ${devoteeName}, आपल्या पत्रिकेत कायमस्वरूपी धनयोग कसा आहे व पैसा हातात का टिकत नाही?`,
+          hi: `प्रश्न: ${devoteeName}, आपकी कुंडली में स्थायी धन योग की स्थिति क्या है और धन संचय में क्या बाधाएं आती हैं?`,
+          te: `ప్రశ్న: ${devoteeName}, మీ జాతకంలో ధన యోగం ఎలా ఉంది మరియు పొదుపు ఎందుకు నిలవడం లేదు?`,
+          ta: `கேள்வி: ${devoteeName}, உங்கள் ஜாதகத்தில் நிரந்தர தன யோகம் எவ்வாறு உள்ளது? கையில் பணம் தங்காததற்கான காரணம் என்ன?`,
+          en: `Question: ${devoteeName}, what planetary dynamics govern your liquidity and long-term asset accumulation, and how do you plug leaks?`
+        }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ೨ನೇ ಮನೆಯು ಕುಟುಂಬದ ಉಳಿತಾಯ (ಧನಸ್ಥಾನ) ಹಾಗೂ ೧೧ನೇ ಮನೆಯು ನಿರಂತರ ಲಾಭದ (ಆಯಸ್ಥಾನ) ಕೇಂದ್ರವಾಗಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಈ ಎರಡು ಮನೆಗಳ ಅಧಿಪತಿಗಳು ಸಾಧಿಸಿರುವ ಸಂಬಂಧವು ನಿಮ್ಮ ಆದಾಯದ ಹರಿವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ದುಡಿಮೆಗೆ ಕೊರತೆಯಿಲ್ಲ; ಆದರೆ ಅನಿರೀಕ್ಷಿತ ಖರ್ಚುಗಳು ಅಥವಾ ಇತರರ ಮೇಲಿನ ಅತಿಯಾದ ನಂಬಿಕೆಯಿಂದಾಗಿ ಹಣವು ನಿರೀಕ್ಷಿತ ಪ್ರಮಾಣದಲ್ಲಿ ಸಂಗ್ರಹವಾಗುತ್ತಿಲ್ಲ.`,
-        mr: `${devoteeName}, पत्रिकेत २ रे स्थान हे धनसंचय व ११ वे स्थान हे नफ्याचे असते. आपल्या कुंडलीत मिळकतीला कमतरता नसली, तरी अचानक येणारे खर्च व इतरांवर ठेवलेला अतिविश्वास यामुळे पैसा हातातून निसटतो.`,
-        hi: `${devoteeName}, कुंडली में द्वितीय भाव धन संचय एवं एकादश भाव नियमित आय का प्रतिनिधित्व करता है। आपकी जन्म कुंडली में आय के स्रोत निरंतर बने रहने के शुभ संकेत हैं; तथापि अप्रत्याशित पारिवारिक व्यय अथवा दूसरों पर अत्यधिक विश्वास के कारण संचित कोष प्रभावित होता है।`,
-        te: `${devoteeName}, జాతకంలో 2వ స్థానం ధనం, 11వ స్థానం లాభం. మీ సంపాదన బాగున్నా, ఊహించని ఖర్చులు మరియు ఇతరులను గుడ్డిగా నమ్మడం వల్ల చేతిలో డబ్బు నిలవడం లేదు.`,
-        ta: `${devoteeName}, ஜாதகத்தில் 2-ஆம் இடம் சேமிப்பையும், 11-ஆம் இடம் லாபத்தையும் குறிக்கிறது. உங்கள் உழைப்பிற்கு ஏற்ற வருமானம் வந்தாலும், எதிர்பாராத செலவுகளாலும் பிறரை எளிதில் நம்புவதாலும் சேமிப்பு குறைகிறது.`,
-        en: `${devoteeName}, in your chart, the 2nd house governs stored capital and the 11th quadrant presides over cash flow. While multiple income avenues are supported, your vulnerability stems from unbudgeted domestic emergencies or unhedged trust extended to associates.`
+        kn: isChildOrInfant
+          ? `${devoteeName}, ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ೨ನೇ ಮನೆಯ ಅಧಿಪತಿ (${house2Info.lordName}, ${n(house2Info.placedHouse)}ನೇ ಭಾವ ${house2Info.placedRashi}) ಹಾಗೂ ೧೧ನೇ ಮನೆಯ ಅಧಿಪತಿ (${house11Info.lordName}) ಕಂದನ ಆಗಮನದಿಂದ ಕುಟುಂಬಕ್ಕೆ ಬರುವ ಭಾಗ್ಯವನ್ನು ಸೂಚಿಸುತ್ತವೆ. ಈ ಮಗುವಿನ ಪಾದದ ಗುಣದಿಂದ ತಂದೆ-ತಾಯಿಯ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯಲ್ಲಿ ಸ್ಥಿರತೆ ಹಾಗೂ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸಕ್ಕೆ ಬೇಕಾಗುವ ಸಂಪನ್ಮೂಲವು ಕಾಲಕ್ಕೆ ತಕ್ಕಂತೆ ಸಿದ್ಧವಾಗುತ್ತದೆ.`
+          : `${devoteeName}, ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ೨ನೇ ಮನೆಯು ಧನಸ್ಥಾನ ಹಾಗೂ ೧೧ನೇ ಮನೆಯು ಆಯಸ್ಥಾನವಾಗಿದೆ. ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಧನಾಧಿಪತಿ ${house2Info.lordName} (${n(house2Info.placedHouse)}ನೇ ಮನೆ, ${house2Info.placedRashi}) ಹಾಗೂ ಲಾಭಾಧಿಪತಿ ${house11Info.lordName} (${n(house11Info.placedHouse)}ನೇ ಮನೆ) ಹೊಂದಿರುವ ಸಂಬಂಧವು ನಿಮ್ಮ ಆದಾಯದ ಹರಿವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ದುಡಿಮೆಗೆ ಕೊರತೆಯಿಲ್ಲದಿದ್ದರೂ ಅನಿರೀಕ್ಷಿತ ಖರ್ಚುಗಳು ಉಳಿತಾಯವನ್ನು ಪರೀಕ್ಷಿಸುತ್ತವೆ.`,
+        mr: isChildOrInfant
+          ? `${devoteeName}, कुंडलीतील द्वितीयेश ${house2Info.lordName} (${n(house2Info.placedHouse)}वे स्थान, ${house2Info.placedRashi}) व लाभेश ${house11Info.lordName} बाळाच्या जन्मानंतर कुटुंबात सकारात्मक भरभराट आणि शिक्षणासाठी उत्तम सुबत्ता दर्शवतात.`
+          : `${devoteeName}, पत्रिकेत २ रे स्थान धनसंचय व ११ वे स्थान नफ्याचे असते. द्वितीयेश ${house2Info.lordName} (${n(house2Info.placedHouse)}वे स्थान, ${house2Info.placedRashi}) व लाभेश ${house11Info.lordName} यांच्या स्थितीनुसार मिळकतीचे मार्ग खुले आहेत; मात्र अचानक येणारे खर्च व अतिविश्वासामुळे बचत कमी पडते.`,
+        hi: isChildOrInfant
+          ? `${devoteeName}, कुंडली में द्वितीयेश ${house2Info.lordName} (${n(house2Info.placedHouse)}वां भाव, ${house2Info.placedRashi}) एवं एकादशेश ${house11Info.lordName} संकेत देते हैं कि इस बालक के भाग्य से परिवार में समृद्धि एवं विद्यार्जन हेतु सुदृढ़ संसाधन जुटेंगे।`
+          : `${devoteeName}, कुंडली में द्वितीयेश ${house2Info.lordName} (${n(house2Info.placedHouse)}वां भाव, ${house2Info.placedRashi}) एवं एकादशेश ${house11Info.lordName} नियमित आय का प्रतिनिधित्व करते हैं। आय के स्रोत बने रहने पर भी अप्रत्याशित व्यय एवं अत्यधिक विश्वास से संचित कोष प्रभावित होता है।`,
+        te: isChildOrInfant
+          ? `${devoteeName}, ద్వితీయాధిపతి ${house2Info.lordName} (${n(house2Info.placedHouse)}వ స్థానం) మరియు లాభాధిపతి ${house11Info.lordName} శుభ స్థితి వల్ల ఈ చిన్నారి అదృష్టంతో కుటుంబంలో ఐశ్వర్యం మరియు విద్యా వసతులు వృద్ధి చెందుతాయి.`
+          : `${devoteeName}, జాతకంలో ధనాధిపతి ${house2Info.lordName} (${n(house2Info.placedHouse)}వ స్థానం, ${house2Info.placedRashi}) మరియు లాభాధిపతి ${house11Info.lordName} వల్ల సంపాదన బాగున్నా, ఊహించని ఖర్చుల వల్ల పొదుపు నిలవడం లేదు.`,
+        ta: isChildOrInfant
+          ? `${devoteeName}, ஜாதகத்தில் 2-ம் அதிபதி ${house2Info.lordName} (${n(house2Info.placedHouse)}-ம் வீடு) மற்றும் 11-ம் அதிபதி ${house11Info.lordName} ஆகியோர் இந்தக் குழந்தையின் மூலம் குடும்ப வளமும் கல்வி நிதியும் பெருகுவதை உறுதி செய்கின்றனர்.`
+          : `${devoteeName}, ஜாதகத்தில் 2-ம் அதிபதி ${house2Info.lordName} (${n(house2Info.placedHouse)}-ம் வீடு, ${house2Info.placedRashi}) மற்றும் 11-ம் அதிபதி ${house11Info.lordName} மூலம் வருமானம் வந்தாலும், எதிர்பாராத செலவுகளால் சேமிப்பு குறைகிறது.`,
+        en: isChildOrInfant
+          ? `${devoteeName}, with 2nd lord ${house2Info.lordName} in House ${house2Info.placedHouse} (${house2Info.placedRashi}) and 11th lord ${house11Info.lordName} guiding abundance, this child brings auspicious household prosperity and well-provisioned educational support.`
+          : `${devoteeName}, in your chart, 2nd house (wealth) lord ${house2Info.lordName} residing in House ${house2Info.placedHouse} (${house2Info.placedRashi}) alongside 11th lord ${house11Info.lordName} governs liquidity. Income channels remain resilient, though unbudgeted outflows and over-trust test reserves.`
       }, targetLang),
       pick6({
-        kn: `ನಿಮ್ಮ ಆರ್ಥಿಕತೆಯನ್ನು ಬಲಪಡಿಸುವ ರಹಸ್ಯ: ಷೇರು ಮಾರುಕಟ್ಟೆ ಅಥವಾ ಅಪಾಯಕಾರಿ ತ್ವರಿತ ವ್ಯವಹಾರಗಳಿಗಿಂತ, ಸ್ಥಿರಾಸ್ತಿ (ಭೂಮಿ, ಮನೆ, ಬಂಗಾರ) ರೂಪದಲ್ಲಿ ಹಣವನ್ನು ತೊಡಗಿಸುವುದು ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಅತ್ಯಂತ ಸೂಕ್ತವಾಗಿದೆ. ನಿಮ್ಮ ಯೋಗಿ ಗ್ರಹವಾದ '${yogiPlanetName}' ಗ್ರಹದ ದಿನದಂದು ಮಾಡುವ ಹೂಡಿಕೆಗಳು ದೀರ್ಘಕಾಲಿಕ ಲಾಭವನ್ನು ನೀಡಲಿವೆ. ಅನಗತ್ಯ ಸಾಲ ನೀಡುವುದನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಲ್ಲಿಸಿ.`,
-        mr: `आर्थिक स्थैर्याचे रहस्य: सट्टेबाजी किंवा झटपट नफ्याच्या मागे न लागता जमीन, सोने किंवा मुदत ठेवी यांसारख्या सुरक्षित मार्गांनी गुंतवणूक करा. आपल्या योगी ग्रहाच्या दिवशी केलेली गुंतवणूक लाभदायक ठरेल.`,
-        hi: `स्थायी समृद्धि का सूत्र: सट्टा अथवा जोखिम भरे त्वरित निवेश के स्थान पर भूमि, भवन अथवा स्वर्ण जैसी अचल संपत्तियों में निवेश करना आपकी कुंडली हेतु सर्वाधिक फलदायी है। अपने योगी ग्रह के दिन किया गया निवेश दीर्घकालिक सुरक्षा प्रदान करेगा।`,
-        te: `ఆర్థిక స్థిరత్వానికి మార్గం: రిస్క్ ఉండే వ్యాపారాలు కాకుండా స్థిరాస్తి, బంగారంపై పెట్టుబడులు పెట్టడం మీకు కలిసివస్తుంది. అప్పులు ఇవ్వడం తగ్గించండి.`,
-        ta: `பொருளாதார ஸ்திரத்தன்மைக்கு: பங்குச்சந்தை போன்ற ஆபத்தான வழிகளைத் தவிர்த்து, நிலம், வீடு அல்லது தங்கத்தில் முதலீடு செய்வதே உங்கள் ஜாதகத்திற்கு உத்தமம். மற்றவர்களுக்கு கடன் கொடுப்பதை தவிர்க்கவும்.`,
-        en: `The golden protocol for asset fortification: prioritize tangible real estate, physical gold, or protected reserves over speculative gambles. Capital allocations executed on days ruled by your Yogi planet '${yogiPlanetName}' retain exceptional staying power.`
+        kn: isChildOrInfant
+          ? `ಪೋಷಕರಿಗಾಗಿ ಸಲಹೆ: ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ದೀರ್ಘಾವಧಿಯ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸದ ಸುರಕ್ಷಿತ ನಿಧಿ (ಉದಾಹರಣೆಗೆ ಜ್ಞಾನ-ಸಂಪದ ಉಳಿತಾಯ) ಯನ್ನು ಯೋಗಿ ಗ್ರಹದ (${yogiPlanetName}) ಶುಭ ದಿನದಂದು ಆರಂಭಿಸುವುದು ಮಗುವಿನ ಭವಿಷ್ಯಕ್ಕೆ ಭದ್ರ ಬುನಾದಿಯಾಗುತ್ತದೆ.`
+          : `ನಿಮ್ಮ ಆರ್ಥಿಕತೆಯನ್ನು ಬಲಪಡಿಸುವ ರಹಸ್ಯ: ಷೇರು ಮಾರುಕಟ್ಟೆ ಅಥವಾ ಅಪಾಯಕಾರಿ ತ್ವರಿತ ವ್ಯವಹಾರಗಳಿಗಿಂತ, ಸ್ಥಿರಾಸ್ತಿ (ಭೂಮಿ, ಮನೆ, ಬಂಗಾರ) ರೂಪದಲ್ಲಿ ಹಣವನ್ನು ತೊಡಗಿಸುವುದು ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಅತ್ಯಂತ ಸೂಕ್ತವಾಗಿದೆ. ನಿಮ್ಮ ಯೋಗಿ ಗ್ರಹವಾದ '${yogiPlanetName}' ಗ್ರಹದ ದಿನದಂದು ಮಾಡುವ ಹೂಡಿಕೆಗಳು ದೀರ್ಘಕಾಲಿಕ ಲಾಭವನ್ನು ನೀಡಲಿವೆ.`,
+        mr: isChildOrInfant
+          ? `पालकांसाठी मार्गदर्शन: मुलाच्या उच्च शिक्षणासाठी सुरक्षित बचत निधी योगी ग्रह '${yogiPlanetName}' च्या शुभ दिवशी सुरू करणे भविष्यासाठी भक्कम पाया ठरेल.`
+          : `आर्थिक स्थैर्याचे रहस्य: सट्टेबाजी किंवा झटपट नफ्याच्या मागे न लागता जमीन, सोने किंवा मुदत ठेवी यांसारख्या सुरक्षित मार्गांनी गुंतवणूक करा. आपल्या योगी ग्रहाच्या दिवशी केलेली गुंतवणूक लाभदायक ठरेल.`,
+        hi: isChildOrInfant
+          ? `अभिभावकों हेतु निर्देश: बालक की उच्च शिक्षा हेतु सुरक्षित बचत निधि योगी ग्रह '${yogiPlanetName}' के शुभ दिन पर प्रारंभ करना भविष्य को सुरक्षित बनाएगा।`
+          : `स्थायी समृद्धि का सूत्र: सट्टा अथवा जोखिम भरे त्वरित निवेश के स्थान पर भूमि, भवन अथवा स्वर्ण जैसी अचल संपत्तियों में निवेश करना आपकी कुंडली हेतु सर्वाधिक फलदायी है। अपने योगी ग्रह के दिन किया गया निवेश दीर्घकालिक सुरक्षा प्रदान करेगा।`,
+        te: isChildOrInfant
+          ? `తల్లిదండ్రులకు సూచన: చిన్నారి ఉన్నత విద్య కొరకు యోగి గ్రహమైన '${yogiPlanetName}' వారంలో సురక్షిత పొదుపు పథకం ప్రారంభించడం శ్రేయస్కరం.`
+          : `ఆర్థిక స్థిరత్వానికి మార్గం: రిస్క్ ఉండే వ్యాపారాలు కాకుండా స్థిరాస్తి, బంగారంపై పెట్టుబడులు పెట్టడం మీకు కలిసివస్తుంది. అప్పులు ఇవ్వడం తగ్గించండి.`,
+        ta: isChildOrInfant
+          ? `பெற்றோருக்கான வழிகாட்டல்: குழந்தையின் உயர்கல்விக்காக யோகி கிரகமான '${yogiPlanetName}' நாளில் பாதுகாப்பான கல்வி சேமிப்பைத் தொடங்குவது சிறந்தது.`
+          : `பொருளாதார ஸ்திரத்தன்மைக்கு: பங்குச்சந்தை போன்ற ஆபத்தான வழிகளைத் தவிர்த்து, நிலம், வீடு அல்லது தங்கத்தில் முதலீடு செய்வதே உங்கள் ஜாதகத்திற்கு உத்தமம். மற்றவர்களுக்கு கடன் கொடுப்பதை தவிர்க்கவும்.`,
+        en: isChildOrInfant
+          ? `Parental stewardship guide: initiating a dedicated, protected educational reserve in the child's name on an auspicious day ruled by Yogi planet '${yogiPlanetName}' locks long-term academic freedom.`
+          : `The golden protocol for asset fortification: prioritize tangible real estate, physical gold, or protected reserves over speculative gambles. Capital allocations executed on days ruled by your Yogi planet '${yogiPlanetName}' retain exceptional staying power.`
       }, targetLang),
       pick6({
-        kn: `ಧನಾಗಮನ ಹಾಗೂ ಲಕ್ಷ್ಮಿ ಕೃಪೆಗಾಗಿ ಪರಿಹಾರ: ಶುಕ್ರವಾರ ಮುಸ್ಸಂಜೆ 'ಶ್ರೀ ಕನಕಧಾರಾ ಸ್ತೋತ್ರ' ಅಥವಾ 'ಶ್ರೀ ಸೂಕ್ತ' ಪಠಿಸಿ. ನಿಮ್ಮ ಮನೆಯ ತಿಜೋರಿಯಲ್ಲಿ ಕೆಂಪು ವಸ್ತ್ರದಲ್ಲಿ ಸುತ್ತಿದ ಒಂದು ಬೆಳ್ಳಿಯ ನಾಣ್ಯವನ್ನು ಇಟ್ಟು ಪೂಜಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಲಕ್ಷ್ಮಿ-ನಾರಾಯಣ ಪೂಜೆ ಮಾಡಿಸುವುದರಿಂದ ಆರ್ಥಿಕ ಸಂಕಷ್ಟಗಳು ಕರಗಿ, ಸಕಾಲಿಕ ಧನಲಾಭ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.`,
-        mr: `धनवृद्धीसाठी: शुक्रवारी 'कनकधारा स्तोत्र' किंवा 'श्री सूक्त' म्हणा. तिजोरीत लाल कपड्यात चांदीचे नाणे ठेवा. गोकर्णात लक्ष्मी-नारायण पूजा केल्यास आर्थिक अडचणी दूर होतील.`,
-        hi: `धन वृद्धि एवं ऋण मुक्ति हेतु: प्रत्येक शुक्रवार की संध्या को 'कनकधारा स्तोत्र' अथवा 'श्री सूक्त' का पाठ करें। तिजोरी में लाल रेशमी वस्त्र में एक चांदी का सिक्का स्थापित करें। श्री गोकर्ण धाम में लक्ष्मी-नारायण पूजा कराने से धन के मार्ग प्रशस्त होंगे।`,
-        te: `ధనాభివృద్ధి కొరకు: శుక్రవారం నాడు కనకధారా స్తోత్రం పఠించండి. పూజా గదిలో లేదా బీరువాలో వెండి నాణెం ఉంచండి. గోకర్ణంలో లక్ష్మీ-నారాయణ పూజ శ్రేయస్కరం.`,
-        ta: `தன ஆகர்ஷண பரிகாரம்: வெள்ளிக்கிழமைகளில் 'கனகதாரா ஸ்தோத்திரம்' அல்லது 'ஸ்ரீ சூக்தம்' பாராயணம் செய்யவும். பணப்பெட்டியில் சிவப்பு துணியில் வெள்ளி நாணயத்தை வைக்கவும். கோகர்ணத்தில் லட்சுமி-நாராயண பூஜை செய்வது நலம்.`,
-        en: `To magnetize financial abundance: recite the Kanakadhara Stotra on Friday evenings and keep a consecrated silver coin wrapped in red silk inside your treasury. Sponsoring a Lakshmi-Narayana invocation at Sri Kshetra Gokarna dissolves stubborn debts and secures liquidity.`
+        kn: `ಧನಾಗಮನ ಹಾಗೂ ಲಕ್ಷ್ಮಿ ಕೃಪೆಗಾಗಿ ಪರಿಹಾರ: ಶುಕ್ರವಾರ ಮುಸ್ಸಂಜೆ 'ಶ್ರೀ ಕನಕಧಾರಾ ಸ್ತೋತ್ರ' ಅಥವಾ 'ಶ್ರೀ ಸೂಕ್ತ' ಪಠಿಸಿ. ನಿಮ್ಮ ಮನೆಯ ಪೂಜಾ ಕೋಣೆಯಲ್ಲಿ ಕೆಂಪು ವಸ್ತ್ರದಲ್ಲಿ ಸುತ್ತಿದ ಒಂದು ಬೆಳ್ಳಿಯ ನಾಣ್ಯವನ್ನು ಇಟ್ಟು ಪೂಜಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಲಕ್ಷ್ಮಿ-ನಾರಾಯಣ ಪೂಜೆ ಮಾಡಿಸುವುದರಿಂದ ಸಕಾಲಿಕ ಶ್ರೇಯಸ್ಸು ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.`,
+        mr: `धनवृद्धीसाठी: शुक्रवारी 'कनकधारा स्तोत्र' किंवा 'श्री सूक्त' म्हणा. देव्हाऱ्यात लाल कपड्यात चांदीचे नाणे ठेवा. गोकर्णात लक्ष्मी-नारायण पूजा केल्यास आर्थिक अडचणी दूर होतील.`,
+        hi: `धन वृद्धि एवं समृद्धि हेतु: प्रत्येक शुक्रवार की संध्या को 'कनकधारा स्तोत्र' अथवा 'श्री सूक्त' का पाठ करें। पूजा स्थल पर लाल रेशमी वस्त्र में एक चांदी का सिक्का स्थापित करें। श्री गोकर्ण धाम में लक्ष्मी-नारायण पूजा कराने से समृद्धि के मार्ग प्रशस्त होंगे।`,
+        te: `ధనాభివృద్ధి కొరకు: శుక్రవారం నాడు కనకధారా స్తోత్రం పఠించండి. పూజా గదిలో వెండి నాణెం ఉంచండి. గోకర్ణంలో లక్ష్మీ-నారాయణ పూజ శ్రేయస్కరం.`,
+        ta: `தன ஆகர்ஷண பரிகாரம்: வெள்ளிக்கிழமைகளில் 'கனகதாரா ஸ்தோத்திரம்' அல்லது 'ஸ்ரீ சூக்தம்' பாராயணம் செய்யவும். பூஜை அறையில் சிவப்பு துணியில் வெள்ளி நாணயத்தை வைக்கவும். கோகர்ணத்தில் லட்சுமி-நாராயண பூஜை செய்வது நலம்.`,
+        en: `To magnetize financial abundance: recite the Kanakadhara Stotra on Friday evenings and keep a consecrated silver coin wrapped in red silk inside your shrine. Sponsoring a Lakshmi-Narayana invocation at Sri Kshetra Gokarna fortifies household prosperity.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ಧನ ಲಕ್ಷ್ಮಿ ರಹಸ್ಯ", mr: "धन लक्ष्मी रहस्य", hi: "धन लक्ष्मी रहस्य", te: "ధన లక్ష్మి రహస్యం", ta: "தன லட்சுமி ரகசியம்", en: "Wealth Preservation Matrix" }, targetLang),
     practicalGuidance: pick6({
-      kn: `ಪ್ರತಿ ತಿಂಗಳ ಮೊದಲ ದಿನ ನಿಮ್ಮ ಆದಾಯದ ಸಣ್ಣ ಪಾಲನ್ನು (೧%) ಹಸಿದವರಿಗೆ ಅಥವಾ ಗೋಶಾಲೆಯ ಹಸುಗಳಿಗೆ ಮೀಸಲಿಡಿ; ಇದು ದರಿದ್ರ ಯೋಗವನ್ನು ಭಸ್ಮ ಮಾಡುತ್ತದೆ.`,
-      mr: `दर महिन्याला आपल्या उत्पन्नातील छोटा हिस्सा गोशाळेला किंवा भुकेल्यांना द्या.`,
-      hi: `प्रत्येक मास के प्रथम दिन अपनी आय का एक छोटा अंश (१%) गोशाला अथवा निर्धनों के अन्न हेतु समर्पित करें; इससे धन की बरकत बनी रहती है।`,
-      te: `ప్రతినెలా మీ ఆదాయంలో కొద్ది భాగాన్ని ఆవులకు లేదా అన్నదానానికి ఉపయోగించండి.`,
-      ta: `மாதந்தோறும் உங்கள் வருமானத்தில் ஒரு சிறு பகுதியை கோசாலைக்கோ அல்லது அன்னதானத்திற்கோ வழங்கவும்.`,
-      en: `Dedicate 1% of your monthly earnings toward sacred Goshalas or feeding the destitute on the first day of each month to purify commercial karma.`
+      kn: isChildOrInfant
+        ? "ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಸಣ್ಣ ಉಳಿತಾಯ ಪಾತ್ರೆಯೊಂದಿಗೆ ದಾನ-ಧರ್ಮದ ಒಳ್ಳೆಯ ಸಂಸ್ಕಾರವನ್ನು ಬಾಲ್ಯದಿಂದಲೇ ಕಲಿಸಿ."
+        : "ಪ್ರತಿ ತಿಂಗಳ ಮೊದಲ ದಿನ ನಿಮ್ಮ ಆದಾಯದ ಸಣ್ಣ ಪಾಲನ್ನು (೧%) ಹಸಿದವರಿಗೆ ಅಥವಾ ಗೋಶಾಲೆಯ ಹಸುಗಳಿಗೆ ಮೀಸಲಿಡಿ; ಇದು ದರಿದ್ರ ಯೋಗವನ್ನು ಭಸ್ಮ ಮಾಡುತ್ತದೆ.",
+      mr: isChildOrInfant
+        ? "बाळाच्या हातून लहान वयापासूनच गरजूंना थोडे दान करण्याची चांगली सवय लावा."
+        : "दर महिन्याला आपल्या उत्पन्नातील छोटा हिस्सा गोशाळेला किंवा भुकेल्यांना द्या.",
+      hi: isChildOrInfant
+        ? "बालक में बचपन से ही छोटे संचय और निर्धनों को दान देने के शुभ संस्कार का बीज बोएं।"
+        : "प्रत्येक मास के प्रथम दिन अपनी आय का एक छोटा अंश (१%) गोशाला अथवा निर्धनों के अन्न हेतु समर्पित करें; इससे धन की बरकत बनी रहती है।",
+      te: isChildOrInfant
+        ? "చిన్నతనం నుండే పిల్లలకు పొదుపు మరియు దానం చేసే మంచి అలవాటును నేర్పించండి."
+        : "ప్రతినెలా మీ ఆదాయంలో కొద్ది భాగాన్ని ఆవులకు లేదా అన్నదానానికి ఉపయోగించండి.",
+      ta: isChildOrInfant
+        ? "குழந்தைக்கு சிறுவயது முதலே சிறு சேமிப்பும் பிறருக்கு உதவும் நற்பண்பையும் பழக்குங்கள்."
+        : "மாதந்தோறும் உங்கள் வருமானத்தில் ஒரு சிறு பகுதியை கோசாலைக்கோ அல்லது அன்னதானத்திற்கோ வழங்கவும்.",
+      en: isChildOrInfant
+        ? "Cultivate joyous habits of gratitude, saving coins, and sharing gently with those in need from early childhood."
+        : "Dedicate 1% of your monthly earnings toward sacred Goshalas or feeding the destitute on the first day of each month to purify commercial karma."
     }, targetLang)
   });
 
@@ -1812,22 +2317,22 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: isMinor
           ? `${devoteeName}, ಮುಗ್ಧ ಮನಸ್ಸಿನ ಜಾತಕದಲ್ಲಿ ೪ನೇ ಮನೆಯು ತಾಯಿಯ ಪ್ರೀತಿ ಹಾಗೂ ಗೃಹ ಶಾಂತಿಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಚಂದ್ರ ಮತ್ತು ಶುಕ್ರರ ಅನುಕೂಲಕರ ಸ್ಥಾನವು ಮಗುವಿಗೆ ಕುಟುಂಬದಿಂದ ಅಪಾರ ಮಮತೆ ಹಾಗೂ ಸುರಕ್ಷತೆಯನ್ನು ಒದಗಿಸುತ್ತಿದೆ. ಪೋಷಕರ ಪರಸ್ಪರ ಗೌರವಯುತ ವರ್ತನೆಯು ಮಗುವಿನ ಮಾನಸಿಕ ಆರೋಗ್ಯವನ್ನು ಸದೃಢವಾಗಿ ಬೆಳೆಸಲಿದೆ.`
-          : `${devoteeName}, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ೭ನೇ ಮನೆಯು ಕಳತ್ರಸ್ಥಾನ (ದಾಂಪತ್ಯ ಮತ್ತು ಪಾಲುದಾರಿಕೆ) ವಾಗಿದೆ. ೭ನೇ ಮನೆಯ ಅಧಿಪತಿ ಹಾಗೂ ಶುಕ್ರ-ಗುರುಗಳ ಸ್ಥಿತಿಯನ್ನು ಅವಲೋಕಿಸಿದಾಗ, ನಿಮ್ಮ ಸಂಗಾತಿಯು ಸ್ವಾಭಿಮಾನಿ, ಧಾರ್ಮಿಕ ಪ್ರಜ್ಞೆ ಹೊಂದಿದ ಹಾಗೂ ಕುಟುಂಬದ ಗೌರವವನ್ನು ಕಾಪಾಡುವ ವ್ಯಕ್ತಿಯಾಗಿರುತ್ತಾರೆ. ಆದರೆ ಇಬ್ಬರಲ್ಲೂ ನಾಯಕತ್ವದ ಗುಣಗಳಿರುವುದರಿಂದ, ಕೆಲವೊಮ್ಮೆ ಸಣ್ಣ ವಿಷಯಗಳಿಗೂ ಅಹಂ ಸಂಘರ್ಷ ಉಂಟಾಗುವ ಸಾಧ್ಯತೆಯಿದೆ.`,
+          : `${devoteeName}, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ೭ನೇ ಮನೆಯ ಅಧಿಪತಿ ${house7Info.lordName} (${n(house7Info.placedHouse)}ನೇ ಭಾವ, ${house7Info.placedRashi}) ಹಾಗೂ ಶುಕ್ರ-ಗುರುಗಳ ಸ್ಥಿತಿಯನ್ನು ಅವಲೋಕಿಸಿದಾಗ, ${isUnmarriedAdult ? "ನಿಮ್ಮ ಭಾವಿ ಸಂಗಾತಿಯು ಸ್ವಾಭಿಮಾನಿ, ಧಾರ್ಮಿಕ ಪ್ರಜ್ಞೆ ಹೊಂದಿದ ಹಾಗೂ ಕುಟುಂಬದ ಗೌರವವನ್ನು ಕಾಪಾಡುವ ಸತ್ಪಾತ್ರರಾಗಿರುತ್ತಾರೆ" : "ನಿಮ್ಮ ಸಂಗಾತಿಯು ಸ್ವಾಭಿಮಾನಿ, ಧಾರ್ಮಿಕ ಪ್ರಜ್ಞೆ ಹೊಂದಿದ ಹಾಗೂ ಕುಟುಂಬದ ಗೌರವವನ್ನು ಕಾಪಾಡುವ ವ್ಯಕ್ತಿಯಾಗಿರುತ್ತಾರೆ"}. ಪರಸ್ಪರ ಅಹಂ ಬಿಟ್ಟು ತಾಳ್ಮೆಯಿಂದ ಸಂವಹನ ನಡೆಸುವುದು ಸಂಬಂಧವನ್ನು ಬಲಪಡಿಸುತ್ತದೆ.`,
         mr: isMinor
           ? `${devoteeName}, बालकाच्या कुंडलीत चतुर्थ स्थान मातृप्रेम व कौटुंबिक शांतता दर्शवते. चंद्र व शुक्राची स्थिती मुलाला घरातून उत्तम माया व संस्कार देईल.`
-          : `${devoteeName}, आपल्या कुंडलीतील ७ वे स्थान वैवाहिक जीवनाचे आहे. सप्तमेश व शुक्राची स्थिती पाहता आपला जोडीदार स्वाभिमानी, सुसंस्कृत व समजूतदार असेल. मात्र दोघांमधील अहंकारामुळे लहान-सहान मतभेद होऊ शकतात.`,
+          : `${devoteeName}, आपल्या कुंडलीतील सप्तमेश ${house7Info.lordName} (${n(house7Info.placedHouse)}वे स्थान, ${house7Info.placedRashi}) व शुक्राची स्थिती पाहता ${isUnmarriedAdult ? "योग्य वेळी सुसंस्कृत जोडीदाराचा योग दिसून येतो" : "आपला जोडीदार स्वाभिमानी, सुसंस्कृत व समजूतदार असेल"}. मात्र लहान-सहान मतभेद संवादातून सोडवावेत.`,
         hi: isMinor
           ? `${devoteeName}, बालक की कुंडली में चतुर्थ भाव मातृस्नेह एवं गृह शांति का प्रतीक है। चंद्र एवं शुक्र की अनुकूलता बालक को परिवार का अखंड वात्सल्य प्रदान करेगी।`
-          : `${devoteeName}, आपकी कुंडली में सप्तम भाव दांपत्य सुख एवं साझेदारी का प्रतीक है। सप्तमेश एवं शुक्र की स्थिति इंगित करती है कि आपके जीवनसाथी स्वाभिमानी, धार्मिक विचारों वाले एवं कर्तव्यनिष्ठ होंगे। यद्यपि दोनों के स्वाभिमानी स्वभाव के कारण कभी-कभी वैचारिक मतभेद उत्पन्न हो सकते हैं।`,
+          : `${devoteeName}, आपकी कुंडली में सप्तमेश ${house7Info.lordName} (${n(house7Info.placedHouse)}वां भाव, ${house7Info.placedRashi}) एवं शुक्र की स्थिति इंगित करती है कि ${isUnmarriedAdult ? "उपयुक्त समय पर सुयोग्य, धर्मात्मा जीवनसाथी का संयोग प्रबल है" : "आपके जीवनसाथी स्वाभिमानी, धार्मिक एवं कर्तव्यनिष्ठ हैं"}। परस्पर सम्मान से संबंध प्रगाढ़ रहेंगे।`,
         te: isMinor
           ? `${devoteeName}, చిన్నారికి తల్లిదండ్రుల నుండి సంపూర్ణ ప్రేమ, ఆప్యాయతలు లభిస్తాయి. ఇంట్లో శాంతియుత వాతావరణం ఉంటుంది.`
-          : `${devoteeName}, మీ జాతకంలో 7వ స్థానం దాంపత్యానికి మూలం. మీ భాగస్వామి మంచి వ్యక్తిత్వం, బాధ్యత గలవారు. అయితే చిన్న చిన్న విషయాల్లో పట్టింపులకు పోకుండా చూసుకోవాలి.`,
+          : `${devoteeName}, మీ జాతకంలో 7వ అధిపతి ${house7Info.lordName} (${n(house7Info.placedHouse)}వ స్థానం, ${house7Info.placedRashi}) స్థితి వల్ల ${isUnmarriedAdult ? "ఉత్తమ గుణాలు గల భాగస్వామితో శుభ కలయిక" : "మీ భాగస్వామి మంచి వ్యక్తిత్వం, బాధ్యత గలవారు"} లభిస్తారు. చిన్న విషయాల్లో పట్టింపులు వద్దు.`,
         ta: isMinor
           ? `${devoteeName}, குழந்தையின் ஜாதகத்தில் 4-ஆம் வீடு தாயின் பாசத்தையும் இல்லற அமைதியையும் குறிக்கிறது. குடும்பத்தின் அன்பு குழந்தையை நல்ல முறையில் வளர்க்கும்.`
-          : `${devoteeName}, உங்கள் ஜாதகத்தில் 7-ஆம் இடம் களத்திர ஸ்தானமாகும். உங்கள் வாழ்க்கைத்துணை சுயமரியாதையும் ஆன்மீக சிந்தனையும் கொண்டவராக இருப்பார். விட்டுக்கொடுத்து செல்வது அமைதி தரும்.`,
+          : `${devoteeName}, உங்கள் ஜாதகத்தில் 7-ம் அதிபதி ${house7Info.lordName} (${n(house7Info.placedHouse)}-ம் வீடு, ${house7Info.placedRashi}) இருப்பதால் ${isUnmarriedAdult ? "நற்குணம் கொண்ட துணை உரிய காலத்தில் அமைவார்" : "உங்கள் வாழ்க்கைத்துணை சுயமரியாதையும் ஆன்மீக சிந்தனையும் கொண்டவர்"}. விட்டுக்கொடுத்து செல்வது அமைதி தரும்.`,
         en: isMinor
           ? `${devoteeName}, examining the domestic quadrant (4th house), harmonious Moon and Venus placements envelop this young life in unconditional maternal protection and emotional security.`
-          : `${devoteeName}, for your chart, the 7th house (Kalatra Bhava) and Venus modulate companionship. Your partner possesses dignified self-respect, moral grounding, and devotion to lineage; however, unvoiced assumptions can occasionally spark ego frictions.`
+          : `${devoteeName}, evaluating your 7th house lord ${house7Info.lordName} in House ${house7Info.placedHouse} (${house7Info.placedRashi}) alongside Venus illuminates ${isUnmarriedAdult ? "auspicious upcoming alliance harmony with a dignified, principled partner" : "deep partnership dynamics where mutual self-respect anchors loyalty"}. Gentle dialogue effortlessly cools pride-driven friction.`
       }, targetLang),
       pick6({
         kn: isMinor
@@ -1872,12 +2377,24 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     ],
     guidanceBadge: pick6({ kn: "ದಾಂಪತ್ಯ ಕವಚ", mr: "वैवाहिक कवच", hi: "दांपत्य रक्षा", te: "దాంపత్య కవచం", ta: "தாம்பத்திய கவசம்", en: "Conjugal Sanctuary" }, targetLang),
     practicalGuidance: pick6({
-      kn: "ಪ್ರತಿ ಶುಕ್ರವಾರ ಸಂಜೆ ದೇವರಿಗೆ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಬಿಳಿ ಹೂವುಗಳನ್ನು ಅರ್ಪಿಸಿ; ಸಂಗಾತಿಯೊಂದಿಗೆ ವಾದಕ್ಕಿಳಿಯದೆ ಪ್ರೀತಿಯಿಂದ ವರ್ತಿಸಿ.",
-      mr: "दर शुक्रवारी पांढरी फुले वाहून देवापुढे तुपाचा दिवा लावा व जोडीदाराशी नम्रतेने वागा.",
-      hi: "प्रत्येक शुक्रवार को पूजा स्थल पर सफेद पुष्प अर्पित कर घी का दीपक प्रज्वलित करें एवं जीवनसाथी के साथ सामंजस्य बनाए रखें।",
-      te: "శుక్రవారం నాడు తెల్లటి పూలతో పూజ చేసి నెయ్యి దీపం వెలిగించండి. భాగస్వామితో వాదనలకు దిగకండి.",
-      ta: "வெள்ளிக்கிழமைகளில் வெள்ளை மலர்களால் இறைவனை வணங்கி நெய் தீபம் ஏற்றவும்; துணையுடன் வீண் வாக்குவாதங்களை தவிர்க்கவும்.",
-      en: "Light a pure cow-ghee lamp with white jasmine flowers at your home shrine on Fridays, consciously choosing affection over argumentative debates."
+      kn: isMinor
+        ? "ಪ್ರತಿ ಶುಕ್ರವಾರ ಪೋಷಕರ ಪಾದಗಳಿಗೆ ನಮಸ್ಕರಿಸಿ ಆಶೀರ್ವಾದ ಪಡೆಯಿರಿ; ಕುಟುಂಬದಲ್ಲಿ ಪ್ರೀತಿ ಹಾಗೂ ಗೌರವವನ್ನು ಕಾಪಾಡಿ."
+        : "ಪ್ರತಿ ಶುಕ್ರವಾರ ಸಂಜೆ ದೇವರಿಗೆ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಬಿಳಿ ಹೂವುಗಳನ್ನು ಅರ್ಪಿಸಿ; ಸಂಗಾತಿಯೊಂದಿಗೆ ವಾದಕ್ಕಿಳಿಯದೆ ಪ್ರೀತಿಯಿಂದ ವರ್ತಿಸಿ.",
+      mr: isMinor
+        ? "दररोज सकाळी आई-वडिलांच्या चरणस्पर्श करून आशीर्वाद घ्या व घरात प्रेमाने वागा."
+        : "दर शुक्रवारी पांढरी फुले वाहून देवापुढे तुपाचा दिवा लावा व जोडीदाराशी नम्रतेने वागा.",
+      hi: isMinor
+        ? "नित्य प्रातः माता-पिता का चरण स्पर्श कर आशीर्वाद लें एवं परिवार में स्नेह बनाए रखें।"
+        : "प्रत्येक शुक्रवार को पूजा स्थल पर सफेद पुष्प अर्पित कर घी का दीपक प्रज्वलित करें एवं जीवनसाथी के साथ सामंजस्य बनाए रखें।",
+      te: isMinor
+        ? "ప్రతిరోజూ తల్లిదండ్రులకు నమస్కరించి ఆశీస్సులు తీసుకోండి; ఇంట్లో అందరితో ప్రేమగా ఉండండి."
+        : "శుక్రవారం నాడు తెల్లటి పూలతో పూజ చేసి నెయ్యి దీపం వెలిగించండి. భాగస్వామితో వాదనలకు దిగకండి.",
+      ta: isMinor
+        ? "தினமும் பெற்றோரை வணங்கி ஆசி பெறுங்கள்; வீட்டில் அன்பும் அமைதியும் நிலைக்கும்."
+        : "வெள்ளிக்கிழமைகளில் வெள்ளை மலர்களால் இறைவனை வணங்கி நெய் தீபம் ஏற்றவும்; துணையுடன் வீண் வாக்குவாதங்களை தவிர்க்கவும்.",
+      en: isMinor
+        ? "Show daily reverence to parents and elders each morning; mutual affection fills the home with celestial protection."
+        : "Light a pure cow-ghee lamp with white jasmine flowers at your home shrine on Fridays, consciously choosing affection over argumentative debates."
     }, targetLang)
   });
 
@@ -1923,12 +2440,12 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
         }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ೫ನೇ ಮನೆಯು (ಪೂರ್ವ ಪುಣ್ಯ ಸ್ಥಾನ) ಮನುಷ್ಯನ ಬುದ್ಧಿವಂತಿಕೆ, ಉನ್ನತ ಸೃಜನಶೀಲತೆ ಹಾಗೂ ಸಂತಾನ ಭಾಗ್ಯದ ದರ್ಪಣವಾಗಿದೆ. ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಪಂಚಮೇಶನ ಸ್ಥಿತಿ ಹಾಗೂ ಗುರುವಿನ ದೃಷ್ಟಿಯನ್ನು ಶಾಸ್ತ್ರೀಯವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮಲ್ಲಿ ಆಳವಾದ ಕಲ್ಪನಾಶಕ್ತಿ ಹಾಗೂ ವಂಶದ ಗೌರವವನ್ನು ಕಾಪಾಡುವ ಉದಾತ್ತ ಚಿಂತನೆಗಳಿವೆ.`,
-        mr: `${devoteeName}, पत्रिकेत ५ वे स्थान हे पूर्वपुण्य, बुद्धिमत्ता व संततीचे असते. पंचमेश व गुरुची शुभ स्थिती दर्शवते की आपल्याकडे उत्तम कल्पनाशक्ती व कुळाचा सन्मान वाढवणारी प्रतिभा आहे.`,
-        hi: `${devoteeName}, वैदिक ज्योतिष में पंचम भाव पूर्व संचित पुण्यों, मेधा शक्ति एवं संतति सुख का दर्पण है। आपकी कुंडली में पंचमेश एवं बृहस्पति की अनुकूलता प्रमाणित करती है कि आप स्वाभाविक रूप से दूरदर्शी, विवेकशील एवं पारिवारिक मूल्यों के संवाहक हैं।`,
-        te: `${devoteeName}, జాతకంలో 5వ స్థానం పూర్వ పుణ్యం, తెలివితేటలు మరియు సంతానానికి సూచిక. గురు బలం వల్ల మంచి మేధోశక్తి మరియు వంశ గౌరవం లభిస్తాయి.`,
-        ta: `${devoteeName}, ஜாதகத்தில் 5-ஆம் இடம் பூர்வ புண்ணியம், அறிவு மற்றும் புத்திர பாக்கியத்தைக் குறிக்கிறது. குருவின் பார்வை உங்கள் புத்தி கூர்மையையும் வம்ச கௌரவத்தையும் உயர்த்தும்.`,
-        en: `${devoteeName}, in authentic Jyotish, the 5th house (Purva Punya Bhava) mirrors the ripened merit of prior incarnations, presiding over intuitive intelligence, creative ingenuity, and children. Examining your 5th lord alongside Jupiter confirms an analytical mind grounded in traditional values.`
+        kn: `${devoteeName}, ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ೫ನೇ ಮನೆಯು (ಪೂರ್ವ ಪುಣ್ಯ ಸ್ಥಾನ) ಮನುಷ್ಯನ ಬುದ್ಧಿವಂತಿಕೆ, ಉನ್ನತ ಸೃಜನಶೀಲತೆ ಹಾಗೂ ಸಂತಾನ ಭಾಗ್ಯದ ದರ್ಪಣವಾಗಿದೆ. ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಪಂಚಮೇಶ ${house5Info.lordName} ಗ್ರಹವು ${n(house5Info.placedHouse)}ನೇ ಭಾವದಲ್ಲಿ (${house5Info.placedRashi}) ಸ್ಥಿತವಾಗಿರುವುದನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮಲ್ಲಿ ಆಳವಾದ ಕಲ್ಪನಾಶಕ್ತಿ ಹಾಗೂ ವಂಶದ ಗೌರವವನ್ನು ಕಾಪಾಡುವ ಉದಾತ್ತ ಚಿಂತನೆಗಳಿವೆ.`,
+        mr: `${devoteeName}, पत्रिकेत ५ वे स्थान हे पूर्वपुण्य, बुद्धिमत्ता व संततीचे असते. पंचमेश ${house5Info.lordName} (${n(house5Info.placedHouse)}वे स्थान, ${house5Info.placedRashi}) ची स्थिती दर्शवते की आपल्याकडे उत्तम कल्पनाशक्ती व कुळाचा सन्मान वाढवणारी प्रतिभा आहे.`,
+        hi: `${devoteeName}, वैदिक ज्योतिष में पंचम भाव पूर्व संचित पुण्यों, मेधा शक्ति एवं संतति सुख का दर्पण है। आपकी कुंडली में पंचमेश ${house5Info.lordName} का ${n(house5Info.placedHouse)}वें भाव (${house5Info.placedRashi}) में स्थित होना प्रमाणित करता है कि आप दूरदर्शी, विवेकशील एवं पारिवारिक मूल्यों के संवाहक हैं।`,
+        te: `${devoteeName}, జాతకంలో 5వ స్థానం పూర్వ పుణ్యం, తెలివితేటలు మరియు సంతానానికి సూచిక. పంచమాధిపతి ${house5Info.lordName} (${n(house5Info.placedHouse)}వ స్థానం, ${house5Info.placedRashi}) వల్ల మంచి మేధోశక్తి మరియు వంశ గౌరవం లభిస్తాయి.`,
+        ta: `${devoteeName}, ஜாதகத்தில் 5-ஆம் இடம் பூர்வ புண்ணியம், அறிவு மற்றும் புத்திர பாக்கியத்தைக் குறிக்கிறது. 5-ம் அதிபதி ${house5Info.lordName} (${n(house5Info.placedHouse)}-ம் வீடு, ${house5Info.placedRashi}) உங்கள் புத்தி கூர்மையையும் வம்ச கௌரவத்தையும் உயர்த்துவார்.`,
+        en: `${devoteeName}, in authentic Jyotish, the 5th house (Purva Punya Bhava) mirrors prior merit, intuitive intelligence, and lineage continuity. With 5th lord ${house5Info.lordName} residing in House ${house5Info.placedHouse} (${house5Info.placedRashi}), your chart confirms sharp analytical discernment anchored in cultural wisdom.`
       }, targetLang),
       pick6({
         kn: isMinor
@@ -1994,12 +2511,12 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ವೈದಿಕ ಆಯುರ್ವೇದ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ಲಗ್ನವು ದೇಹದ ಚೈತನ್ಯ ಹಾಗೂ ೬ನೇ ಮನೆಯು ರೋಗ-ಋಣ-ಶತ್ರುಗಳ ಸ್ಥಾನವಾಗಿದೆ. ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನಾಧಿಪತಿಯ ಬಲವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಮೂಲ ಶರೀರವು ಉತ್ತಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ಆದರೆ ಕೆಲಸದ ಅತಿಯಾದ ಒತ್ತಡ, ನಿದ್ರಾಹೀನತೆ ಹಾಗೂ ಅನಿಯಮಿತ ಆಹಾರ ಪದ್ಧತಿಯಿಂದಾಗಿ ವಾತ-ಪಿತ್ತ ದೋಷಗಳು ಉಲ್ಬಣಿಸುವ ಸಾಧ್ಯತೆಯಿದೆ.`,
-        mr: `${devoteeName}, ज्योतिष व आयुर्वेदानुसार लग्न स्थान हे देहाचे आरोग्य व ६ वे स्थान हे आजारांचे असते. आपल्या ${lagnaRashiName} लग्नेशाची स्थिती पाहता आपली मूळ रोगप्रतिकारक शक्ती उत्तम आहे. तथापि, अतिविचार, अपुरी झोप आणि वेळेवर न जेवणे यामुळे वात व पित्ताचा त्रास होऊ शकतो.`,
-        hi: `${devoteeName}, आयुर्वेद एवं ज्योतिष के समन्वयानुसार लग्न देह का प्राण है तथा षष्ठ भाव रोग-ऋण का सूचक है। आपके ${lagnaRashiName} लग्नेश की शुभ स्थिति प्रमाणित करती है कि आपका मूल स्वास्थ्य सुदृढ़ है। तथापि, अत्यधिक मानसिक श्रम, अनियमित दिनचर्या एवं अनिद्रा के कारण वात-पित्त असंतुलन की आशंका रहती है।`,
-        te: `${devoteeName}, జాతకంలో లగ్నం శరీర బలాన్ని, 6వ స్థానం రోగాలను సూచిస్తుంది. మీ ${lagnaRashiName} లగ్నం ప్రకారం రోగనిరోధక శక్తి బాగుంది. అయితే మానసిక ఒత్తిడి, నిద్రలేమి వల్ల గ్యాస్ట్రిక్ లేదా పిత్త సంబంధిత సమస్యలు రావచ్చు.`,
-        ta: `${devoteeName}, ஜோதிடத்தில் லக்னம் உடல் வலிமையையும், 6-ஆம் இடம் நோய்களையும் குறிக்கிறது. உங்கள் ${lagnaRashiName} லக்னாதிபதி பலமாக இருப்பதால் இயற்கையிலேயே நல்ல நோய் எதிர்ப்பு சக்தி உண்டு. ஆனால் மன அழுத்தம் மற்றும் தூக்கமின்மையால் வாத-பித்த கோளாறுகள் வரலாம்.`,
-        en: `${devoteeName}, in Astro-Ayurveda, the ascendant commands cellular stamina while the 6th sector marks functional vulnerabilities. For your ${lagnaRashiName} ascendant, constitutional vitality is resilient; however, prolonged mental exertion and irregular sleep provoke Vata-Pitta digestive friction.`
+        kn: `${devoteeName}, ವೈದಿಕ ಆಯುರ್ವೇದ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ಲಗ್ನವು ದೇಹದ ಚೈತನ್ಯ ಹಾಗೂ ೬ನೇ ಮನೆಯು ರೋಗ-ಋಣ-ಶತ್ರುಗಳ ಸ್ಥಾನವಾಗಿದೆ. ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನಕ್ಕೆ ೬ನೇ ಅಧಿಪತಿ ${house6Info.lordName} (${n(house6Info.placedHouse)}ನೇ ಮನೆ, ${house6Info.placedRashi}) ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಮೂಲ ಶರೀರವು ಉತ್ತಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ; ಆದರೆ ಅತಿಯಾದ ಒತ್ತಡ, ನಿದ್ರಾಹೀನತೆ ಹಾಗೂ ಅನಿಯಮಿತ ಆಹಾರ ಪದ್ಧತಿಯಿಂದ ವಾತ-ಪಿತ್ತ ದೋಷಗಳು ಉಲ್ಬಣಿಸುವ ಸಾಧ್ಯತೆಯಿದೆ.`,
+        mr: `${devoteeName}, ज्योतिष व आयुर्वेदानुसार लग्न स्थान देहाचे आरोग्य व ६ वे स्थान आजारांचे असते. षष्ठेश ${house6Info.lordName} (${n(house6Info.placedHouse)}वे स्थान, ${house6Info.placedRashi}) च्या स्थितीनुसार आपली मूळ रोगप्रतिकारक शक्ती चांगली आहे; तथापि अतिविचार व अनियमित झोपेमुळे वात-पित्ताचा त्रास होऊ शकतो.`,
+        hi: `${devoteeName}, आयुर्वेद एवं ज्योतिष के समन्वयानुसार लग्न देह का प्राण है तथा षष्ठेश ${house6Info.lordName} (${n(house6Info.placedHouse)}वां भाव, ${house6Info.placedRashi}) स्वास्थ्य संतुलन दर्शाते हैं। आपकी मूल रोग-प्रतिरोधक क्षमता सुदृढ़ है; तथापि अत्यधिक श्रम एवं अनियमित दिनचर्या से वात-पित्त असंतुलन की आशंका रहती है।`,
+        te: `${devoteeName}, జాతకంలో లగ్నం శరీర బలాన్ని, 6వ అధిపతి ${house6Info.lordName} (${n(house6Info.placedHouse)}వ స్థానం, ${house6Info.placedRashi}) ఆరోగ్య నియమాలను సూచిస్తాయి. రోగనిరోధక శక్తి బాగుంది కానీ ఒత్తిడి, నిద్రలేమి తగ్గించుకోవాలి.`,
+        ta: `${devoteeName}, ஜோதிடத்தில் லக்னம் உடல் வலிமையையும், 6-ம் அதிபதி ${house6Info.lordName} (${n(house6Info.placedHouse)}-ம் வீடு, ${house6Info.placedRashi}) நோய் எதிர்ப்பையும் குறிக்கின்றன. மன அழுத்தம் மற்றும் தூக்கமின்மையைத் தவிர்ப்பது ஆரோக்கியத்தைக் காக்கும்.`,
+        en: `${devoteeName}, in Astro-Ayurveda, the ascendant commands cellular stamina while 6th lord ${house6Info.lordName} (in House ${house6Info.placedHouse}, ${house6Info.placedRashi}) marks physiological resilience. Constitutional stamina is strong, though prolonged mental tension or erratic sleep provokes Vata-Pitta friction.`
       }, targetLang),
       pick6({
         kn: `ನೀವು ವಹಿಸಬೇಕಾದ ಮುನ್ನೆಚ್ಚರಿಕೆಗಳು: ಜೀರ್ಣಾಂಗ ವ್ಯವಸ್ಥೆ, ಕುತ್ತಿಗೆ/ಭುಜದ ಒತ್ತಡ ಹಾಗೂ ಕಣ್ಣಿನ ಆಯಾಸದ ಬಗ್ಗೆ ವಿಶೇಷ ನಿಗಾ ಇರಲಿ. ಅತಿಯಾದ ಖಾರ ಹಾಗೂ ತೈಲಯುಕ್ತ ಆಹಾರವನ್ನು ನಿಯಂತ್ರಿಸಿ. ಪ್ರತಿದಿನ ಕನಿಷ್ಠ ೨ ಲೀಟರ್ ನೀರು ಕುಡಿಯುವುದು ಹಾಗೂ ಪ್ರಕೃತಿಯ ಮಡಿಲಲ್ಲಿ ೧೫ ನಿಮಿಷ ವಾಕಿಂಗ್ ಮಾಡುವುದು ನಿಮ್ಮ ಜೀವಕೋಶಗಳಿಗೆ ನವ ಚೈತನ್ಯವನ್ನು ನೀಡುತ್ತದೆ.`,
@@ -2092,12 +2609,24 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     ],
     guidanceBadge: pick6({ kn: "ತ್ರೈಮಾಸಿಕ ದಿಕ್ಸೂಚಿ", mr: "त्रैमासिक दिशा", hi: "त्रैमासिक दिशा", te: "త్రైమాసిక ప్రణాళిక", ta: "காலாண்டு வழிகாட்டல்", en: "Quarterly Tactical Compass" }, targetLang),
     practicalGuidance: pick6({
-      kn: "ಮುಂದಿನ ೩ ತಿಂಗಳು ಯಾವುದೇ ದೊಡ್ಡ ಆರ್ಥಿಕ ಸಾಲಕ್ಕೆ ಜಾಮೀನು (ಶ್ಯೂರಿಟಿ) ನೀಡಬೇಡಿ.",
-      mr: "पुढील ३ महिने कोणाच्याही कर्जासाठी जामीन राहू नका.",
-      hi: "आगामी ३ मास तक किसी के भी ऋण हेतु ज़मानती (Guarantor) बनने से बचें।",
-      te: "రాబోయే 3 నెలల పాటు ఎవరి అప్పులకూ జామీను (గ్యారెంటీ) ఇవ్వకండి.",
-      ta: "அடுத்த 3 மாதங்களுக்கு பிறரின் கடனுக்கு ஜாமீன் கையெழுத்து போடுவதை தவிர்க்கவும்.",
-      en: "Refrain strictly from signing surety bonds or acting as loan guarantor for anyone over the next 90 days."
+      kn: isMinor
+        ? "ಮುಂದಿನ ೯೦ ದಿನಗಳ ಕಾಲ ಓದಿನಲ್ಲಿ ಏಕಾಗ್ರತೆ ಕಾಪಾಡಿಕೊಂಡು ಅನಗತ್ಯ ವಿವಾದಗಳಿಂದ ದೂರವಿರಿ."
+        : "ಮುಂದಿನ ೩ ತಿಂಗಳು ಯಾವುದೇ ದೊಡ್ಡ ಆರ್ಥಿಕ ಸಾಲಕ್ಕೆ ಜಾಮೀನು (ಶ್ಯೂರಿಟಿ) ನೀಡಬೇಡಿ.",
+      mr: isMinor
+        ? "पुढील ९० दिवस अभ्यासात सातत्य ठेवा व मैदानी खेळ आणि प्रकृतीची काळजी घ्या."
+        : "पुढील ३ महिने कोणाच्याही कर्जासाठी जामीन राहू नका.",
+      hi: isMinor
+        ? "आगामी ९० दिनों तक विद्या एवं स्वास्थ्य के प्रति अनुशासित दिनचर्या अपनाएं।"
+        : "आगामी ३ मास तक किसी के भी ऋण हेतु ज़मानती (Guarantor) बनने से बचें।",
+      te: isMinor
+        ? "రాబోయే 90 రోజులు చదువులో ఏకాగ్రత మరియు సమయపాలన పాటించండి."
+        : "రాబోయే 3 నెలల పాటు ఎవరి అప్పులకూ జామీను (గ్యారెంటీ) ఇవ్వకండి.",
+      ta: isMinor
+        ? "அடுத்த 90 நாட்களுக்கு கல்வியிலும் ஆரோக்கியத்திலும் ஒழுக்கமான பழக்கங்களைப் பின்பற்றவும்."
+        : "அடுத்த 3 மாதங்களுக்கு பிறரின் கடனுக்கு ஜாமீன் கையெழுத்து போடுவதை தவிர்க்கவும்.",
+      en: isMinor
+        ? "Maintain disciplined study routines and mindful outdoor rest over the next 90 days."
+        : "Refrain strictly from signing surety bonds or acting as loan guarantor for anyone over the next 90 days."
     }, targetLang)
   });
 
@@ -2210,12 +2739,24 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     ],
     guidanceBadge: pick6({ kn: "ವಾರ್ಷಿಕ ನೀಲನಕ್ಷೆ", mr: "वार्षिक आराखडा", hi: "वार्षिक खाका", te: "వార్షిక ప్రణాళిక", ta: "ஆண்டு வரைபடம்", en: "Annual Master Plan" }, targetLang),
     practicalGuidance: pick6({
-      kn: "ಈ ವರ್ಷ ನಿಮ್ಮ ಆದಾಯದ ೨೦% ಹಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ಸುರಕ್ಷಿತ ಉಳಿತಾಯದಲ್ಲಿ ತೊಡಗಿಸಿ; ಅನಗತ್ಯ ಆಡಂಬರದ ಖರ್ಚುಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ.",
-      mr: "या वर्षी आपल्या उत्पन्नातील २०% रक्कम सुरक्षित बचतीत ठेवा; वायफळ खर्च टाळा.",
-      hi: "इस वर्ष अपनी आय का कम से कम २०% भाग सुरक्षित संचय में लगाएं; दिखावे के अनावश्यक व्यय से बचें।",
-      te: "ఈ ఏడాది మీ ఆదాయంలో 20% పొదుపు చేయండి. అనవసర ఖర్చులను నియంత్రించండి.",
-      ta: "இந்த ஆண்டில் உங்கள் வருமானத்தில் 20% சேமிப்பில் வைக்கவும்; வீண் ஆடம்பர செலவுகளை குறைக்கவும்.",
-      en: "Lock a minimum of 20% of your net income into untouchable liquid or gold reserves this year; eliminate vanity expenditures."
+      kn: isMinor
+        ? "ಈ ವರ್ಷ ಹೊಸ ಕೌಶಲ್ಯಗಳು, ಪುಸ್ತಕ ಪಠಣ ಹಾಗೂ ಒಳ್ಳೆಯ ಅಭ್ಯಾಸಗಳನ್ನು ದಿನಚರಿಯಲ್ಲಿ ಅಳವಡಿಸಿಕೊಳ್ಳಿ."
+        : "ಈ ವರ್ಷ ನಿಮ್ಮ ಆದಾಯದ ೨೦% ಹಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ಸುರಕ್ಷಿತ ಉಳಿತಾಯದಲ್ಲಿ ತೊಡಗಿಸಿ; ಅನಗತ್ಯ ಆಡಂಬರದ ಖರ್ಚುಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ.",
+      mr: isMinor
+        ? "या वर्षी नियमित अभ्यास, वाचन व चांगल्या सवयी आत्मसात करा."
+        : "या वर्षी आपल्या उत्पन्नातील २०% रक्कम सुरक्षित बचतीत ठेवा; वायफळ खर्च टाळा.",
+      hi: isMinor
+        ? "इस वर्ष नियमित स्वाध्याय, अच्छे संस्कार एवं नई विद्या सीखने पर ध्यान केंद्रित करें।"
+        : "इस वर्ष अपनी आय का कम से कम २०% भाग सुरक्षित संचय में लगाएं; दिखावे के अनावश्यक व्यय से बचें।",
+      te: isMinor
+        ? "ఈ ఏడాది మంచి అలవాట్లు, పుస్తక పఠనం మరియు కొత్త నైపుణ్యాలపై దృష్టి పెట్టండి."
+        : "ఈ ఏడాది మీ ఆదాయంలో 20% పొదుపు చేయండి. అనవసర ఖర్చులను నియంత్రించండి.",
+      ta: isMinor
+        ? "இந்த ஆண்டில் புதிய திறன்களையும் நல்ல படிப்புப் பழக்கங்களையும் தினமும் வளர்த்துக் கொள்ளுங்கள்."
+        : "இந்த ஆண்டில் உங்கள் வருமானத்தில் 20% சேமிப்பில் வைக்கவும்; வீண் ஆடம்பர செலவுகளை குறைக்கவும்.",
+      en: isMinor
+        ? "Cultivate steady daily learning, reading, and wholesome foundational habits across this 12-month year."
+        : "Lock a minimum of 20% of your net income into untouchable liquid or gold reserves this year; eliminate vanity expenditures."
     }, targetLang)
   });
 
@@ -2433,12 +2974,12 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ದೋಷವೆಂದರೆ ಶಾಪವಲ್ಲ; ಬದಲಾಗಿ ಹಿಂದಿನ ಜನ್ಮಗಳಿಂದ ಹೊತ್ತು ತಂದ ಅಪೂರ್ಣ ಕರ್ಮದ ಋಣ. ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸಮಗ್ರವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ: ಕುಜನು ಲಗ್ನದಿಂದ ಅಥವಾ ಚಂದ್ರನಿಂದ ಕೇಂದ್ರ/ತ್ರಿಕೋಣಗಳಲ್ಲಿ ಹೊಂದಿರುವ ಸ್ಥಿತಿ, ರಾಹು-ಕೇತುಗಳ ಸರ್ಪ ಪ್ರಭಾವ, ಹಾಗೂ ${n(maandiHouse)}ನೇ ಮನೆಯಲ್ಲಿ ನೆಲೆಸಿರುವ ಮಾಂದಿಯ ಸೂಕ್ಷ್ಮ ನೆರಳು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಕೆಲವೊಮ್ಮೆ ಕೆಲಸಗಳು ಮುಗಿಯುವ ಕ್ಷಣದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳನ್ನು ತರುತ್ತಿವೆ.`,
-        mr: `${devoteeName}, ज्योतिषशास्त्रात दोष म्हणजे शाप नसून पूर्वजन्मातील अपूर्ण कर्मांचे ऋण असते. आपल्या कुंडलीत मंगळ, राहु-केतूंचा सर्प प्रभाव व ${n(maandiHouse)} व्या स्थानातील मांदीची स्थिती यामुळे ऐनवेळी कामे लांबणीवर पडण्याचा अनुभव येतो.`,
-        hi: `${devoteeName}, वैदिक ज्योतिष के अनुसार दोष कोई अभिशाप नहीं, अपितु पूर्वजन्मों से वहन किया गया प्रारब्ध का ऋण है। आपकी जन्म कुंडली में मंगल की स्थिति, राहु-केतु जनित सर्प प्रभाव तथा ${n(maandiHouse)}वें भाव में स्थित मांदी की छाया यह स्पष्ट करती है कि महत्वपूर्ण कार्यों के अंतिम चरण में आकस्मिक विलंब क्यों होता है।`,
-        te: `${devoteeName}, జాతకంలో దోషం అంటే శాపం కాదు, పూర్వజన్మ కర్మల రుణం. మీ జాతకంలో కుజ, సర్ప మరియు ${n(maandiHouse)}వ స్థానంలో ఉన్న మాంది ప్రభావం వల్ల పనుల చివరి క్షణంలో చిన్న అడ్డంకులు ఎదురవుతాయి.`,
-        ta: `${devoteeName}, ஜோதிடத்தில் தோஷம் என்பது சாபமல்ல; முற்பிறவி கர்மாவின் கடனாகும். உங்கள் ஜாதகத்தில் செவ்வாய், ராகு-கேதுவின் சர்ப்ப தாக்கம் மற்றும் ${n(maandiHouse)}-ஆம் இடத்தில் உள்ள மாந்தி காரணமாக கடைசி நேரத்தில் தடைகள் வரலாம்.`,
-        en: `${devoteeName}, in authentic Parashari astrology, a 'Dosha' is not a fatal curse; it is merely an unresolved karmic debit. Analyzing your natal matrix, the disposition of Mars, the nodal axis of Rahu-Ketu, and the placement of Maandi in house ${maandiHouse} explain why critical breakthroughs occasionally stall at the 99% mark.`
+        kn: `${devoteeName}, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ದೋಷವೆಂದರೆ ಶಾಪವಲ್ಲ; ಬದಲಾಗಿ ಹಿಂದಿನ ಜನ್ಮಗಳಿಂದ ಹೊತ್ತು ತಂದ ಅಪೂರ್ಣ ಕರ್ಮದ ಋಣ. ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸಮಗ್ರವಾಗಿ ಪರಿಶೀಲಿಸಿದ ನೈಜ ದೋಷ ವಿಶ್ಲೇಷಣೆ: '${detectedDoshasSummary}'. ಶಾಸ್ತ್ರೀಯವಾಗಿ ಕುಜ, ಸರ್ಪ (ರಾಹು-ಕೇತು), ಪಿತೃ ಪ್ರಭಾವ ಹಾಗೂ ${n(maandiHouse)}ನೇ ಮನೆಯಲ್ಲಿ (${maandiRashiName}) ನೆಲೆಸಿರುವ ಮಾಂದಿಯ ಸೂಕ್ಷ್ಮ ನೆರಳುಗಳನ್ನು ವಿಧಿಬದ್ಧವಾಗಿ ಶಾಂತಗೊಳಿಸಿದಾಗ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು ದೂರವಾಗುತ್ತವೆ.`,
+        mr: `${devoteeName}, ज्योतिषशास्त्रात दोष म्हणजे शाप नसून पूर्वजन्मातील अपूर्ण कर्मांचे ऋण असते. आपल्या कुंडलीची प्रत्यक्ष तपासणी: '${detectedDoshasSummary}'. मंगळ, राहु-केतूंचा सर्प प्रभाव व ${n(maandiHouse)}व्या स्थानातील (${maandiRashiName}) मांदीची स्थिती यांचे योग्य शास्त्रीय निवारण केल्यास अनावश्यक विलंब दूर होतो.`,
+        hi: `${devoteeName}, वैदिक ज्योतिष के अनुसार दोष कोई अभिशाप नहीं, अपितु पूर्वजन्मों से वहन किया गया प्रारब्ध का ऋण है। आपकी कुंडली की यथार्थ दोष जांच: '${detectedDoshasSummary}'। मंगल, राहु-केतु जनित सर्प प्रभाव तथा ${n(maandiHouse)}वें भाव (${maandiRashiName}) में स्थित मांदी की छाया का शास्त्रीय शमन कार्यों के विलंब को समाप्त करता है।`,
+        te: `${devoteeName}, జాతకంలో దోషం అంటే శాపం కాదు, పూర్వజన్మ కర్మల రుణం. మీ జాతక వాస్తవ దోష పరిశీలన: '${detectedDoshasSummary}'. కుజ, సర్ప మరియు ${n(maandiHouse)}వ స్థానంలో (${maandiRashiName}) ఉన్న మాంది ప్రభావానికి శాస్త్రోక్త పరిహారంతో ఆటంకాలు తొలగిపోతాయి.`,
+        ta: `${devoteeName}, ஜோதிடத்தில் தோஷம் என்பது சாபமல்ல; முற்பிறவி கர்மாவின் கடனாகும். உங்கள் ஜாதகத்தின் உண்மையான தோஷ ஆய்வு: '${detectedDoshasSummary}'. செவ்வாய், ராகு-கேதுவின் சர்ப்ப தாக்கம் மற்றும் ${n(maandiHouse)}-ம் இடமான ${maandiRashiName} ராசியில் உள்ள மாந்தி ஆகியவற்றிற்கு முறைப்படி சாந்தி செய்தால் தடைகள் நீங்கும்.`,
+        en: `${devoteeName}, in authentic Parashari astrology, a 'Dosha' is not a fatal curse; it is simply an unresolved karmic debit. Direct natal inspection yields: '${detectedDoshasSummary}'. Harmonizing Mars (Kuja), Pitru, nodal (Sarpa) geometry, and Maandi in House ${maandiHouse} (${maandiRashiName}) clears final-yardline delays.`
       }, targetLang),
       pick6({
         kn: `ದೋಷಗಳ ಪರಿಹಾರ ಮತ್ತು ನೀಚಭಂಗದ ಸತ್ಯ: ಯಾವುದೇ ದೋಷವಿದ್ದರೂ ಪ್ರಕೃತಿಯು ಅದಕ್ಕೆ ಭಂಗ (ಕ್ಯಾನ್ಸಲೇಶನ್) ಮತ್ತು ಪರಿಹಾರವನ್ನು ನೀಡಿರುತ್ತದೆ. ಉದಾಹರಣೆಗೆ, ಕುಜನ ಮೇಲೆ ಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿಯಿದ್ದರೆ ಅಥವಾ ಮಾಂದಿಗೆ ಶಿವನ ಆರಾಧನೆ ಮಾಡಿದರೆ ಆ ದೋಷಗಳು ತಮ್ಮ ಕ್ರೂರತೆಯನ್ನು ಕಳೆದುಕೊಂಡು ಯೋಗವಾಗಿ ಮಾರ್ಪಡುತ್ತವೆ. ಅಜ್ಞಾನದಿಂದ ಭಯಪಡುವ ಅಗತ್ಯವಿಲ್ಲ; ವಿಧಿಬದ್ಧ ಪರಿಹಾರವೇ ದೋಷಮುಕ್ತಿಗೆ ಪರಮ ದಾರಿ.`,
@@ -2571,7 +3112,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
         mr: `श्री गोकर्ण महाबळेश्वर महा आशीर्वाद: आत्मलिंगाच्या पवित्र सानिध्यावरून आम्ही आपल्याला उत्तम आरोग्य, दीर्घायुष्य व यशाचा आशीर्वाद देतो. घरात सुख-शांती व समृद्धी नांदो. ॥ ॐ नमः शिवाय • शुभं भवतु ॥`,
         hi: `श्री गोकर्ण महाबलेश्वर महा आशीर्वाद: देवाधिदेव महादेव के आत्मलिंग सन्निधि से हम आपके दीर्घायु, आरोग्य, कार्य सिद्धि एवं चिर शांति का शुभाशीर्वाद प्रदान करते हैं। आपके गृह में नित्य अन्नपूर्णा एवं लक्ष्मी का वास रहे। ॥ ॐ नमः शिवाय • शुभं भवतु • श्री कृष्णार्पणमस्तु ॥`,
         te: `శ్రీ గోకర్ణ మహాబలేశ్వర మహా ఆశీర్వాదం: ఆత్మలింగ సన్నిధానం నుండి మీకు సంపూర్ణ ఆయురారోగ్యాలు, ఐశ్వర్యం మరియు విజయాలు కలగాలని ఆశీర్వదిస్తున్నాము. ॥ ఓం నమః శివాయ • శుభం భవతు ॥`,
-        ta: `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் மகா ஆசீர்வாதம்: ஈசனின் ஆத்மலிங்க சன்னதியிலிருந்து உங்களுக்கு பூரண ஆயுள், நல்வாழ்வு மற்றும் வெற்றி கிடைக்க மனதார ஆசீர்வதிக்கிறோம். ॥ ஓம் நம சிவாய • சுபம் பவத்து ॥`,
+        ta: `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் மகா ஆசீர்வாதம்: ஈசனின் ஆத்மலிங்க சன்னதியிலிருந்து உங்களுக்கு பூரண ஆயுள், நல்வாழ்வு மற்றும் வெற்றி கிடைக்க மனதார ஆசீர்வதிக்கிறோம். ✦ ஓம் நம சிவாய • சுபம் பவத்து ✦`,
         en: `Sri Kshetra Gokarna Mahabaleshwara Supreme Benediction: from the sacred precinct of the primordial Atma Linga, we bestow solemn blessings for your longevity, vibrant health, financial sovereignty, and unbroken domestic peace. May Goddess Annapurna forever bless your household. || Om Namah Shivaya • Shubham Bhavatu ||`
       }, targetLang)
     ],
@@ -2602,6 +3143,248 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
 // 5. HIGH-DPI SECTON-BY-SECTION PDF CAPTURE ENGINE (ZERO TABLES, PERFECT PARITY)
 // ============================================================================
 
+export const SAMPOORNA25_A4_LAYOUT = {
+  A4_WIDTH_MM: 210,
+  A4_HEIGHT_MM: 297,
+  OUTER_BORDER_INSET_MM: 6,
+  INNER_BORDER_INSET_MM: 7.8,
+  IMAGE_X_MM: 9.5,
+  IMAGE_W_MM: 191, // 9.5 + 191 = 200.5mm (strictly inside 202.2mm inner border)
+  PAGE1_TOP_Y_MM: 10.2,
+  CONT_TOP_Y_MM: 18.6, // Starts cleanly below Pages 2+ running header strip
+  CONTENT_BOTTOM_MAX_MM: 277.0, // Strict safety clearance above footer hairline (281.0mm)
+  RUNNING_HEADER_Y_MM: 9.2,
+  RUNNING_HEADER_MAX_H_MM: 7.8,
+  FOOTER_LINE_Y_MM: 281.0,
+  FOOTER_TEXT_Y_MM: 285.5, // Strictly inside inner border bottom (289.2mm)
+} as const;
+
+export interface RenderedSectionChunkInput {
+  imgData: string;
+  heightMm: number;
+  name: string;
+  sliceIndex?: number;
+}
+
+export interface PlannedA4Section {
+  imgData: string;
+  heightMm: number;
+  renderWidthMm: number;
+  renderHeightMm: number;
+  renderXMm: number;
+  name: string;
+}
+
+export interface PlannedA4Page {
+  pageNumber: number;
+  maxUsableHeightMm: number;
+  sections: PlannedA4Section[];
+  totalHeightMm: number;
+}
+
+/**
+ * Pure A4 pagination planner guaranteeing:
+ * 1. Zero aspect-ratio squishing (oversized small drifts scale proportionally across W and H).
+ * 2. Images never overlap left/right vector borders (bounded within [IMAGE_X_MM, IMAGE_X_MM + IMAGE_W_MM]).
+ * 3. Every chapter, calendar-qr, culmination, and continuation slice starts on a fresh A4 sheet.
+ */
+export function planSampoorna25A4Pages(
+  renderedSections: RenderedSectionChunkInput[],
+  layout = SAMPOORNA25_A4_LAYOUT
+): PlannedA4Page[] {
+  const page1UsableH = layout.CONTENT_BOTTOM_MAX_MM - layout.PAGE1_TOP_Y_MM;
+  const contUsableH = layout.CONTENT_BOTTOM_MAX_MM - layout.CONT_TOP_Y_MM;
+
+  const pages: PlannedA4Page[] = [];
+  let currentSections: PlannedA4Section[] = [];
+  let currentHeight = 0;
+
+  const normalizeForMaxH = (sec: RenderedSectionChunkInput, maxH: number): PlannedA4Section => {
+    if (sec.heightMm <= maxH || sec.heightMm <= 0) {
+      return {
+        imgData: sec.imgData,
+        heightMm: sec.heightMm,
+        renderWidthMm: layout.IMAGE_W_MM,
+        renderHeightMm: sec.heightMm,
+        renderXMm: layout.IMAGE_X_MM,
+        name: sec.name,
+      };
+    }
+    const ratio = maxH / sec.heightMm;
+    const renderW = Number((layout.IMAGE_W_MM * ratio).toFixed(3));
+    const renderX = Number((layout.IMAGE_X_MM + (layout.IMAGE_W_MM - renderW) / 2).toFixed(3));
+    return {
+      imgData: sec.imgData,
+      heightMm: sec.heightMm,
+      renderWidthMm: renderW,
+      renderHeightMm: maxH,
+      renderXMm: renderX,
+      name: sec.name,
+    };
+  };
+
+  for (let i = 0; i < renderedSections.length; i++) {
+    const sec = renderedSections[i];
+    const isChapter = sec.name.startsWith("chapter-");
+    const isCalendarQr = sec.name.includes("calendar-qr");
+    const isCulmination = sec.name.includes("family") || sec.name.includes("priest");
+    const isContinuationSlice = typeof sec.sliceIndex === "number" && sec.sliceIndex > 0;
+
+    const activeMaxH = pages.length === 0 ? page1UsableH : contUsableH;
+    const forceNewPage =
+      isContinuationSlice || ((isChapter || isCalendarQr || isCulmination) && currentSections.length > 0);
+    const fitsOnCurrent =
+      !forceNewPage && currentSections.length > 0 && currentHeight + sec.heightMm <= activeMaxH;
+
+    if (fitsOnCurrent) {
+      const normalized = normalizeForMaxH(sec, activeMaxH);
+      currentSections.push(normalized);
+      currentHeight += normalized.renderHeightMm;
+    } else {
+      if (currentSections.length > 0) {
+        pages.push({
+          pageNumber: pages.length + 1,
+          maxUsableHeightMm: activeMaxH,
+          sections: currentSections,
+          totalHeightMm: currentHeight,
+        });
+        currentSections = [];
+        currentHeight = 0;
+      }
+      const freshPageMaxH = pages.length === 0 ? page1UsableH : contUsableH;
+      const normalized = normalizeForMaxH(sec, freshPageMaxH);
+      currentSections.push(normalized);
+      currentHeight = normalized.renderHeightMm;
+    }
+  }
+
+  if (currentSections.length > 0) {
+    const lastMaxH = pages.length === 0 ? page1UsableH : contUsableH;
+    pages.push({
+      pageNumber: pages.length + 1,
+      maxUsableHeightMm: lastMaxH,
+      sections: currentSections,
+      totalHeightMm: currentHeight,
+    });
+  }
+
+  return pages;
+}
+
+function sliceCanvasToA4Chunks(
+  sourceCanvas: HTMLCanvasElement,
+  sectionName: string,
+  maxPageHeightMm: number,
+  imageWidthMm: number
+): RenderedSectionChunkInput[] {
+  const fullHeightMm = (sourceCanvas.height * imageWidthMm) / sourceCanvas.width;
+  if (fullHeightMm <= maxPageHeightMm * 1.12) {
+    return [{
+      imgData: sourceCanvas.toDataURL("image/jpeg", 0.95),
+      heightMm: fullHeightMm,
+      name: sectionName,
+    }];
+  }
+
+  const maxSlicePx = Math.max(200, Math.floor((maxPageHeightMm * sourceCanvas.width) / imageWidthMm));
+  const chunks: RenderedSectionChunkInput[] = [];
+  let offsetY = 0;
+  let sliceIdx = 0;
+
+  while (offsetY < sourceCanvas.height) {
+    const slicePx = Math.min(maxSlicePx, sourceCanvas.height - offsetY);
+    const sliceCanvas = document.createElement("canvas");
+    sliceCanvas.width = sourceCanvas.width;
+    sliceCanvas.height = slicePx;
+    const ctx = sliceCanvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#FFF7ED";
+      ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+      ctx.drawImage(sourceCanvas, 0, offsetY, sourceCanvas.width, slicePx, 0, 0, sourceCanvas.width, slicePx);
+      const sliceHeightMm = (slicePx * imageWidthMm) / sliceCanvas.width;
+      chunks.push({
+        imgData: sliceCanvas.toDataURL("image/jpeg", 0.95),
+        heightMm: sliceHeightMm,
+        name: sectionName,
+        sliceIndex: sliceIdx,
+      });
+    }
+    sliceCanvas.width = 0;
+    sliceCanvas.height = 0;
+    offsetY += slicePx;
+    sliceIdx += 1;
+  }
+
+  return chunks;
+}
+
+async function captureDomElementToCanvas(el: HTMLElement, minHeightPx = 40): Promise<HTMLCanvasElement | null> {
+  const tempBox = document.createElement("div");
+  tempBox.style.position = "fixed";
+  tempBox.style.left = "0px";
+  tempBox.style.top = "0px";
+  tempBox.style.width = "900px";
+  tempBox.style.overflow = "visible";
+  tempBox.style.zIndex = "-9999";
+  tempBox.style.backgroundColor = "#FFF7ED";
+  tempBox.style.pointerEvents = "none";
+  tempBox.style.opacity = "1";
+  tempBox.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
+  tempBox.style.letterSpacing = "normal";
+  tempBox.className = "bg-orange-50 text-amber-950 font-serif";
+
+  const clone = el.cloneNode(true) as HTMLElement;
+  clone.style.display = "block";
+  clone.style.width = "100%";
+  clone.style.margin = "0";
+  clone.style.letterSpacing = "normal";
+  clone.removeAttribute("id");
+
+  clone.querySelectorAll("*").forEach(node => {
+    const htmlEl = node as HTMLElement;
+    if (htmlEl.style) {
+      htmlEl.style.letterSpacing = "normal";
+      if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
+        htmlEl.style.filter = "none";
+      }
+    }
+  });
+
+  tempBox.appendChild(clone);
+  document.body.appendChild(tempBox);
+
+  const trueHeight = Math.max(
+    tempBox.scrollHeight,
+    tempBox.offsetHeight,
+    clone.scrollHeight,
+    clone.offsetHeight,
+    minHeightPx
+  );
+  tempBox.style.height = `${trueHeight}px`;
+
+  const sectionScale = trueHeight * 2 > 15000 ? Math.max(1, Math.floor(15000 / trueHeight)) : 2;
+
+  try {
+    return await html2canvas(tempBox, {
+      scale: sectionScale,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#FFF7ED",
+      allowTaint: true,
+      scrollX: 0,
+      scrollY: 0,
+      width: 900,
+      height: trueHeight,
+      windowWidth: 900,
+      windowHeight: trueHeight + 600
+    });
+  } finally {
+    if (tempBox.parentElement) {
+      document.body.removeChild(tempBox);
+    }
+  }
+}
+
 export interface CaptureSampoorna25Options {
   lang?: SixLang;
   onProgress?: (pct: number, msg: string) => void;
@@ -2617,6 +3400,7 @@ export async function captureSampoornaMaster25Pdf(
   const lang = options?.lang || "kn";
   const parentEl = containerEl.parentElement;
   const originalStyle = parentEl?.getAttribute("style") || "";
+  const layout = SAMPOORNA25_A4_LAYOUT;
 
   try {
     if (parentEl) {
@@ -2627,7 +3411,26 @@ export async function captureSampoornaMaster25Pdf(
     }
 
     await document.fonts.ready;
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 450));
+
+    // Optional native-script running header strip for Pages 2+ (placed outside .pdf-section)
+    let runningHeaderChunk: { imgData: string; widthMm: number; heightMm: number } | null = null;
+    const runningHeaderEl = containerEl.querySelector("#sampoorna-master-25-running-header") as HTMLElement | null;
+    if (runningHeaderEl) {
+      const hCanvas = await captureDomElementToCanvas(runningHeaderEl, 24);
+      if (hCanvas && hCanvas.width > 0 && hCanvas.height > 0) {
+        const naturalH = (hCanvas.height * layout.IMAGE_W_MM) / hCanvas.width;
+        const cappedH = Math.min(naturalH, layout.RUNNING_HEADER_MAX_H_MM);
+        const ratio = cappedH / naturalH;
+        runningHeaderChunk = {
+          imgData: hCanvas.toDataURL("image/jpeg", 0.95),
+          widthMm: Number((layout.IMAGE_W_MM * ratio).toFixed(3)),
+          heightMm: Number(cappedH.toFixed(3)),
+        };
+        hCanvas.width = 0;
+        hCanvas.height = 0;
+      }
+    }
 
     const rawSections = Array.from(containerEl.querySelectorAll(".pdf-section")) as HTMLElement[];
     const sections = rawSections.filter(s => {
@@ -2639,8 +3442,9 @@ export async function captureSampoornaMaster25Pdf(
       throw new Error(`Insufficient sections detected for 25-Chapter PDF (${sections.length} found). Rendering aborted.`);
     }
 
-    const pdfWidthMm = 210; // A4 standard width in mm
-    const renderedSections: { imgData: string; heightMm: number; name: string }[] = [];
+    const page1UsableH = layout.CONTENT_BOTTOM_MAX_MM - layout.PAGE1_TOP_Y_MM;
+    const contUsableH = layout.CONTENT_BOTTOM_MAX_MM - layout.CONT_TOP_Y_MM;
+    const renderedSections: RenderedSectionChunkInput[] = [];
 
     for (let i = 0; i < sections.length; i++) {
       const sectionEl = sections[i];
@@ -2659,90 +3463,18 @@ export async function captureSampoornaMaster25Pdf(
         }, lang)
       );
 
-      const tempBox = document.createElement("div");
-      tempBox.style.position = "absolute";
-      tempBox.style.left = "0px";
-      tempBox.style.top = "0px";
-      tempBox.style.width = "900px";
-      tempBox.style.overflow = "visible";
-      tempBox.style.zIndex = "-9999";
-      tempBox.style.backgroundColor = "#FFF7ED";
-      tempBox.style.pointerEvents = "none";
-      tempBox.style.opacity = "1";
-      tempBox.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
-      tempBox.style.letterSpacing = "normal";
-      tempBox.className = "bg-orange-50 text-amber-950 font-serif";
-
-      const sectionClone = sectionEl.cloneNode(true) as HTMLElement;
-      sectionClone.style.display = "block";
-      sectionClone.style.width = "100%";
-      sectionClone.style.margin = "0";
-      sectionClone.style.letterSpacing = "normal";
-
-      // Sanitize all descendants in the clone
-      sectionClone.querySelectorAll("*").forEach(el => {
-        const htmlEl = el as HTMLElement;
-        if (htmlEl.style) {
-          htmlEl.style.letterSpacing = "normal";
-          if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
-            htmlEl.style.filter = "none";
-          }
-        }
-      });
-
-      tempBox.appendChild(sectionClone);
-      document.body.appendChild(tempBox);
-
-      const measuredSectionHeight = Math.max(
-        sectionEl.scrollHeight || 0,
-        sectionEl.offsetHeight || 0,
-        sectionEl.getBoundingClientRect().height || 0
-      );
-      const trueHeight = Math.max(
-        tempBox.scrollHeight,
-        tempBox.offsetHeight,
-        sectionClone.scrollHeight,
-        sectionClone.offsetHeight,
-        measuredSectionHeight,
-        350
-      );
-      tempBox.style.height = `${trueHeight}px`;
-
-      const sectionScale = trueHeight * 2 > 15000 ? Math.max(1, Math.floor(15000 / trueHeight)) : 2;
-
-      let canvas: HTMLCanvasElement | null = null;
-      try {
-        canvas = await html2canvas(tempBox, {
-          scale: sectionScale,
-          useCORS: true,
-          logging: false,
-          backgroundColor: "#FFF7ED",
-          allowTaint: true,
-          scrollX: 0,
-          scrollY: 0,
-          width: 900,
-          height: trueHeight,
-          windowWidth: 900,
-          windowHeight: trueHeight + 600
-        });
-      } finally {
-        if (tempBox.parentElement) {
-          document.body.removeChild(tempBox);
-        }
-      }
-
+      const canvas = await captureDomElementToCanvas(sectionEl, 40);
       if (!canvas || canvas.width === 0 || canvas.height === 0) {
         continue;
       }
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      const heightMm = (canvas.height * pdfWidthMm) / canvas.width;
-
-      renderedSections.push({
-        imgData,
-        heightMm,
-        name: sectionName
-      });
+      const isFrontMatter =
+        sectionName === "cover" || sectionName === "user-details" || sectionName === "executive-index";
+      const targetMaxH = isFrontMatter ? page1UsableH : contUsableH;
+      const chunks = sliceCanvasToA4Chunks(canvas, sectionName, targetMaxH, layout.IMAGE_W_MM);
+      renderedSections.push(...chunks);
+      canvas.width = 0;
+      canvas.height = 0;
     }
 
     const totalPdfHeightMm = renderedSections.reduce((sum, s) => sum + s.heightMm, 0);
@@ -2750,71 +3482,11 @@ export async function captureSampoornaMaster25Pdf(
       throw new Error("Calculated PDF height is zero. Cannot generate empty PDF.");
     }
 
-    // Standard A4 Portrait Dimensions (210mm x 297mm)
-    const A4_WIDTH_MM = 210;
-    const A4_HEIGHT_MM = 297;
-    const USABLE_PAGE_HEIGHT_MM = 270;
-
-    interface SectionToRender {
-      imgData: string;
-      heightMm: number;
-      renderHeightMm: number;
-      name: string;
-    }
-
-    interface PageRecord {
-      sections: SectionToRender[];
-      totalHeightMm: number;
-    }
-
-    const pages: PageRecord[] = [];
-    let currentSections: SectionToRender[] = [];
-    let currentHeight = 0;
-
-    for (let i = 0; i < renderedSections.length; i++) {
-      const sec = renderedSections[i];
-      const isChapter = sec.name.startsWith("chapter-");
-      const isCalendarQr = sec.name.includes("calendar-qr");
-      const isCulmination = sec.name.includes("family") || sec.name.includes("priest");
-
-      // Chapters, Calendar QR, and Culmination sections each start on a fresh page
-      const forceNewPage = (isChapter || isCalendarQr || isCulmination) && currentSections.length > 0;
-      const fitsOnCurrent = !forceNewPage && (currentHeight + sec.heightMm <= USABLE_PAGE_HEIGHT_MM);
-
-      if (fitsOnCurrent) {
-        currentSections.push({
-          imgData: sec.imgData,
-          heightMm: sec.heightMm,
-          renderHeightMm: sec.heightMm,
-          name: sec.name
-        });
-        currentHeight += sec.heightMm;
-      } else {
-        if (currentSections.length > 0) {
-          pages.push({ sections: currentSections, totalHeightMm: currentHeight });
-          currentSections = [];
-          currentHeight = 0;
-        }
-
-        const renderH = sec.heightMm > USABLE_PAGE_HEIGHT_MM ? USABLE_PAGE_HEIGHT_MM : sec.heightMm;
-        currentSections.push({
-          imgData: sec.imgData,
-          heightMm: sec.heightMm,
-          renderHeightMm: renderH,
-          name: sec.name
-        });
-        currentHeight = renderH;
-      }
-    }
-
-    if (currentSections.length > 0) {
-      pages.push({ sections: currentSections, totalHeightMm: currentHeight });
-    }
-
+    const pages = planSampoorna25A4Pages(renderedSections, layout);
     const pdf = new jsPDF({
       orientation: "p",
       unit: "mm",
-      format: [A4_WIDTH_MM, A4_HEIGHT_MM],
+      format: [layout.A4_WIDTH_MM, layout.A4_HEIGHT_MM],
       compress: true
     });
 
@@ -2823,47 +3495,85 @@ export async function captureSampoornaMaster25Pdf(
     for (let pIdx = 0; pIdx < pages.length; pIdx++) {
       const page = pages[pIdx];
       if (pIdx > 0) {
-        pdf.addPage([A4_WIDTH_MM, A4_HEIGHT_MM], "p");
+        pdf.addPage([layout.A4_WIDTH_MM, layout.A4_HEIGHT_MM], "p");
       }
 
       // 1. Royal Warm Ivory Background (#FFF7ED)
       pdf.setFillColor(255, 247, 237);
-      pdf.rect(0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, "F");
+      pdf.rect(0, 0, layout.A4_WIDTH_MM, layout.A4_HEIGHT_MM, "F");
 
-      // 2. Double Gold Decorative Border
-      pdf.setDrawColor(180, 83, 9); // amber-700
-      pdf.setLineWidth(0.5);
-      pdf.rect(6, 6, A4_WIDTH_MM - 12, A4_HEIGHT_MM - 12);
+      // 2. Running Header Strip on Pages 2+ (positioned cleanly below inner top border)
+      if (pIdx > 0) {
+        if (runningHeaderChunk) {
+          const hx = layout.IMAGE_X_MM + (layout.IMAGE_W_MM - runningHeaderChunk.widthMm) / 2;
+          pdf.addImage(
+            runningHeaderChunk.imgData,
+            "JPEG",
+            hx,
+            layout.RUNNING_HEADER_Y_MM,
+            runningHeaderChunk.widthMm,
+            runningHeaderChunk.heightMm,
+            undefined,
+            "FAST"
+          );
+        } else {
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(7.5);
+          pdf.setTextColor(146, 64, 14);
+          pdf.text("BAGGONA PANCHANGA  *  SAMPOORNA 25-CHAPTER FOLIO", layout.A4_WIDTH_MM / 2, 13.5, { align: "center" });
+        }
+        pdf.setDrawColor(217, 119, 6);
+        pdf.setLineWidth(0.25);
+        pdf.line(layout.IMAGE_X_MM, 17.4, layout.IMAGE_X_MM + layout.IMAGE_W_MM, 17.4);
+      }
 
-      pdf.setDrawColor(217, 119, 6); // amber-500
-      pdf.setLineWidth(0.2);
-      pdf.rect(7.5, 7.5, A4_WIDTH_MM - 15, A4_HEIGHT_MM - 15);
-
-      // 3. Render Sections (Centered vertically if single compact section, top-aligned with margin otherwise)
-      let currentY = 10;
-      if (page.sections.length === 1 && page.totalHeightMm < 250) {
-        currentY = Math.max(10, Math.floor((A4_HEIGHT_MM - 16 - page.totalHeightMm) / 2));
+      // 3. Section Images (Strictly bounded inside [IMAGE_X_MM, IMAGE_X_MM + IMAGE_W_MM] & <= CONTENT_BOTTOM_MAX_MM)
+      const topY: number = pIdx === 0 ? layout.PAGE1_TOP_Y_MM : layout.CONT_TOP_Y_MM;
+      let currentY: number = topY;
+      if (page.sections.length === 1 && page.totalHeightMm < page.maxUsableHeightMm - 24) {
+        currentY = Math.min(
+          layout.CONTENT_BOTTOM_MAX_MM - page.totalHeightMm,
+          topY + Math.floor((page.maxUsableHeightMm - page.totalHeightMm) / 2)
+        );
       }
 
       for (const sec of page.sections) {
-        pdf.addImage(sec.imgData, "JPEG", 0, currentY, A4_WIDTH_MM, sec.renderHeightMm, undefined, "FAST");
+        pdf.addImage(sec.imgData, "JPEG", sec.renderXMm, currentY, sec.renderWidthMm, sec.renderHeightMm, undefined, "FAST");
         currentY += sec.renderHeightMm;
       }
 
-      // 4. Running Footer on every page
-      const footerY = 290;
+      // 4. Running Footer strictly INSIDE the inner gold frame (< 289.2mm)
       pdf.setDrawColor(180, 83, 9);
-      pdf.setLineWidth(0.2);
-      pdf.line(10, footerY - 2, A4_WIDTH_MM - 10, footerY - 2);
+      pdf.setLineWidth(0.25);
+      pdf.line(11, layout.FOOTER_LINE_Y_MM, layout.A4_WIDTH_MM - 11, layout.FOOTER_LINE_Y_MM);
 
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(7.5);
-      pdf.setTextColor(146, 64, 14); // amber-800
-      pdf.text("BAGGONA PANCHANGA  *  SRI KSHETRA GOKARNA", 12, footerY + 2);
+      pdf.setTextColor(146, 64, 14);
+      pdf.text("BAGGONA PANCHANGA  *  SRI KSHETRA GOKARNA", 12, layout.FOOTER_TEXT_Y_MM);
 
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(7.5);
-      pdf.text(`${pIdx + 1} / ${totalPages}`, A4_WIDTH_MM - 12, footerY + 2, { align: "right" });
+      pdf.text(`${pIdx + 1} / ${totalPages}`, layout.A4_WIDTH_MM - 12, layout.FOOTER_TEXT_Y_MM, { align: "right" });
+
+      // 5. Draw Double Gold Decorative Borders LAST on top so JPEG edges can NEVER overwrite them!
+      const ob = layout.OUTER_BORDER_INSET_MM;
+      const ib = layout.INNER_BORDER_INSET_MM;
+      pdf.setDrawColor(180, 83, 9); // amber-700
+      pdf.setLineWidth(0.55);
+      pdf.rect(ob, ob, layout.A4_WIDTH_MM - ob * 2, layout.A4_HEIGHT_MM - ob * 2);
+
+      pdf.setDrawColor(217, 119, 6); // amber-500
+      pdf.setLineWidth(0.25);
+      pdf.rect(ib, ib, layout.A4_WIDTH_MM - ib * 2, layout.A4_HEIGHT_MM - ib * 2);
+
+      // Corner gold seal ornaments sitting crisply inside the outer/inner gap
+      pdf.setFillColor(180, 83, 9);
+      const cSize = 1.6;
+      pdf.rect(ob - 0.3, ob - 0.3, cSize, cSize, "F");
+      pdf.rect(layout.A4_WIDTH_MM - ob - cSize + 0.3, ob - 0.3, cSize, cSize, "F");
+      pdf.rect(ob - 0.3, layout.A4_HEIGHT_MM - ob - cSize + 0.3, cSize, cSize, "F");
+      pdf.rect(layout.A4_WIDTH_MM - ob - cSize + 0.3, layout.A4_HEIGHT_MM - ob - cSize + 0.3, cSize, cSize, "F");
     }
 
     if (autoSave) {

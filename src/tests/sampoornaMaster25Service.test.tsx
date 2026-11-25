@@ -381,4 +381,113 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(calHtml).toContain("+91 94821 09844");
     expect(calHtml).toContain("₹೩೦೦");
   });
+
+  it("10. Enforces strict A4 border clearance, proportional scaling (zero vertical squish), and inside-border running footers", async () => {
+    const { SAMPOORNA25_A4_LAYOUT, planSampoorna25A4Pages } = await import("../services/sampoornaMaster25Service");
+
+    // 1. Border & Footer Geometry Guards
+    expect(SAMPOORNA25_A4_LAYOUT.IMAGE_X_MM).toBeGreaterThan(SAMPOORNA25_A4_LAYOUT.INNER_BORDER_INSET_MM);
+    expect(SAMPOORNA25_A4_LAYOUT.IMAGE_X_MM + SAMPOORNA25_A4_LAYOUT.IMAGE_W_MM).toBeLessThan(
+      SAMPOORNA25_A4_LAYOUT.A4_WIDTH_MM - SAMPOORNA25_A4_LAYOUT.INNER_BORDER_INSET_MM
+    );
+    expect(SAMPOORNA25_A4_LAYOUT.CONTENT_BOTTOM_MAX_MM).toBeLessThan(SAMPOORNA25_A4_LAYOUT.FOOTER_LINE_Y_MM);
+    expect(SAMPOORNA25_A4_LAYOUT.FOOTER_TEXT_Y_MM).toBeLessThan(
+      SAMPOORNA25_A4_LAYOUT.A4_HEIGHT_MM - SAMPOORNA25_A4_LAYOUT.INNER_BORDER_INSET_MM
+    );
+
+    // 2. Pagination & Aspect Ratio Preservation
+    const pages = planSampoorna25A4Pages([
+      { name: "cover", heightMm: 35, imgData: "img-cover" },
+      { name: "user-details", heightMm: 78, imgData: "img-details" },
+      { name: "executive-index", heightMm: 58, imgData: "img-index" },
+      { name: "chapter-1", heightMm: 185, imgData: "img-ch1" },
+      { name: "chapter-2", heightMm: 270, imgData: "img-ch2-tall" }, // Slightly > contUsableH (258.4mm)
+      { name: "chapter-3", heightMm: 150, imgData: "img-ch3-a", sliceIndex: 0 },
+      { name: "chapter-3", heightMm: 110, imgData: "img-ch3-b", sliceIndex: 1 },
+    ]);
+
+    expect(pages.length).toBe(5);
+    // Page 1 packs cover + user-details + executive-index together cleanly
+    expect(pages[0].sections.map((s) => s.name)).toEqual(["cover", "user-details", "executive-index"]);
+    expect(pages[0].totalHeightMm).toBeLessThanOrEqual(pages[0].maxUsableHeightMm);
+
+    // Oversized slightly tall chapter scales BOTH width & height proportionally (NO vertical squishing!)
+    const ch2Sec = pages[2].sections[0];
+    expect(ch2Sec.renderHeightMm).toBeCloseTo(pages[2].maxUsableHeightMm, 2);
+    const originalRatio = SAMPOORNA25_A4_LAYOUT.IMAGE_W_MM / 270;
+    const renderedRatio = ch2Sec.renderWidthMm / ch2Sec.renderHeightMm;
+    expect(renderedRatio).toBeCloseTo(originalRatio, 2);
+    expect(ch2Sec.renderXMm).toBeGreaterThan(SAMPOORNA25_A4_LAYOUT.IMAGE_X_MM);
+
+    // Continuation slice starts cleanly on a new page
+    expect(pages[4].sections[0].name).toBe("chapter-3");
+  });
+
+  it("11. Renders complete 6-Anga Birth Panchanga, Executive Index, Running Header & zero mobile viewport leakage in DOM", async () => {
+    const payload = await prepareSampoornaMaster25Data(
+      { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+      "kn"
+    );
+
+    expect(payload.pakshaName.length).toBeGreaterThan(0);
+    expect(payload.tithiName.length).toBeGreaterThan(0);
+    expect(payload.weekdayName.length).toBeGreaterThan(0);
+    expect(payload.yogaName.length).toBeGreaterThan(0);
+    expect(payload.karanaName.length).toBeGreaterThan(0);
+    expect(payload.sunriseTime).toMatch(/:/);
+    expect(payload.sunsetTime).toMatch(/:/);
+    expect(payload.janmaHora.length).toBeGreaterThan(0);
+    expect(payload.sectionIndexTitles.length).toBe(5);
+
+    const { container } = render(<SampoornaMaster25PdfTemplate data={payload} />);
+    const detailsText = container.querySelector('[data-section="user-details"]')?.textContent || "";
+    expect(detailsText).toContain(payload.tithiName);
+    expect(detailsText).toContain(payload.yogaName);
+    expect(detailsText).toContain(payload.karanaName);
+    expect(detailsText).toContain(payload.janmaHora);
+    expect(detailsText).toContain("Gokarna, Karnataka");
+
+    expect(container.querySelector('[data-section="executive-index"]')).not.toBeNull();
+    expect(container.querySelector("#sampoorna-master-25-running-header")).not.toBeNull();
+    expect(container.querySelector("table")).toBeNull();
+
+    // Ensure ZERO responsive classes or transform-skew glitches exist in rendered markup
+    const rawHtml = container.innerHTML;
+    expect(rawHtml).not.toMatch(/\b(sm|md|lg|xl):/);
+    expect(rawHtml).not.toContain("-skew-x-12");
+    expect(rawHtml).not.toContain("tracking-widest");
+  });
+
+  it("12. Enforces child-safe Chapter 13/14 guidance and zero Devanagari/Cyrillic script leakage in Tamil reports", async () => {
+    const sixMonthsAgo = new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10);
+    const infantPayload = await prepareSampoornaMaster25Data(
+      {
+        result: mockAdultKundli,
+        input: { ...mockAdultDevotee, name: "Baby Aarav", birthDate: sixMonthsAgo },
+      },
+      "kn"
+    );
+
+    const ch13Kn = infantPayload.chapters.find((c) => c.chapterNumber === 13)!;
+    const ch13KnText = `${ch13Kn.title} ${ch13Kn.question} ${ch13Kn.paragraphs.join(" ")} ${ch13Kn.practicalGuidance || ""}`;
+    expect(ch13KnText).not.toContain("ಷೇರು ಮಾರುಕಟ್ಟೆ");
+    expect(ch13KnText).not.toContain("ಅನಗತ್ಯ ಸಾಲ");
+
+    const ch14Kn = infantPayload.chapters.find((c) => c.chapterNumber === 14)!;
+    expect(ch14Kn.practicalGuidance || "").not.toContain("ಸಂಗಾತಿ");
+
+    const tamilPayload = await prepareSampoornaMaster25Data(
+      { result: mockAdultKundli, input: mockAdultDevotee },
+      "ta"
+    );
+    const { container } = render(<SampoornaMaster25PdfTemplate data={tamilPayload} />);
+    const fullTamilText = [
+      container.textContent || "",
+      ...tamilPayload.chapters.flatMap((c) => [c.title, c.question, ...c.paragraphs, c.practicalGuidance || ""]),
+    ].join(" ");
+
+    // Zero Cyrillic (caught old bug "благоприятமான") and zero Devanagari in Tamil (caught "தன பிரदाता")
+    expect(fullTamilText).not.toMatch(/[\u0400-\u04FF]/);
+    expect(fullTamilText).not.toMatch(/[\u0900-\u097F]/);
+  });
 });

@@ -1,507 +1,1055 @@
 /**
- * BAGGONA PANCHANGA — 25-CHAPTER SAMPOORNA MASTER PDF TEMPLATE
- * 
- * 100% Visual Parity with Premium PDF V1:
- * Warm ivory background (#FFF7ED / bg-orange-50), double gold borders,
- * clean serif/native-script typography, soft Q&A callout ribbons (ಪ್ರಶ್ನೆ: ...),
- * ZERO cluttered tables, sacred Gokarna footer, and Chaitanya Pandit booking block.
+ * ============================================================================
+ * BAGGONA PANCHANGA — SAMPOORNA 25-CHAPTER MASTER HOROSCOPE PDF TEMPLATE
+ * ============================================================================
+ * Render Rules (Strict A4 Compliance & Zero-Table Parity):
+ *  - ZERO <table>, <tr>, <td>, <th> tags (Pure CSS Grid / Flexbox layout)
+ *  - Fixed 900px print width (ZERO Tailwind sm:/md:/lg: viewport classes)
+ *  - Zero transform -skew-x-12 (html2canvas safe straight royal frames)
+ *  - letter-spacing: normal across all Indic typography (zero glyph overlap)
+ *  - Complete 6-Anga Birth Panchanga + Lagna/Moon/Dasha/Yogi/Maandi profile
+ *  - Preserves #sampoorna-master-25-pdf-container, bg-orange-50, and
+ *    [data-section="fifteen-day-calendar-qr"] directly preceding chapter-25.
+ * ============================================================================
  */
 
 import React, { forwardRef } from "react";
-import type { SampoornaMaster25Payload, Master25Chapter } from "../../services/sampoornaMaster25Service";
+import {
+  toNativeDigits,
+  type SampoornaMaster25Payload,
+  type Master25Chapter,
+} from "../../services/sampoornaMaster25Service";
 import { type SixLang, pick6 } from "../../features/fiveYearPrediction/fiveYearLocale";
 
 interface Props {
-  data: SampoornaMaster25Payload | null;
+  data: SampoornaMaster25Payload;
 }
 
 export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
-  if (!data) return null;
-
   const lang = data.targetLanguage;
-  const isKn = lang === "kn";
-  const isMr = lang === "mr";
-  const isHi = lang === "hi";
-  const isTe = lang === "te";
-  const isTa = lang === "ta";
+  const n = (val: number | string) => toNativeDigits(val, lang);
 
   const getFontFamily = (l: SixLang): string => {
     switch (l) {
       case "kn":
-        return `'Noto Serif Kannada', 'Noto Sans Kannada', serif, sans-serif`;
+        return "'Noto Serif Kannada', 'Noto Sans Kannada', serif";
       case "mr":
       case "hi":
-        return `'Noto Sans Devanagari', 'Noto Serif Devanagari', serif, sans-serif`;
+        return "'Noto Sans Devanagari', 'Noto Serif', serif";
       case "te":
-        return `'Noto Sans Telugu', serif, sans-serif`;
+        return "'Noto Sans Telugu', serif";
       case "ta":
-        return `'Noto Sans Tamil', serif, sans-serif`;
-      case "en":
+        return "'Noto Sans Tamil', serif";
       default:
-        return `'Outfit', 'Cinzel', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        return "'Outfit', 'Playfair Display', Georgia, serif";
     }
   };
 
   const activeFontFamily = getFontFamily(lang);
+  const sectionClass = "pdf-section px-7 py-4 relative";
+  const omGlyph = lang === "ta" ? "ௐ" : "ॐ";
 
-  // Exact Premium PDF V1 Styling Classes
-  const solidBgClass = "bg-orange-50";
-  const textColorClass = "text-amber-950";
-  const borderColorClass = "border-amber-700/40";
-  const primaryColorClass = "text-amber-800";
-  const sectionClass = "pdf-section px-14 py-8 relative";
+  const sacredInvocation = pick6(
+    {
+      kn: "॥ ಓಂ ಶ್ರೀ ಗಣೇಶಾಯ ನಮಃ • ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥",
+      mr: "॥ ॐ श्री गणेशाय नमः • श्री क्षेत्र गोकर्ण महाबळेश्वर प्रसन्न ॥",
+      hi: "॥ ॐ श्री गणेशाय नमः • श्री क्षेत्र गोकर्ण महाबलेश्वर प्रसन्न ॥",
+      te: "॥ ఓం శ్రీ గణేశాయ నమః • శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర ప్రసన్న ॥",
+      ta: "✦ ௐ ஸ்ரீ கணேசாய நமஹ • ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் துணை ✦",
+      en: "❖ OM SRI GANESHAYA NAMAHA • SRI KSHETRA GOKARNA MAHABALESHWARA BLESSINGS ❖",
+    },
+    lang
+  );
 
-  // Traditional Sacred Invocations
-  const sacredInvocation = isKn
-    ? "॥ ಶ್ರೀ ಮಹಾಗಣಪತಯೇ ನಮಃ • ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರಾಯ ನಮಃ • ಶ್ರೀ ಕುಲದೇವತಾಯೈ ನಮಃ ॥"
-    : isMr
-    ? "॥ श्री महागणपतये नमः • श्री गोकर्ण महाबळेश्वराय नमः • श्री कुलदेवतायै नमः ॥"
-    : isHi
-    ? "॥ श्री महागणपतये नमः • श्री गोकर्ण महाबलेश्वर स्वामी नमो नमः • श्री कुलदेवतायै नमः ॥"
-    : isTe
-    ? "॥ శ్రీ మహాగణపతయే నమః • శ్రీ గోకర్ణ మహాబలేశ్వరాయ నమః ॥"
-    : isTa
-    ? "॥ ஸ்ரீ மகா கணபதியே நமஹ • ஸ்ரீ கோகர்ண மகாபலேஸ்வராய நமஹ ॥"
-    : "|| OM SRI MAHAGANAPATAYE NAMAHA • SRI GOKARNA MAHABALESHWARAYA NAMAHA ||";
+  const runningHeaderFolio = pick6(
+    {
+      kn: "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥  •  ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ",
+      mr: "॥ बग्गोण पंचांग ॥  •  संपूर्ण २५ अध्यायांचे महा-जन्मपत्रिका विश्लेषण",
+      hi: "॥ बग्गोण पंचांग ॥  •  संपूर्ण २५ अध्यायों की महा-जन्मकुंडली",
+      te: "॥ బగ్గోణ పంచాంగం ॥  •  సంపూర్ణ 25 అధ్యాయాల మహా జాతకం",
+      ta: "✦ பக்கோண பஞ்சாங்கம் ✦  •  சம்பூர்ண 25 அத்தியாய மகா ஜாதகம்",
+      en: "BAGGONA PANCHANGA  •  SAMPOORNA 25-CHAPTER MASTER FOLIO",
+    },
+    lang
+  );
 
-  // Chapter Header Helper
+  const folioCornerLabel = pick6(
+    {
+      kn: "ಬಗ್ಗೋಣ ಮಹಾ ಜಾತಕ",
+      mr: "बग्गोण महा-पत्रिका",
+      hi: "बग्गोण महा-कुंडली",
+      te: "బగ్గోణ మహా జాతకం",
+      ta: "பக்கோண மகா ஜாதகம்",
+      en: "Baggona Master Folio",
+    },
+    lang
+  );
+
+  const cleanChapterTitle = (chapter: Master25Chapter): string =>
+    (chapter.title || "")
+      .replace(/^(ಅಧ್ಯಾಯ\s*[\d೦-೯]+[:\-\s]*|अध्याय\s*[\d०-९]+[:\-\s]*|అధ్యాయం\s*[\d౦-౯]+[:\-\s]*|அத்தியாயம்\s*[\d௦-௯]+[:\-\s]*|Chapter\s*\d+[:\-\s]*)/i, "")
+      .trim();
+
   const renderChapterBanner = (chapter: Master25Chapter) => {
-    const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦", "೧೧", "೧೨", "೧೩", "೧೪", "೧೫", "೧೬", "೧೭", "೧೮", "೧೯", "೨೦", "೨೧", "೨೨", "೨೩", "೨೪", "೨೫"];
-    const hiDigits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९", "१०", "११", "१२", "१३", "१४", "१५", "१६", "१७", "१८", "१९", "२०", "२१", "२२", "२३", "२४", "२५"];
-    const teDigits = ["౦", "౧", "౨", "౩", "౪", "౫", "౬", "౭", "౮", "౯", "౧౦", "౧౧", "౧౨", "౧౩", "౧౪", "౧౫", "౧౬", "౧౭", "౧౮", "౧౯", "౨౦", "౨౧", "౨౨", "౨౩", "౨౪", "౨౫"];
-    const taDigits = ["௦", "௧", "௨", "௩", "௪", "௫", "௬", "௭", "௮", "௯", "௰", "௰௧", "௰௨", "௰௩", "௰௪", "௰௫", "௰௬", "௰௭", "௰௮", "௰௯", "௨௰", "௨௧", "௨௨", "௨௩", "௨௪", "௨௫"];
-
-    let badgeText = "";
-    if (isKn) badgeText = `ಅಧ್ಯಾಯ ${knDigits[chapter.chapterNumber] || chapter.chapterNumber}`;
-    else if (isMr || isHi) badgeText = `अध्याय ${hiDigits[chapter.chapterNumber] || chapter.chapterNumber}`;
-    else if (isTe) badgeText = `అధ్యాయం ${teDigits[chapter.chapterNumber] || chapter.chapterNumber}`;
-    else if (isTa) badgeText = `அத்தியாயம் ${taDigits[chapter.chapterNumber] || chapter.chapterNumber}`;
-    else badgeText = `Chapter ${chapter.chapterNumber}`;
-
-    // Clean duplicate chapter prefixes from title if already present
-    const cleanChapterTitle = (chapter.title || "").replace(
-      /^(ಅಧ್ಯಾಯ|अध्याय|అధ్యాయం|அத்தியாயம்|Chapter)\s*(\d+|[೦-೯]+|[०-९]+|[౦-౯]+|[௦-௯]+)\s*[:\-–—]?\s*/i,
-      ""
+    const chWord = pick6(
+      {
+        kn: `ಅಧ್ಯಾಯ ${n(chapter.chapterNumber)}`,
+        mr: `अध्याय ${n(chapter.chapterNumber)}`,
+        hi: `अध्याय ${n(chapter.chapterNumber)}`,
+        te: `అధ్యాయం ${n(chapter.chapterNumber)}`,
+        ta: `அத்தியாயம் ${n(chapter.chapterNumber)}`,
+        en: `Chapter ${chapter.chapterNumber}`,
+      },
+      lang
     );
 
     return (
-      <div className="border-b-2 border-amber-700/40 pb-4 mb-6 relative">
-        {/* Float-based header for 100% horizontal alignment in html2canvas (ZERO <table> tags) */}
-        <div style={{ width: "100%", marginBottom: "10px", position: "relative" }}>
-          <div style={{ float: "left" }}>
-            <div style={{ display: "inline-block", padding: "4px 14px", backgroundColor: "rgba(146, 64, 14, 0.1)", color: "#78350f", borderRadius: "9999px", border: "1px solid rgba(146, 64, 14, 0.3)" }}>
-              <span style={{ fontSize: "12px", fontWeight: 900, letterSpacing: "1px" }}>
-                ❖ {badgeText}
-              </span>
-            </div>
-          </div>
-          <div style={{ float: "right", color: "rgba(146, 64, 14, 0.6)", fontSize: "13px", paddingTop: "4px", fontFamily: "serif" }}>
-            <span>❖ &nbsp;──────&nbsp; ॐ</span>
-          </div>
-          <div style={{ clear: "both" }} />
+      <div
+        style={{
+          background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #fffbeb 100%)",
+          border: "1.5px solid #d97706",
+          borderRadius: "10px",
+          padding: "12px 18px",
+          marginBottom: "12px",
+          letterSpacing: "normal",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "6px",
+          }}
+        >
+          <span
+            style={{
+              backgroundColor: "#92400e",
+              color: "#fef3c7",
+              padding: "3px 12px",
+              borderRadius: "999px",
+              fontSize: "12px",
+              fontWeight: 700,
+              letterSpacing: "normal",
+            }}
+          >
+            {chapter.icon} {chWord}
+          </span>
+          <span
+            style={{
+              flex: 1,
+              height: "1px",
+              backgroundColor: "#d97706",
+              opacity: 0.45,
+              marginLeft: "12px",
+              marginRight: "12px",
+            }}
+          />
+          <span style={{ fontSize: "14px", color: "#b45309", fontWeight: 700 }}>❖ {omGlyph} ❖</span>
         </div>
 
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-amber-950 font-serif tracking-normal leading-relaxed">
-          {cleanChapterTitle}
+        <h2
+          style={{
+            fontSize: "21px",
+            lineHeight: 1.42,
+            fontWeight: 800,
+            color: "#451a03",
+            margin: 0,
+            letterSpacing: "normal",
+            wordBreak: "break-word",
+          }}
+        >
+          {cleanChapterTitle(chapter)}
         </h2>
       </div>
     );
   };
 
-  // Contemplation Question Ribbon (Exact V1 Style - Zero Tables, Absolute Bullet to Prevent Breakage)
-  const renderContemplationRibbon = (questionText: string) => {
+  const renderContemplationRibbon = (badge?: string, guidance?: string) => {
+    if (!badge && !guidance) return null;
     return (
-      <div style={{ borderRadius: "12px", border: "2px solid rgba(180, 83, 9, 0.35)", background: "linear-gradient(to right, rgba(254, 243, 199, 0.95), rgba(255, 247, 237, 0.9), rgba(254, 243, 199, 0.95))", padding: "16px 20px", marginBottom: "20px" }}>
-        <div style={{ display: "block", marginBottom: "8px", color: "#78350f", fontSize: "11px", fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase" }}>
-          ❖ {isKn ? "ಆತ್ಮ ಪ್ರಶ್ನೆ & ದೈವಿಕ ದರ್ಶನ" : isMr ? "आत्म प्रश्न व चिंतन" : isHi ? "आत्म प्रश्न एवं चिंतन" : isTe ? "ఆత్మ ప్రశ్న & చింతన" : isTa ? "ஆத்ம கேள்வி & சிந்தனை" : "Soul Contemplation Inquest"}
-        </div>
-        <div style={{ position: "relative", paddingLeft: "26px" }}>
-          <span style={{ position: "absolute", left: "0px", top: "2px", color: "#92400e", fontSize: "16px", lineHeight: "1" }}>
-            ❖
-          </span>
-          <p style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#451a03", lineHeight: 1.6, fontStyle: "italic", fontFamily: activeFontFamily }}>
-            {questionText}
+      <div
+        style={{
+          marginTop: "12px",
+          padding: "12px 16px",
+          backgroundColor: "#fffbeb",
+          border: "1.5px solid #f59e0b",
+          borderLeft: "5px solid #b45309",
+          borderRadius: "8px",
+          letterSpacing: "normal",
+        }}
+      >
+        {badge && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "4px",
+            }}
+          >
+            <span style={{ fontSize: "14px" }}>🪔</span>
+            <span
+              style={{
+                fontSize: "12.5px",
+                fontWeight: 800,
+                color: "#92400e",
+                letterSpacing: "normal",
+              }}
+            >
+              {badge}
+            </span>
+          </div>
+        )}
+        {guidance && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: "14.5px",
+              lineHeight: 1.55,
+              fontWeight: 600,
+              color: "#451a03",
+              letterSpacing: "normal",
+              wordBreak: "break-word",
+            }}
+          >
+            {guidance}
           </p>
-        </div>
+        )}
       </div>
     );
   };
 
+  const ageWord = pick6(
+    { kn: "ವಯಸ್ಸು", mr: "वय", hi: "आयु", te: "వయస్సు", ta: "வயது", en: "Age" },
+    lang
+  );
+  const yearsWord = pick6(
+    { kn: "ವರ್ಷ", mr: "वर्षे", hi: "वर्ष", te: "సం", ta: "வயது", en: "yrs" },
+    lang
+  );
+  const padaWord = pick6(
+    { kn: "ಪಾದ", mr: "चरण", hi: "पाद", te: "పాదం", ta: "பாதம்", en: "Pada" },
+    lang
+  );
+  const houseWord = pick6(
+    { kn: "ಮನೆ", mr: "स्थान", hi: "भाव", te: "స్థానం", ta: "வீடு", en: "House" },
+    lang
+  );
+
+  const infoCellStyle: React.CSSProperties = {
+    backgroundColor: "#fffbeb",
+    border: "1px solid #fde68a",
+    borderRadius: "6px",
+    padding: "8px 12px",
+    letterSpacing: "normal",
+  };
+  const infoLabelStyle: React.CSSProperties = {
+    fontSize: "11px",
+    fontWeight: 700,
+    color: "#92400e",
+    marginBottom: "2px",
+    letterSpacing: "normal",
+  };
+  const infoValueStyle: React.CSSProperties = {
+    fontSize: "14px",
+    fontWeight: 700,
+    color: "#451a03",
+    lineHeight: 1.4,
+    letterSpacing: "normal",
+    wordBreak: "break-word",
+  };
+
   return (
     <div
-      ref={ref}
       id="sampoorna-master-25-pdf-container"
+      ref={ref}
+      className="bg-orange-50 text-amber-950 font-serif mx-auto"
       style={{
         width: "900px",
-        height: "max-content",
+        backgroundColor: "#FFF7ED",
         fontFamily: activeFontFamily,
-        letterSpacing: "normal"
+        letterSpacing: "normal",
+        boxSizing: "border-box",
       }}
-      className={`${solidBgClass} ${textColorClass} relative overflow-hidden selection:bg-amber-200 font-serif`}
     >
-      {/* Exact Premium PDF V1 Double Decorative Border Frames */}
-      <div className={`absolute inset-6 border-[3px] ${borderColorClass} pointer-events-none rounded-sm opacity-90`} />
-      <div className={`absolute inset-8 border border-dashed ${borderColorClass} pointer-events-none opacity-60`} />
-
-      {/* Decorative Corner Ornaments */}
-      <div className="absolute top-9 left-9 text-base text-amber-800/40 pointer-events-none font-serif">❖</div>
-      <div className="absolute top-9 right-9 text-base text-amber-800/40 pointer-events-none font-serif">❖</div>
-      <div className="absolute bottom-9 left-9 text-base text-amber-800/40 pointer-events-none font-serif">❖</div>
-      <div className="absolute bottom-9 right-9 text-base text-amber-800/40 pointer-events-none font-serif">❖</div>
-
-      {/* ── COVER & HEADER SECTION ────────────────────────────────────────── */}
-      <div data-section="cover" className="pdf-section text-center mt-10 mb-6 px-16 pt-8 pb-4 relative z-10">
-        <p className="text-sm font-bold tracking-widest text-amber-800 uppercase mb-3">
-          {sacredInvocation}
-        </p>
-
-        <div className="inline-block relative px-12 py-3 mb-3">
-          <div className="absolute inset-0 border-y border-amber-700/40 transform -skew-x-12 pointer-events-none" />
-          <h1 className={`text-4xl font-extrabold ${primaryColorClass} leading-relaxed tracking-normal font-serif`}>
-            {isKn ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ೨೫ ಅಧ್ಯಾಯಗಳ ಸಂಪೂರ್ಣ ಮಹಾ ಜಾತಕ ॥"
-              : isMr ? "॥ बग्गोण पंचांग — २५ अध्यायांचे संपूर्ण महा भविष्य ॥"
-              : isHi ? "॥ बग्गोण पंचांग — २५ अध्यायों का संपूर्ण महा फलादेश ॥"
-              : isTe ? "॥ బగ్గోణ పంచాంగం — 25 అధ్యాయాల సంపూర్ణ మహా జాతకం ॥"
-              : isTa ? "॥ பக்கோண பஞ்சாங்கம் — 25 அத்தியாயங்கள் கொண்ட முழுமையான ஜாதகம் ॥"
-              : "|| Baggona Panchanga — 25-Chapter Sampoorna Master Report ||"}
-          </h1>
-        </div>
-
-        <p className="text-xl italic font-serif text-amber-900/90 tracking-normal leading-relaxed mb-4">
-          {isKn ? "ವರ್ತಮಾನ ವಾಸ್ತವ & ಮುಂಬರುವ ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ಭವಿಷ್ಯ ಮಾರ್ಗದರ್ಶಿ (ಸಂಪೂರ್ಣ ಹಸ್ತಪ್ರತಿ ಆವೃತ್ತಿ)"
-            : isMr ? "सध्याचे यथार्थ व पुढील ५ वर्षांचे सुवर्ण भविष्य क्षितिज (अधिकृत आवृत्ती)"
-            : isHi ? "वर्तमान यथार्थ एवं आगामी ५ वर्षों का स्वर्णिम भविष्य क्षितिज (प्रामाणिक संस्करण)"
-            : isTe ? "ప్రస్తుత వాస్తవం & రాబోయే 5 సంవత్సరాల స్వర్ణ భవిష్యత్ మార్గదర్శి"
-            : isTa ? "தற்போதைய நிலை & அடுத்த 5 ஆண்டுகளுக்கான பொற்கால வழிகாட்டல்"
-            : "Present Living Reality & Next 5-Year Golden Destiny Horizon (Master Edition)"}
-        </p>
-
-        <div className="flex items-center justify-center gap-6 opacity-80 mb-6">
-          <div className="w-24 border-b-2 border-amber-700/60" />
-          <span className="text-2xl text-amber-800 font-serif">ॐ</span>
-          <div className="w-24 border-b-2 border-amber-700/60" />
-        </div>
+      {/* RUNNING HEADER STRIP FOR PAGES 2+ (Intentionally outside .pdf-section) */}
+      <div
+        id="sampoorna-master-25-running-header"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "5px 28px",
+          backgroundColor: "#FFF7ED",
+          color: "#78350f",
+          fontSize: "11.5px",
+          fontWeight: 700,
+          letterSpacing: "normal",
+        }}
+      >
+        <span>{runningHeaderFolio}</span>
+        <span>
+          {data.devoteeName} • {data.lagnaName}
+        </span>
       </div>
 
-      {/* ── DEVOTEE DETAILS PARCHMENT CARD (Exact V1 Style) ───────────────── */}
-      <div data-section="user-details" className="pdf-section w-full px-14 mb-8 relative z-10">
-        <div className="relative rounded-xl border-2 border-amber-600/60 bg-amber-100/50 p-8 shadow-md overflow-hidden">
-          <div className="absolute inset-2 border border-amber-700/30 rounded-lg pointer-events-none" />
-          <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-lg pointer-events-none" />
+      {/* ==================================================================== */}
+      {/* SECTION 1: ROYAL MANUSCRIPT COVER HEADER                              */}
+      {/* ==================================================================== */}
+      <div className={sectionClass} data-section="cover">
+        <div
+          style={{
+            borderTop: "4px double #b45309",
+            borderBottom: "4px double #b45309",
+            background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fffbeb 100%)",
+            borderRadius: "10px",
+            padding: "16px 24px",
+            textAlign: "center",
+            letterSpacing: "normal",
+          }}
+        >
+          <p
+            style={{
+              margin: "0 0 8px 0",
+              fontSize: "12.5px",
+              fontWeight: 700,
+              color: "#92400e",
+              letterSpacing: "normal",
+            }}
+          >
+            {sacredInvocation}
+          </p>
 
-          <div className="grid grid-cols-2 gap-y-5 gap-x-8 relative z-10 px-4 py-2 text-sm">
-            {/* Row 1: Devotee Name & Birth Date/Time */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಜಾತಕರ ಶುಭ ನಾಮ" : isMr ? "जातकाचे नाव" : isHi ? "जातक का नाम" : isTe ? "జాతుకుని పేరు" : isTa ? "ஜாதகரின் பெயர்" : "Devotee Name"}
-              </span>
-              <span className="text-2xl font-black text-amber-950 font-serif leading-relaxed">
-                {data.devoteeName}
-              </span>
-            </div>
-
-            <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಜನ್ಮ ದಿನಾಂಕ & ಸಮಯ" : isMr ? "जन्म तारीख व वेळ" : isHi ? "जन्म तिथि एवं समय" : isTe ? "జన్మ తేదీ & సమయం" : isTa ? "பிறந்த தேதி & நேரம்" : "Birth Date & Time"}
-              </span>
-              <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
-                {data.birthDate} • {data.birthTime}
-              </span>
-            </div>
-
-            {/* Row 2: Lagna & Moon Rashi */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಜನ್ಮ ಲಗ್ನ & ಅಧಿಪತಿ" : isMr ? "जन्म लग्न व स्वामी" : isHi ? "जन्म लग्न एवं स्वामी" : isTe ? "జన్మ లగ్నం & అధిపతి" : isTa ? "பிறப்பு லக்னம் & அதிபதி" : "Janma Lagna & Lord"}
-              </span>
-              <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
-                {data.lagnaName} ({data.lagnaLord})
-              </span>
-            </div>
-
-            <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಚಂದ್ರ ರಾಶಿ & ಅಧಿಪತಿ" : isMr ? "चंद्र रास व स्वामी" : isHi ? "चंद्र राशि एवं स्वामी" : isTe ? "చంద్ర రాశి & అధిపతి" : isTa ? "சந்திர ராசி & அதிபதி" : "Moon Sign & Lord"}
-              </span>
-              <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
-                {data.moonRashi} ({data.moonLord})
-              </span>
-            </div>
-
-            {/* Row 3: Nakshatra & Current Dasha-Bhukti */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ & ಪಾದ" : isMr ? "जन्म नक्षत्र व चरण" : isHi ? "जन्म नक्षत्र एवं पाद" : isTe ? "జన్మ నక్షత్రం & పాదం" : isTa ? "பிறந்த நட்சத்திரம் & பாதம்" : "Nakshatra & Pada"}
-              </span>
-              <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
-                {data.nakshatraName} ({isKn ? "ಪಾದ" : isMr ? "चरण" : isHi ? "पाद" : isTe ? "పాదం" : isTa ? "பாதம்" : "Pada"} {data.nakshatraPada})
-              </span>
-            </div>
-
-            <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಪ್ರಸ್ತುತ ಮಹಾದಶೆ - ಭುಕ್ತಿ" : isMr ? "सध्याची महादशा - भुक्ती" : isHi ? "वर्तमान महादशा - भुक्ति" : isTe ? "ప్రస్తుత మహాదశ - భుక్తి" : isTa ? "தற்போதைய மகாதசை - புக்தி" : "Current Mahadasha - Bhukti"}
-              </span>
-              <span className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
-                {data.currentMahadasha} - {data.currentBhukti}
-              </span>
-            </div>
-
-            {/* Row 4: Secret Accuracy Highlights (Yogi & Avayogi) */}
-            <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಧನ ಪ್ರದಾಯಕ ಯೋಗಿ ಗ್ರಹ" : isMr ? "धन प्रदाता योगी ग्रह" : isHi ? "धन प्रदाता योगी ग्रह" : isTe ? "ధన ప్రదాత యోగి గ్రహం" : isTa ? "தன பிரदाता யோகி கிரகம்" : "Lucky Yogi Wealth Planet"}
-              </span>
-              <span className="text-lg font-bold text-amber-950 font-serif leading-relaxed text-amber-900">
-                ✨ {data.yogiPlanet} ({data.yogiRashi})
-              </span>
-            </div>
-
-            <div className="flex flex-col border-b border-amber-800/20 pb-2.5">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                {isKn ? "ಅವಯೋಗಿ ಎಚ್ಚರಿಕೆ ಗ್ರಹ" : isMr ? "अवयोगी सावधान ग्रह" : isHi ? "अवयोगी चेतावनी ग्रह" : isTe ? "అవయోగి హెచ్చరిక గ్రహం" : isTa ? "அவயோகி எச்சரிக்கை கிரகம்" : "Avayogi Obstacle Planet"}
-              </span>
-              <span className="text-lg font-bold text-amber-950 font-serif leading-relaxed text-red-900">
-                ⚠️ {data.avayogiPlanet} ({data.avayogiRashi})
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-amber-700/20 text-center text-xs font-serif italic text-amber-900/80">
-            {isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪ್ರಾಚೀನ ದೈವಜ್ಞ ಪರಂಪರೆಯಂತೆ ೧೦೦% ನಿಖರ ಗಣಿತದಿಂದ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ."
-              : isMr ? "श्री क्षेत्र गोकर्ण महाबळेश्वर सानिध्याच्या प्राचीन ज्योतिषी परंपरेनुसार १००% अचूक गणितावर आधारित."
-              : isHi ? "श्री क्षेत्र गोकर्ण महाबलेश्वर सान्निध्य की प्रामाणिक दैवज्ञ परंपरा अनुसार १००% सटीक गणना आधारित।"
-              : isTe ? "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధాన ప్రాచీన జ్యోతిష సంప్రదాయం ప్రకారం 100% ఖచ్చితమైన గణితంతో రూపొందించబడింది."
-              : isTa ? "ஸ்ரீ க்ஷேத்திர கோகர்ண மகாபலேஸ்வரர் சன்னதியின் பாரம்பரிய ஜோதிட முறைப்படி 100% துல்லிய கணிதத்துடன் தயாரிக்கப்பட்டது."
-              : "Prepared in accordance with the 100% deterministic Sri Kshetra Gokarna Jyotishya tradition."}
-          </div>
-        </div>
-      </div>
-
-      {/* ── 25 CHAPTERS (HOOK-FIRST PRIORITY ORDER) ────────────────────────── */}
-      {data.chapters.map((chapter) => (
-        <React.Fragment key={`chapter-${chapter.chapterNumber}`}>
-          {/* 15-Day Personal Daily Darshana Google Calendar QR Section - Rendered Right Before Chapter 25 */}
-          {chapter.chapterNumber === 25 && data.calendarQrSection && (
-            <div
-              data-section="fifteen-day-calendar-qr"
-              className={`${sectionClass} mb-8 z-10 page-break-before`}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "12px",
+              marginBottom: "8px",
+            }}
+          >
+            <span style={{ width: "80px", height: "1.5px", backgroundColor: "#b45309", opacity: 0.6 }} />
+            <span
+              style={{
+                width: "34px",
+                height: "34px",
+                borderRadius: "50%",
+                border: "2px solid #b45309",
+                backgroundColor: "#92400e",
+                color: "#fef3c7",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
+                fontWeight: 800,
+              }}
             >
-              {/* Section Sub-Header Pill (ZERO <table> tags) */}
-              <div style={{ width: "100%", borderBottom: "1px solid rgba(146, 64, 14, 0.2)", paddingBottom: "8px", marginBottom: "18px", position: "relative" }}>
-                <div style={{ float: "left" }}>
-                  <span className="text-xs font-black tracking-widest uppercase text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full border border-amber-700/20">
-                    📅 {data.calendarQrSection.badge}
-                  </span>
-                </div>
-                <div style={{ float: "right" }}>
-                  <span className="text-xs text-amber-700/70 font-serif">
+              {omGlyph}
+            </span>
+            <span style={{ width: "80px", height: "1.5px", backgroundColor: "#b45309", opacity: 0.6 }} />
+          </div>
+
+          <h1
+            style={{
+              margin: "0 0 6px 0",
+              fontSize: "25px",
+              fontWeight: 800,
+              lineHeight: 1.4,
+              color: "#451a03",
+              letterSpacing: "normal",
+            }}
+          >
+            {pick6(
+              {
+                kn: "ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಹಾಗೂ ಭವಿಷ್ಯ ಗ್ರಂಥ",
+                mr: "संपूर्ण २५ अध्यायांचे महा-जन्मपत्रिका व भविष्य ग्रंथ",
+                hi: "संपूर्ण २५ अध्यायों का महा-जन्मकुंडली एवं भविष्य ग्रंथ",
+                te: "సంపూర్ణ 25 అధ్యాయాల మహా జాతక & భవిష్యత్ గ్రంథం",
+                ta: "சம்பூர்ண 25 அத்தியாய மகா ஜாதகம் மற்றும் எதிர்கால நூல்",
+                en: "Sampoorna 25-Chapter Master Horoscope & Destiny Folio",
+              },
+              lang
+            )}
+          </h1>
+
+          <p
+            style={{
+              margin: 0,
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "#78350f",
+              letterSpacing: "normal",
+            }}
+          >
+            {pick6(
+              {
+                kn: "ಪರಾಶರ ಸಿದ್ಧಾಂತ • ಷಡಂಗ ಪಂಚಾಂಗ • ಯೋಗಿ-ಮಾಂದಿ • ಅಷ್ಟಕವರ್ಗ • ದಶಾ-ಗೋಚಾರ ಸಮಗ್ರ ದರ್ಶನ",
+                mr: "पाराशर सिद्धांत • षडांग पंचांग • योगी-मांदी • अष्टकवर्ग • दशा-गोचर समग्र दर्शन",
+                hi: "पाराशर सिद्धांत • षडांग पंचांग • योगी-मांदी • अष्टकवर्ग • दशा-गोचर समग्र दर्शन",
+                te: "పరాశర సిద్ధాంతం • షడంగ పంచాంగం • యోగి-మాంది • అష్టకవర్గ • దశా-గోచార దర్శనం",
+                ta: "பராசர சித்தாந்தம் • ஷடங்க பஞ்சாங்கம் • யோகி-மாந்தி • அஷ்டகவர்க்கம் • தசா-கோசார தரிசனம்",
+                en: "Parashari Siddhanta • 6-Anga Panchanga • Yogi-Maandi • Ashtakavarga • Live Dasha & Transits",
+              },
+              lang
+            )}
+          </p>
+        </div>
+      </div>
+
+      {/* ==================================================================== */}
+      {/* SECTION 2: COMPLETE 6-ANGA BIRTH PANCHANGA & KUNDLI PROFILE CARD    */}
+      {/* ==================================================================== */}
+      <div className={sectionClass} data-section="user-details">
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            border: "1.5px solid #d97706",
+            borderRadius: "10px",
+            padding: "14px 18px",
+            letterSpacing: "normal",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingBottom: "8px",
+              marginBottom: "10px",
+              borderBottom: "1.5px solid #fcd34d",
+            }}
+          >
+            <span style={{ fontSize: "15px", fontWeight: 800, color: "#78350f" }}>
+              📜{" "}
+              {pick6(
+                {
+                  kn: "ಜಾತಕ ಹಾಗೂ ಷಡಂಗ ಪಂಚಾಂಗದ ಮೂಲ ವಿವರ",
+                  mr: "जन्मकुंडली व षडांग पंचांग तपशील",
+                  hi: "जन्मकुंडली एवं षडांग पंचांग विवरण",
+                  te: "జాతక & షడంగ పంచాంగ వివరాలు",
+                  ta: "ஜாதக மற்றும் ஷடங்க பஞ்சாங்க விவரம்",
+                  en: "Natal Kundli & Complete 6-Anga Birth Panchanga",
+                },
+                lang
+              )}
+            </span>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#92400e" }}>
+              {data.ayanamsha}
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "8px 14px",
+            }}
+          >
+            {/* Row 1 */}
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ಜಾತಕರ ಹೆಸರು", mr: "जातकाचे नाव", hi: "जातक का नाम", te: "జాతకుని పేరు", ta: "ஜாதகர் பெயர்", en: "Devotee Name" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>{data.devoteeName}</div>
+            </div>
+
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ಜನ್ಮ ದಿನಾಂಕ, ಸಮಯ & ವಯಸ್ಸು", mr: "जन्म दिनांक, वेळ व वय", hi: "जन्म तिथि, समय एवं आयु", te: "పుట్టిన తేదీ, సమయం & వయస్సు", ta: "பிறந்த தேதி, நேரம் & வயது", en: "Birth Date, Time & Age" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                {n(data.birthDate)} • {n(data.birthTime)} ({ageWord}: {n(Math.round(data.ageYears))} {yearsWord})
+              </div>
+            </div>
+
+            {/* Row 2 */}
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ಜನ್ಮ ಸ್ಥಳ", mr: "जन्म स्थळ", hi: "जन्म स्थान", te: "జన్మ స్థలం", ta: "பிறந்த இடம்", en: "Birth Place" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>{data.birthPlace}</div>
+            </div>
+
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ಜನ್ಮ ಲಗ್ನ & ಲಗ್ನಾಧಿಪತಿ", mr: "जन्म लग्न व स्वामी", hi: "जन्म लग्न एवं स्वामी", te: "జన్మ లగ్నం & అధిపతి", ta: "ஜென்ம லக்னம் & அதிபதி", en: "Janma Lagna & Lord" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                {data.lagnaName} ({data.lagnaLord})
+              </div>
+            </div>
+
+            {/* Row 3 */}
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ಚಂದ್ರ ರಾಶಿ & ರಾಶ್ಯಾಧಿಪತಿ", mr: "चंद्र राशी व स्वामी", hi: "चंद्र राशि एवं स्वामी", te: "చంద్ర రాశి & అధిపతి", ta: "சந்திர ராசி & அதிபதி", en: "Moon Sign & Lord" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                {data.moonRashi} ({data.moonLord})
+              </div>
+            </div>
+
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ಜನ್ಮ ನಕ್ಷತ್ರ & ಪಾದ", mr: "जन्म नक्षत्र व चरण", hi: "जन्म नक्षत्र एवं पाद", te: "జన్మ నక్షత్రం & పాదం", ta: "ஜென்ம நட்சத்திரம் & பாதம்", en: "Birth Nakshatra & Pada" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                {data.nakshatraName} ({padaWord} {n(data.nakshatraPada)})
+              </div>
+            </div>
+
+            {/* Row 4 — Tithi / Paksha / Vaara + Yoga / Karana */}
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ತಿಥಿ (ಪಕ್ಷ) & ಜನ್ಮ ವಾರ", mr: "तिथी (पक्ष) व वार", hi: "तिथि (पक्ष) एवं वार", te: "తిథి (పక్షం) & వారం", ta: "திதி (பக்ஷம்) & கிழமை", en: "Tithi (Paksha) & Weekday" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                {data.pakshaName} {data.tithiName} • {data.weekdayName}
+              </div>
+            </div>
+
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ನಿತ್ಯ ಯೋಗ & ಕರಣ", mr: "नित्य योग व करण", hi: "नित्य योग एवं करण", te: "నిత్య యోగం & కరణం", ta: "நித்ய யோகம் & கரணம்", en: "Nitya Yoga & Karana" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                {data.yogaName} • {data.karanaName}
+              </div>
+            </div>
+
+            {/* Row 5 — Sunrise/Sunset & True Birth Hora + Dasha-Bhukti */}
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ಸೂರ್ಯೋದಯ / ಸೂರ್ಯಾಸ್ತ & ಜನ್ಮ ಹೋರಾ", mr: "सूर्योदय / सूर्यास्त व जन्म होरा", hi: "सूर्योदय / सूर्यास्त एवं जन्म होरा", te: "సూర్యోదయం / సూర్యాస్తమయం & హోర", ta: "சூரிய உதயம் / அஸ்தமனம் & ஹோரை", en: "Sunrise / Sunset & Birth Hora" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                {n(data.sunriseTime)} / {n(data.sunsetTime)} • {data.janmaHora}
+              </div>
+            </div>
+
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ಪ್ರಸ್ತುತ ಮಹಾದಶೆ – ಅಂತರ್ದಶೆ", mr: "चालू महादशा – अंतर्दशा", hi: "वर्तमान महादशा – अंतर्दशा", te: "ప్రస్తుత మహర్దశ – అంతర్దశ", ta: "நடப்பு மகாதசை – அந்தர்தசை", en: "Active Mahadasha – Bhukti" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                {data.currentMahadasha} – {data.currentBhukti} ({n(data.bhuktiEndDate)})
+              </div>
+            </div>
+
+            {/* Row 6 — Yogi Magnet & Avayogi / Maandi */}
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  {
+                    kn: "ಧನ ಪ್ರದಾತ ಯೋಗಿ ಗ್ರಹ",
+                    mr: "धनप्रद योगी ग्रह",
+                    hi: "धन प्रदाता योगी ग्रह",
+                    te: "ధన ప్రదాత యోగి గ్రహం",
+                    ta: "செல்வ யோகி கிரகம்",
+                    en: "Wealth Yogi Planet",
+                  },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                ✨ {data.yogiPlanet} ({data.yogiRashi})
+              </div>
+            </div>
+
+            <div style={infoCellStyle}>
+              <div style={infoLabelStyle}>
+                {pick6(
+                  { kn: "ಅವಯೋಗಿ & ಮಾಂದಿ ಸ್ಥಾನ", mr: "अवयोगी व मांदी स्थान", hi: "अवयोगी एवं मांदी स्थिति", te: "అవయోగి & మాంది స్థానం", ta: "அவயோகி & மாந்தி நிலை", en: "Avayogi & Maandi Knot" },
+                  lang
+                )}
+              </div>
+              <div style={infoValueStyle}>
+                ⚠️ {data.avayogiPlanet} ({data.avayogiRashi}) • {houseWord} {n(data.maandiHouse)} ({data.maandiRashi})
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ==================================================================== */}
+      {/* SECTION 3: EXECUTIVE TABLE OF CONTENTS (5 PILLAR ARCHIVES)           */}
+      {/* ==================================================================== */}
+      <div className={sectionClass} data-section="executive-index">
+        <div
+          style={{
+            backgroundColor: "#fffbeb",
+            border: "1.5px solid #f59e0b",
+            borderRadius: "10px",
+            padding: "14px 18px",
+            letterSpacing: "normal",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "8px",
+            }}
+          >
+            <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 800, color: "#78350f" }}>
+              📖{" "}
+              {pick6(
+                {
+                  kn: "ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ವಿಷಯ ಸೂಚಿ (೫ ಪ್ರಮುಖ ವಿಭಾಗಗಳು)",
+                  mr: "संपूर्ण २५ अध्यायांची अनुक्रमणिका (५ प्रमुख विभाग)",
+                  hi: "संपूर्ण २५ अध्यायों की विषय-सूची (५ प्रमुख खंड)",
+                  te: "సంపూర్ణ 25 అధ్యాయాల విషయ సూచిక (5 ముఖ్య భాగాలు)",
+                  ta: "சம்பூர்ண 25 அத்தியாய உள்ளடக்க அட்டவணை (5 பிரிவுகள்)",
+                  en: "Complete 25-Chapter Executive Index (5 Sacred Volumes)",
+                },
+                lang
+              )}
+            </h3>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#92400e" }}>
+              {data.dominantElement}
+            </span>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            {data.sectionIndexTitles.map((sec) => (
+              <div
+                key={sec.sectionNumber}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #fde68a",
+                  borderRadius: "6px",
+                  padding: "6px 12px",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  color: "#451a03",
+                }}
+              >
+                <span style={{ maxWidth: "74%", lineHeight: 1.35 }}>{sec.title}</span>
+                <span style={{ fontSize: "12px", color: "#b45309", whiteSpace: "nowrap" }}>
+                  {sec.chapterRange}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              marginTop: "8px",
+              padding: "6px 12px",
+              backgroundColor: "#fef3c7",
+              borderRadius: "6px",
+              fontSize: "12px",
+              fontWeight: 600,
+              color: "#78350f",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <span>
+              {pick6(
+                {
+                  kn: `ಶನಿ ಗೋಚಾರ: ${data.shaniTransitRashi} (ಚಂದ್ರನಿಂದ ${n(data.shaniHouseFromMoon)})`,
+                  mr: `शनी गोचर: ${data.shaniTransitRashi} (चंद्रापासून ${n(data.shaniHouseFromMoon)})`,
+                  hi: `शनि गोचर: ${data.shaniTransitRashi} (चंद्र से ${n(data.shaniHouseFromMoon)})`,
+                  te: `శని గోచారం: ${data.shaniTransitRashi} (చంద్రుని నుండి ${n(data.shaniHouseFromMoon)})`,
+                  ta: `சனி கோசாரம்: ${data.shaniTransitRashi} (ராசியிலிருந்து ${n(data.shaniHouseFromMoon)})`,
+                  en: `Saturn Gochara: ${data.shaniTransitRashi} (${data.shaniHouseFromMoon} from Moon)`,
+                },
+                lang
+              )}
+            </span>
+            <span>
+              {pick6(
+                {
+                  kn: `ಗುರು ಗೋಚಾರ: ${data.guruTransitRashi} (ಚಂದ್ರನಿಂದ ${n(data.guruHouseFromMoon)})`,
+                  mr: `गुरु गोचर: ${data.guruTransitRashi} (चंद्रापासून ${n(data.guruHouseFromMoon)})`,
+                  hi: `गुरु गोचर: ${data.guruTransitRashi} (चंद्र से ${n(data.guruHouseFromMoon)})`,
+                  te: `గురు గోచారం: ${data.guruTransitRashi} (చంద్రుని నుండి ${n(data.guruHouseFromMoon)})`,
+                  ta: `குரு கோசாரம்: ${data.guruTransitRashi} (ராசியிலிருந்து ${n(data.guruHouseFromMoon)})`,
+                  en: `Jupiter Gochara: ${data.guruTransitRashi} (${data.guruHouseFromMoon} from Moon)`,
+                },
+                lang
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ==================================================================== */}
+      {/* CHAPTERS 1 TO 25 (AND 15-DAY CALENDAR QR RIGHT BEFORE CHAPTER 25)    */}
+      {/* ==================================================================== */}
+      {data.chapters.map((chapter) => (
+        <React.Fragment key={`wrap-chapter-${chapter.chapterNumber}`}>
+          {chapter.chapterNumber === 25 && data.calendarQrSection && (
+            <div className={sectionClass} data-section="fifteen-day-calendar-qr">
+              <div
+                style={{
+                  backgroundColor: "#ffffff",
+                  border: "2px solid #d97706",
+                  borderRadius: "12px",
+                  padding: "18px 22px",
+                  letterSpacing: "normal",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingBottom: "8px",
+                    marginBottom: "12px",
+                    borderBottom: "1.5px solid #fde68a",
+                    fontSize: "12.5px",
+                    fontWeight: 700,
+                    color: "#92400e",
+                  }}
+                >
+                  <span>📅 {data.calendarQrSection.badge}</span>
+                  <span>
                     {data.calendarQrSection.priestName} ({data.calendarQrSection.priestPhoneDisplay})
                   </span>
                 </div>
-                <div style={{ clear: "both" }} />
-              </div>
 
-              {/* Luxury Card for 15-Day Calendar QR */}
-              <div className="rounded-2xl border-2 border-amber-600/50 bg-gradient-to-br from-amber-50/95 via-orange-50/90 to-amber-100/95 p-8 shadow-lg space-y-6">
-                <div className="text-center space-y-2">
-                  <span className="inline-block px-3 py-1 rounded-full bg-amber-400 text-stone-950 text-xs font-black tracking-wide uppercase shadow-2xs">
-                    {data.calendarQrSection.badge}
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-black text-amber-950 font-serif">
-                    {data.calendarQrSection.title}
-                  </h3>
-                  <p className="text-base text-amber-950 font-serif leading-relaxed max-w-2xl mx-auto">
-                    {data.calendarQrSection.description}
-                  </p>
-                </div>
+                <h2
+                  style={{
+                    margin: "0 0 6px 0",
+                    fontSize: "21px",
+                    fontWeight: 800,
+                    lineHeight: 1.4,
+                    color: "#451a03",
+                    textAlign: "center",
+                  }}
+                >
+                  {data.calendarQrSection.title}
+                </h2>
+                <p
+                  style={{
+                    margin: "0 0 16px 0",
+                    fontSize: "14px",
+                    lineHeight: 1.55,
+                    color: "#78350f",
+                    textAlign: "center",
+                  }}
+                >
+                  {data.calendarQrSection.description}
+                </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center pt-2">
-                  {/* QR Code Container */}
-                  <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl border-2 border-amber-300 shadow-md text-center">
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "230px 1fr",
+                    gap: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: "#fffbeb",
+                      border: "1.5px solid #f59e0b",
+                      borderRadius: "10px",
+                      padding: "14px",
+                      textAlign: "center",
+                    }}
+                  >
                     <img
                       src={data.calendarQrSection.qrDataUrl}
                       alt="15-Day Daily Darshana Google Calendar QR"
-                      className="w-56 h-56 object-contain"
+                      className="w-48 h-48 mx-auto rounded-lg border-2 border-amber-400 p-1 bg-white"
+                      style={{ display: "block", width: "180px", height: "180px", margin: "0 auto" }}
                     />
-                    <span className="text-xs font-bold text-amber-900 mt-3 font-serif">
+                    <p
+                      style={{
+                        margin: "10px 0 4px 0",
+                        fontSize: "12.5px",
+                        fontWeight: 700,
+                        color: "#78350f",
+                      }}
+                    >
                       📷 {data.calendarQrSection.scanInstructions}
-                    </span>
-                    <span className="text-[11px] text-stone-500 mt-1 font-serif">
+                    </p>
+                    <p style={{ margin: 0, fontSize: "11.5px", fontWeight: 700, color: "#92400e" }}>
                       {data.calendarQrSection.priestName} • {data.calendarQrSection.priestPhoneDisplay}
-                    </span>
+                    </p>
                   </div>
 
-                  {/* Feature List */}
-                  <div className="space-y-4 text-left">
-                    <h4 className="text-sm font-black uppercase tracking-wider text-amber-900 border-b border-amber-300 pb-1">
-                      ✨ {isKn ? "ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಸಿಗುವ ದೈನಂದಿನ ಸೌಲಭ್ಯಗಳು" : isMr ? "कॅलेंडरमध्ये मिळणाऱ्या दैनंदिन सुविधा" : isHi ? "कैलेंडर में प्राप्त दैनिक सुविधाएं" : isTe ? "క్యాలెండర్‌లో లభించే రోజువారీ సదుపాయాలు" : isTa ? "காலண்டரில் கிடைக்கும் தினசரி வசதிகள்" : "Included Daily Darshana Features"}
-                    </h4>
-                    <ul className="space-y-3">
+                  <div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
                       {data.calendarQrSection.features.map((feat, fIdx) => (
-                        <li key={fIdx} className="flex items-start gap-2.5 text-sm font-serif text-amber-950 leading-relaxed">
-                          <span className="text-amber-700 font-bold text-base leading-none mt-0.5">✓</span>
-                          <span>{feat}</span>
-                        </li>
+                        <div
+                          key={fIdx}
+                          style={{
+                            backgroundColor: "#fffbeb",
+                            borderLeft: "4px solid #d97706",
+                            padding: "8px 12px",
+                            borderRadius: "6px",
+                            fontSize: "13.5px",
+                            lineHeight: 1.45,
+                            fontWeight: 600,
+                            color: "#451a03",
+                          }}
+                        >
+                          ✦ {feat}
+                        </div>
                       ))}
-                    </ul>
-                  </div>
-                </div>
+                    </div>
 
-                {/* 30-Day Cash Desk Upsell Box */}
-                <div className="mt-4 p-4 rounded-xl border-2 border-dashed border-amber-600/60 bg-amber-200/40 text-center space-y-1">
-                  <div className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                    <span>🔔</span>
-                    <span>{data.calendarQrSection.upsellNoticeTitle}</span>
+                    <div
+                      style={{
+                        backgroundColor: "#fef3c7",
+                        border: "1.5px solid #b45309",
+                        borderRadius: "8px",
+                        padding: "10px 14px",
+                      }}
+                    >
+                      <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#78350f", marginBottom: "3px" }}>
+                        {data.calendarQrSection.upsellNoticeTitle}
+                      </div>
+                      <p style={{ margin: 0, fontSize: "12.5px", lineHeight: 1.5, color: "#451a03" }}>
+                        "{data.calendarQrSection.upsellNoticeText}"
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm font-serif text-amber-950 leading-relaxed font-bold">
-                    "{data.calendarQrSection.upsellNoticeText}"
-                  </p>
                 </div>
               </div>
             </div>
           )}
 
           <div
-            key={`chapter-${chapter.chapterNumber}`}
+            className={sectionClass}
             data-section={`chapter-${chapter.chapterNumber}`}
-            className={`${sectionClass} mb-6 z-10`}
           >
-            {/* Section Sub-Header Pill when Section changes (ZERO <table> tags) */}
-            {(chapter.chapterNumber === 1 ||
-              chapter.chapterNumber === 7 ||
-              chapter.chapterNumber === 12 ||
-              chapter.chapterNumber === 17 ||
-              chapter.chapterNumber === 23) && (
-              <div style={{ width: "100%", borderBottom: "1px solid rgba(146, 64, 14, 0.2)", paddingBottom: "8px", marginBottom: "18px", position: "relative" }}>
-                <div style={{ float: "left" }}>
-                  <span className="text-xs font-black tracking-widest uppercase text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full border border-amber-700/20">
-                    {chapter.sectionTitle}
-                  </span>
-                </div>
-                <div style={{ float: "right" }}>
-                  <span className="text-xs text-amber-700/70 font-serif">
-                    {isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಅಧಿಕೃತ ಹಸ್ತಪ್ರತಿ" : "Baggona Panchanga Master Folio"}
-                  </span>
-                </div>
-                <div style={{ clear: "both" }} />
-              </div>
-            )}
+            {/* Clean Localized Section Header Pill */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderLeft: "4px solid #b45309",
+                paddingLeft: "10px",
+                marginBottom: "8px",
+                letterSpacing: "normal",
+              }}
+            >
+              <span
+                style={{
+                  maxWidth: "68%",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  color: "#92400e",
+                  lineHeight: 1.35,
+                }}
+              >
+                {chapter.sectionTitle}
+              </span>
+              <span
+                style={{
+                  maxWidth: "30%",
+                  fontSize: "11.5px",
+                  fontWeight: 700,
+                  color: "#b45309",
+                  textAlign: "right",
+                }}
+              >
+                {folioCornerLabel}
+              </span>
+            </div>
 
-            {/* Chapter Banner */}
             {renderChapterBanner(chapter)}
 
-            {/* Contemplation Ribbon */}
-            {renderContemplationRibbon(chapter.question)}
+            <div
+              style={{
+                backgroundColor: "#ffffff",
+                border: "1.5px solid #fcd34d",
+                borderRadius: "10px",
+                padding: "16px 20px",
+                letterSpacing: "normal",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#fffbeb",
+                  borderLeft: "4px solid #d97706",
+                  padding: "9px 14px",
+                  borderRadius: "6px",
+                  marginBottom: "12px",
+                  fontSize: "15.5px",
+                  fontWeight: 700,
+                  lineHeight: 1.5,
+                  color: "#78350f",
+                  wordBreak: "break-word",
+                }}
+              >
+                {chapter.question}
+              </div>
 
-            {/* Chapter Narrative Paragraphs in Luxury Parchment Card (ZERO Tables) */}
-            <div className="p-6 rounded-xl border border-amber-700/30 bg-amber-100/30 space-y-4 shadow-xs">
-              {chapter.paragraphs.map((p, pIdx) => (
-                <p
-                  key={pIdx}
-                  className="text-lg leading-relaxed text-amber-950 font-serif text-justify"
-                >
-                  {p}
-                </p>
-              ))}
-
-              {/* Optional Practical Guidance Card */}
-              {chapter.practicalGuidance && (
-                <div className="mt-4 p-4 rounded-lg border border-amber-600/30 bg-amber-50/80 shadow-2xs space-y-1">
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
-                    <span>💡</span>
-                    <span>{isKn ? "ಆಚರಣಾ ಮಾರ್ಗದರ್ಶನ" : isMr ? "कृती मार्गदर्शन" : isHi ? "व्यावहारिक मार्गदर्शन" : isTe ? "ఆచరణ మార్గదర్శకం" : isTa ? "நடைமுறை வழிகாட்டல்" : "Practical Guidance"}</span>
-                  </span>
-                  <p className="text-sm font-serif text-amber-950 leading-relaxed italic">
-                    {chapter.practicalGuidance}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {chapter.paragraphs.map((para, pIdx) => (
+                  <p
+                    key={pIdx}
+                    style={{
+                      margin: 0,
+                      fontSize: "15px",
+                      lineHeight: 1.6,
+                      color: "#291808",
+                      letterSpacing: "normal",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {para}
                   </p>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
+
+            {renderContemplationRibbon(chapter.guidanceBadge, chapter.practicalGuidance)}
           </div>
         </React.Fragment>
       ))}
 
-      {/* ── CHAPTER 25 CULMINATION: FAMILY HOOK & PRIEST BOOKING ──────────── */}
-      <div data-section="family-referral-and-priest" className="pdf-section w-full px-14 pt-4 pb-20 relative z-10">
-        {/* Family Protection Hook Box */}
-        <div className="rounded-2xl border-2 border-amber-700/50 bg-gradient-to-br from-amber-100/95 via-orange-50/90 to-amber-100/95 p-6 shadow-md mb-8 relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-2 text-amber-900 font-extrabold text-base">
-            <span className="text-xl">🛡️</span>
-            <span>{isKn ? "ಕುಟುಂಬ ರಕ್ಷಾ ದೈವಿಕ ಸಂದೇಶ" : isMr ? "कौटुंबिक संरक्षण संदेश" : isHi ? "पारिवारिक रक्षा दिव्य संदेश" : isTe ? "కుటుంబ రక్షా దైవిక సందేశం" : isTa ? "குடும்ப பாதுகாப்பு தெய்வீக செய்தி" : "Family Protection Cosmic Hook"}</span>
-          </div>
-          <p className="text-base text-amber-950 font-serif leading-relaxed text-justify font-medium">
+      {/* ==================================================================== */}
+      {/* FINAL CULMINATION: FAMILY PROTECTION HOOK & CHAITANYA PANDIT CONTACT  */}
+      {/* ==================================================================== */}
+      <div className={sectionClass} data-section="family-referral-and-priest">
+        <div
+          style={{
+            background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
+            border: "2px solid #b45309",
+            borderRadius: "12px",
+            padding: "16px 22px",
+            marginBottom: "14px",
+            textAlign: "center",
+            letterSpacing: "normal",
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              fontSize: "15px",
+              fontWeight: 700,
+              lineHeight: 1.6,
+              color: "#451a03",
+              wordBreak: "break-word",
+            }}
+          >
             "{data.familyProtectionHook}"
           </p>
         </div>
 
-        {/* Dosha Parihara & Seva Booking Contact Block (PINNED TO CHAITANYA PANDIT) */}
-        <div className="rounded-2xl border-2 border-amber-700/60 bg-amber-900 text-amber-50 p-8 shadow-xl relative overflow-hidden text-center sm:text-left">
-          <div className="absolute top-3 right-4 text-xs font-black text-amber-300 uppercase tracking-widest">
-            {isKn ? "ಅಧಿಕೃತ ಸೇವಾ ಸನ್ನಿಧಾನ" : isMr ? "अधिकृत सेवा सान्निध्य" : isHi ? "आधिकारिक सेवा सान्निध्य" : isTe ? "అధికారిక సేవా సన్నిధానం" : isTa ? "அதிகாரப்பூர்வ சேவா சன்னதி" : "Official Sanctuary Contact"}
-          </div>
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            border: "2px solid #d97706",
+            borderRadius: "12px",
+            padding: "18px 22px",
+            marginBottom: "12px",
+            letterSpacing: "normal",
+          }}
+        >
+          <h3
+            style={{
+              margin: "0 0 4px 0",
+              fontSize: "17px",
+              fontWeight: 800,
+              color: "#78350f",
+            }}
+          >
+            🕉️ {data.priestBooking.heading}
+          </h3>
+          <p style={{ margin: "0 0 12px 0", fontSize: "13.5px", color: "#92400e", fontWeight: 600 }}>
+            {data.priestBooking.subheading}
+          </p>
 
-          <div className="space-y-4">
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "16px",
+              backgroundColor: "#fffbeb",
+              border: "1.5px solid #f59e0b",
+              borderRadius: "10px",
+              padding: "14px 18px",
+            }}
+          >
             <div>
-              <h3 className="text-xl sm:text-2xl font-black text-amber-100 font-serif mb-1">
-                {data.priestBooking.heading}
-              </h3>
-              <p className="text-xs sm:text-sm text-amber-200/90 font-serif">
-                {data.priestBooking.subheading}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-amber-950/70 border border-amber-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <span className="text-xs text-amber-300 uppercase tracking-widest block font-bold">
-                  {data.priestBooking.priestTitle}
-                </span>
-                <span className="text-2xl font-black text-amber-50 font-serif tracking-normal">
-                  {data.priestBooking.priestName}
-                </span>
-                <p className="text-xs text-amber-200/80 mt-0.5">
-                  📍 {data.priestBooking.address}
-                </p>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#b45309", marginBottom: "2px" }}>
+                {data.priestBooking.priestTitle}
               </div>
-
-              <div className="text-center sm:text-right shrink-0">
-                <span className="text-[11px] uppercase tracking-wider text-amber-300 block font-bold mb-1">
-                  {isKn ? "ನೇರ ಕರೆ / ವಾಟ್ಸಾಪ್ ಬುಕಿಂಗ್" : isMr ? "थेट कॉल / व्हॉट्सॲप" : isHi ? "सीधे कॉल / व्हाट्सएप" : isTe ? "నేరుగా కాల్ / వాట్సాప్" : isTa ? "நேரடி அழைப்பு / வாட்ஸ்அப்" : "Direct Call / WhatsApp"}
-                </span>
-                <a
-                  href={`tel:${data.priestBooking.phone}`}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-lg tracking-wider shadow-md hover:scale-105 transition-transform"
-                >
-                  <span>📞</span>
-                  <span>{data.priestBooking.phoneDisplay}</span>
-                </a>
+              <div style={{ fontSize: "19px", fontWeight: 800, color: "#451a03", marginBottom: "4px" }}>
+                {data.priestBooking.priestName}
+              </div>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "#78350f" }}>
+                📍 {data.priestBooking.address}
               </div>
             </div>
 
-            <p className="text-xs text-amber-200/70 italic text-center pt-2">
-              {isKn ? "ಗಮನಿಸಿ: ನಿಮ್ಮ ಹೆಸರು, ಜನ್ಮ ನಕ್ಷತ್ರ ಮತ್ತು ಗೋತ್ರವನ್ನು ತಿಳಿಸಿ ನೇರವಾಗಿ ಮುಖ್ಯ ಅರ್ಚಕರೊಂದಿಗೆ ಸಂಕಲ್ಪ ಪೂಜೆ ಕಾಯ್ದಿರಿಸಿ."
-                : isMr ? "टीप: आपले नाव, नक्षत्र व गोत्र सांगून थेट मुख्य पुरोहितांशी पूजा संकल्प निश्चित करा."
-                : isHi ? "सूचना: अपना नाम, नक्षत्र एवं गोत्र बताकर सीधे मुख्य अर्चक से संकल्प पूजा सुनिश्चित करें।"
-                : isTe ? "గమనిక: మీ పేరు, నక్షత్రం మరియు గోత్రం తెలిపి నేరుగా ప్రధాన అర్చకులతో పూజా సంకల్పం ఖరారు చేసుకోండి."
-                : isTa ? "குறிப்பு: உங்கள் பெயர், நட்சத்திரம் மற்றும் கோத்திரத்தைக் கூறி நேரடியாக தலைமை அர்ச்சகரிடம் பூஜை சங்கல்பத்தை பதிவு செய்யவும்."
-                : "Note: Quote your birth star and Gotra to confirm authentic Sankalpa Puja with the Chief Priest."}
-            </p>
+            <a
+              href={`tel:${data.priestBooking.phone}`}
+              style={{
+                backgroundColor: "#92400e",
+                color: "#fef3c7",
+                padding: "10px 18px",
+                borderRadius: "8px",
+                fontSize: "18px",
+                fontWeight: 800,
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+                border: "1.5px solid #d97706",
+              }}
+            >
+              📞 <span>{data.priestBooking.phoneDisplay}</span>
+            </a>
           </div>
         </div>
 
-        {/* Sacred Sanskrit Benediction & Gokarna Footer */}
-        <div className="mt-12 text-center text-amber-900 space-y-3 pb-8 border-t border-amber-700/30 pt-6">
-          <p className="text-2xl font-bold font-serif text-amber-950">
-            {isKn ? "॥ ಸರ್ವೇ ಜನಾಃ ಸುಖಿನೋ ಭವಂತು • ಸಮಸ್ತ ಸನ್ಮಂಗಳಾನಿ ಭವಂತು ॥"
-              : isMr ? "॥ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ॥"
-              : isHi ? "॥ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ॥"
-              : isTe ? "॥ సర్వే జనాః సుఖినో భవన్తు • సమస్త సన్మంగళాని భవన్తు ॥"
-              : isTa ? "॥ ஸர்வே ஜனா: ஸுகினோ பவந்து • சமஸ்த சன்மங்களானி பவந்து ॥"
-              : "|| Sarve Bhavantu Sukhinah Sarve Santu Niramayah ||"}
-          </p>
-          <p className="text-sm font-bold uppercase tracking-wider text-amber-800">
-            {data.footerText}
-          </p>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "8px 16px",
+            fontSize: "12.5px",
+            fontWeight: 700,
+            color: "#78350f",
+            letterSpacing: "normal",
+          }}
+        >
+          {data.footerText}
         </div>
       </div>
     </div>
