@@ -43,6 +43,14 @@ import {
   getYogiAttributes6L,
   type SecretAccuracyProfile
 } from "../engine/secretAccuracyEngine";
+import {
+  buildBookletCoverContent,
+  computeExtendedPrecisionMetrics,
+  buildChapterPrecisionEnrichment,
+  formatPageTag6L,
+  type BookletCoverContent,
+  type ExtendedPrecisionMetrics
+} from "./sampoornaMaster25BookletEngine";
 
 // ============================================================================
 // 1. DATA TYPES & INTERFACES
@@ -65,6 +73,7 @@ export interface Master25Chapter {
   icon: string;
   question: string;
   paragraphs: string[];
+  precisionAnchors?: string[];
   guidanceBadge?: string;
   practicalGuidance?: string;
 }
@@ -156,6 +165,13 @@ export interface SampoornaMaster25Payload {
   detectedYogasSummary: string;
   detectedDoshasSummary: string;
   sectionIndexTitles: { sectionNumber: number; title: string; chapterRange: string }[];
+
+  // Dedicated Cover Page Narrative & Extended Precision Summary
+  coverPage: BookletCoverContent;
+  precisionProfile: ExtendedPrecisionMetrics["precisionProfileSummary"];
+  initialChapterPages: Record<number, number>;
+  initialCalendarQrPage: number;
+  initialFinalBlessingPage: number;
 
   // 25 Chapters
   chapters: Master25Chapter[];
@@ -389,9 +405,9 @@ export async function prepareSampoornaMaster25Data(
   const lagnaRashiIdx = (((result.lagnaRashi?.index ?? 0) % 12) + 12) % 12 as RashiIndex;
   const moonRashiIdx = (((result.moonSign?.index ?? 0) % 12) + 12) % 12 as RashiIndex;
 
-  const sunLon = (sunP.rashi.index * 30) + (sunP.degree || 0);
-  const moonLon = (moonP.rashi.index * 30) + (moonP.degree || 0);
-  const rahuLon = (rahuP.rashi.index * 30) + (rahuP.degree || 0);
+  const sunLon = (sunP.rashi.index * 30) + (((sunP.degree || 0) % 30 + 30) % 30);
+  const moonLon = (moonP.rashi.index * 30) + (((moonP.degree || 0) % 30 + 30) % 30);
+  const rahuLon = (rahuP.rashi.index * 30) + (((rahuP.degree || 0) % 30 + 30) % 30);
 
   // Compute Maandi
   const maandiCalc = computeMaandi(birthDt, lat, lng, pin);
@@ -438,10 +454,6 @@ export async function prepareSampoornaMaster25Data(
   // Weekday map Sun(0)->0, Mon(1)->3, Tue(2)->6(Mars), Wed(3)->2, Thu(4)->5, Fri(5)->1, Sat(6)->4(Saturn)
   const CHALDEAN_HORA_ORDER = ["Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars"];
   const DAY_RULER_CHALDEAN_IDX = [0, 3, 6, 2, 5, 1, 4];
-  const currentWeekday = now.getDay();
-  const hoursSinceSunrise = (now.getHours() - 6 + 24) % 24;
-  const liveHoraPlanetRaw = CHALDEAN_HORA_ORDER[(DAY_RULER_CHALDEAN_IDX[currentWeekday] + hoursSinceSunrise) % 7];
-  const livePrashnaHora = GRAHA_6L[liveHoraPlanetRaw]?.[targetLang] || liveHoraPlanetRaw;
 
   // Parashari Rashi Dispositors
   const RASHI_DISPOSITORS_MAP: PlanetName[] = [
@@ -516,7 +528,16 @@ export async function prepareSampoornaMaster25Data(
   }
   const janmaHora = GRAHA_6L[birthHoraRaw]?.[targetLang] || birthHoraRaw;
   const horaLordName = janmaHora;
-  const sunriseTime = toNativeDigits(traditional?.sunrise || "06:15", targetLang);
+  const sunriseTimeRaw = traditional?.sunrise || "06:15";
+  const [srH, srM] = sunriseTimeRaw.split(":").map((x) => parseInt(x, 10));
+  const sunriseHourDecimal = Number.isFinite(srH) ? srH + (Number.isFinite(srM) ? srM : 0) / 60 : 6.25;
+  const nowHourDecimal = now.getHours() + now.getMinutes() / 60;
+  const currentWeekday = now.getDay();
+  const hoursSinceSunrise = Math.floor((nowHourDecimal - sunriseHourDecimal + 24) % 24);
+  const liveHoraPlanetRaw = CHALDEAN_HORA_ORDER[(DAY_RULER_CHALDEAN_IDX[currentWeekday] + hoursSinceSunrise) % 7];
+  const livePrashnaHora = GRAHA_6L[liveHoraPlanetRaw]?.[targetLang] || liveHoraPlanetRaw;
+
+  const sunriseTime = toNativeDigits(sunriseTimeRaw, targetLang);
   const sunsetTime = toNativeDigits(traditional?.sunset || "18:20", targetLang);
 
   const ayanamshaName = pick6({
@@ -719,6 +740,37 @@ export async function prepareSampoornaMaster25Data(
   const bhriguBinduRashiName = RASHI_6L[secretProfile.bhriguBinduRashi]?.[targetLang] || "Taurus";
   const bhriguDeg = (secretProfile.bhriguBinduDegree || 15).toFixed(1);
 
+  const extendedPrecision = computeExtendedPrecisionMetrics({
+    result,
+    targetLang,
+    lagnaRashiIdx,
+    moonRashiIdx,
+    moonNakIdx,
+    sunLon,
+    rawMaha,
+    rawBhukti,
+    lagnaPlanetNature,
+    precisionPlanets,
+    savTable,
+    getHouseLordPlacement,
+    now
+  });
+
+  const lagnaNameLocalized = RASHI_6L[lagnaRashiIdx]?.[targetLang] || "Aries";
+  const moonRashiLocalized = RASHI_6L[moonRashiIdx]?.[targetLang] || "Taurus";
+
+  const coverPage = buildBookletCoverContent({
+    devoteeName: localizedDevoteeName,
+    birthDate,
+    birthTime,
+    birthPlace,
+    lagnaName: lagnaNameLocalized,
+    moonRashi: moonRashiLocalized,
+    nakshatraName,
+    nakshatraPada,
+    targetLang
+  });
+
   options?.onProgress?.(50, pick6({
     kn: "೩. ೨೫ ಆಳವಾದ ಅಧ್ಯಾಯಗಳ ಸಂಯೋಜನೆ (ಪ್ರಶ್ನೋತ್ತರ ಶೈಲಿ, ಶೂನ್ಯ ಕೋಷ್ಟಕ)...",
     mr: "३. २५ सखोल अध्यायांची निर्मिती (प्रश्नोत्तर शैली, शून्य तक्ता)...",
@@ -739,14 +791,15 @@ export async function prepareSampoornaMaster25Data(
     childrenStatus,
     targetLang,
     lagnaRashiIdx,
-    lagnaRashiName: RASHI_6L[lagnaRashiIdx]?.[targetLang] || "Aries",
+    lagnaRashiName: lagnaNameLocalized,
     moonRashiIdx,
-    moonRashiName: RASHI_6L[moonRashiIdx]?.[targetLang] || "Taurus",
+    moonRashiName: moonRashiLocalized,
     nakshatraName,
     nakshatraPada,
     currentHoraPlanet: livePrashnaHora,
     currentMahadasha,
     currentBhuktiLord,
+    bhuktiEndDate,
     isDashaSandhi,
     yogiPlanetName,
     yogiAttrs: yogiAttrs6L,
@@ -789,7 +842,8 @@ export async function prepareSampoornaMaster25Data(
     house6Info: getHouseLordPlacement(6),
     detectedDoshasSummary,
     activeDoshaNames,
-    isYogiGemProhibited
+    isYogiGemProhibited,
+    extendedPrecision
   });
 
   options?.onProgress?.(90, pick6({
@@ -1057,6 +1111,12 @@ export async function prepareSampoornaMaster25Data(
     }
   ];
 
+  const initialChapterPages: Record<number, number> = {};
+  for (let ch = 1; ch <= 24; ch++) {
+    initialChapterPages[ch] = ch + 3; // P1 Cover, P2 Index, P3 Details, P4..P27 Ch 1..24
+  }
+  initialChapterPages[25] = 29; // P28 is 15-day Calendar QR, P29 is Ch 25
+
   return {
     devoteeName: localizedDevoteeName,
     rawName,
@@ -1069,9 +1129,9 @@ export async function prepareSampoornaMaster25Data(
     ageYears: ageDecimal,
     ageCategory,
     targetLanguage: targetLang,
-    lagnaName: RASHI_6L[lagnaRashiIdx]?.[targetLang] || "Aries",
+    lagnaName: lagnaNameLocalized,
     lagnaLord,
-    moonRashi: RASHI_6L[moonRashiIdx]?.[targetLang] || "Taurus",
+    moonRashi: moonRashiLocalized,
     moonLord,
     nakshatraName,
     nakshatraPada,
@@ -1117,6 +1177,11 @@ export async function prepareSampoornaMaster25Data(
     detectedYogasSummary,
     detectedDoshasSummary,
     sectionIndexTitles,
+    coverPage,
+    precisionProfile: extendedPrecision.precisionProfileSummary,
+    initialChapterPages,
+    initialCalendarQrPage: 28,
+    initialFinalBlessingPage: 30,
     chapters,
     calendarQrSection,
     familyProtectionHook,
@@ -1154,6 +1219,7 @@ interface SynthesisContext {
   currentHoraPlanet: string;
   currentMahadasha: string;
   currentBhuktiLord: string;
+  bhuktiEndDate: string;
   isDashaSandhi: boolean;
   yogiPlanetName: string;
   yogiAttrs: any;
@@ -1194,22 +1260,23 @@ interface SynthesisContext {
   detectedDoshasSummary: string;
   activeDoshaNames: string[];
   isYogiGemProhibited: boolean;
+  extendedPrecision: ExtendedPrecisionMetrics;
 }
 
 function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
   const {
     devoteeName, ageCategory, maritalStatus, targetLang,
     lagnaRashiName, moonRashiName, nakshatraName, nakshatraPada,
-    currentHoraPlanet, currentMahadasha, currentBhuktiLord,
+    currentHoraPlanet, currentMahadasha, currentBhuktiLord, bhuktiEndDate,
     isDashaSandhi, yogiPlanetName, yogiAttrs,
     localizedYogiColor, localizedYogiDirection, localizedYogiDay, localizedYogiGemstone, localizedYogiDeity,
-    avayogiPlanetName, bhriguBinduRashiName, maandiHouse, maandiRashiName, nowYear,
+    avayogiPlanetName, bhriguBinduRashiName, bhriguDeg, maandiHouse, maandiRashiName, nowYear,
     shaniTransitRashi, shaniHouseFromMoon, shaniTransitSav, shaniVedhaPlanet,
     guruTransitRashi, guruHouseFromMoon, guruTransitSav, guruVedhaPlanet,
     rahuHouseFromMoon, primaryElem, dominantElement, detectedYogasSummary,
     pushkaraPlanetsLocalized, neechaBhangaLocalized,
     house10Info, house2Info, house11Info, house7Info, house5Info, house6Info,
-    detectedDoshasSummary, isYogiGemProhibited
+    detectedDoshasSummary, isYogiGemProhibited, extendedPrecision
   } = ctx;
 
   const isMinor = ageCategory === "infant" || ageCategory === "early_child" || ageCategory === "child" || ageCategory === "teen";
@@ -2583,28 +2650,28 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ಕಾಲಚಕ್ರದ ಅಲ್ಪಾವಧಿಯ ಗ್ರಹ ಸಂಚಾರವನ್ನು ಅವಲೋಕಿಸಿದಾಗ, ಮುಂಬರುವ ೧ ರಿಂದ ೩ ತಿಂಗಳುಗಳು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಒಂದು ಪುನರಾರಂಭದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಸೂರ್ಯ, ಬುಧ ಹಾಗೂ ಮಂಗಳನ ತ್ವರಿತ ಚಲನೆಯು ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನಕ್ಕೆ ಹೊಸ ಚೈತನ್ಯವನ್ನು ನೀಡಲಿದ್ದು, ಹಿಂದಿನ ತಿಂಗಳುಗಳಲ್ಲಿ ಸ್ಥಗಿತಗೊಂಡಿದ್ದ ಕೆಲಸಗಳಿಗೆ ಮರುಜೀವ ಸಿಗಲಿದೆ.`,
-        mr: `${devoteeName}, आगामी १ ते ३ महिन्यांत सूर्य, बुध व मंगळाच्या हालचाली आपल्या ${lagnaRashiName} लग्नाला नवी ऊर्जा देतील. पूर्वी रखडलेली कामे आता पुन्हा वेग घेतील.`,
-        hi: `${devoteeName}, आगामी १ से ३ महीनों का गोचर विश्लेषण स्पष्ट करता है कि सूर्य, बुध एवं मंगल का संचरण आपके ${lagnaRashiName} लग्न में नवचेतना का संचार करेगा। पिछले कुछ समय से अवरुद्ध कार्य अब पुनः गति पकड़ेंगे।`,
-        te: `${devoteeName}, రాబోయే 1 నుండి 3 నెలల్లో సూర్య, బుధ, కుజుల సంచారం వల్ల మీ ${lagnaRashiName} లగ్నానికి నూతన ఉత్సాహం లభిస్తుంది. ఆగిపోయిన పనులు మళ్లీ మొదలవుతాయి.`,
-        ta: `${devoteeName}, அடுத்த 1 முதல் 3 மாதங்களில் சூரியன், புதன், செவ்வாயின் பெயர்ச்சிகள் உங்கள் ${lagnaRashiName} லக்னத்திற்கு புது வேகத்தை தரும். தடைபட்ட காரியங்கள் இனி சுமுகமாக நடக்கும்.`,
-        en: `${devoteeName}, tracking short-cycle solar, mercurial, and martial transits, the incoming 90 days mark a decisive reboot for your ${lagnaRashiName} ascendant. Projects stalled by bureaucratic inertia or self-doubt will suddenly regain momentum.`
+        kn: `${devoteeName}, ಕಾಲಚಕ್ರದ ಅಲ್ಪಾವಧಿಯ ಗ್ರಹ ಸಂಚಾರವನ್ನು ಅವಲೋಕಿಸಿದಾಗ, ಮುಂಬರುವ ೧ ರಿಂದ ೩ ತಿಂಗಳುಗಳು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಒಂದು ಮಹತ್ವದ ಪುನರಾರಂಭದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಸೂರ್ಯ, ಬುಧ ಹಾಗೂ ಮಂಗಳನ ತ್ವರಿತ ಚಲನೆಯು ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನಕ್ಕೆ ಹೊಸ ಚೈತನ್ಯವನ್ನು ನೀಡಲಿದ್ದು, ಹಿಂದಿನ ತಿಂಗಳುಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತವಾಗಿ ಸ್ಥಗಿತಗೊಂಡಿದ್ದ ಕೆಲಸಗಳು, ಬಾಕಿ ಉಳಿದಿದ್ದ ನಿರ್ಣಯಗಳು ಮತ್ತು ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳಿಗೆ ಮರುಜೀವ ಸಿಗಲಿದೆ.`,
+        mr: `${devoteeName}, आगामी १ ते ३ महिन्यांत सूर्य, बुध व मंगळाच्या जलद हालचाली आपल्या ${lagnaRashiName} लग्नाला नवी ऊर्जा व स्पष्टता देतील. मागील काही महिन्यांत कारण नसताना रखडलेली कामे, अपूर्ण संभाषणे व आर्थिक नियोजन आता पुन्हा वेगाने मार्गी लागू लागेल.`,
+        hi: `${devoteeName}, आगामी १ से ३ महीनों का गोचर विश्लेषण स्पष्ट करता है कि सूर्य, बुध एवं मंगल का संचरण आपके ${lagnaRashiName} लग्न में नवचेतना एवं कार्य-क्षमता का संचार करेगा। पिछले कुछ समय से अवरुद्ध कार्य एवं लंबित निर्णय अब पुनः गति पकड़ेंगे।`,
+        te: `${devoteeName}, రాబోయే 1 నుండి 3 నెలల్లో సూర్య, బుధ మరియు కుజుల వేగవంతమైన సంచారం వల్ల మీ ${lagnaRashiName} లగ్నానికి నూతన ఉత్సాహం, స్పష్టత లభిస్తాయి. గత కొన్ని వారాలుగా కారణం లేకుండా ఆగిపోయిన పనులు, పెండింగ్‌లో ఉన్న చర్చలు మరియు ఆర్థిక ప్రణాళికలు మళ్లీ చక్కగా ముందుకు కదులుతాయి.`,
+        ta: `${devoteeName}, அடுத்த 1 முதல் 3 மாதங்களில் சூரியன், புதன் மற்றும் செவ்வாயின் வேகமான பெயர்ச்சிகள் உங்கள் ${lagnaRashiName} லக்னத்திற்கு புது உத்வேகத்தையும் தெளிவையும் தருகின்றன. கடந்த சில மாதங்களாகத் தடைபட்டு நின்ற காரியங்கள், முடிவுறாத பேச்சுவார்த்தைகள் அனைத்தும் இனி சுமுகமாக நகரத் தொடங்கும்.`,
+        en: `${devoteeName}, tracking rapid solar, mercurial, and martial transits across the incoming 90 days reveals a decisive momentum reboot for your ${lagnaRashiName} ascendant. Stalled discussions, delayed approvals, and administrative backlogs begin moving smoothly again.`
       }, targetLang),
       pick6({
-        kn: `ಈ ೯೦ ದಿನಗಳ ಪ್ರಮುಖ ಕಾರ್ಯಸೂಚಿ: ಮೊದಲ ೩೦ ದಿನಗಳಲ್ಲಿ ಅನಗತ್ಯ ಗೊಂದಲಗಳನ್ನು ಪರಿಹರಿಸಿಕೊಳ್ಳಿ; ಎರಡನೇ ತಿಂಗಳಲ್ಲಿ ಹೊಸ ಒಪ್ಪಂದ, ಆರ್ಥಿಕ ಯೋಜನೆ ಅಥವಾ ವೃತ್ತಿ ಸಂಬಂಧಿ ಪ್ರಮುಖ ಮಾತುಕತೆಗಳಿಗೆ ಸಕಾಲ. ಮೂರನೇ ತಿಂಗಳಲ್ಲಿ ನಿಮ್ಮ ಪರಿಶ್ರಮದ ಪ್ರಥಮ ಫಲಿತಾಂಶವು ಕಣ್ಣಿಗೆ ಕಾಣಿಸಲಿದೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಹಳೆಯ ಶತ್ರುಗಳೊಂದಿಗೆ ವಾದಕ್ಕೆ ಇಳಿಯಬೇಡಿ.`,
-        mr: `या ९० दिवसांची दिशा: पहिल्या महिन्यात जुने वाद मिटवा; दुसऱ्या महिन्यात नवीन करार किंवा नोकरीच्या संधींवर लक्ष केंद्रित करा; तिसऱ्या महिन्यात आपल्या कष्टाचे फळ दिसू लागेल.`,
-        hi: `इस तिमाही की रणनीति: प्रथम ३० दिनों में लंबित विवादों का निस्तारण करें; द्वितीय मास में नवीन अनुबंध अथवा वित्तीय योजनाओं को गति दें; तृतीय मास में आपको अपने श्रम के प्रत्यक्ष परिणाम दृष्टिगोचर होंगे। व्यर्थ के वाद-विवाद से दूर रहें।`,
-        te: `ఈ 90 రోజుల్లో: మొదటి నెలలో పాత సమస్యలను పరిష్కరించుకోండి. రెండవ నెలలో కొత్త ఒప్పందాలు చేసుకోండి. మూడవ నెలలో మీ శ్రమకు ఫలితం కనిపిస్తుంది.`,
-        ta: `இந்த 90 நாட்களின் திட்டம்: முதல் மாதத்தில் பழைய சிக்கல்களை பேசித் தீர்க்கவும்; 2-வது மாதத்தில் புதிய தொழில் முயற்சிகளைத் தொடங்கவும்; 3-வது மாதத்தில் உழைப்பிற்கான பலன் கிடைக்கும்.`,
-        en: `Quarterly strategic cadence: Month 1 demands tidying administrative backlogs and settling unresolved disputes. Month 2 unlocks the golden window for contract signing or financial allocations. Month 3 delivers tangible validation of your efforts.`
+        kn: `ಈ ೯೦ ದಿನಗಳ ಸ್ಪಷ್ಟ ಕಾರ್ಯಸೂಚಿ: ಮೊದಲ ೩೦ ದಿನಗಳಲ್ಲಿ ಹಳೆಯ ತಪ್ಪು ತಿಳುವಳಿಕೆ ಹಾಗೂ ದಾಖಲೆಗಳ ಗೊಂದಲಗಳನ್ನು ಪರಿಹರಿಸಿಕೊಳ್ಳಿ; ಎರಡನೇ ತಿಂಗಳಲ್ಲಿ ಹೊಸ ಒಪ್ಪಂದ, ಆರ್ಥಿಕ ಯೋಜನೆ ಅಥವಾ ವೃತ್ತಿ ಸಂಬಂಧಿ ಮಹತ್ವದ ಮಾತುಕತೆಗಳಿಗೆ ಸಕಾಲವಾಗಿದೆ. ಮೂರನೇ ತಿಂಗಳಲ್ಲಿ ನಿಮ್ಮ ಪರಿಶ್ರಮದ ಪ್ರಥಮ ಫಲಿತಾಂಶವು ಕಣ್ಣಿಗೆ ಸ್ಪಷ್ಟವಾಗಿ ಕಾಣಿಸಲಿದ್ದು, ಅನಗತ್ಯ ವಾದಗಳಿಂದ ದೂರವಿರಿ.`,
+        mr: `या ९० दिवसांची स्पष्ट दिशा: पहिल्या ३० दिवसांत जुने गैरसमज व प्रलंबित कामे शांतपणे मिटवा; दुसऱ्या महिन्यात नवीन करार, बचत योजना किंवा कामातील महत्त्वाच्या संधींवर लक्ष केंद्रित करा; तिसऱ्या महिन्यात आपल्या कष्टाचे प्रत्यक्ष फळ दिसून येईल.`,
+        hi: `इस तिमाही की रणनीति: प्रथम ३० दिनों में लंबित विवादों एवं कागजी उलझनों का निस्तारण करें; द्वितीय मास में नवीन अनुबंध अथवा वित्तीय योजनाओं को गति दें; तृतीय मास में आपको अपने परिश्रम के प्रत्यक्ष शुभ परिणाम प्राप्त होंगे।`,
+        te: `ఈ 90 రోజుల స్పష్టమైన ప్రణాళిక: మొదటి 30 రోజుల్లో పాత అపార్థాలు మరియు పెండింగ్ సమస్యలను ప్రశాంతంగా పరిష్కరించుకోండి. రెండవ నెలలో కొత్త ఒప్పందాలు లేదా ముఖ్యమైన వృత్తి చర్చలు జరపడానికి మంచి సమయం. మూడవ నెలలో మీ కష్టానికి తగిన తొలి శుభ ఫలితం స్పష్టంగా కనిపిస్తుంది; అనవసర వాదనలకు దూరంగా ఉండండి.`,
+        ta: `இந்த 90 நாட்களுக்கான செயல் திட்டம்: முதல் 30 நாட்களில் பழைய மனக்கசப்புகளையும் நிலுவை ஆவணங்களையும் அமைதியாகச் சரி செய்யுங்கள்; 2-வது மாதத்தில் புதிய முயற்சிகள் மற்றும் முக்கிய ஆலோசனைகளைத் தொடங்குங்கள்; 3-வது மாதத்தில் உங்கள் உழைப்பிற்கான உறுதியான பலன் கண்முன்னே தெரியும்.`,
+        en: `Your 90-day cadence: Month 1 calls for clearing loose ends and administrative backlogs calmly. Month 2 opens the productive window for interviews, savings plans, or vital dialogues. Month 3 delivers concrete validation of your patient discipline without needless friction.`
       }, targetLang),
       pick6({
-        kn: `ಈ ತ್ರೈಮಾಸಿಕದ ದೈವಿಕ ರಕ್ಷಣೆಗಾಗಿ: ಮಂಗಳವಾರ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಹನುಮಂತನಿಗೆ ಕುಂಕುಮಾರ್ಚನೆ ಮಾಡಿಸಿ. ನಿಮ್ಮ ನಿತ್ಯ ಪೂಜೆಯಲ್ಲಿ 'ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ' ಸ್ಮರಣೆಯು ಯಾವುದೇ ಹಠಾತ್ ಅಡೆತಡೆಗಳು ಬಾರದಂತೆ ನೋಡಿಕೊಳ್ಳುತ್ತದೆ.`,
-        mr: `या काळासाठी उपाय: मंगळवारी मारुती किंवा गणपतीची पूजा करा. गोकर्ण महाबळेश्वराचे नित्य स्मरण सर्व अडथळे दूर करेल.`,
-        hi: `इस तिमाही का सुरक्षा कवच: मंगलवार को हनुमान चालीसा का पाठ करें एवं सिंदूर अर्पित करें। नित्य श्री गोकर्ण महाबलेश्वर का स्मरण समस्त विघ्नों का शमन करेगा।`,
-        te: `ఈ మూడు నెలల రక్షణ కొరకు: మంగళవారం హనుమాన్ చాలీసా పఠించండి. గోకర్ణ మహాబలేశ్వరుని స్మరించడం వల్ల ఆటంకాలు తొలగుతాయి.`,
-        ta: `இந்த காலாண்டிற்கான பரிகாரம்: செவ்வாய்க்கிழமைகளில் அனுமன் சாலிசா சொல்லவும். கோகர்ண மகாபலேஸ்வரரை வழிபட எந்தத் தடைகளும் அகலும்.`,
-        en: `To safeguard this 90-day trajectory: invoke Lord Hanuman or Kartikeya on Tuesdays, offering sindoor or red flowers. A daily invocation of Sri Kshetra Gokarna Mahabaleshwara dissolves unexpected logistical blockages.`
+        kn: `ಈ ತ್ರೈಮಾಸಿಕದ ದೈವಿಕ ರಕ್ಷಣೆಗಾಗಿ: ಮಂಗಳವಾರ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಹನುಮಂತನಿಗೆ ಕುಂಕುಮಾರ್ಚನೆ ಹಾಗೂ ದೀಪಾರಾಧನೆ ಮಾಡಿಸಿ. ನಿಮ್ಮ ನಿತ್ಯ ಪೂಜೆಯಲ್ಲಿ 'ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ' ಸ್ಮರಣೆಯು ಯಾವುದೇ ಹಠಾತ್ ಅಡೆತಡೆಗಳು ಬಾರದಂತೆ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.`,
+        mr: `या काळासाठी दैवी उपाय: मंगळवारी मारुती किंवा गणपतीची पूजा व दीपारती करा आणि दररोज श्री गोकर्ण महाबळेश्वराचे स्मरण करा, जेणेकरून सर्व अडचणी शांत होतील.`,
+        hi: `इस तिमाही का सुरक्षा कवच: मंगलवार को हनुमान चालीसा का पाठ कर दीप प्रज्वलित करें एवं नित्य श्री गोकर्ण महाबलेश्वर का स्मरण करें ताकि समस्त विघ्न शांत रहें।`,
+        te: `ఈ మూడు నెలల దైవిక రక్షణ కొరకు: మంగళవారం నాడు భక్తితో హనుమాన్ చాలీసా పఠించి దీపారాధన చేయండి. నిత్యం శ్రీ గోకర్ణ మహాబలేశ్వరుని స్మరించడం వల్ల ఆకస్మిక ఆటంకాలు తొలగి ప్రశాంతత లభిస్తుంది.`,
+        ta: `இந்த காலாண்டின் தெய்வீகப் பாதுகாப்பு: செவ்வாய்க்கிழமைகளில் அனுமன் சாலிசா பாராயணம் செய்து தீபம் ஏற்றுங்கள். தினமும் ஸ்ரீ கோகர்ண மகாபலேஸ்வரரை மனதார நினைத்து செயல்பட திடீர் தடைகள் அனைத்தும் விலகும்.`,
+        en: `Protective 90-day shield: recite Sri Hanuman or Kartikeya prayers with a pure ghee lamp on Tuesdays, and keep Sri Kshetra Gokarna Mahabaleshwara in morning remembrance to dissolve sudden logistical obstacles.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ತ್ರೈಮಾಸಿಕ ದಿಕ್ಸೂಚಿ", mr: "त्रैमासिक दिशा", hi: "त्रैमासिक दिशा", te: "త్రైమాసిక ప్రణాళిక", ta: "காலாண்டு வழிகாட்டல்", en: "Quarterly Tactical Compass" }, targetLang),
@@ -2654,28 +2721,28 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ನಿಮ್ಮ ಜಾತಕದ ಬೃಗು ಬಿಂದುವು (ರಾಹು ಮತ್ತು ಚಂದ್ರರ ಪರಮ ಪವಿತ್ರ ಮಧ್ಯಬಿಂದು) '${bhriguBinduRashiName}' ರಾಶಿಯಲ್ಲಿದೆ. ಮುಂಬರುವ ೪ ರಿಂದ ೬ ತಿಂಗಳುಗಳ ಅವಧಿಯಲ್ಲಿ ಗೋಚಾರ ಗುರು ಅಥವಾ ಇತರ ಶುಭ ಗ್ರಹಗಳು ಈ ಬಿಂದುವಿನೊಂದಿಗೆ ತ್ರಿಕೋಣ ಅಥವಾ ಕೇಂದ್ರ ದೃಷ್ಟಿಯನ್ನು ಸಾಧಿಸಲಿದ್ದು, ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಒಂದು ಅನಿರೀಕ್ಷಿತ ಅದೃಷ್ಟದ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ.`,
-        mr: `${devoteeName}, आपल्या कुंडलीतील भृगु बिंदू (राहु व चंद्राचा मध्यबिंदू) '${bhriguBinduRashiName}' राशीत आहे. पुढील ४ ते ६ महिन्यांत शुभ ग्रहांचे गोचर या बिंदूशी जुळून आल्याने नशिबाची अनपेक्षित दारे उघडतील.`,
-        hi: `${devoteeName}, आपकी कुंडली का गुप्त भृगु बिंदु (राहु एवं चंद्र का शुद्ध मध्यबिंदू) '${bhriguBinduRashiName}' राशि में स्थित है। आगामी ४ से ६ मास की अवधि में जब गोचर के शुभ ग्रह इस बिंदु से संबंध स्थापित करेंगे, तब अप्रत्याशित सौभाग्य के द्वार खुलेंगे।`,
-        te: `${devoteeName}, మీ భృగు బిందువు '${bhriguBinduRashiName}' రాశిలో ఉంది. రాబోయే 4 నుండి 6 నెలల్లో శుభ గ్రహాల కలయిక వల్ల అదృష్టం కలిసివస్తుంది.`,
-        ta: `${devoteeName}, உங்கள் ஜாதகத்தின் பிருகு பிந்து '${bhriguBinduRashiName}' ராசியில் அமைந்துள்ளது. அடுத்த 4 முதல் 6 மாதங்களில் சுப கிரகங்களின் பார்வை இந்த புள்ளியின் மீது விழுவதால் பெரும் அதிர்ஷ்டம் கிட்டும்.`,
-        en: `${devoteeName}, your chart's Bhrigu Bindu (the mathematical mid-point between natal Rahu and Moon) is anchored in ${bhriguBinduRashiName}. As benefic transits harmonize with this coordinate across Months 4 to 6, a dormant karmic doorway swings open.`
+        kn: `${devoteeName}, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ರಹಸ್ಯ ಬೃಗು ಬಿಂದುವು (ರಾಹು ಮತ್ತು ಚಂದ್ರರ ಪರಮ ಪವಿತ್ರ ಮಧ್ಯಬಿಂದು) '${bhriguBinduRashiName}' ರಾಶಿಯಲ್ಲಿ ಸ್ಥಿತವಾಗಿದೆ. ಮುಂಬರುವ ೪ ರಿಂದ ೬ ತಿಂಗಳುಗಳ ಅವಧಿಯಲ್ಲಿ ಗೋಚಾರ ಗುರು ಅಥವಾ ಶುಭ ಗ್ರಹಗಳು ಈ ಬಿಂದುವಿನೊಂದಿಗೆ ಪವಿತ್ರ ತ್ರಿಕೋಣ ಅಥವಾ ಕೇಂದ್ರ ದೃಷ್ಟಿಯನ್ನು ಸಾಧಿಸಲಿದ್ದು, ಬಹುಕಾಲದಿಂದ ಕಾಯುತ್ತಿದ್ದ ಅದೃಷ್ಟದ ಬಾಗಿಲು ನಿಮ್ಮ ಪರವಾಗಿ ತೆರೆಯಲಿದೆ.`,
+        mr: `${devoteeName}, आपल्या कुंडलीतील पावन भृगु बिंदू (राहु व चंद्राचा मध्यबिंदू) '${bhriguBinduRashiName}' राशीत स्थित आहे. पुढील ४ ते ६ महिन्यांच्या कालावधीत शुभ ग्रहांचे गोचर या बिंदूशी त्रिकोण किंवा केंद्र संबंध जोडताच नशिबाचे अनेक दिवसांपासून रखडलेले दार अचानक उघडणार आहे.`,
+        hi: `${devoteeName}, आपकी जन्मकुंडली का रहस्यमयी भृगु बिंदु (राहु एवं चंद्र का शुद्ध मध्यबिंदू) '${bhriguBinduRashiName}' राशि में स्थित है। आगामी ४ से ६ मास के मध्य जब गोचर के शुभ ग्रह इस बिंदु से त्रिकोण अथवा केंद्र संबंध बनाएंगे, तब प्रतीक्षित सौभाग्य के द्वार खुलेंगे।`,
+        te: `${devoteeName}, మీ జన్మ కుండలిలోని అత్యంత శక్తివంతమైన భృగు బిందువు (రాహు-చంద్రుల మధ్యబిందువు) '${bhriguBinduRashiName}' రాశిలో స్థిరపడి ఉంది. రాబోయే 4 నుండి 6 నెలల మధ్యలో శుభ గ్రహాల గోచార దృష్టి ఈ బిందువుపై పడగానే, ఎప్పటి నుంచో ఎదురుచూస్తున్న అదృష్ట తలుపులు మీ కోసం తెరుచుకుంటాయి.`,
+        ta: `${devoteeName}, உங்கள் ஜாதகத்தின் சக்திவாய்ந்த பிருகு பிந்து (ராகு-சந்திரனின் மையப் புள்ளி) '${bhriguBinduRashiName}' ராசியில் அமைந்துள்ளது. அடுத்த 4 முதல் 6 மாதங்களில் சுப கிரகங்களின் கோசாரப் பார்வை இந்தப் புள்ளியின் மீது விழும்போது, நீண்ட நாட்களாகக் காத்திருந்த அதிர்ஷ்ட வாய்ப்புகள் தானாகத் திறக்கும்.`,
+        en: `${devoteeName}, your chart's sacred Bhrigu Bindu (exact midpoint between natal Rahu and Moon) resides in ${bhriguBinduRashiName}. As auspicious transits cast harmonious aspects across this sensitive coordinate over Months 4–6, a long-awaited karmic doorway opens.`
       }, targetLang),
       pick6({
-        kn: `ಈ ಅವಧಿಯ ಮುಖ್ಯ ಅನುಕೂಲಗಳು: ಉದ್ಯೋಗದಲ್ಲಿ ಬಹುದಿನಗಳಿಂದ ನಿರೀಕ್ಷಿಸುತ್ತಿದ್ದ ಬಡ್ತಿ, ವ್ಯಾಪಾರದಲ್ಲಿ ಲಾಭದಾಯಕ ಮೈತ್ರಿ, ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಬಹುದಿನಗಳ ಕನಸಾದ ಸ್ವಂತ ಮನೆ/ವಾಹನ ಖರೀದಿ ಪ್ರಕ್ರಿಯೆಗಳು ಮುಕ್ತಾಯದ ಹಂತಕ್ಕೆ ಬರಲಿವೆ. ನಿಮ್ಮ ಸಾಮರ್ಥ್ಯವನ್ನು ಜಗತ್ತು ಗುರುತಿಸುವ ಸಮಯವಿದು.`,
-        mr: `या काळातील फायदे: नोकरीत प्रमोशन, व्यापारात नवीन भागीदारी, अथवा घर/वाहन खरेदीचे स्वप्न पूर्ण होण्याच्या मार्गावर येईल. लोक आपल्या कामाचे कौतुक करतील.`,
-        hi: `इस अवधि के मुख्य लाभ: कार्यक्षेत्र में बहुप्रतीक्षित पदोन्नति, व्यापारिक साझेदारी का विस्तार अथवा गृह/वाहन क्रय की योजनाएं साकार होंगी। आपकी योग्यता को सामाजिक मान्यता प्राप्त होगी।`,
-        te: `ఈ కాలంలో ఉద్యోగంలో ప్రమోషన్, వ్యాపార విస్తరణ లేదా ఇల్లు, వాహనం కొనుగోలు చేసే అవకాశాలు లభిస్తాయి.`,
-        ta: `இந்த காலத்தில் பதவி உயர்வு, புதிய கூட்டுத் தொழில், அல்லது வீடு, வாகனம் வாங்கும் கனவு நனவாகும். உங்கள் திறமைக்கு தகுந்த அங்கீகாரம் கிடைக்கும்.`,
-        en: `Real-world manifestations during this window: delayed promotions crystallize, strategic partnerships solidify, and discussions surrounding property or vehicle acquisitions reach fruition with familial consensus.`
+        kn: `ಈ ಅವಧಿಯ ಮುಖ್ಯ ಅನುಕೂಲಗಳು: ಉದ್ಯೋಗದಲ್ಲಿ ಬಹುದಿನಗಳಿಂದ ನಿರೀಕ್ಷಿಸುತ್ತಿದ್ದ ಬಡ್ತಿ ಹಾಗೂ ವೇತನ ಹೆಚ್ಚಳ, ವ್ಯಾಪಾರದಲ್ಲಿ ಲಾಭದಾಯಕ ಮೈತ್ರಿ, ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಬಹುದಿನಗಳ ಕನಸಾದ ಸ್ವಂತ ನಿವಾಸ/ವಾಹನ ಖರೀದಿ ಮಾತುಕತೆಗಳು ಫಲಿಸುವ ಸೂಚನೆಗಳಿವೆ. ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಎಲ್ಲರೂ ಮೆಚ್ಚಿ ಗೌರವಿಸುವ ಸಮಯವಿದು.`,
+        mr: `या काळातील मुख्य यश: नोकरीत बहुप्रतीक्षित पदोन्नती व सन्मान, व्यापारात विश्वासाची भागीदारी, किंवा कुटुंबातील घर व वाहन खरेदीचे स्वप्न पूर्ण होण्याचे स्पष्ट संकेत मिळत आहेत. आपल्या प्रामाणिक कामगिरीचे सर्वत्र कौतुक होईल.`,
+        hi: `इस अवधि के मुख्य शुभ फल: कार्यक्षेत्र में बहुप्रतीक्षित पदोन्नति, व्यापारिक साझेदारी का विस्तार अथवा गृह एवं वाहन क्रय से जुड़ी योजनाएं साकार होंगी। आपकी निष्ठा और योग्यता को समाज एवं परिवार में सम्मान प्राप्त होगा।`,
+        te: `ఈ కాలంలో లభించే ముఖ్య ప్రయోజనాలు: ఉద్యోగంలో చాలా కాలంగా ఆశించిన పదోన్నతి, వ్యాపారంలో నమ్మకమైన లాభదాయక భాగస్వామ్యం, లేదా కుటుంబంలో ఇల్లు మరియు వాహన కొనుగోలు వంటి శుభ ప్రయత్నాలు విజయవంతంగా ముందుకు సాగుతాయి. మీ నిజాయితీ మరియు సామర్థ్యానికి తగిన గౌరవం లభిస్తుంది.`,
+        ta: `இந்தக் காலகட்டத்தின் முக்கிய பலன்கள்: பணியில் எதிர்பார்த்த பதவி உயர்வு, வியாபாரத்தில் லாபகரமான புதிய கூட்டணி, அல்லது வீடு மற்றும் வாகனம் வாங்கும் முயற்சிகள் வெற்றிகரமாக நிறைவேறும். உங்கள் நேர்மைக்கும் திறமைக்கும் உரிய அங்கீகாரம் தேடி வரும்.`,
+        en: `Concrete manifestations across Months 4–6: stagnant promotion discussions turn favorable, trustworthy collaborations mature, and family deliberations around property, domestic sanctuary, or study milestones move cleanly toward agreement.`
       }, targetLang),
       pick6({
-        kn: `ಈ ಸುವರ್ಣ ತಿರುವನ್ನು ಭದ್ರಪಡಿಸಿಕೊಳ್ಳಲು: ನಿಮ್ಮ ಇಷ್ಟದೇವತೆಗೆ ಪಾಯಸ ನೈವೇದ್ಯ ಅರ್ಪಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಮಹಾಪೂಜೆ ಮಾಡಿಸುವುದರಿಂದ, ಬೃಗು ಬಿಂದುವಿನ ಶಕ್ತಿಯು ಪೂರ್ಣ ಪ್ರಮಾಣದಲ್ಲಿ ಫಲ ನೀಡಿ ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಶಾಶ್ವತ ನೆಮ್ಮದಿಯನ್ನು ನೀಡುತ್ತದೆ.`,
-        mr: `या यशासाठी: कुलदेवतेला खिरीचा नैवेद्य दाखवा व गोकर्ण महाबळेश्वर क्षेत्रात पूजा करा. यामुळे घरात सुख-समृद्धी नांदेल.`,
-        hi: `इस शुभ फल को चिरस्थायी बनाने हेतु: इष्टदेव को मिष्ठान्न का भोग लगाएं एवं श्री गोकर्ण धाम में विशेष पूजा का संकल्प लें। इससे घर-परिवार में सुख-समृद्धि का वास होगा।`,
-        te: `ఈ శుభ యోగాన్ని సద్వినియోగం చేసుకోవడానికి ఇష్టదైవానికి పాయసం నైవేద్యం పెట్టండి. గోకర్ణంలో పూజ చేయించడం వల్ల శాశ్వత శాంతి లభిస్తుంది.`,
-        ta: `இந்த நல்ல நேரத்தை பயன்படுத்திக் கொள்ள: இஷ்ட தெய்வத்திற்கு பாயாசம் படைத்து வழிபடவும். கோகர்ணத்தில் வழிபாடு செய்ய குடும்பத்தில் சுபகாரியங்கள் தடையின்றி நடக்கும்.`,
-        en: `To anchor this turning point: offer sweet milk-rice (Payasa) at your home altar, and sponsor a dedicated Archana at Sri Kshetra Gokarna to magnetize and stabilize the auspicious Bhrigu Bindu wave.`
+        kn: `ಈ ಸುವರ್ಣ ತಿರುವನ್ನು ಶಾಶ್ವತಗೊಳಿಸಲು: ನಿಮ್ಮ ಇಷ್ಟದೇವತೆಗೆ ಶುದ್ಧ ಪಾಯಸ ನೈವೇದ್ಯ ಅರ್ಪಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಮಹಾಪೂಜೆ ಸಂಕಲ್ಪ ಮಾಡಿಸುವುದರಿಂದ, ಬೃಗು ಬಿಂದುವಿನ ಶಕ್ತಿಯು ಪೂರ್ಣ ಫಲ ನೀಡಿ ಕುಟುಂಬಕ್ಕೆ ನೆಮ್ಮದಿ ಕರುಣಿಸುತ್ತದೆ.`,
+        mr: `या यशासाठी उपाय: आपल्या कुलदेवतेला खिरीचा नैवेद्य अर्पण करा आणि श्री गोकर्ण महाबळेश्वर क्षेत्रात विशेष पूजेचा संकल्प केल्याने भृगु बिंदूचे पूर्ण शुभ फळ कुटुंबात स्थिर राहील.`,
+        hi: `इस शुभ मोड़ को चिरस्थायी बनाने हेतु: इष्टदेव को खीर अथवा मिष्ठान्न का भोग लगाएं तथा श्री गोकर्ण धाम में विशेष पूजा का संकल्प लें ताकि परिवार में सुख-शांति एवं समृद्धि बनी रहे।`,
+        te: `ఈ అద్భుత మలుపును స్థిరపరచుకోవడానికి: మీ ఇష్టదైవానికి భక్తితో పాయసం నైవేద్యం సమర్పించండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని సన్నిధానంలో పూజా సంకల్పం చేయించడం వల్ల భృగు బిందువు యొక్క సంపూర్ణ శుభ శక్తి కుటుంబానికి శాశ్వత శాంతిని ప్రసాదిస్తుంది.`,
+        ta: `இந்த நற்பலனை நிலைநிறுத்த: உங்கள் இஷ்ட தெய்வத்திற்கு பாயாசம் படைத்து வழிபடுங்கள். ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியில் சிறப்பு அர்ச்சனை சங்கல்பம் செய்வது பிருகு பிந்துவின் முழுமையான அருளைக் குடும்பத்தில் நிலைபெறச் செய்யும்.`,
+        en: `To consecrate this fortunate pivot: offer sweet milk-rice (Payasa) at your home shrine, and sponsor a devout Archana at Sri Kshetra Gokarna so Bhrigu Bindu's uplifting wave stabilizes lasting family serenity.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ಬೃಗು ಬಿಂದು ದರ್ಶನ", mr: "भृगु बिंदू दर्शन", hi: "भृगु बिंदु दर्शन", te: "భృగు బిందు దర్శనం", ta: "பிருகு பிந்து தரிசனம்", en: "Bhrigu Turning Point" }, targetLang),
@@ -2713,28 +2780,28 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ಪ್ರಸಕ್ತ ${n(nowYear)}ನೇ ವರ್ಷವು ನಿಮ್ಮ ಜೀವನದ ದೀರ್ಘಕಾಲಿಕ ಗುರಿಗಳಿಗೆ ಗಟ್ಟಿ ಅಡಿಪಾಯ ಹಾಕುವ ವರ್ಷವಾಗಿದೆ. ಗ್ರಹಗಳ ಸಮಗ್ರ ಗಣಿತದ ಪ್ರಕಾರ, ಈ ವರ್ಷವು ಹಳೆಯ ಸಮಸ್ಯೆಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ಪರಿಹರಿಸಲು ಮತ್ತು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯನ್ನು ಹಳಿಗೆ ತರಲು ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾಗಿದೆ. ನಿಮ್ಮ ಆತ್ಮವಿಶ್ವಾಸವು ದಿನದಿಂದ ದಿನಕ್ಕೆ ವೃದ್ಧಿಸಲಿದೆ.`,
-        mr: `${devoteeName}, चालू वर्ष ${n(nowYear)} हे आपल्या आयुष्याची भक्कम पायाभरणी करण्याचे वर्ष आहे. जुन्या अडचणींवर मात करून आर्थिक स्थिती सुधारण्यासाठी हा काळ अतिशय अनुकूल आहे.`,
-        hi: `${devoteeName}, वर्तमान वर्ष ${n(nowYear)} आपके जीवन के दीर्घकालिक लक्ष्यों हेतु सुदृढ़ आधारशिला रखने का समय है। ग्रह गणनाओं के अनुसार यह वर्ष पुरानी समस्याओं के स्थायी समाधान एवं वित्तीय स्थिति को व्यवस्थित करने हेतु अत्यंत उपयुक्त है।`,
-        te: `${devoteeName}, ఈ సంవత్సరం ${n(nowYear)} మీ జీవితంలో మంచి పునాది వేసే కాలం. పాత సమస్యలు పరిష్కారమై ఆర్థికంగా స్థిరపడతారు.`,
-        ta: `${devoteeName}, இந்த ஆண்டு ${n(nowYear)} உங்கள் நீண்ட கால இலக்குகளுக்கு உறுதியான அடித்தளம் அமைக்கும் ஆண்டாகும். பழைய பிரச்சனைகள் தீர்ந்து பொருளாதார நிலை உயரும்.`,
-        en: `${devoteeName}, Year 1 (${nowYear}) is structurally designated as your Foundation Fortification epoch. Comprehensive astronomical vectors confirm this is the season to extinguish legacy liabilities and systematize finances.`
+        kn: `${devoteeName}, ಪ್ರಸಕ್ತ ${n(nowYear)}ನೇ ವರ್ಷವು ನಿಮ್ಮ ಜೀವನದ ದೀರ್ಘಕಾಲಿಕ ಗುರಿಗಳಿಗೆ ಗಟ್ಟಿ ಅಡಿಪಾಯ ಹಾಕುವ ಅತ್ಯಂತ ನಿರ್ಣಾಯಕ ವರ್ಷವಾಗಿದೆ. ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನ ಹಾಗೂ ${moonRashiName} ರಾಶಿಯ ಸಮಗ್ರ ಗ್ರಹ ಗಣಿತದ ಪ್ರಕಾರ, ಹಿಂದಿನ ದಿನಗಳಲ್ಲಿ ಕಾಡಿದ ಗೊಂದಲಗಳು, ವಿಳಂಬಿತ ಹಣಕಾಸು ಮತ್ತು ಅನಿಶ್ಚಿತತೆಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ಪರಿಹರಿಸಿ ನಿಮ್ಮ ಬದುಕನ್ನು ಶಿಸ್ತುಬದ್ಧ ಹಳಿಗೆ ತರಲು ಪ್ರಕೃತಿಯು ಅಪೂರ್ವ ಅವಕಾಶ ಕಲ್ಪಿಸಿದೆ. ತಾಳ್ಮೆ ಮತ್ತು ಸತ್ಯನಿಷ್ಠೆಯೊಂದಿಗೆ ಹೆಜ್ಜೆ ಹಾಕಿದರೆ ನಿಮ್ಮ ಆತ್ಮವಿಶ್ವಾಸವು ದಿನದಿಂದ ದಿನಕ್ಕೆ ವೃದ್ಧಿಸಲಿದೆ.`,
+        mr: `${devoteeName}, चालू वर्ष ${n(nowYear)} हे आपल्या आयुष्याची भक्कम पायाभरणी करण्याचे अत्यंत महत्त्वाचे वर्ष आहे. आपल्या ${lagnaRashiName} लग्न व ${moonRashiName} राशीनुसार मागील अडचणींवर मात करून आर्थिक व कौटुंबिक स्थिती स्थिर करण्यासाठी हा काळ अतिशय अनुकूल असून आपल्या परिश्रमांना योग्य दिशा मिळेल.`,
+        hi: `${devoteeName}, वर्तमान वर्ष ${n(nowYear)} आपके जीवन के दीर्घकालिक लक्ष्यों हेतु सुदृढ़ आधारशिला रखने का अत्यंत निर्णायक कालखंड है। आपके ${lagnaRashiName} लग्न एवं ${moonRashiName} राशि की ग्रह गणनाओं के अनुसार यह वर्ष पुरानी उलझनों के स्थायी समाधान एवं आर्थिक स्थिति को व्यवस्थित करने हेतु अत्यंत उपयुक्त है।`,
+        te: `${devoteeName}, ఈ సంవత్సరం ${n(nowYear)} మీ జీవితంలో అత్యంత కీలకమైన పునాది వేసే సువర్ణ కాలం. మీ ${lagnaRashiName} లగ్నం మరియు ${moonRashiName} రాశి గ్రహ స్థితుల ప్రకారం, గత కొన్ని నెలలుగా ఎదురైన ఆటంకాలు మరియు పాత సమస్యలు క్రమంగా పరిష్కారమై మీ ఆర్థిక, కుటుంబ పరిస్థితులు దృఢంగా స్థిరపడతాయి. మీ ఆత్మవిశ్వాసం రోజురోజుకూ పెరిగి కొత్త లక్ష్యాల వైపు నిలకడగా అడుగులు వేస్తారు.`,
+        ta: `${devoteeName}, இந்த ஆண்டு ${n(nowYear)} உங்கள் நீண்ட கால இலக்குகளுக்கு உறுதியான அடித்தளம் அமைக்கும் மிக முக்கியமான ஆண்டாகும். உங்கள் ${lagnaRashiName} லக்னம் மற்றும் ${moonRashiName} ராசியின் கிரக கணக்கீட்டின்படி, கடந்த காலத் தடைகளும் பழைய சிக்கல்களும் படிப்படியாக நீங்கி பொருளாதார மற்றும் குடும்ப நிலை சீராகும். பொறுமையுடன் செயல்பட்டால் மன உறுதியும் வெற்றியும் நாளுக்கு நாள் உயரும்.`,
+        en: `${devoteeName}, Year 1 (${nowYear}) stands astrologically designated as your Foundation Fortification epoch. Synthesizing your ${lagnaRashiName} ascendant and ${moonRashiName} Moon vectors confirms this 12-month cycle rewards cleaning administrative backlogs, extinguishing lingering obligations, and locking steady household structure.`
       }, targetLang),
       pick6({
-        kn: `ಈ ವರ್ಷದ ಸುವರ್ಣ ತಿಂಗಳುಗಳು: ವರ್ಷದ ಮಧ್ಯಭಾಗವು ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ ಹಾಗೂ ಧನಾರ್ಜನೆಗೆ ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಿದೆ. ಆದರೆ ವರ್ಷದ ಕೊನೆಯ ತಿಂಗಳುಗಳಲ್ಲಿ ಆರೋಗ್ಯ ಹಾಗೂ ಪ್ರಯಾಣದ ವೇಳೆ ಅಲ್ಪ ಜಾಗರೂಕತೆ ಅಗತ್ಯ. ಕಣ್ಣು ಮುಚ್ಚಿ ಯಾರನ್ನೂ ನಂಬದೆ, ಎಲ್ಲ ವ್ಯವಹಾರಗಳನ್ನು ಲಿಖಿತ ರೂಪದಲ್ಲಿ ಇಟ್ಟುಕೊಳ್ಳುವುದು ಸುರಕ್ಷಿತ.`,
-        mr: `या वर्षाचे शुभ महिने: वर्षाचा मध्य काळ धनलाभ व नोकरीसाठी उत्तम आहे. वर्षाच्या शेवटी प्रवासात व आरोग्याची काळजी घ्या. सर्व व्यवहार लेखी ठेवा.`,
-        hi: `वर्ष के स्वर्णिम कालखंड: वर्ष का मध्य भाग आजीविका एवं धन लाभ हेतु अत्यधिक फलदायी रहेगा। वर्ष के अंतिम महीनों में स्वास्थ्य एवं यात्रा में सावधानी अपेक्षित है। समस्त लेनदेन लिखित रूप में ही करें।`,
-        te: `ఈ ఏడాది మధ్య భాగం వ్యాపారానికి, ధనలాభానికి అనుకూలం. చివర్లో ఆరోగ్యం, ప్రయాణాల్లో జాగ్రత్త వహించండి.`,
-        ta: `இந்த ஆண்டின் நற்காலம்: ஆண்டின் நடுப்பகுதி தொழில் மற்றும் வருமானத்திற்கு மிகச் சிறந்தது. ஆண்டின் இறுதியில் பயணங்களிலும் ஆரோக்கியத்திலும் கவனம் தேவை.`,
-        en: `Golden operating windows for Year 1: the mid-year corridor yields maximum harvest across commerce and professional standing. The closing quarter calls for calm discipline during travel and health preservation.`
+        kn: `ಈ ವರ್ಷದ ಸುವರ್ಣ ತಿಂಗಳುಗಳು ಮತ್ತು ಎಚ್ಚರಿಕೆ: ವರ್ಷದ ಮಧ್ಯಭಾಗವು ಉದ್ಯೋಗದಲ್ಲಿ ಸ್ಥಿರತೆ, ವ್ಯಾಪಾರ ವೃದ್ಧಿ ಹಾಗೂ ಬಾಕಿ ಹಣ ವಸೂಲಾತಿಗೆ ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಿದೆ. ಆದರೆ ವರ್ಷದ ಕೊನೆಯ ತಿಂಗಳುಗಳಲ್ಲಿ ಆರೋಗ್ಯದ ಕಾಳಜಿ, ಹಿರಿಯರ ಯೋಗಕ್ಷೇಮ ಹಾಗೂ ಪ್ರಯಾಣದ ವೇಳೆ ಅಲ್ಪ ಜಾಗರೂಕತೆ ಅಗತ್ಯ. ಕಣ್ಣು ಮುಚ್ಚಿ ಯಾರನ್ನೂ ನಂಬದೆ, ಎಲ್ಲ ವ್ಯವಹಾರಗಳನ್ನು ಸ್ಪಷ್ಟ ಲಿಖಿತ ರೂಪದಲ್ಲಿ ಇಟ್ಟುಕೊಳ್ಳುವುದು ಸುರಕ್ಷಿತ.`,
+        mr: `या वर्षाचे सुवर्ण महिने व दक्षता: वर्षाचा मध्य काळ धनलाभ, कार्यस्थैर्य व प्रलंबित कामे पूर्ण होण्यासाठी उत्तम आहे. वर्षाच्या उत्तरार्धात प्रवासात व आरोग्याची काळजी घ्या तसेच सर्व आर्थिक व्यवहार स्पष्ट लेखी ठेवूनच पुढे जा.`,
+        hi: `वर्ष के स्वर्णिम कालखंड एवं सावधानी: वर्ष का मध्य भाग आजीविका स्थिर करने एवं रुके हुए धन लाभ हेतु अत्यधिक फलदायी रहेगा। वर्ष के अंतिम महीनों में स्वास्थ्य, विश्राम एवं यात्रा में विशेष सजगता अपेक्षित है और समस्त लेनदेन लिखित रूप में ही करें।`,
+        te: `ఈ ఏడాది సువర్ణ కాలం మరియు జాగ్రత్తలు: సంవత్సరం మధ్య భాగం ఉద్యోగ స్థిరత్వం, వ్యాపారాభివృద్ధి మరియు ధనలాభానికి ఎంతో అనుకూలంగా ఉంటుంది. సంవత్సరం చివరి త్రైమాసికంలో ఆరోగ్యం, పెద్దల యోగక్షేమాలు మరియు దూర ప్రయాణాల పట్ల తగిన జాగ్రత్త వహించండి. ముఖ్యమైన పత్రాలు మరియు ఆర్థిక వ్యవహారాలను స్పష్టంగా రాతపూర్వకంగా ఉంచుకోవడం రక్షణ కల్పిస్తుంది.`,
+        ta: `இந்த ஆண்டின் நற்காலம் மற்றும் எச்சரிக்கை: ஆண்டின் நடுப்பகுதி தொழில் முன்னேற்றத்திற்கும் நிலுவையில் உள்ள வருமான வரவிற்கும் மிகவும் சாதகமாக உள்ளது. ஆண்டின் இறுதிப் பகுதியில் உடல்நலம், பயணங்கள் மற்றும் செலவுகளில் நிதானம் அவசியம். அனைத்து பணப் பரிவர்த்தனைகளையும் முறையான ஆவணங்களுடன் கையாள்வது பாதுகாப்பானது.`,
+        en: `Golden windows and strategic cautions for Year 1: the mid-year corridor unlocks the clearest momentum across professional authority and settled dues, whereas the closing quarter requires attentive health pacing, calm communication, and documented agreements.`
       }, targetLang),
       pick6({
         kn: `ವಾರ್ಷಿಕ ಸಂಕಲ್ಪ ರಕ್ಷೆ: ವರ್ಷಕ್ಕೊಮ್ಮೆ ನಿಮ್ಮ ಹುಟ್ಟಿದ ಹಬ್ಬ ಅಥವಾ ವಿವಾಹ ವಾರ್ಷಿಕೋತ್ಸವದಂದು ಗೋಪೂಜೆ ನೆರವೇರಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಮತ್ತು ಕುಟುಂಬದ ಹೆಸರಿನಲ್ಲಿ ವಾರ್ಷಿಕ ಸಂಕಲ್ಪ ಪೂಜೆ ಮಾಡಿಸುವುದು ವರ್ಷವಿಡೀ ದೈವಿಕ ರಕ್ಷಣೆಯನ್ನು ಒದಗಿಸುತ್ತದೆ.`,
-        mr: `वार्षिक संकल्पासाठी: वाढदिवसाला किंवा लग्नाच्या वाढदिवसाला गोपूजा करा व गोकर्णात संकल्प पूजा करून देवाचे आशीर्वाद घ्या.`,
-        hi: `वार्षिक संकल्प रक्षा: अपने जन्मदिवस अथवा विवाह वर्षगांठ के अवसर पर गोमाता की पूजा करें एवं श्री गोकर्ण महाबलेश्वर धाम में वार्षिक संकल्प कराएं; वर्ष पर्यन्त ईश्वरीय कृपा बनी रहेगी।`,
-        te: `వార్షిక రక్షణ కొరకు: మీ పుట్టినరోజున గోపూజ చేయండి. గోకర్ణంలో సంకల్ప పూజ చేయించడం వల్ల ఏడాది పొడవునా రక్షణ లభిస్తుంది.`,
-        ta: `ஆண்டு சங்கல்பம்: உங்கள் பிறந்தநாளில் கோபூஜை செய்யவும். கோகர்ணத்தில் குடும்ப பெயரில் சங்கல்ப பூஜை செய்ய ஆண்டு முழுவதும் பாதுகாப்பு கிட்டும்.`,
-        en: `Annual divine seal: perform Go-Puja (cow veneration) on your solar return. Sponsoring an annual Sankalpa Archana at Sri Kshetra Gokarna weaves a canopy of protection throughout the entire 12-month cycle.`
+        mr: `वार्षिक दैवी संकल्प रक्षण: वाढदिवस किंवा जन्म नक्षत्राच्या दिवशी गोपूजा व अन्नदान करा आणि श्री क्षेत्र गोकर्ण महाबळेश्वर येथे वार्षिक संकल्प पूजा केल्याने वर्षभर संपूर्ण कुटुंबाचे रक्षण होते.`,
+        hi: `वार्षिक दैवीय संकल्प रक्षा: अपने जन्मदिवस अथवा जन्म नक्षत्र पर गोमाता की पूजा व अन्नदान करें तथा श्री गोकर्ण महाबलेश्वर धाम में परिवार सहित वार्षिक संकल्प पूजा कराएं जिससे वर्ष पर्यन्त शुभ कृपा बनी रहे।`,
+        te: `వార్షిక దైవిక సంకల్ప రక్షణ: మీ జన్మదినం లేదా జన్మ నక్షత్రం రోజున గోపూజ మరియు ఆకలితో ఉన్నవారికి అన్నదానం చేయండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధానంలో మీ పేరున వార్షిక సంకల్ప పూజ చేయించడం వల్ల సంవత్సరం పొడవునా దైవ రక్షణ లభిస్తుంది.`,
+        ta: `ஆண்டு தெய்வீக சங்கல்பம்: உங்கள் பிறந்தநாள் அல்லது ஜென்ம நட்சத்திர நாளில் கோபூஜையும் அன்னதானமும் செய்யுங்கள். ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியில் குடும்ப நலனுக்காக வருடாந்திர சங்கல்ப அர்ச்சனை செய்வது ஆண்டு முழுவதும் அபரிமிதமான பாதுகாப்பை வழங்கும்.`,
+        en: `Annual divine seal: observe Go-Puja and charitable meal sharing on your birthday star. Sponsoring an annual family Sankalpa Archana at Sri Kshetra Gokarna weaves a tranquil spiritual canopy over the entire 12-month cycle.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ವಾರ್ಷಿಕ ನೀಲನಕ್ಷೆ", mr: "वार्षिक आराखडा", hi: "वार्षिक खाका", te: "వార్షిక ప్రణాళిక", ta: "ஆண்டு வரைபடம்", en: "Annual Master Plan" }, targetLang),
@@ -2784,28 +2851,28 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ಎರಡನೇ ವರ್ಷಕ್ಕೆ ಕಾಲಿಡುವಾಗ (${n(nowYear + 1)}), ಗುರು ಮತ್ತು ಶನಿಯರ ಗೋಚಾರವು ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ಕೇಂದ್ರ ಸ್ಥಾನಗಳನ್ನು ಪ್ರವೇಶಿಸಲಿದೆ. ಇದು ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಹೊಸ ಉದ್ಯಮ, ಹೊಸ ಜವಾಬ್ದಾರಿ ಅಥವಾ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹತ್ತರ ಅಧಿಕಾರವನ್ನು ಕರುಣಿಸುವ ವರ್ಷವಾಗಿದೆ.`,
-        mr: `${devoteeName}, दुसऱ्या वर्षात (${n(nowYear + 1)}) गुरु व शनीचे गोचर आपल्याला नवीन जबाबदाऱ्या व अधिकार देईल. आपल्या कष्टाचे फळ मिळून समाजात सन्मान वाढेल.`,
-        hi: `${devoteeName}, द्वितीय वर्ष में प्रवेश करते समय (${n(nowYear + 1)}) गुरु एवं शनि का गोचर आपके कार्यक्षेत्र में नवीन दायित्व एवं अधिकार प्रदान करेगा। आपके परिश्रम को व्यापक सामाजिक मान्यता मिलेगी।`,
-        te: `${devoteeName}, రెండవ సంవత్సరంలో (${n(nowYear + 1)}) గురు, శని గ్రహాల సంచారం వల్ల కొత్త బాధ్యతలు, ఉన్నత పదవులు లభిస్తాయి.`,
-        ta: `${devoteeName}, 2-வது ஆண்டில் (${n(nowYear + 1)}) குரு மற்றும் சனியின் அனுகூலத்தால் புதிய பொறுப்புகளும் அதிகாரமும் உங்களைத் தேடி வரும். உழைப்பிற்கான நற்பெயர் கிட்டும்.`,
-        en: `${devoteeName}, crossing into Year 2 (${nowYear + 1}), major transits of Jupiter and Saturn shift into decisive houses. This is your epoch of authorized expansion, where sustained discipline yields tangible institutional elevation.`
+        kn: `${devoteeName}, ಎರಡನೇ ವರ್ಷಕ್ಕೆ ಕಾಲಿಡುವಾಗ (${n(nowYear + 1)}), ಗುರು ಮತ್ತು ಶನಿಯರ ಗೋಚಾರವು ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳನ್ನು ಪ್ರವೇಶಿಸಲಿದೆ. ಇದು ಹಿಂದಿನ ವರ್ಷ ಹಾಕಿದ ಭದ್ರ ಬುನಾದಿಯ ಮೇಲೆ ಹೊಸ ಉದ್ಯಮ, ಮಹತ್ವದ ಜವಾಬ್ದಾರಿ, ವೃತ್ತಿ ಗೌರವ ಅಥವಾ ಸಾಮಾಜಿಕ ಮನ್ನಣೆಯನ್ನು ಕರುಣಿಸುವ ಅಭಿವೃದ್ಧಿ ಪಥದ ವರ್ಷವಾಗಿದೆ. ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ಸಮಾಜವು ತಲೆಬಾಗಿ ಗೌರವ ನೀಡುವ ಕಾಲ ಸನ್ನಿಹಿತವಾಗಿದೆ.`,
+        mr: `${devoteeName}, दुसऱ्या वर्षात (${n(nowYear + 1)}) गुरु व शनीचे गोचर आपल्या कुंडलीतील केंद्र स्थानी शुभ प्रभाव पाडेल. मागील वर्षातील मेहनतीचे फळ मिळून आपणास नवीन जबाबदाऱ्या, उच्च अधिकार व समाजात मान-सन्मान वाढण्याचा उत्तम योग तयार होत आहे.`,
+        hi: `${devoteeName}, द्वितीय वर्ष में प्रवेश करते समय (${n(nowYear + 1)}) गुरु एवं शनि का गोचर आपके कार्यक्षेत्र में नवीन दायित्व, विस्तार एवं अधिकार प्रदान करेगा। विगत वर्ष में किए गए आपके परिश्रम को अब व्यापक सामाजिक और व्यावसायिक मान्यता मिलेगी।`,
+        te: `${devoteeName}, రెండవ సంవత్సరంలో (${n(nowYear + 1)}) గురు మరియు శని గ్రహాల సంచారం మీ జాతకంలోని ముఖ్య కేంద్ర స్థానాలను ఉత్తేజపరుస్తుంది. గత సంవత్సరం మీరు వేసిన గట్టి పునాది ఫలితంగా ఇప్పుడు కొత్త బాధ్యతలు, ఉన్నత పదవులు మరియు సమాజంలో ప్రత్యేక గౌరవ మర్యాదలు లభిస్తాయి.`,
+        ta: `${devoteeName}, 2-வது ஆண்டில் (${n(nowYear + 1)}) குரு மற்றும் சனி பகவானின் சஞ்சாரம் உங்கள் ஜாதகத்தின் முக்கிய கேந்திரங்களை பலப்படுத்துகிறது. முதல் ஆண்டில் அமைத்த உறுதியான அடித்தளத்தின் பலனாக இப்போது புதிய பொறுப்புகள், பதவி உயர்வு மற்றும் சமுதாயத்தில் உயர்ந்த மதிப்பும் கௌரவமும் தேடி வரும்.`,
+        en: `${devoteeName}, stepping into Year 2 (${nowYear + 1}), major planetary transits of Jupiter and Saturn activate pivotal angular quadrants of your chart. This is your era of authorized expansion where disciplined toil ripens into public esteem and broader command.`
       }, targetLang),
       pick6({
-        kn: `ಈ ವರ್ಷದ ಮುಖ್ಯ ಸಾಧ್ಯತೆಗಳು: ದೂರದ ಪ್ರಯಾಣ, ವಿದೇಶ ಅಥವಾ ಹೊರರಾಜ್ಯದ ಸಂಬಂಧಗಳು, ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶುಭ ಸಮಾರಂಭಗಳು ನಡೆಯುವ ಬಲವಾದ ಲಕ್ಷಣಗಳಿವೆ. ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯು ಮೊದಲ ವರ್ಷಕ್ಕಿಂತ ಹೆಚ್ಚು ಸ್ಥಿರವಾಗಲಿದ್ದು, ಸಾಲದ ಹೊರೆ ಗಣನೀಯವಾಗಿ ಕಡಿಮೆಯಾಗಲಿದೆ.`,
-        mr: `या वर्षातील घडामोडी: लांबचा प्रवास, परदेश किंवा बाहेरील लोकांशी संपर्क, व घरात शुभकार्य घडण्याचे योग आहेत. कर्ज कमी होईल.`,
-        hi: `संभावित घटनाक्रम: दूरगामी यात्राएं, बाह्य संपर्कों से लाभ तथा परिवार में मांगलिक उत्सव संपन्न होने के प्रबल योग हैं। आर्थिक स्थिति पहले से अधिक सुदृढ़ होगी एवं ऋण भार घटेगा।`,
-        te: `ఈ కాలంలో దూర ప్రయాణాలు, కుటుంబంలో శుభకార్యాలు జరిగే అవకాశాలున్నాయి. అప్పుల భారం తగ్గుతుంది.`,
-        ta: `இந்த ஆண்டில் தூரப் பயணங்கள், வெளிவட்டார தொடர்புகள் மற்றும் குடும்பத்தில் சுபகாரியங்கள் நடைபெறும். கடன் சுமைகள் குறையும்.`,
-        en: `Pivotal milestones for Year 2: auspicious domestic functions, beneficial long-distance travels or collaborations, and accelerated liquidation of outstanding obligations.`
+        kn: `ಈ ವರ್ಷದ ಪ್ರಮುಖ ಯಶಸ್ಸಿನ ಸಂಭವನೀಯತೆಗಳು: ದೂರದ ಪವಿತ್ರ ಅಥವಾ ವೃತ್ತಿಪರ ಪ್ರಯಾಣಗಳು, ಹೊರರಾಜ್ಯ ಅಥವಾ ವಿದೇಶಿ ಸಂಪರ್ಕಗಳಿಂದ ಶುಭ ಲಾಭ, ಹಾಗೂ ಮನೆಯಲ್ಲಿ ಮಂಗಳಕರ ಶುಭ ಸಮಾರಂಭಗಳು ಜರುಗುವ ಬಲವಾದ ಲಕ್ಷಣಗಳಿವೆ. ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯು ಮೊದಲ ವರ್ಷಕ್ಕಿಂತ ಹೆಚ್ಚು ಸ್ಥಿರವಾಗಲಿದ್ದು, ಹಳೆಯ ಸಾಲ ಅಥವಾ ಬಾಧ್ಯತೆಗಳ ಹೊರೆ ಗಣನೀಯವಾಗಿ ಕಡಿಮೆಯಾಗುತ್ತದೆ.`,
+        mr: `या वर्षातील महत्त्वाच्या घडामोडी: लांबचा प्रवास, बाहेरील किंवा परदेशातील संपर्कांपासून आर्थिक लाभ, व कुटुंबात आनंदी शुभकार्य घडण्याचे प्रबळ योग आहेत. आर्थिक स्थैर्य वाढून जुन्या कर्जाचा भार खूप कमी होईल.`,
+        hi: `संभावित उपलब्धियां: दूरगामी लाभकारी यात्राएं, बाह्य संपर्कों से आय में वृद्धि तथा परिवार में मांगलिक उत्सव संपन्न होने के प्रबल योग हैं। आपकी वित्तीय स्थिति पहले की तुलना में अधिक सुदृढ़ होगी एवं ऋण भार घटेगा।`,
+        te: `ఈ సంవత్సరం ప్రధాన ఫలితాలు: దూర ప్రయాణాలు, ఇతర ప్రాంతాలు లేదా విదేశీ సంబంధాల నుండి శుభ లాభాలు మరియు కుటుంబంలో ఆనందకరమైన శుభకార్యాలు జరిగే బలమైన అవకాశాలు ఉన్నాయి. గత సంవత్సరంతో పోలిస్తే ఆర్థిక స్థిరత్వం పెరిగి పాత రుణ భారం తగ్గుముఖం పడుతుంది.`,
+        ta: `இந்த ஆண்டின் முக்கிய நிகழ்வுகள்: பயனுள்ள தூரப் பயணங்கள், வெளியூர் மற்றும் வெளிநாட்டுத் தொடர்புகளால் ஆதாயம், குடும்பத்தில் மங்களகரமான சுப நிகழ்வுகள் நடைபெறும் வாய்ப்புகள் அதிகம். முந்தைய ஆண்டை விட வருமானம் நிலைபெற்று பழைய கடன் சுமைகள் கணிசமாகக் குறையும்.`,
+        en: `Defining Year 2 milestones: harmonious family celebrations, beneficial travel or inter-state collaborations, and progressive retirement of legacy financial burdens while institutional credibility climbs.`
       }, targetLang),
       pick6({
-        kn: `ವರ್ಷ ೨ ರ ದೈವಿಕ ಬಲವರ್ಧನೆಗೆ: ಪ್ರತಿ ಗುರುವಾರ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ಶ್ರೀ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಪಂಚಾಮೃತ ಅಭಿಷೇಕ ಮಾಡಿಸುವುದು ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು ನೀಡುತ್ತದೆ.`,
-        mr: `या वर्षाच्या यशासाठी: विष्णू सहस्रनाम म्हणा व गोकर्णात पंचामृत अभिषेक करा.`,
-        hi: `वर्ष २ की सफलता हेतु: नित्य अथवा गुरुवार को विष्णु सहस्रनाम का पाठ करें एवं श्री गोकर्ण धाम में पंचामृत अभिषेक कराएं।`,
-        te: `విష్ణు సహస్రనామ పారాయణ చేయండి. గోకర్ణంలో పంచామృతాభిషేకం శ్రేయస్కరం.`,
-        ta: `விஷ்ணு சகஸ்ரநாமம் படிக்கவும். கோகர்ணத்தில் பஞ்சாமிர்த அபிஷேகம் செய்வது உத்தமம்.`,
-        en: `To energize Year 2's expansion: recite the Vishnu Sahasranama on Thursdays, and sponsor a sacred Panchamrita Abhisheka at Sri Kshetra Gokarna to consecrate newly acquired responsibilities.`
+        kn: `ವರ್ಷ ೨ ರ ದೈವಿಕ ಬಲವರ್ಧನೆಗೆ: ಪ್ರತಿ ಗುರುವಾರ ಭಕ್ತಿಪೂರ್ವಕವಾಗಿ ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ ಹಾಗೂ ಗುರು-ಹಿರಿಯರಿಗೆ ನಮಸ್ಕರಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ಶ್ರೀ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಪಂಚಾಮೃತ ಅಭಿಷೇಕ ಸಂಕಲ್ಪ ಮಾಡಿಸುವುದರಿಂದ ಹೆಚ್ಚಿದ ಜವಾಬ್ದಾರಿಗಳಲ್ಲಿ ವಿಘ್ನವಿಲ್ಲದೆ ಪೂರ್ಣ ಯಶಸ್ಸು ಸಿಗುತ್ತದೆ.`,
+        mr: `या वर्षाच्या यशासाठी: दर गुरुवारी विष्णु सहस्रनामाचे पठण करा आणि श्री क्षेत्र गोकर्ण महाबळेश्वर आत्मलिंगावर पंचामृत अभिषेक संकल्पाने नवीन कामांतील सर्व अडथळे दूर होऊन यश लाभेल.`,
+        hi: `वर्ष २ की सफलता हेतु: प्रत्येक गुरुवार को श्रद्धापूर्वक विष्णु सहस्रनाम का पाठ करें एवं श्री गोकर्ण धाम में आत्मलिंग पर पंचामृत अभिषेक का संकल्प कराएं ताकि बढ़ते दायित्वों में निर्विघ्न सिद्धि मिले।`,
+        te: `రెండవ సంవత్సరం దైవిక బలం కొరకు: ప్రతి గురువారం భక్తితో విష్ణు సహస్రనామ పారాయణం చేయండి. శ్రీ గోకర్ణ మహాబలేశ్వరుని ఆత్మలింగానికి పంచామృతాభిషేకం చేయించడం ద్వారా పెరిగిన బాధ్యతల్లో ఆటంకాలు లేకుండా విజయం లభిస్తుంది.`,
+        ta: `ஆண்டு 2-க்கான ஆன்மீக வலிமைக்கு: ஒவ்வொரு வியாழக்கிழமையும் விஷ்ணு சகஸ்ரநாமம் பாராயணம் செய்யுங்கள். ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியில் பஞ்சாமிர்த அபிஷேகம் செய்து வழிபடுவதால் புதிய பொறுப்புகளில் தடையற்ற வெற்றி உண்டாகும்.`,
+        en: `To consecrate Year 2's expansion: recite the Sri Vishnu Sahasranama every Thursday with reverence for mentors, and offer a sacred Panchamrita Abhisheka at Sri Kshetra Gokarna so elevated responsibilities unfold without friction.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ವಿಸ್ತರಣಾ ಯೋಗ", mr: "विस्तार योग", hi: "विस्तार योग", te: "విస్తరణ యోగం", ta: "வளர்ச்சி யோகம்", en: "Expansion Horizons" }, targetLang),
@@ -2843,28 +2910,28 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ಮೂರನೇ ಮತ್ತು ನಾಲ್ಕನೇ ವರ್ಷಗಳ ಅವಧಿಯು (${n(nowYear + 2)}–${n(nowYear + 3)}) ನಿಮ್ಮ ಜೀವನದ ಅತ್ಯಂತ ಪಕ್ವ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಈ ಸಮಯದಲ್ಲಿ ನಿಮ್ಮ ದಶಾ-ಭುಕ್ತಿಗಳು ಬದಲಾಗಲಿದ್ದು, ನಿಮ್ಮ ಆಲೋಚನೆಗಳು ಹೆಚ್ಚು ಗಂಭೀರ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸತ್ಯಗಳ ಕಡೆಗೆ ಹೊರಳಲಿವೆ. ಬಾಹ್ಯ ಆಡಂಬರಕ್ಕಿಂತ ಆಂತರಿಕ ಶಾಂತಿಗೆ ನೀವು ಆದ್ಯತೆ ನೀಡಲಿದ್ದೀರಿ.`,
-        mr: `${devoteeName}, तिसऱ्या व चौथ्या वर्षात दशा-भुक्तीच्या बदलामुळे आपले विचार अधिक परिपक्व होतील. बाह्य दिखाव्यापेक्षा आंतरिक समाधानाला आपण अधिक महत्त्व द्याल.`,
-        hi: `${devoteeName}, तृतीय एवं चतुर्थ वर्ष की यह समयावधि (${n(nowYear + 2)}–${n(nowYear + 3)}) आपके जीवन की गंभीर परिपक्वता का काल है। दशा-अंतर्दशा के संचरण से आपके विचार अधिक दार्शनिक एवं आध्यात्मिक होंगे तथा आंतरिक शांति आपकी प्राथमिकता बनेगी।`,
-        te: `${devoteeName}, ఈ 3 మరియు 4 వ సంవత్సరాల్లో మీ ఆలోచనలు పరిపక్వమవుతాయి. మానసిక ప్రశాంతతకు ప్రాధాన్యత ఇస్తారు.`,
-        ta: `${devoteeName}, 3 மற்றும் 4-வது ஆண்டுகளில் தசா மாற்றங்களால் உங்கள் சிந்தனைகள் முதிர்ச்சியடையும். மன அமைதிக்கு முன்னுரிமை கொடுப்பீர்கள்.`,
-        en: `${devoteeName}, Years 3 and 4 (${nowYear + 2}–${nowYear + 3}) signify your Karmic Maturation corridor. Sub-period transitions during these years shift your focus from frantic acquisition toward enduring legacy, inner equilibrium, and wisdom.`
+        kn: `${devoteeName}, ಮೂರನೇ ಮತ್ತು ನಾಲ್ಕನೇ ವರ್ಷಗಳ ಅವಧಿಯು (${n(nowYear + 2)}–${n(nowYear + 3)}) ನಿಮ್ಮ ಜೀವನದ ಅತ್ಯಂತ ಪಕ್ವ ಮತ್ತು ಗಂಭೀರ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಈ ಸಮಯದಲ್ಲಿ ಸೂಕ್ಷ್ಮ ದಶಾ-ಭುಕ್ತಿಗಳ ಪರಿವರ್ತನೆ ನಡೆಯಲಿದ್ದು, ನಿಮ್ಮ ಆಲೋಚನೆಗಳು ಕೇವಲ ತಕ್ಷಣದ ಲಾಭಕ್ಕಿಂತ ಶಾಶ್ವತ ತತ್ವಗಳು ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸತ್ಯಗಳ ಕಡೆಗೆ ಹೊರಳಲಿವೆ. ಬಾಹ್ಯ ಆಡಂಬರಕ್ಕಿಂತ ಕುಟುಂಬದ ಆಂತರಿಕ ಶಾಂತಿಗೆ ನೀವು ಪ್ರಥಮ ಆದ್ಯತೆ ನೀಡಲಿದ್ದೀರಿ.`,
+        mr: `${devoteeName}, तिसऱ्या व चौथ्या वर्षात (${n(nowYear + 2)}–${n(nowYear + 3)}) दशा-भुक्तीतील बदलामुळे आपले विचार अधिक परिपक्व व दूरदृष्टीचे होतील. तात्पुरत्या दिखाव्यापेक्षा कुटुंबाचे स्वास्थ्य व आंतरिक समाधानाला आपण प्राधान्य द्याल.`,
+        hi: `${devoteeName}, तृतीय एवं चतुर्थ वर्ष की यह समयावधि (${n(nowYear + 2)}–${n(nowYear + 3)}) आपके जीवन की गंभीर परिपक्वता एवं कर्म पक्वता का काल है। दशा-अंतर्दशा के संचरण से आपके विचार अधिक दार्शनिक होंगे तथा आंतरिक शांति आपकी प्राथमिकता बनेगी।`,
+        te: `${devoteeName}, మూడు మరియు నాలుగవ సంవత్సరాల కాలం (${n(nowYear + 2)}–${n(nowYear + 3)}) మీ జీవితంలో అత్యంత పరిపక్వత మరియు స్థిరత్వం కలిగించే సమయం. దశా-భుక్తుల మార్పు వల్ల మీ ఆలోచనలు మరింత లోతుగా, దూరదృష్టితో సాగుతాయి. తాత్కాలిక ఆర్భాటాల కంటే కుటుంబ శాంతికి మరియు ఆధ్యాత్మిక సత్యాలకు ప్రాధాన్యత ఇస్తారు.`,
+        ta: `${devoteeName}, 3 மற்றும் 4-வது ஆண்டுகளின் காலம் (${n(nowYear + 2)}–${n(nowYear + 3)}) உங்கள் வாழ்க்கையில் முதிர்ச்சியும் ஞானமும் நிறைந்த காலமாகும். தசா-புக்தி மாற்றங்களால் உங்கள் சிந்தனைகள் ஆழமாகவும் தொலைநோக்குடனும் மாறும். வெளி ஆடம்பரங்களை விட குடும்ப அமைதிக்கும் ஆன்மீக நிறைவுக்கும் முன்னுரிமை தருவீர்கள்.`,
+        en: `${devoteeName}, Years 3 and 4 (${nowYear + 2}–${nowYear + 3}) signify your Karmic Maturation corridor. Planetary sub-period transitions gently turn your priorities away from restless chasing toward enduring stability, serene judgment, and deeper philosophical peace.`
       }, targetLang),
       pick6({
-        kn: `ಈ ಹಂತದ ಮುಖ್ಯ ಫಲಗಳು: ಸ್ಥಿರಾಸ್ತಿಗಳು ಭದ್ರವಾಗಲಿವೆ, ಮಕ್ಕಳು ತಮ್ಮ ಸ್ವಂತ ಕಾಲಿನ ಮೇಲೆ ನಿಲ್ಲುವ ಹಾದಿಯಲ್ಲಿ ಮುನ್ನಡೆಯಲಿದ್ದಾರೆ, ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ನಿಮಗೆ ಗೌರವಾನ್ವಿತ ಹಿರಿಯರ ಸ್ಥಾನಮಾನ ಲಭಿಸಲಿದೆ. ನಿಮ್ಮ ಸಲಹೆಗಳನ್ನು ಇತರರು ಗೌರವದಿಂದ ಸ್ವೀಕರಿಸಲಿದ್ದಾರೆ.`,
-        mr: `या काळातील फळे: स्थावर मालमत्ता स्थिर होईल, मुले स्वावलंबी बनतील व समाजात आपल्याला आदराचे स्थान मिळेल.`,
-        hi: `इस चरण की उपलब्धियां: अचल संपत्ति का स्थिरीकरण, संतानों की आत्मनिर्भरता एवं समाज में प्रबुद्ध नागरिक के रूप में सम्मान की प्राप्ति होगी।`,
-        te: `ఆస్తులు స్థిరపడతాయి, పిల్లలు ప్రయోజకులవుతారు మరియు సమాజంలో గౌరవం లభిస్తుంది.`,
-        ta: `சொத்துக்கள் நிலைபெறும், பிள்ளைகள் தங்கள் காலில் நிற்பர், சமுதாயத்தில் உங்கள் மதிப்பு பன்மடங்கு உயரும்.`,
-        en: `Harvest of this cycle: tangible assets reach stable equilibrium, children achieve notable milestones of self-reliance, and your reputation as a trusted elder advisor commands respect across family and community circles.`
+        kn: `ಈ ಹಂತದ ಮುಖ್ಯ ಫಲಗಳು: ಬಹುಕಾಲದಿಂದ ಬಯಸಿದ್ದ ಸ್ಥಿರಾಸ್ತಿಗಳು ಭದ್ರವಾಗಲಿವೆ, ಕುಟುಂಬದ ಕಿರಿಯರು ಹಾಗೂ ಮಕ್ಕಳು ಸ್ವಾವಲಂಬಿ ಹಾದಿಯಲ್ಲಿ ಮುನ್ನಡೆಯಲಿದ್ದಾರೆ, ಹಾಗೂ ಬಂಧು-ಬಾಂಧವರು ಮತ್ತು ಸಮಾಜದಲ್ಲಿ ನಿಮಗೆ ಗೌರವಾನ್ವಿತ ಹಿರಿಯರ ಸ್ಥಾನಮಾನ ಲಭಿಸಲಿದೆ. ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕ ಸಲಹೆಗಳಿಗೆ ಎಲ್ಲೆಡೆ ಅಪಾರ ಮನ್ನಣೆ ದೊರಕಲಿದೆ.`,
+        mr: `या टप्प्यातील फळे: स्थावर मालमत्ता सुरक्षित व भक्कम होईल, घरातील तरुण पिढी स्वावलंबी बनेल व समाजात आपल्याला ज्येष्ठ मार्गदर्शकाचे आदरणीय स्थान प्राप्त होईल.`,
+        hi: `इस चरण की उपलब्धियां: अचल संपत्ति का सुदृढ़ीकरण, परिवार के युवाओं व संतानों की आत्मनिर्भरता तथा समाज में एक विश्वसनीय व सम्मानित मार्गदर्शक के रूप में प्रतिष्ठा की प्राप्ति होगी।`,
+        te: `ఈ దశలో ప్రధాన ఫలితాలు: స్థిరాస్తులు మరియు గృహ సౌఖ్యం బలపడతాయి, కుటుంబంలోని యువత మరియు పిల్లలు స్వతంత్రంగా ఎదుగుతారు, బంధుమిత్రుల్లో మీకు గౌరవనీయమైన పెద్దరికం లభిస్తుంది. మీ అనుభవపూర్వక సలహాలను అందరూ గౌరవంతో స్వీకరిస్తారు.`,
+        ta: `இந்தக் காலகட்டத்தின் முக்கிய பலன்கள்: அசையா சொத்துக்கள் நிலைபெறும், குடும்ப இளைய தலைமுறையினர் தன்னம்பிக்கையுடன் உயர்வார்கள், உறவினர்கள் மற்றும் சமூகத்தில் மதிப்புமிக்க வழிகாட்டியாக உயர்ந்த அந்தஸ்து பெறுவீர்கள். உங்கள் நேர்மையான ஆலோசனைகளுக்கு எப்போதும் மதிப்பு இருக்கும்.`,
+        en: `Harvest of this period: residential and fixed assets consolidate firmly, younger family members advance into sturdy independence, and your balanced counsel earns quiet respect across both lineage and community.`
       }, targetLang),
       pick6({
-        kn: `ಆಧ್ಯಾತ್ಮಿಕ ರಕ್ಷಣೆಗಾಗಿ: ತೀರ್ಥಕ್ಷೇತ್ರ ಯಾತ್ರೆಗಳನ್ನು ಕೈಗೊಳ್ಳಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರ ಹೋಮ ಮಾಡಿಸುವುದರಿಂದ, ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ಹಾಗೂ ವಂಶದ ಕೀರ್ತಿಯು ಚಿರಸ್ಥಾಯಿಯಾಗಲಿದೆ.`,
-        mr: `आध्यात्मिक प्रगतीसाठी: तीर्थयात्रा करा व गोकर्णात रुद्र होम करा.`,
-        hi: `आध्यात्मिक उन्नयन हेतु: तीर्थाटन करें एवं श्री गोकर्ण क्षेत्र में रुद्र होम का अनुष्ठान कराएं; कुल की कीर्ति अक्षुण्ण रहेगी।`,
-        te: `తీర్థయాత్రలు చేయండి. గోకర్ణంలో రుద్ర హోమం చేయించడం వల్ల ఆయురారోగ్యాలు లభిస్తాయి.`,
-        ta: `புண்ணிய ஸ்தலங்களுக்கு யாத்திரை செல்லவும். கோகர்ணத்தில் ருத்ர ஹோமம் செய்வது ஆயுளையும் புகழையும் தரும்.`,
-        en: `To sustain this elevated plateau: undertake sacred pilgrimages. Sponsoring a solemn Rudra Homa at Sri Kshetra Gokarna grounds unbroken longevity and generational harmony.`
+        kn: `ಆಧ್ಯಾತ್ಮಿಕ ರಕ್ಷಣೆಗಾಗಿ: ಕುಟುಂಬ ಸಮೇತ ಪುಣ್ಯ ತೀರ್ಥಕ್ಷೇತ್ರ ಯಾತ್ರೆಗಳನ್ನು ಕೈಗೊಳ್ಳಿ ಹಾಗೂ ದೈವ ಕೃತಜ್ಞತೆಯನ್ನು ಅರ್ಪಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ವಿಧಿಬದ್ಧ ರುದ್ರ ಹೋಮ ಸಂಕಲ್ಪ ಮಾಡಿಸುವುದರಿಂದ, ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ಹಾಗೂ ವಂಶದ ಕೀರ್ತಿಯು ಮುಂದಿನ ತಲೆಮಾರುಗಳಿಗೂ ಚಿರಸ್ಥಾಯಿಯಾಗಿ ಉಳಿಯುತ್ತದೆ.`,
+        mr: `आध्यात्मिक प्रगतीसाठी: कुटुंबासोबत तीर्थयात्रा करा आणि श्री क्षेत्र गोकर्ण महाबळेश्वर येथे रुद्र होम संकल्प केल्याने कुटुंबाचे आरोग्य व दीर्घायुष्य अबाधित राहील.`,
+        hi: `आध्यात्मिक उन्नयन हेतु: सपरिवार पावन तीर्थाटन करें एवं श्री गोकर्ण क्षेत्र में विधिवत रुद्र होम का संकल्प कराएं जिससे आयु, आरोग्य और कुल की कीर्ति अक्षुण्ण रहे।`,
+        te: `ఆధ్యాత్మిక రక్షణ కొరకు: కుటుంబ సమేతంగా పవిత్ర తీర్థయాత్రలు చేయండి. శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధిలో శాస్త్రోక్తంగా రుద్ర హోమం చేయించడం ద్వారా ఆయురారోగ్యాలు మరియు వంశ కీర్తి శాశ్వతంగా నిలుస్తాయి.`,
+        ta: `ஆன்மீகப் பாதுகாப்பிற்கு: குடும்பத்துடன் புண்ணிய தல யாத்திரைகள் மேற்கொள்ளுங்கள். ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியில் முறைப்படி ருத்ர ஹோமம் செய்வதன் மூலம் பூரண ஆரோக்கியமும் வம்சப் பெருமையும் தலைமுறை தாண்டியும் நிலைக்கும்.`,
+        en: `To consecrate this mature plateau: undertake sacred family pilgrimages with gratitude, and sponsor a solemn Rudra Homa at Sri Kshetra Gokarna to anchor lasting vitality and generational grace.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ಕರ್ಮ ಪಕ್ವತೆ", mr: "कर्म परिपक्वता", hi: "कर्म परिपक्वता", te: "కర్మ పరిపక్వత", ta: "கர்ம முதிர்ச்சி", en: "Karmic Consolidation" }, targetLang),
@@ -2902,28 +2969,28 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ಈ ೫ ವರ್ಷಗಳ ದೀರ್ಘ ಪ್ರಯಾಣದ ಕೊನೆಯ ಹಂತವಾದ ${n(nowYear + 4)}ನೇ ವರ್ಷದಲ್ಲಿ, ನೀವು ಇಂದು ಎದುರಿಸುತ್ತಿರುವ ಅನಿಶ್ಚಿತತೆಗಳು ಹಾಗೂ ಆತಂಕಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಕರಗಿಹೋಗಲಿವೆ. ಅಂದು ಬಿತ್ತಿದ ಪರಿಶ್ರಮದ ಬೀಜಗಳು ಇಂದು ಫಲವತ್ತಾದ ಮಹಾವೃಕ್ಷವಾಗಿ ಬೆಳೆದು ನಿಲ್ಲಲಿವೆ.`,
-        mr: `${devoteeName}, या ५ वर्षांच्या प्रवासाच्या शेवटी (${n(nowYear + 4)}) आज आपल्या मनात असलेली भीती व अनिश्चितता पूर्णपणे नाहीशी होईल. आपण लावलेले कष्टाचे झाड फळांनी बहरेल.`,
-        hi: `${devoteeName}, इस ५-वर्षीय यात्रा के समापन पर (${n(nowYear + 4)}), आज आपके मन में विद्यमान अनिश्चितता एवं संशय पूर्णतः तिरोहित हो चुके होंगे। आपके द्वारा रोपे गए परिश्रम के बीज विशाल वटवृक्ष का रूप ले चुके होंगे।`,
-        te: `${devoteeName}, ఈ 5 సంవత్సరాల ప్రయాణంలో (${n(nowYear + 4)}) ఇప్పటి భయాలు, ఆందోళనలు తొలగిపోయి జీవితం సుఖసంతోషాలతో నిండుతుంది.`,
-        ta: `${devoteeName}, இந்த 5 ஆண்டுகளின் முடிவில் (${n(nowYear + 4)}) இன்று உங்கள் மனதில் உள்ள கவலைகள் மறைந்து, உழைப்பிற்கான முழுமையான அறுவடை கிடைக்கும்.`,
-        en: `${devoteeName}, surveying the culmination of this 5-year cycle (${nowYear + 4}), the acute anxieties that currently weigh upon your mind will have dissolved into quiet wisdom. The disciplines sown today will stand as a flourishing shelter.`
+        kn: `${devoteeName}, ಈ ೫ ವರ್ಷಗಳ ದೀರ್ಘ ಪ್ರಯಾಣದ ಕೊನೆಯ ಹಾಗೂ ಪರಿಪೂರ್ಣ ಹಂತವಾದ ${n(nowYear + 4)}ನೇ ವರ್ಷದಲ್ಲಿ, ನೀವು ಇಂದು ಅನುಭವಿಸುತ್ತಿರುವ ಅನಿಶ್ಚಿತತೆಗಳು, ಮೌನ ಸಂಕಟಗಳು ಹಾಗೂ ಆತಂಕಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಕರಗಿಹೋಗಲಿವೆ. ಹಿಂದಿನ ವರ್ಷಗಳಲ್ಲಿ ತಾಳ್ಮೆ ಮತ್ತು ಸತ್ಯನಿಷ್ಠೆಯಿಂದ ನೀವು ಬಿತ್ತಿದ ಪರಿಶ್ರಮದ ಬೀಜಗಳು ಈಗ ಫಲವತ್ತಾದ ಮಹಾವೃಕ್ಷವಾಗಿ ಬೆಳೆದು ಕುಟುಂಬಕ್ಕೆ ನೆರಳು ನೀಡಲಿವೆ.`,
+        mr: `${devoteeName}, या ५ वर्षांच्या प्रवासाच्या समाप्तीकडे (${n(nowYear + 4)}) आज आपल्या मनात असलेली भीती व अनिश्चितता पूर्णपणे नाहीशी होईल. संयमाने आपण लावलेले कष्टाचे रोप आता फळांनी बहरलेला विशाल वटवृक्ष बनलेले असेल.`,
+        hi: `${devoteeName}, इस ५-वर्षीय यात्रा के शिखर पर (${n(nowYear + 4)}), आज आपके अंतर्मन में विद्यमान संशय एवं अनिश्चितता पूर्णतः तिरोहित हो चुकी होगी। आपके द्वारा धैर्यपूर्वक रोपे गए परिश्रम के बीज अब विशाल और फलदायी वटवृक्ष का रूप ले चुके होंगे।`,
+        te: `${devoteeName}, ఈ 5 సంవత్సరాల ప్రయాణంలో చివరి మరియు పరిపూర్ణ ఘట్టమైన ${n(nowYear + 4)} వ సంవత్సరం నాటికి, నేడు మీ మనసులో ఉన్న ఆందోళనలు మరియు భయాలు పూర్తిగా తొలగిపోతాయి. మీరు ఓర్పుతో వేసిన శ్రమ బీజాలు ఫలించి కుటుంబానికి అండగా నిలిచే మహావృక్షంలా ఎదుగుతాయి.`,
+        ta: `${devoteeName}, இந்த 5 ஆண்டு பயணத்தின் நிறைவான கட்டமான ${n(nowYear + 4)}-ம் ஆண்டில், இன்று உங்கள் மனதில் உள்ள கவலைகளும் தயக்கங்களும் முற்றிலும் மறைந்துவிடும். பொறுமையுடனும் நேர்மையுடனும் நீங்கள் விதைத்த உழைப்பு இப்போது முழுப் பலனளிக்கும் விருட்சமாக ஓங்கி நிற்கும்.`,
+        en: `${devoteeName}, reaching the culminating horizon of this 5-year journey (${nowYear + 4}), the silent uncertainties weighing on you today dissolve into assured wisdom. Seeds sown with patience across these five cycles now stand as a flourishing protective canopy.`
       }, targetLang),
       pick6({
-        kn: `ಐದನೇ ವರ್ಷದ ಪರಮ ಫಲ: ಸಾಲಮುಕ್ತ ಬದುಕು, ಸುಭದ್ರ ನಿವಾಸ, ಕುಟುಂಬದಲ್ಲಿ ಸಂತೋಷ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಚಿರಸ್ಥಾಯಿ ಗೌರವ. ನೀವು ನಿಮ್ಮ ಮುಂದಿನ ತಲೆಮಾರಿಗೆ ಕೇವಲ ಆಸ್ತಿಯನ್ನಷ್ಟೇ ಅಲ್ಲದೆ, ಸತ್ಯ ಮತ್ತು ಧರ್ಮದ ಪರಂಪರೆಯನ್ನು ಬಳುವಳಿಯಾಗಿ ನೀಡಲಿದ್ದೀರಿ.`,
-        mr: `पाचव्या वर्षाचे फळ: कर्जमुक्त जीवन, स्वतःचे सुंदर घर, कुटुंबात आनंद आणि समाजात कायमचा आदर. पुढील पिढीसाठी आपण एक आदर्श निर्माण कराल.`,
-        hi: `पंचम वर्ष की सर्वोच्च सिद्धि: ऋणमुक्त जीवन, सुदृढ़ निवास, पारिवारिक आनंद एवं समाज में अक्षुण्ण प्रतिष्ठा। आप अपनी भावी पीढ़ी को न केवल संपत्ति, अपितु उच्च संस्कारों की अमूल्य धरोहर सौंपेंगे।`,
-        te: `ఈ 5వ సంవత్సరంలో రుణ విముక్తి, సొంత ఇల్లు, కుటుంబంలో సంతోషం మరియు సమాజంలో శాశ్వత గౌరవం లభిస్తాయి.`,
-        ta: `5-வது ஆண்டின் உன்னத பலன்: கடன் இல்லாத வாழ்க்கை, சொந்த வீடு, குடும்ப மகிழ்ச்சி மற்றும் சமூகத்தில் அழியாத புகழ் உண்டாகும்.`,
-        en: `Hallmarks of this Year 5 milestone: debt-free sovereignty, residential security, domestic bliss, and generational honor. You will bequeath not merely material stability to your lineage, but an unblemished tradition of integrity.`
+        kn: `ಐದನೇ ವರ್ಷದ ಪರಮ ಫಲ: ಸಾಲಮುಕ್ತ ಬದುಕು, ಸುಭದ್ರ ನಿವಾಸ, ಕುಟುಂಬದಲ್ಲಿ ನಿತ್ಯ ಸಂತೋಷ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಚಿರಸ್ಥಾಯಿ ಗೌರವ ಪ್ರಾಪ್ತವಾಗುತ್ತದೆ. ನೀವು ನಿಮ್ಮ ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಕೇವಲ ಭೌತಿಕ ಆಸ್ತಿಯನ್ನಷ್ಟೇ ಅಲ್ಲದೆ, ಸತ್ಯ, ಧರ್ಮ ಹಾಗೂ ನೈತಿಕತೆಯ ಅಮೂಲ್ಯ ಪರಂಪರೆಯನ್ನು ಬಳುವಳಿಯಾಗಿ ನೀಡಲಿದ್ದೀರಿ.`,
+        mr: `पाचव्या वर्षाचे फळ: कर्जमुक्त जीवन, स्वतःचे सुरक्षित घर, कुटुंबात आनंद व समाजात कायमस्वरूपी सन्मान लाभेल. भावी पिढीला आपण केवळ संपत्तीच नव्हे तर उत्तम संस्कारांचा अमूल्य वारसा द्याल.`,
+        hi: `पंचम वर्ष की सर्वोच्च सिद्धि: ऋणमुक्त स्वावलंबी जीवन, सुदृढ़ निवास, पारिवारिक आनंद एवं समाज में अक्षुण्ण प्रतिष्ठा की प्राप्ति होगी। आप अपनी भावी पीढ़ी को केवल संपत्ति ही नहीं, अपितु उच्च संस्कारों की धरोहर सौंपेंगे।`,
+        te: `ఐదవ సంవత్సరం పరమ ఫలితాలు: రుణ విముక్తి, సుభద్రమైన నివాసం, కుటుంబంలో ఆనందం మరియు సమాజంలో శాశ్వత గౌరవ మర్యాదలు లభిస్తాయి. మీరు రాబోయే తరానికి కేవలం ఆస్తులనే కాకుండా, సత్యం మరియు ధర్మం అనే అమూల్యమైన సంస్కార వారసత్వాన్ని అందిస్తారు.`,
+        ta: `5-வது ஆண்டின் உன்னத பலன்: கடன் இல்லாத நிறைவான வாழ்க்கை, நிலையான இல்லம், குடும்பத்தில் மகிழ்ச்சி மற்றும் சமுதாயத்தில் அழியாத புகழ் உண்டாகும். அடுத்த தலைமுறைக்கு சொத்துக்களோடு சேர்த்து நேர்மையும் தர்மமும் நிறைந்த சிறந்த பாரம்பரியத்தை வழங்குவீர்கள்.`,
+        en: `Culminating Year 5 fruits: debt-free sovereignty, sanctuary stability, peaceful household celebrations, and respected standing. What you pass forward transcends material security—it becomes an enduring lineage of moral honor.`
       }, targetLang),
       pick6({
-        kn: `ಕೃತಜ್ಞತೆಯ ಪರಮ ಸಮರ್ಪಣೆ: ಸಕಲ ಸಿದ್ಧಿಗಳನ್ನು ಕರುಣಿಸಿದ ಭಗವಂತನಿಗೆ ಕೃತಜ್ಞತೆ ಸಲ್ಲಿಸಲು, ಸಕುಟುಂಬ ಸಮೇತರಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನಕ್ಕೆ ಭೇಟಿ ನೀಡಿ ಕೃತಜ್ಞತಾ ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸಿ. ಗೋಕರ್ಣದ ದೈವಿಕ ಆಶೀರ್ವಾದವು ನಿಮ್ಮ ಮುಂದಿನ ಪೀಳಿಗೆಯನ್ನು ಸದಾ ರಕ್ಷಿಸಲಿದೆ.`,
-        mr: `कृतज्ञता: गोकर्ण महाबळेश्वर क्षेत्री सपरिवार जाऊन कृतज्ञतापूर्वक पूजा करा. ईश्वराचा आशीर्वाद आपल्या कुटुंबावर सदैव राहील.`,
-        hi: `कृतज्ञता समर्पण: समस्त सिद्धियों के प्रदाता ईश्वर के प्रति कृतज्ञता ज्ञापित करने हेतु सपरिवार श्री गोकर्ण महाबलेश्वर धाम की यात्रा करें एवं धन्यवाद पूजा संपन्न कराएं; शिव कृपा आपके वंश की रक्षा करेगी।`,
-        te: `కృతజ్ఞతగా కుటుంబ సమేతంగా గోకర్ణ మహాబలేశ్వరుని దర్శించుకుని పూజలు చేయండి. ఈశ్వర కృప మీ వంశానికి రక్ష.`,
-        ta: `இறைவனுக்கு நன்றி செலுத்த குடும்பத்துடன் கோகர்ண மகாபலேஸ்வரர் சன்னதிக்கு சென்று நன்றி வழிபாடு செய்யுங்கள்; ஈசன் அருள் தலைமுறைக்கும் காக்கும்.`,
-        en: `The concluding act of sacred gratitude: journey with your entire family to Sri Kshetra Gokarna Mahabaleshwara to offer a heartfelt Mahapuja of thanksgiving, sealing your household under eternal divine protection.`
+        kn: `ಕೃತಜ್ಞತೆಯ ಪರಮ ಸಮರ್ಪಣೆ: ಸಕಲ ಸಿದ್ಧಿಗಳನ್ನು ಕರುಣಿಸಿದ ಪರಮೇಶ್ವರನಿಗೆ ಕೃತಜ್ಞತೆ ಸಲ್ಲಿಸಲು, ಸಕುಟುಂಬ ಸಮೇತರಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನಕ್ಕೆ ಭೇಟಿ ನೀಡಿ ಕೃತಜ್ಞತಾ ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸಿ. ಶ್ರೀ ಆತ್ಮಲಿಂಗದ ದೈವಿಕ ಆಶೀರ್ವಾದವು ನಿಮ್ಮ ಕುಟುಂಬದ ಮುಂದಿನ ಪೀಳಿಗೆಯನ್ನು ಸದಾ ಕಾಯಲಿದೆ.`,
+        mr: `कृतज्ञता समर्पण: सर्व सिद्धी देणाऱ्या ईश्वराप्रती कृतज्ञता व्यक्त करण्यासाठी सपरिवार श्री क्षेत्र गोकर्ण महाबळेश्वर येथे जाऊन धन्यवाद पूजा करा. आत्मलिंगाची कृपा आपल्या वंशाचे रक्षण करेल.`,
+        hi: `कृतज्ञता समर्पण: समस्त सिद्धियों के दाता ईश्वर के प्रति धन्यवाद ज्ञापित करने हेतु सपरिवार श्री गोकर्ण महाबलेश्वर धाम पधारकर कृतज्ञता पूजा संपन्न कराएं; आत्मलिंग की कृपा आपके वंश का कल्याण करेगी।`,
+        te: `దైవ కృతజ్ఞతా సమర్పణ: ఇంతటి శుభ ఫలితాలను అందించిన పరమేశ్వరునికి కృతజ్ఞతగా కుటుంబ సమేతంగా శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధానానికి వెళ్లి ప్రత్యేక పూజలు చేయండి. ఆత్మలింగ స్వామి అనుగ్రహం మీ వంశాన్ని తరతరాల పాటు రక్షిస్తుంది.`,
+        ta: `இறைவனுக்கு நன்றி காணிக்கை: இத்தனை நன்மைகளையும் வழங்கிய இறைவனுக்கு நன்றி செலுத்த குடும்பத்துடன் ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதிக்குச் சென்று நன்றி வழிபாடு செய்யுங்கள்; ஆத்மலிங்க ஈசனின் அருள் உங்கள் சந்ததியை என்றென்றும் பாதுகாக்கும்.`,
+        en: `The crowning act of sacred gratitude: journey with your family to Sri Kshetra Gokarna Mahabaleshwara to offer a heartfelt thanksgiving Mahapuja before the Atma Linga, sealing generations under eternal grace.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ಪರಮ ಸಿದ್ಧಿ ದರ್ಶನ", mr: "सर्वोच्च सिद्धी", hi: "परम सिद्धि", te: "పరమ సిద్ధి", ta: "பூரண வெற்றி", en: "Ultimate Culmination" }, targetLang),
@@ -3033,28 +3100,28 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರವಾದ ${nakshatraName}ಯು ಅಪಾರ ಆಧ್ಯಾತ್ಮಿಕ ಶಕ್ತಿಯನ್ನು ತನ್ನ ಒಡಲಲ್ಲಿ ಇಟ್ಟುಕೊಂಡಿದೆ. ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಜನ್ಮ ನಕ್ಷತ್ರದ ಅಧಿದೇವತೆಯನ್ನು ಮಂತ್ರಪೂರ್ವಕವಾಗಿ ಆರಾಧಿಸುವುದರಿಂದ ಜಾತಕದಲ್ಲಿರುವ ನವಗ್ರಹಗಳ ಅಶುಭ ಪ್ರಭಾವಗಳು ತಾನಾಗಿಯೇ ಶಾಂತವಾಗುತ್ತವೆ. ಮಂತ್ರ ಜಪವೆಂದರೆ ಬ್ರಹ್ಮಾಂಡದ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯೊಂದಿಗೆ ನಿಮ್ಮ ಅಂತರಂಗದ ತರಂಗಗಳನ್ನು ಬೆಸೆಯುವ ದೈವಿಕ ಸೇತುವೆಯಾಗಿದೆ.`,
-        mr: `${devoteeName}, आपले जन्म नक्षत्र ${nakshatraName} हे आध्यात्मिक ऊर्जेचे भांडार आहे. नक्षत्राच्या देवतेचा जप केल्याने नवग्रहांचे दोष शांत होऊन मन एकाग्र होते. मंत्रजप म्हणजे विश्वातील सकारात्मक लहरींशी स्वतःला जोडणे होय.`,
-        hi: `${devoteeName}, आपका जन्म नक्षत्र ${nakshatraName} असीम चैतन्य का स्रोत है। शास्त्रोक्त विधान के अनुसार जन्म नक्षत्र के अधिष्ठाता देव की मन्त्रोपासना से नवग्रह जनित समस्त प्रतिकूलताएं स्वतः शांत हो जाती हैं। मंत्र जप आपकी चेतना को ब्रह्मांडीय शुभ ऊर्जा से जोड़ने का साक्षात माध्यम है।`,
-        te: `${devoteeName}, మీ జన్మ నక్షత్రం ${nakshatraName} ఎంతో పవిత్రమైనది. నక్షత్ర అధిదేవతను పూజించడం వల్ల గ్రహ దోషాలు తొలగి మనస్సు ప్రశాంతంగా ఉంటుంది.`,
-        ta: `${devoteeName}, உங்கள் பிறந்த நட்சத்திரம் ${nakshatraName} ஆன்மீக ஆற்றல் நிறைந்தது. நட்சத்திர அதிதேவதையை மந்திரித்து வழிபடுவதன் மூலம் நவகிரக தோஷங்கள் அகன்று மனம் ஒருமுகப்படும்.`,
-        en: `${devoteeName}, your Janma Nakshatra ${nakshatraName} holds a precise resonance within the Vedic sonic matrix. Propitiating the presiding deity of your birth star aligns your subtle bio-field with harmonious cosmic frequencies, dissipating planetary turbulence.`
+        kn: `${devoteeName}, ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರವಾದ ${nakshatraName}ಯು ಅಪಾರ ಆಧ್ಯಾತ್ಮಿಕ ಶಕ್ತಿಯನ್ನು ತನ್ನ ಒಡಲಲ್ಲಿ ಇಟ್ಟುಕೊಂಡಿದೆ. ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಜನ್ಮ ನಕ್ಷತ್ರದ ಅಧಿದೇವತೆಯನ್ನು ಮಂತ್ರಪೂರ್ವಕವಾಗಿ ಆರಾಧಿಸುವುದರಿಂದ ಜಾತಕದಲ್ಲಿರುವ ನವಗ್ರಹಗಳ ಅಶುಭ ಪ್ರಭಾವಗಳು ತಾನಾಗಿಯೇ ಶಾಂತವಾಗುತ್ತವೆ. ನಿಯಮಿತ ಮಂತ್ರ ಜಪವು ಬ್ರಹ್ಮಾಂಡದ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯೊಂದಿಗೆ ನಿಮ್ಮ ಮನಸ್ಸನ್ನು ಜೋಡಿಸುವ ದೈವಿಕ ಸೇತುವೆಯಾಗಿದೆ.`,
+        mr: `${devoteeName}, आपले जन्म नक्षत्र ${nakshatraName} हे असीम आध्यात्मिक ऊर्जेचे भांडार आहे. नक्षत्राच्या अधिपती देवतेचा नियमित जप केल्याने नवग्रहांचे प्रतिकूल प्रभाव शांत होऊन मन एकाग्र होते. मंत्रजप ही आपल्या अंतर्मनाला ईश्वरीय शांतीशी जोडणारी दिव्य साधना आहे.`,
+        hi: `${devoteeName}, आपका जन्म नक्षत्र ${nakshatraName} असीम चैतन्य और आध्यात्मिक ऊर्जा का स्रोत है। शास्त्रोक्त विधान के अनुसार जन्म नक्षत्र के अधिष्ठाता देव की मन्त्रोपासना से नवग्रह जनित समस्त प्रतिकूलताएं स्वतः शांत होकर बुद्धि निर्मल बनती है।`,
+        te: `${devoteeName}, మీ జన్మ నక్షత్రమైన ${nakshatraName} అపారమైన ఆధ్యాత్మిక శక్తిని కలిగి ఉంది. శాస్త్రం ప్రకారం జన్మ నక్షత్ర అధిదేవతను భక్తితో ఆరాధించడం వల్ల నవగ్రహ దోషాలు తొలగిపోయి మనస్సుకు గాఢమైన శాంతి, ఏకాగ్రత లభిస్తాయి. మంత్ర జపం మిమ్మల్ని దివ్య శక్తితో అనుసంధానించే వారధిలా పనిచేస్తుంది.`,
+        ta: `${devoteeName}, உங்கள் பிறந்த நட்சத்திரமான ${nakshatraName} அளவற்ற ஆன்மீக ஆற்றலைக் கொண்டுள்ளது. சாஸ்திர விதிப்படி உங்கள் நட்சத்திர அதிதேவதையை மந்திரத்தால் வழிபடும்போது நவகிரகத் தடைகள் அனைத்தும் அமைதியடைந்து மனம் தெளிவு பெறும். தினசரி மந்திர ஜபம் பிரபஞ்ச நன்மைகளை உங்களிடம் ஈர்க்கும் புனிதப் பாலமாகும்.`,
+        en: `${devoteeName}, your Janma Nakshatra ${nakshatraName} carries a distinct resonant frequency inside the Vedic sound matrix. Revering your birth star's presiding deity calms ambient planetary turbulence while clearing mental fog and emotional exhaustion.`
       }, targetLang),
       pick6({
-        kn: `ನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ೧೦-ನಿಮಿಷಗಳ ದೈನಂದಿನ ಜಪ ಪ್ರೋಟೋಕಾಲ್: ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಸ್ನಾನದ ನಂತರ ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕಿಗೆ ಮುಖ ಮಾಡಿ ಕುಳಿತುಕೊಳ್ಳಿ. ಕಣ್ಣುಗಳನ್ನು ಮುಚ್ಚಿ ೩ ಬಾರಿ ಪ್ರಣವ ನಾದ 'ಓಂ' ಉಚ್ಚರಿಸಿ. ನಂತರ ನಿಮ್ಮ ಇಷ್ಟದೇವತೆಯ ಮೂಲ ಬೀಜಮಂತ್ರ ಅಥವಾ 'ಶ್ರೀ ಶಿವ ಪಂಚಾಕ್ಷರೀ ಮಂತ್ರ'ವನ್ನು (ಓಂ ನಮಃ ಶಿವಾಯ) ೧೦೮ ಬಾರಿ ಶಾಂತಚಿತ್ತದಿಂದ ಜಪಿಸಿ. ಈ ಸರಳ ಆಚರಣೆಯು ನಿಮ್ಮ ಸುತ್ತಲೂ ಒಂದು ಅದೃಶ್ಯ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.`,
-        mr: `आपल्यासाठी १० मिनिटांचा नित्य जप: रोज सकाळी आंघोळीनंतर पूर्व किंवा उत्तर दिशेकडे तोंड करून बसा. ३ वेळा 'ॐ' चा उच्चार करा व त्यानंतर १०८ वेळा 'ॐ नमः शिवाय' जप करा. हे साधे आचरण आपल्याभोवती एक सुरक्षा कवच निर्माण करेल.`,
-        hi: `आपके लिए १०-मिनट का नित्य जप विधान: प्रतिदिन प्रातः स्नानोपरांत पूर्व अथवा उत्तर दिशा की ओर मुख करके बैठें। ३ बार ओंकार ध्वनि का उच्चारण करें, तदुपरांत १०८ बार 'ॐ नमः शिवाय' अथवा इष्ट मंत्र का शांत मन से जप करें। यह सरल अनुष्ठान आपके चारों ओर एक अभेद्य सुरक्षा चक्र स्थापित करेगा।`,
-        te: `రోజూ 10 నిమిషాల జపం: ఉదయాన్నే తూర్పు ముఖంగా కూర్చుని 3 సార్లు 'ఓం' పలికి, 108 సార్లు 'ఓం నమః శివాయ' జపించండి. ఇది మీకు అద్భుతమైన రక్షణను ఇస్తుంది.`,
-        ta: `தினசரி 10 நிமிட ஜப முறை: காலையில் கிழக்கு நோக்கி அமர்ந்து 3 முறை 'ஓம்' கூறி, 108 முறை 'ஓம் நம சிவாய' சொல்லுங்கள். இது உங்களைச் சுற்றி ஒரு தெய்வீக கவசத்தை உருவாக்கும்.`,
-        en: `Your dedicated 10-Minute Daily Japa Protocol: sit facing East or North following your morning ablutions. Intone 'Om' three times to center your breath, followed by 108 recitations of the sacred Shiva Panchakshari ('Om Namah Shivaya') or your Nakshatra Ishta mantra, anchoring an aura of calm resilience.`
+        kn: `ನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ೧೦-ನಿಮಿಷಗಳ ದೈನಂದಿನ ಜಪ ಪ್ರೋಟೋಕಾಲ್: ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಸ್ನಾನದ ನಂತರ ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕಿಗೆ ಮುಖ ಮಾಡಿ ಕುಳಿತುಕೊಳ್ಳಿ. ಕಣ್ಣುಗಳನ್ನು ಮುಚ್ಚಿ ೩ ಬಾರಿ ಪ್ರಣವ ನಾದ 'ಓಂ' ಉಚ್ಚರಿಸಿ. ನಂತರ 'ಶ್ರೀ ಶಿವ ಪಂಚಾಕ್ಷರೀ ಮಂತ್ರ'ವನ್ನು (ಓಂ ನಮಃ ಶಿವಾಯ) ೧೦೮ ಬಾರಿ ಶಾಂತಚಿತ್ತದಿಂದ ಜಪಿಸಿ; ಇದು ನಿಮ್ಮ ಸುತ್ತಲೂ ದಿವ್ಯ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.`,
+        mr: `आपल्यासाठी १० मिनिटांचा नित्य जप: दररोज सकाळी स्नानानंतर पूर्व किंवा उत्तर दिशेला तोंड करून शांत बसा. ३ वेळा 'ॐ' उच्चार करून नंतर १०८ वेळा 'ॐ नमः शिवाय' चा जप करा. हा नियमित नियम आपल्या भोवती एक सकारात्मक संरक्षक कवच तयार करतो.`,
+        hi: `आपके लिए १०-मिनट का नित्य जप विधान: प्रतिदिन प्रातः स्नानोपरांत पूर्व अथवा उत्तर दिशा की ओर मुख करके बैठें। ३ बार ओंकार ध्वनि का उच्चारण कर १०८ बार 'ॐ नमः शिवाय' का शांत मन से जप करें; यह साधना अभेद्य सुरक्षा चक्र बनाती है।`,
+        te: `మీ కోసం ప్రత్యేకంగా 10 నిమిషాల నిత్య జప విధానం: ప్రతిరోజూ ఉదయాన్నే స్నానం చేసిన తర్వాత తూర్పు లేదా ఉత్తర ముఖంగా కూర్చుని, కళ్ళు మూసుకుని 3 సార్లు 'ఓం' అని పలకండి. ఆపై 108 సార్లు 'ఓం నమః శివాయ' మంత్రాన్ని ప్రశాంతమైన మనసుతో జపించండి; ఇది మీ చుట్టూ ఒక దైవిక రక్షా కవచాన్ని నిర్మిస్తుంది.`,
+        ta: `உங்களுக்கான தினசரி 10 நிமிட ஜப முறை: தினமும் காலையில் நீராடிய பின் கிழக்கு அல்லது வடக்கு திசை நோக்கி அமர்ந்து 3 முறை 'ஓம்' என அமைதியாக உச்சரிக்கவும். தொடர்ந்து 108 முறை 'ஓம் நம சிவாய' மந்திரத்தை ஒருமுகப்பட்ட மனதுடன் ஜபிக்க, அது உங்களைச் சுற்றி தெய்வீக பாதுகாப்பு கவசத்தை உருவாக்கும்.`,
+        en: `Your dedicated 10-Minute Daily Japa Protocol: sit facing East or North after morning ablutions, intone 'Om' three times to steady your breath, and repeat the sacred Panchakshari ('Om Namah Shivaya') 108 times calmly to establish a tranquil protective aura.`
       }, targetLang),
       pick6({
         kn: `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಮಹಾ ಮಂತ್ರ ಸಂಪರ್ಕ: ಶ್ರೀ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಆತ್ಮಲಿಂಗವು ರಾವಣನಿಂದ ಪ್ರತಿಷ್ಠಾಪಿಸಲ್ಪಟ್ಟ ಪರಮ ಶಿವಲಿಂಗವಾಗಿದ್ದು, ಸಮಸ್ತ ಇಷ್ಟಾರ್ಥಗಳನ್ನು ಸಿದ್ಧಿಸುವ ಕಾಮಧೇನುವಾಗಿದೆ. ನಿಮ್ಮ ಮನೆಯ ಪೂಜಾ ಕೋಣೆಯಲ್ಲಿ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಭಸ್ಮ ಅಥವಾ ಪ್ರಸಾದವನ್ನು ಇಟ್ಟು ನಮಸ್ಕರಿಸುವುದು ನಿಮ್ಮ ಮಂತ್ರ ಸಿದ್ಧಿಯನ್ನು ನೂರ್ಮಡಿಗೊಳಿಸುತ್ತದೆ.`,
-        mr: `गोकर्ण महाबळेश्वर महामंत्र: गोकर्णचे आत्मलिंग हे सर्व इच्छा पूर्ण करणारे महास्थान आहे. गोकर्णचा पवित्र भस्म कपाळावर लावल्याने मंत्र सिद्धी लवकर होते.`,
-        hi: `श्री गोकर्ण महाबलेश्वर सन्निधि का पावन संपर्क: गोकर्ण का आत्मलिंग साक्षात सदाशिव का साक्षात विग्रह है। घर के पूजा स्थल पर गोकर्ण का पवित्र भस्म अथवा प्रसाद स्थापित कर नमन करने से आपकी मंत्र साधना शीघ्र सिद्ध होती है।`,
-        te: `గోకర్ణ ఆత్మలింగం ఎంతో మహిమాన్వితమైనది. పూజా గదిలో గోకర్ణ ప్రసాదాన్ని ఉంచి పూజించడం వల్ల జప సిద్ధి కలుగుతుంది.`,
-        ta: `கோகர்ண மகாபலேஸ்வரர் அருள் தொடர்பு: கோகர்ண ஆத்மலிங்கம் சகல விருப்பங்களையும் நிறைவேற்றும் திருத்தலமாகும். கோகர்ண விபூதியை நெற்றியில் தரிக்க மந்திர சித்தி எளிதில் கிட்டும்.`,
-        en: `Connection with the primordial Gokarna Atma Linga: Sri Kshetra Gokarna preserves the original Atma Linga of Lord Shiva. Keeping consecrated Gokarna Vibhuti at your altar and applying it to your Ajna chakra before daily Japa accelerates cognitive purity and spiritual focus.`
+        mr: `गोकर्ण महाबळेश्वर महामंत्र संपर्क: गोकर्ण क्षेत्रीचे पवित्र आत्मलिंग हे सर्व मनोकामना पूर्ण करणारे साक्षात शिवस्वरूप आहे. घरातील देव्हाऱ्यात गोकर्णाचा पवित्र भस्म किंवा प्रसाद ठेवून नमन केल्याने साधनेचे फळ शतपटीने वाढते.`,
+        hi: `श्री गोकर्ण महाबलेश्वर सन्निधि का पावन संपर्क: गोकर्ण का आत्मलिंग साक्षात सदाशिव का जाग्रत विग्रह है। घर के पूजा स्थल पर गोकर्ण का पवित्र भस्म अथवा प्रसाद स्थापित कर नमन करने से आपकी मंत्र साधना शीघ्र सिद्ध होती है।`,
+        te: `శ్రీ గోకర్ణ మహాబలేశ్వర ఆత్మలింగంతో దైవ సంబంధం: గోకర్ణ క్షేత్రంలోని ఆత్మలింగం సాక్షాత్తూ పరమశివుని స్వరూపంగా సర్వ శుభాలను ప్రసాదిస్తుంది. మీ పూజా గదిలో గోకర్ణ విభూతి లేదా ప్రసాదాన్ని భక్తితో ఉంచి నమస్కరించడం వల్ల మీ నిత్య జపం త్వరగా ఫలిస్తుంది.`,
+        ta: `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் அருள் தொடர்பு: கோகர்ண ஆத்மலிங்கம் சகல நன்மைகளையும் அருளும் புனித சக்தி பீடமாகும். உங்கள் வீட்டுப் பூஜை அறையில் கோகர்ண திருநீறு அல்லது பிரசாதத்தை வைத்து வழிபட்டு நெற்றியில் அணிவதால் மன அமைதியும் மந்திர சித்தியும் எளிதில் கைகூடும்.`,
+        en: `Connection with the primordial Gokarna Atma Linga: Sri Kshetra Gokarna preserves Lord Shiva's ancient Atma Linga. Keeping consecrated Gokarna Vibhuti at your altar and applying it quietly before daily Japa accelerates clarity and inner peace.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ಮಂತ್ರ ಜಪ ರಕ್ಷೆ", mr: "मंत्र जप सुरक्षा", hi: "मंत्र जप कवच", te: "మంత్ర జప రక్షణ", ta: "மந்திர ஜப கவசம்", en: "Sacred Japa Shield" }, targetLang),
@@ -3127,16 +3194,56 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang)
   });
 
-  return chapters.map((ch) => ({
-    ...ch,
-    paragraphs: ch.paragraphs.map((p) => {
+  return chapters.map((ch) => {
+    const enrichment = buildChapterPrecisionEnrichment({
+      chapterNumber: ch.chapterNumber,
+      targetLang,
+      devoteeName,
+      lagnaRashiName,
+      moonRashiName,
+      nakshatraName,
+      nakshatraPada,
+      currentHoraPlanet,
+      currentMahadasha,
+      currentBhuktiLord,
+      bhuktiEndDate,
+      yogiPlanetName,
+      avayogiPlanetName,
+      bhriguBinduRashiName,
+      bhriguDeg,
+      maandiHouse,
+      maandiRashiName,
+      shaniTransitRashi,
+      shaniHouseFromMoon,
+      shaniTransitSav,
+      guruTransitRashi,
+      guruHouseFromMoon,
+      guruTransitSav,
+      rahuHouseFromMoon,
+      house10Info,
+      house2Info,
+      house11Info,
+      house7Info,
+      house5Info,
+      house6Info,
+      isMinor,
+      isChildOrInfant,
+      isSenior,
+      ext: extendedPrecision
+    });
+    const expandedParagraphs = [...ch.paragraphs, enrichment.extraParagraph].map((p) => {
       let cleaned = cleanDegreesFromText(cleanPunctuationArtifacts(p));
       if (targetLang !== "en") {
         cleaned = cleanEnglishFromRegionalText(cleaned, targetLang);
       }
       return cleaned;
-    })
-  }));
+    });
+    return {
+      ...ch,
+      paragraphs: expandedParagraphs,
+      precisionAnchors: enrichment.precisionAnchors
+    };
+  });
 }
 
 // ============================================================================
@@ -3400,6 +3507,7 @@ export async function captureSampoornaMaster25Pdf(
   const lang = options?.lang || "kn";
   const parentEl = containerEl.parentElement;
   const originalStyle = parentEl?.getAttribute("style") || "";
+  const originalIndexPageTexts: Array<{ el: HTMLElement; text: string }> = [];
   const layout = SAMPOORNA25_A4_LAYOUT;
 
   try {
@@ -3445,10 +3553,14 @@ export async function captureSampoornaMaster25Pdf(
     const page1UsableH = layout.CONTENT_BOTTOM_MAX_MM - layout.PAGE1_TOP_Y_MM;
     const contUsableH = layout.CONTENT_BOTTOM_MAX_MM - layout.CONT_TOP_Y_MM;
     const renderedSections: RenderedSectionChunkInput[] = [];
+    let executiveIndexEl: HTMLElement | null = null;
 
     for (let i = 0; i < sections.length; i++) {
       const sectionEl = sections[i];
       const sectionName = sectionEl.getAttribute("data-section") || sectionEl.id || `section_${i}`;
+      if (sectionName === "executive-index") {
+        executiveIndexEl = sectionEl;
+      }
 
       const progressVal = 85 + Math.round(((i + 1) / sections.length) * 12);
       options?.onProgress?.(
@@ -3468,9 +3580,7 @@ export async function captureSampoornaMaster25Pdf(
         continue;
       }
 
-      const isFrontMatter =
-        sectionName === "cover" || sectionName === "user-details" || sectionName === "executive-index";
-      const targetMaxH = isFrontMatter ? page1UsableH : contUsableH;
+      const targetMaxH = sectionName === "cover" ? page1UsableH : contUsableH;
       const chunks = sliceCanvasToA4Chunks(canvas, sectionName, targetMaxH, layout.IMAGE_W_MM);
       renderedSections.push(...chunks);
       canvas.width = 0;
@@ -3482,7 +3592,50 @@ export async function captureSampoornaMaster25Pdf(
       throw new Error("Calculated PDF height is zero. Cannot generate empty PDF.");
     }
 
-    const pages = planSampoorna25A4Pages(renderedSections, layout);
+    let pages = planSampoorna25A4Pages(renderedSections, layout);
+
+    // Pass 2: Synchronize dynamic chapter & section page numbers in the Booklet Index
+    if (executiveIndexEl) {
+      const exactSectionPageMap: Record<string, number> = {};
+      for (const p of pages) {
+        for (const s of p.sections) {
+          if (!(s.name in exactSectionPageMap)) {
+            exactSectionPageMap[s.name] = p.pageNumber;
+          }
+        }
+      }
+
+      const badgeEls = Array.from(executiveIndexEl.querySelectorAll("[data-index-page-for]")) as HTMLElement[];
+      let indexUpdated = false;
+      for (const badgeEl of badgeEls) {
+        const targetKey = badgeEl.getAttribute("data-index-page-for") || "";
+        const actualPage = exactSectionPageMap[targetKey];
+        if (typeof actualPage === "number" && actualPage > 0) {
+          const localizedLabel = formatPageTag6L(actualPage, lang);
+          if ((badgeEl.textContent || "").trim() !== localizedLabel) {
+            originalIndexPageTexts.push({ el: badgeEl, text: badgeEl.textContent || "" });
+            badgeEl.textContent = localizedLabel;
+            indexUpdated = true;
+          }
+        }
+      }
+
+      if (indexUpdated) {
+        const idxCanvas = await captureDomElementToCanvas(executiveIndexEl, 40);
+        if (idxCanvas && idxCanvas.width > 0 && idxCanvas.height > 0) {
+          const updatedIdxChunks = sliceCanvasToA4Chunks(idxCanvas, "executive-index", contUsableH, layout.IMAGE_W_MM);
+          idxCanvas.width = 0;
+          idxCanvas.height = 0;
+          const firstIdxPos = renderedSections.findIndex((s) => s.name === "executive-index");
+          if (firstIdxPos >= 0) {
+            const withoutOldIndex = renderedSections.filter((s) => s.name !== "executive-index");
+            withoutOldIndex.splice(firstIdxPos, 0, ...updatedIdxChunks);
+            renderedSections.splice(0, renderedSections.length, ...withoutOldIndex);
+            pages = planSampoorna25A4Pages(renderedSections, layout);
+          }
+        }
+      }
+    }
     const pdf = new jsPDF({
       orientation: "p",
       unit: "mm",
@@ -3582,6 +3735,9 @@ export async function captureSampoornaMaster25Pdf(
 
     return pdf;
   } finally {
+    for (const item of originalIndexPageTexts) {
+      item.el.textContent = item.text;
+    }
     if (parentEl) {
       parentEl.setAttribute("style", originalStyle);
     }

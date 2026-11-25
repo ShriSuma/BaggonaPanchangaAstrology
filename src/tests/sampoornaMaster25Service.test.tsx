@@ -490,4 +490,116 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(fullTamilText).not.toMatch(/[\u0400-\u04FF]/);
     expect(fullTamilText).not.toMatch(/[\u0900-\u097F]/);
   });
+
+  it("13. Verifies Royal Booklet flow (Cover -> 25-Chapter Page Index -> Details -> Chapters), cover emotional copy, and deep 4-paragraph chapters", async () => {
+    const languages = ["kn", "mr", "hi", "te", "ta", "en"] as const;
+    for (const lang of languages) {
+      const payload = await prepareSampoornaMaster25Data(
+        { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+        lang
+      );
+
+      // 1. Cover personalization & emotional assurance
+      expect(payload.coverPage.brandBannerTitle.length).toBeGreaterThan(5);
+      expect(payload.coverPage.personalAssurancePara1).toContain(payload.devoteeName);
+      expect(payload.coverPage.personalAssurancePara2.length).toBeGreaterThan(80);
+      expect(payload.precisionProfile.liveTarabalaHeadline.length).toBeGreaterThan(3);
+      expect(payload.precisionProfile.badhakaSummary.length).toBeGreaterThan(3);
+
+      // 2. Every single chapter has >= 4 deep paragraphs + precision anchor pills
+      payload.chapters.forEach((ch) => {
+        expect(
+          ch.paragraphs.length,
+          `[${lang}] Chapter ${ch.chapterNumber} must have at least 4 deep paragraphs`
+        ).toBeGreaterThanOrEqual(4);
+        expect(ch.precisionAnchors?.length || 0).toBeGreaterThanOrEqual(2);
+        const totalChars = ch.paragraphs.join(" ").length;
+        expect(
+          totalChars,
+          `[${lang}] Chapter ${ch.chapterNumber} narrative must be deeply substantive (>= 600 chars), got ${totalChars}`
+        ).toBeGreaterThanOrEqual(600);
+      });
+    }
+
+    // 3. Verify strict DOM booklet section order & all 25 indexed chapter page markers in DOM
+    const payloadKn = await prepareSampoornaMaster25Data(
+      { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+      "kn"
+    );
+    const { container } = render(<SampoornaMaster25PdfTemplate data={payloadKn} />);
+    const coverEl = container.querySelector('[data-section="cover"]')!;
+    const indexEl = container.querySelector('[data-section="executive-index"]')!;
+    const detailsEl = container.querySelector('[data-section="user-details"]')!;
+    const ch1El = container.querySelector('[data-section="chapter-1"]')!;
+
+    expect(coverEl).not.toBeNull();
+    expect(indexEl).not.toBeNull();
+    expect(detailsEl).not.toBeNull();
+    expect(ch1El).not.toBeNull();
+
+    // Order check: cover -> executive-index -> user-details -> chapter-1
+    expect(coverEl.compareDocumentPosition(indexEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(indexEl.compareDocumentPosition(detailsEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(detailsEl.compareDocumentPosition(ch1El) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // Cover contains Baggona Panchanga brand & user DOB + personal emotional narrative
+    const coverText = coverEl.textContent || "";
+    expect(coverText).toContain("ಬಗ್ಗೋಣ ಪಂಚಾಂಗ");
+    expect(coverText).toContain(payloadKn.devoteeName);
+    expect(coverText).toContain(payloadKn.coverPage.personalAssurancePara1);
+
+    // Index lists ALL 25 chapters plus user-details, calendar-qr, and priest contact with page tags
+    for (let ch = 1; ch <= 25; ch++) {
+      const pageBadge = indexEl.querySelector(`[data-index-page-for="chapter-${ch}"]`);
+      expect(pageBadge, `Missing index page badge for chapter-${ch}`).not.toBeNull();
+      expect(pageBadge?.textContent).toContain("ಪುಟ");
+    }
+    expect(indexEl.querySelector('[data-index-page-for="user-details"]')).not.toBeNull();
+    expect(indexEl.querySelector('[data-index-page-for="fifteen-day-calendar-qr"]')).not.toBeNull();
+    expect(indexEl.querySelector('[data-index-page-for="family-referral-and-priest"]')).not.toBeNull();
+  });
+
+  it("14. Verifies full-page Cover -> Index -> Details -> 1 Chapter Per Page isolation & Extended Jyotish Precision Gates", async () => {
+    const { planSampoorna25A4Pages } = await import("../services/sampoornaMaster25Service");
+    const bookletPlan = planSampoorna25A4Pages([
+      { name: "cover", heightMm: 222, imgData: "img-cover" },
+      { name: "executive-index", heightMm: 215, imgData: "img-index" },
+      { name: "user-details", heightMm: 205, imgData: "img-details" },
+      { name: "chapter-1", heightMm: 205, imgData: "img-ch1" },
+      { name: "chapter-2", heightMm: 210, imgData: "img-ch2" },
+    ]);
+
+    expect(bookletPlan.length).toBe(5);
+    expect(bookletPlan[0].sections.map((s) => s.name)).toEqual(["cover"]);
+    expect(bookletPlan[1].sections.map((s) => s.name)).toEqual(["executive-index"]);
+    expect(bookletPlan[2].sections.map((s) => s.name)).toEqual(["user-details"]);
+    expect(bookletPlan[3].sections.map((s) => s.name)).toEqual(["chapter-1"]);
+    expect(bookletPlan[4].sections.map((s) => s.name)).toEqual(["chapter-2"]);
+
+    // Verify combustion, retrograde, exaltation & Gandanta gates trigger accurately on a test chart
+    const testCombustGandantaChart: KundliOutput = {
+      ...mockAdultKundli,
+      ascendant: 1.5, // Aries 1.5° -> Ashwini Pada 1 Gandanta!
+      lagnaRashi: { index: 0, english: "Aries", sanskrit: "Mesha" }, // Movable Lagna -> Badhaka house 11 (Saturn)
+      planets: mockAdultKundli.planets.map((p) => {
+        if (p.name === PlanetName.Mercury) {
+          // Near Sun (Taurus 45° -> 48° -> orb 3° <= 14°) and retrograde
+          return { ...p, rashi: { index: 1, english: "Taurus", sanskrit: "Vrishabha" }, degree: 48, isRetrograde: true };
+        }
+        return p;
+      })
+    };
+
+    const payload = await prepareSampoornaMaster25Data(
+      { result: testCombustGandantaChart, input: mockAdultDevotee },
+      "en"
+    );
+
+    expect(payload.precisionProfile.badhakaSummary).toContain("House 11");
+    expect(payload.precisionProfile.retroCombustSummary).toContain("Retro: Mercury");
+    expect(payload.precisionProfile.retroCombustSummary).toContain("Combust: Mercury");
+    expect(payload.precisionProfile.gandantaSummary).toContain("Gandanta: Ascendant");
+    expect(payload.precisionProfile.dignifiedSummary).toContain("Mars"); // Mars in Aries = Own Sign
+    expect(payload.precisionProfile.dignifiedSummary).toContain("Jupiter"); // Jupiter in Cancer = Exalted
+  });
 });
