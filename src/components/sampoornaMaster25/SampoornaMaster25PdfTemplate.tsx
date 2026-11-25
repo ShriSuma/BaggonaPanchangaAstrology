@@ -94,15 +94,15 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
     return (
       <div
         style={{
-          borderBottom: "2px solid #d97706",
-          paddingBottom: "10px",
+          borderBottom: "1.5px solid #d97706",
+          paddingBottom: "8px",
           marginBottom: "14px",
           letterSpacing: "normal",
         }}
       >
         <div
           style={{
-            fontSize: "15.5px",
+            fontSize: "15px",
             fontWeight: 700,
             color: "#92400e",
             marginBottom: "4px",
@@ -113,7 +113,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
         </div>
         <h2
           style={{
-            fontSize: "24.5px",
+            fontSize: "24px",
             lineHeight: 1.36,
             fontWeight: 800,
             color: "#451a03",
@@ -133,22 +133,19 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
     return (
       <div
         style={{
-          marginTop: "14px",
-          padding: "14px 18px",
-          backgroundColor: "#fffbeb",
-          borderTop: "2px solid #d97706",
-          borderLeft: "4px solid #b45309",
-          borderRadius: "6px",
+          marginTop: "18px",
+          paddingTop: "12px",
+          borderTop: "1px solid #d97706",
           letterSpacing: "normal",
         }}
       >
         <p
           style={{
             margin: 0,
-            fontSize: "16.5px",
-            lineHeight: 1.56,
+            fontSize: "17px",
+            lineHeight: 1.58,
             fontWeight: 600,
-            color: "#451a03",
+            color: "#78350f",
             letterSpacing: "normal",
             wordBreak: "break-word",
           }}
@@ -177,10 +174,10 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
   );
 
   const infoCellStyle: React.CSSProperties = {
-    backgroundColor: "#fffbeb",
-    border: "1px solid #fde68a",
+    backgroundColor: "#fffdf8",
+    border: "1px solid #efd5a3",
     borderRadius: "6px",
-    padding: "12px 15px",
+    padding: "11px 14px",
     letterSpacing: "normal",
   };
   const infoLabelStyle: React.CSSProperties = {
@@ -191,7 +188,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
     letterSpacing: "normal",
   };
   const infoValueStyle: React.CSSProperties = {
-    fontSize: "18px",
+    fontSize: "17.5px",
     fontWeight: 700,
     color: "#451a03",
     lineHeight: 1.44,
@@ -216,38 +213,53 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
       <div
         id="sampoorna-master-25-running-header"
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "5px 24px",
+          width: "100%",
           backgroundColor: "#FFF7ED",
           color: "#78350f",
-          fontSize: "12.5px",
-          fontWeight: 700,
+          boxSizing: "border-box",
           letterSpacing: "normal",
         }}
       >
-        <span>{runningHeaderFolio}</span>
-        <span>
-          {data.devoteeName} • {data.lagnaName}
-        </span>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+            padding: "5px 10px",
+            boxSizing: "border-box",
+            fontSize: "12.5px",
+            fontWeight: 700,
+            letterSpacing: "normal",
+          }}
+        >
+          <span>{runningHeaderFolio}</span>
+          <span>
+            {data.devoteeName} • {data.lagnaName}
+          </span>
+        </div>
       </div>
 
       {/* RUNNING FOOTER TEXT STRIP IN NATIVE SCRIPT (Captured once outside .pdf-section) */}
       <div
         id="sampoorna-master-25-running-footer"
         style={{
-          display: "inline-flex",
-          alignItems: "center",
-          padding: "2px 6px",
           backgroundColor: "#FFF7ED",
           color: "#78350f",
-          fontSize: "12px",
-          fontWeight: 700,
           letterSpacing: "normal",
         }}
       >
-        <span>{data.footerText}</span>
+        <div
+          style={{
+            display: "inline-block",
+            padding: "2px 6px",
+            fontSize: "12px",
+            fontWeight: 700,
+            letterSpacing: "normal",
+          }}
+        >
+          {data.footerText}
+        </div>
       </div>
 
       {/* ==================================================================== */}
@@ -256,14 +268,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
       <div className={sectionClass} data-section="cover">
         <div
           style={{
-            minHeight: "1230px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            background: "linear-gradient(160deg, #fffbeb 0%, #fef3c7 50%, #fffbeb 100%)",
-            border: "2.5px solid #b45309",
-            borderRadius: "12px",
-            padding: "26px 32px",
+            padding: "20px 24px",
             boxSizing: "border-box",
             letterSpacing: "normal",
           }}
@@ -358,16 +363,16 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
           {/* PERSONALIZED DEVOTEE DETAILS */}
           <div
             style={{
-              backgroundColor: "#ffffff",
-              border: "2px solid #d97706",
-              borderRadius: "10px",
-              padding: "18px 22px",
-              marginTop: "12px",
-              marginBottom: "12px",
+              backgroundColor: "#fffdf8",
+              border: "1px solid #efd5a3",
+              borderRadius: "8px",
+              padding: "18px 20px",
+              marginTop: "20px",
+              marginBottom: "20px",
               letterSpacing: "normal",
             }}
           >
-            <div style={{ textAlign: "center", marginBottom: "14px", paddingBottom: "10px", borderBottom: "1.5px solid #fde68a" }}>
+            <div style={{ textAlign: "center", marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid #efd5a3" }}>
               <div style={{ fontSize: "14.5px", fontWeight: 700, color: "#92400e", marginBottom: "4px" }}>
                 {pick6(
                   {
@@ -432,12 +437,9 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
           {/* PERSONAL EMOTIONAL INTRODUCTION MESSAGE */}
           <div
             style={{
-              backgroundColor: "#ffffff",
-              border: "1.5px solid #d97706",
-              borderLeft: "5px solid #b45309",
-              borderRadius: "10px",
-              padding: "20px 24px",
-              marginBottom: "12px",
+              borderLeft: "3px solid #d97706",
+              padding: "6px 18px",
+              marginBottom: "24px",
               textAlign: "left",
               letterSpacing: "normal",
             }}
@@ -485,8 +487,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
           {/* BOTTOM COVER SEAL STRIP */}
           <div
             style={{
-              borderTop: "2px solid #d97706",
-              paddingTop: "12px",
+              borderTop: "1.5px solid #d97706",
+              paddingTop: "14px",
               textAlign: "center",
               letterSpacing: "normal",
             }}
@@ -502,220 +504,337 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
       </div>
 
       {/* ==================================================================== */}
-      {/* SECTION 2 (PAGE 2): SIMPLE SINGLE-COLUMN BOOK TABLE OF CONTENTS      */}
+      {/* SECTION 2 (PAGE 2): CLEAN CLICKABLE SINGLE-COLUMN TABLE OF CONTENTS  */}
       {/* ==================================================================== */}
       <div className={sectionClass} data-section="executive-index">
         <div
           style={{
-            minHeight: "1190px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            backgroundColor: "#ffffff",
-            border: "2px solid #d97706",
-            borderRadius: "10px",
-            padding: "20px 26px",
+            padding: "12px 20px",
             boxSizing: "border-box",
             letterSpacing: "normal",
           }}
         >
-          <div>
+          <div
+            style={{
+              borderBottom: "1.5px solid #d97706",
+              paddingBottom: "8px",
+              marginBottom: "10px",
+            }}
+          >
+            <h2 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: 800, color: "#451a03" }}>
+              {pick6(
+                {
+                  kn: "ಪುಸ್ತಕ ವಿಷಯ ಸೂಚಿ (ಅಧ್ಯಾಯ & ಪುಟ ಸಂಖ್ಯೆ)",
+                  mr: "पुस्तक अनुक्रमणिका (अध्याय व पृष्ठ क्रमांक)",
+                  hi: "पुस्तक विषय-सूची (अध्याय एवं पृष्ठ संख्या)",
+                  te: "పుస్తక విషయ సూచిక (అధ్యాయం & పుట సంఖ్య)",
+                  ta: "நூல் உள்ளடக்க அட்டவணை (அத்தியாயம் & பக்க எண்)",
+                  en: "Booklet Table of Contents (Chapter & Page Guide)",
+                },
+                lang
+              )}
+            </h2>
+            <div style={{ fontSize: "15.5px", fontWeight: 600, color: "#92400e" }}>
+              {pick6(
+                {
+                  kn: `${data.devoteeName} ರವರ ಜಾತಕ ಗ್ರಂಥ — ಅಧ್ಯಾಯದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ನೇರವಾಗಿ ಆ ಪುಟಕ್ಕೆ ತೆರಳಿ`,
+                  mr: `${data.devoteeName} यांचे ग्रंथ — थेट संबंधित पृष्ठावर जाण्यासाठी अध्यायावर क्लिक करा`,
+                  hi: `${data.devoteeName} की पुस्तिका — सीधे संबंधित पृष्ठ पर जाने हेतु किसी भी अध्याय पर क्लिक करें`,
+                  te: `${data.devoteeName} గారి జాతక గ్రంథం — నేరుగా ఆ పుటకు వెళ్ళడానికి అధ్యాయంపై క్లిక్ చేయండి`,
+                  ta: `${data.devoteeName} அவர்களின் ஜாதக நூல் — அந்தப் பக்கத்திற்கு நேராகச் செல்ல அத்தியாயத்தை கிளிக் செய்யவும்`,
+                  en: `Personal Edition for ${data.devoteeName} • Click any entry below to jump directly to that page`,
+                },
+                lang
+              )}
+            </div>
+          </div>
+
+          {/* COLUMN HEADER */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "5px 6px",
+              borderBottom: "1.5px solid #b45309",
+              marginBottom: "4px",
+              fontSize: "14px",
+              fontWeight: 800,
+              color: "#78350f",
+            }}
+          >
+            <span>
+              {pick6(
+                { kn: "ವಿಷಯ / ಅಧ್ಯಾಯ", mr: "विषय / अध्याय", hi: "विषय / अध्याय", te: "విషయం / అధ్యాయం", ta: "தலைப்பு / அத்தியாயம்", en: "Section / Chapter" },
+                lang
+              )}
+            </span>
+            <span>
+              {pick6(
+                { kn: "ಪುಟ ಸಂಖ್ಯೆ", mr: "पृष्ठ क्र.", hi: "पृष्ठ संख्या", te: "పుట సంఖ్య", ta: "பக்க எண்", en: "Page" },
+                lang
+              )}
+            </span>
+          </div>
+
+          {/* CLEAN CLICKABLE SINGLE-COLUMN BOOK INDEX */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            {/* Cover (Page 1) */}
             <div
+              data-index-link-target="cover"
               style={{
-                borderBottom: "2px solid #d97706",
-                paddingBottom: "8px",
-                marginBottom: "12px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                padding: "4px 6px",
+                borderBottom: "1px dashed #e7cfa0",
+                fontSize: "15px",
+                fontWeight: 700,
+                color: "#78350f",
               }}
             >
-              <h2 style={{ margin: "0 0 4px 0", fontSize: "25px", fontWeight: 800, color: "#451a03" }}>
+              <span style={{ lineHeight: 1.32 }}>
                 {pick6(
                   {
-                    kn: "ಪುಸ್ತಕ ವಿಷಯ ಸೂಚಿ (ಅಧ್ಯಾಯ & ಪುಟ ಸಂಖ್ಯೆ)",
-                    mr: "पुस्तक अनुक्रमणिका (अध्याय व पृष्ठ क्रमांक)",
-                    hi: "पुस्तक विषय-सूची (अध्याय एवं पृष्ठ संख्या)",
-                    te: "పుస్తక విషయ సూచిక (అధ్యాయం & పుట సంఖ్య)",
-                    ta: "நூல் உள்ளடக்க அட்டவணை (அத்தியாயம் & பக்க எண்)",
-                    en: "Booklet Table of Contents (Chapter & Page Guide)",
+                    kn: "ಮುಖಪುಟ — ಜಾತಕರ ವಿವರ & ಆತ್ಮೀಯ ಭರವಸೆಯ ನುಡಿ",
+                    mr: "मुखपृष्ठ — जातक तपशील व आश्वासक संदेश",
+                    hi: "मुखपृष्ठ — जातक विवरण एवं आत्मीय संदेश",
+                    te: "ముఖచిత్రం — జాతక వివరాలు & ఆత్మీయ సందేశం",
+                    ta: "முகப்பு பக்கம் — ஜாதகர் விவரம் & நம்பிக்கை மடல்",
+                    en: "Cover Page — Personal Dedication & Sanctuary Note",
                   },
                   lang
                 )}
-              </h2>
-              <div style={{ fontSize: "16px", fontWeight: 600, color: "#92400e" }}>
-                {pick6(
-                  {
-                    kn: `${data.devoteeName} ರವರ ಜಾತಕ ಗ್ರಂಥ — ನಿಮಗೆ ಬೇಕಾದ ಅಧ್ಯಾಯವನ್ನು ಆಯಾ ಪುಟ ಸಂಖ್ಯೆಯಲ್ಲಿ ನೇರವಾಗಿ ಓದಿರಿ`,
-                    mr: `${data.devoteeName} यांचे ग्रंथ — इच्छित अध्याय वाचण्यासाठी संबंधित पृष्ठ क्रमांक पहा`,
-                    hi: `${data.devoteeName} की पुस्तिका — किसी भी अध्याय को पढ़ने हेतु संबंधित पृष्ठ संख्या देखें`,
-                    te: `${data.devoteeName} గారి జాతక గ్రంథం — కావలసిన అధ్యాయాన్ని ఆయా పుటలలో నేరుగా చదవండి`,
-                    ta: `${data.devoteeName} அவர்களின் ஜாதக நூல் — ஒவ்வொரு அத்தியாயத்திற்கும் உரிய பக்க எண்ணை பார்க்கவும்`,
-                    en: `Personal Edition for ${data.devoteeName} • Turn directly to any chapter's verified page number below`,
-                  },
-                  lang
-                )}
-              </div>
+              </span>
+              <span
+                data-index-page-for="cover"
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 800,
+                  color: "#92400e",
+                  whiteSpace: "nowrap",
+                  marginLeft: "14px",
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
+                }}
+              >
+                {formatPageTag6L(1, lang)}
+              </span>
             </div>
 
-            {/* CLEAN SINGLE-COLUMN BOOK INDEX */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "3.5px" }}>
-              {/* Front Dossier Entry (Page 3) */}
+            {/* Index (Page 2) */}
+            <div
+              data-index-link-target="executive-index"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                padding: "4px 6px",
+                borderBottom: "1px dashed #e7cfa0",
+                fontSize: "15px",
+                fontWeight: 700,
+                color: "#78350f",
+              }}
+            >
+              <span style={{ lineHeight: 1.32 }}>
+                {pick6(
+                  {
+                    kn: "ವಿಷಯ ಸೂಚಿ — ಸಂಪೂರ್ಣ ಅಧ್ಯಾಯಗಳ ಪುಟ ಮಾರ್ಗದರ್ಶಿ",
+                    mr: "अनुक्रमणिका — संपूर्ण अध्याय पृष्ठ मार्गदर्शक",
+                    hi: "विषय-सूची — संपूर्ण अध्याय पृष्ठ मार्गदर्शिका",
+                    te: "విషయ సూచిక — అధ్యాయాల పుటల మార్గదర్శి",
+                    ta: "உள்ளடக்கம் — அத்தியாய பக்க வழிகாட்டி",
+                    en: "Table of Contents — Complete Chapter & Page Directory",
+                  },
+                  lang
+                )}
+              </span>
+              <span
+                data-index-page-for="executive-index"
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 800,
+                  color: "#92400e",
+                  whiteSpace: "nowrap",
+                  marginLeft: "14px",
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
+                }}
+              >
+                {formatPageTag6L(2, lang)}
+              </span>
+            </div>
+
+            {/* Front Dossier Entry (Page 3) */}
+            <div
+              data-index-link-target="user-details"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                padding: "4px 6px",
+                borderBottom: "1px dashed #d97706",
+                fontSize: "15px",
+                fontWeight: 700,
+                color: "#78350f",
+              }}
+            >
+              <span style={{ lineHeight: 1.32 }}>
+                {pick6(
+                  {
+                    kn: "ಪೂರ್ವಭಾವಿ — ಷಡಂಗ ಪಂಚಾಂಗ & ಜಾತಕದ ಮೂಲ ವಿವರ",
+                    mr: "पूर्वपीठिका — षडांग पंचांग व जन्मकुंडली तपशील",
+                    hi: "प्रारंभिका — षडांग पंचांग एवं जन्मकुंडली विवरण",
+                    te: "ప్రారంభం — షడంగ పంచాంగం & జాతక వివరాలు",
+                    ta: "முன்னுரை — ஷடங்க பஞ்சாங்கம் & ஜாதக விவரம்",
+                    en: "Preliminaries — 6-Anga Birth Panchanga & Kundli Profile",
+                  },
+                  lang
+                )}
+              </span>
+              <span
+                data-index-page-for="user-details"
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 800,
+                  color: "#92400e",
+                  whiteSpace: "nowrap",
+                  marginLeft: "14px",
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
+                }}
+              >
+                {formatPageTag6L(3, lang)}
+              </span>
+            </div>
+
+            {data.chapters.map((ch) => (
               <div
+                key={ch.chapterNumber}
+                data-index-link-target={`chapter-${ch.chapterNumber}`}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "baseline",
-                  padding: "5px 4px",
-                  borderBottom: "1px dashed #d97706",
-                  fontSize: "15.5px",
-                  fontWeight: 700,
-                  color: "#78350f",
+                  padding: "3.5px 6px",
+                  borderBottom: "1px dashed #e7cfa0",
+                  fontSize: "14.5px",
+                  lineHeight: 1.3,
                 }}
               >
-                <span style={{ lineHeight: 1.32 }}>
-                  {pick6(
-                    {
-                      kn: "ಪೂರ್ವಭಾವಿ — ಷಡಂಗ ಪಂಚಾಂಗ & ಜಾತಕದ ಮೂಲ ವಿವರ",
-                      mr: "पूर्वपीठिका — षडांग पंचांग व जन्मकुंडली तपशील",
-                      hi: "प्रारंभिका — षडांग पंचांग एवं जन्मकुंडली विवरण",
-                      te: "ప్రారంభం — షడంగ పంచాంగం & జాతక వివరాలు",
-                      ta: "முன்னுரை — ஷடங்க பஞ்சாங்கம் & ஜாதக விவரம்",
-                      en: "Preliminaries — 6-Anga Birth Panchanga & Kundli Profile",
-                    },
-                    lang
-                  )}
+                <span style={{ color: "#451a03", fontWeight: 600, wordBreak: "break-word" }}>
+                  <strong style={{ color: "#92400e", marginRight: "8px" }}>{n(ch.chapterNumber)}.</strong>
+                  {cleanChapterTitle(ch)}
                 </span>
                 <span
-                  data-index-page-for="user-details"
+                  data-index-page-for={`chapter-${ch.chapterNumber}`}
                   style={{
-                    fontSize: "15.5px",
+                    fontSize: "14.5px",
                     fontWeight: 800,
-                    color: "#78350f",
+                    color: "#92400e",
                     whiteSpace: "nowrap",
                     marginLeft: "14px",
+                    textDecoration: "underline",
+                    textUnderlineOffset: "3px",
                   }}
                 >
-                  {formatPageTag6L(3, lang)}
+                  {formatPageTag6L(data.initialChapterPages[ch.chapterNumber] ?? ch.chapterNumber + 3, lang)}
                 </span>
               </div>
+            ))}
 
-              {data.chapters.map((ch) => (
-                <div
-                  key={ch.chapterNumber}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "baseline",
-                    padding: "4px 4px",
-                    borderBottom: "1px dashed #e7cfa0",
-                    fontSize: "15px",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  <span style={{ color: "#451a03", fontWeight: 600, wordBreak: "break-word" }}>
-                    <strong style={{ color: "#92400e", marginRight: "8px" }}>{n(ch.chapterNumber)}.</strong>
-                    {cleanChapterTitle(ch)}
-                  </span>
-                  <span
-                    data-index-page-for={`chapter-${ch.chapterNumber}`}
-                    style={{
-                      fontSize: "15px",
-                      fontWeight: 800,
-                      color: "#92400e",
-                      whiteSpace: "nowrap",
-                      marginLeft: "14px",
-                    }}
-                  >
-                    {formatPageTag6L(data.initialChapterPages[ch.chapterNumber] ?? ch.chapterNumber + 3, lang)}
-                  </span>
-                </div>
-              ))}
-
-              {/* 15-Day Personalized Calendar Row */}
-              <div
+            {/* 15-Day Personalized Calendar Row */}
+            <div
+              data-index-link-target="fifteen-day-calendar-qr"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                padding: "4px 6px",
+                borderBottom: "1px dashed #d97706",
+                fontSize: "15px",
+                fontWeight: 700,
+                color: "#78350f",
+              }}
+            >
+              <span style={{ lineHeight: 1.32 }}>
+                {pick6(
+                  {
+                    kn: "ವಿಶೇಷ ಸೇರ್ಪಡೆ — ೧೫ ದಿನಗಳ ವೈಯಕ್ತಿಕ ದೈನಂದಿನ ದರ್ಶನ ಕ್ಯಾಲೆಂಡರ್",
+                    mr: "विशेष भेट — १५ दिवसांचे वैयक्तिक दैनिक दर्शन कॅलेंडर",
+                    hi: "विशेष उपहार — १५-दिवसीय व्यक्तिगत दैनिक दर्शन कैलेंडर",
+                    te: "ప్రత్యేక కానుక — 15 రోజుల వ్యక్తిగత దైనిక దర్శన క్యాలెండర్",
+                    ta: "சிறப்பு இணைப்பு — 15 நாட்கள் தனிப்பயன் தினசரி தரிசன காலண்டர்",
+                    en: "Bonus — 15-Day Personalized Daily Darshana Calendar QR",
+                  },
+                  lang
+                )}
+              </span>
+              <span
+                data-index-page-for="fifteen-day-calendar-qr"
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                  padding: "5px 4px",
-                  borderBottom: "1px dashed #d97706",
-                  fontSize: "15.5px",
-                  fontWeight: 700,
-                  color: "#78350f",
+                  fontSize: "15px",
+                  fontWeight: 800,
+                  color: "#92400e",
+                  whiteSpace: "nowrap",
+                  marginLeft: "14px",
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
                 }}
               >
-                <span style={{ lineHeight: 1.32 }}>
-                  {pick6(
-                    {
-                      kn: "ವಿಶೇಷ ಸೇರ್ಪಡೆ — ೧೫ ದಿನಗಳ ವೈಯಕ್ತಿಕ ದೈನಂದಿನ ದರ್ಶನ ಕ್ಯಾಲೆಂಡರ್",
-                      mr: "विशेष भेट — १५ दिवसांचे वैयक्तिक दैनिक दर्शन कॅलेंडर",
-                      hi: "विशेष उपहार — १५-दिवसीय व्यक्तिगत दैनिक दर्शन कैलेंडर",
-                      te: "ప్రత్యేక కానుక — 15 రోజుల వ్యక్తిగత దైనిక దర్శన క్యాలెండర్",
-                      ta: "சிறப்பு இணைப்பு — 15 நாட்கள் தனிப்பயன் தினசரி தரிசன காலண்டர்",
-                      en: "Bonus — 15-Day Personalized Daily Darshana Calendar QR",
-                    },
-                    lang
-                  )}
-                </span>
-                <span
-                  data-index-page-for="fifteen-day-calendar-qr"
-                  style={{
-                    fontSize: "15.5px",
-                    fontWeight: 800,
-                    color: "#78350f",
-                    whiteSpace: "nowrap",
-                    marginLeft: "14px",
-                  }}
-                >
-                  {formatPageTag6L(data.initialCalendarQrPage, lang)}
-                </span>
-              </div>
+                {formatPageTag6L(data.initialCalendarQrPage, lang)}
+              </span>
+            </div>
 
-              {/* Family Sanctuary & Chief Priest Contact Row */}
-              <div
+            {/* Family Sanctuary & Chief Priest Contact Row */}
+            <div
+              data-index-link-target="family-referral-and-priest"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                padding: "4px 6px",
+                fontSize: "15px",
+                fontWeight: 700,
+                color: "#78350f",
+              }}
+            >
+              <span style={{ lineHeight: 1.32 }}>
+                {pick6(
+                  {
+                    kn: "ಸಮಾಪನ — ಕುಟುಂಬ ರಕ್ಷಣೆ & ಗೋಕರ್ಣ ಮುಖ್ಯ ಅರ್ಚಕರ ಸಂಪರ್ಕ",
+                    mr: "समारोप — कौटुंबिक सुरक्षा व गोकर्ण मुख्य पुरोहित संपर्क",
+                    hi: "उपसंहार — पारिवारिक सुरक्षा एवं गोकर्ण मुख्य अर्चक संपर्क",
+                    te: "ముగింపు — కుటుంబ రక్షణ & గోకర్ణ ముఖ్య అర్చకుల సంప్రదింపు",
+                    ta: "நிறைவு — குடும்ப பாதுகாப்பு & கோகர்ண தலைமை அர்ச்சகர் தொடர்பு",
+                    en: "Closing — Family Sanctuary & Sri Gokarna Chief Priest Contact",
+                  },
+                  lang
+                )}
+              </span>
+              <span
+                data-index-page-for="family-referral-and-priest"
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                  padding: "5px 4px",
-                  fontSize: "15.5px",
-                  fontWeight: 700,
-                  color: "#78350f",
+                  fontSize: "15px",
+                  fontWeight: 800,
+                  color: "#92400e",
+                  whiteSpace: "nowrap",
+                  marginLeft: "14px",
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
                 }}
               >
-                <span style={{ lineHeight: 1.32 }}>
-                  {pick6(
-                    {
-                      kn: "ಸಮಾಪನ — ಕುಟುಂಬ ರಕ್ಷಣೆ & ಗೋಕರ್ಣ ಮುಖ್ಯ ಅರ್ಚಕರ ಸಂಪರ್ಕ",
-                      mr: "समारोप — कौटुंबिक सुरक्षा व गोकर्ण मुख्य पुरोहित संपर्क",
-                      hi: "उपसंहार — पारिवारिक सुरक्षा एवं गोकर्ण मुख्य अर्चक संपर्क",
-                      te: "ముగింపు — కుటుంబ రక్షణ & గోకర్ణ ముఖ్య అర్చకుల సంప్రదింపు",
-                      ta: "நிறைவு — குடும்ப பாதுகாப்பு & கோகர்ண தலைமை அர்ச்சகர் தொடர்பு",
-                      en: "Closing — Family Sanctuary & Sri Gokarna Chief Priest Contact",
-                    },
-                    lang
-                  )}
-                </span>
-                <span
-                  data-index-page-for="family-referral-and-priest"
-                  style={{
-                    fontSize: "15.5px",
-                    fontWeight: 800,
-                    color: "#78350f",
-                    whiteSpace: "nowrap",
-                    marginLeft: "14px",
-                  }}
-                >
-                  {formatPageTag6L(data.initialFinalBlessingPage, lang)}
-                </span>
-              </div>
+                {formatPageTag6L(data.initialFinalBlessingPage, lang)}
+              </span>
             </div>
           </div>
 
           <div
             style={{
               marginTop: "10px",
-              paddingTop: "10px",
-              borderTop: "1.5px solid #d97706",
-              fontSize: "15px",
+              paddingTop: "8px",
+              borderTop: "1px solid #d97706",
+              fontSize: "14.5px",
               fontWeight: 600,
               color: "#78350f",
               textAlign: "center",
@@ -742,14 +861,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
       <div className={sectionClass} data-section="user-details">
         <div
           style={{
-            minHeight: "1190px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            backgroundColor: "#ffffff",
-            border: "2px solid #d97706",
-            borderRadius: "10px",
-            padding: "22px 26px",
+            padding: "16px 22px",
             boxSizing: "border-box",
             letterSpacing: "normal",
           }}
@@ -1021,11 +1133,9 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
           <div
             style={{
-              marginTop: "14px",
-              padding: "16px 20px",
-              backgroundColor: "#fffbeb",
-              border: "1.5px solid #d97706",
-              borderRadius: "8px",
+              marginTop: "16px",
+              paddingTop: "14px",
+              borderTop: "1px solid #d97706",
               fontSize: "16.5px",
               fontWeight: 700,
               color: "#78350f",
@@ -1063,14 +1173,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             <div className={sectionClass} data-section="fifteen-day-calendar-qr">
               <div
                 style={{
-                  minHeight: "1190px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  backgroundColor: "#ffffff",
-                  border: "2px solid #d97706",
-                  borderRadius: "10px",
-                  padding: "24px 28px",
+                  padding: "16px 22px",
                   boxSizing: "border-box",
                   letterSpacing: "normal",
                 }}
@@ -1081,7 +1184,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      paddingBottom: "10px",
+                      paddingBottom: "8px",
                       marginBottom: "16px",
                       borderBottom: "1.5px solid #d97706",
                       fontSize: "15.5px",
@@ -1129,9 +1232,9 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                   >
                     <div
                       style={{
-                        backgroundColor: "#fffbeb",
-                        border: "1.5px solid #f59e0b",
-                        borderRadius: "10px",
+                        backgroundColor: "#fffdf8",
+                        border: "1px solid #efd5a3",
+                        borderRadius: "8px",
                         padding: "18px",
                         textAlign: "center",
                       }}
@@ -1163,10 +1266,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                         <div
                           key={fIdx}
                           style={{
-                            backgroundColor: "#fffbeb",
-                            borderLeft: "4px solid #d97706",
-                            padding: "13px 16px",
-                            borderRadius: "6px",
+                            borderLeft: "3px solid #d97706",
+                            padding: "6px 14px",
                             fontSize: "17px",
                             lineHeight: 1.54,
                             fontWeight: 600,
@@ -1182,10 +1283,9 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
                 <div
                   style={{
-                    backgroundColor: "#fef3c7",
-                    border: "1.5px solid #b45309",
-                    borderRadius: "8px",
-                    padding: "18px 22px",
+                    marginTop: "24px",
+                    paddingTop: "14px",
+                    borderTop: "1px solid #d97706",
                   }}
                 >
                   <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#78350f", marginBottom: "6px" }}>
@@ -1205,14 +1305,10 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
           >
             <div
               style={{
-                minHeight: "1190px",
                 display: "flex",
                 flexDirection: "column",
-                justifyContent: "space-between",
-                backgroundColor: "#ffffff",
-                border: "2px solid #d97706",
-                borderRadius: "10px",
-                padding: "22px 26px",
+                justifyContent: "flex-start",
+                padding: "14px 22px",
                 boxSizing: "border-box",
                 letterSpacing: "normal",
               }}
@@ -1221,11 +1317,9 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div
                 style={{
-                  backgroundColor: "#fffbeb",
-                  borderLeft: "4px solid #d97706",
-                  padding: "11px 16px",
-                  borderRadius: "6px",
-                  marginBottom: "10px",
+                  borderLeft: "3px solid #d97706",
+                  padding: "6px 14px",
+                  marginBottom: "16px",
                   fontSize: "19px",
                   fontWeight: 700,
                   lineHeight: 1.48,
@@ -1238,12 +1332,9 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div
                 style={{
-                  flex: 1,
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-evenly",
-                  gap: "12px",
-                  padding: "4px 0",
+                  gap: "13px",
                 }}
               >
                 {chapter.paragraphs.map((para, pIdx) => (
@@ -1251,8 +1342,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                     key={pIdx}
                     style={{
                       margin: 0,
-                      fontSize: "17.5px",
-                      lineHeight: 1.6,
+                      fontSize: "18.5px",
+                      lineHeight: 1.66,
                       color: "#1f1206",
                       letterSpacing: "normal",
                       wordBreak: "break-word",
@@ -1275,25 +1366,18 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
       <div className={sectionClass} data-section="family-referral-and-priest">
         <div
           style={{
-            minHeight: "1190px",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
-            backgroundColor: "#ffffff",
-            border: "2px solid #d97706",
-            borderRadius: "10px",
-            padding: "28px 32px",
+            gap: "24px",
+            padding: "22px 26px",
             boxSizing: "border-box",
             letterSpacing: "normal",
           }}
         >
           <div
             style={{
-              background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
-              border: "2px solid #b45309",
-              borderRadius: "10px",
-              padding: "26px 30px",
-              textAlign: "center",
+              borderLeft: "4px solid #b45309",
+              padding: "12px 20px",
               letterSpacing: "normal",
             }}
           >
@@ -1313,10 +1397,9 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
           <div
             style={{
-              backgroundColor: "#fffbeb",
-              border: "1.5px solid #d97706",
-              borderRadius: "10px",
-              padding: "22px 26px",
+              padding: "14px 16px",
+              borderTop: "1px solid #efd5a3",
+              borderBottom: "1px solid #efd5a3",
               textAlign: "center",
               letterSpacing: "normal",
             }}
@@ -1331,10 +1414,10 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
           <div
             style={{
-              backgroundColor: "#fffbeb",
-              border: "2px solid #d97706",
-              borderRadius: "10px",
-              padding: "24px 28px",
+              backgroundColor: "#fffdf8",
+              border: "1px solid #efd5a3",
+              borderRadius: "8px",
+              padding: "22px 24px",
               letterSpacing: "normal",
             }}
           >
@@ -1360,10 +1443,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 justifyContent: "space-between",
                 alignItems: "center",
                 gap: "18px",
-                backgroundColor: "#ffffff",
-                border: "1.5px solid #f59e0b",
-                borderRadius: "10px",
-                padding: "20px 24px",
+                paddingTop: "12px",
+                borderTop: "1px solid #efd5a3",
               }}
             >
               <div>
@@ -1389,7 +1470,6 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                   fontWeight: 800,
                   textDecoration: "none",
                   whiteSpace: "nowrap",
-                  border: "1.5px solid #d97706",
                 }}
               >
                 <span>{data.priestBooking.phoneDisplay}</span>
@@ -1400,7 +1480,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
           <div
             style={{
               textAlign: "center",
-              borderTop: "2px solid #d97706",
+              borderTop: "1.5px solid #d97706",
               paddingTop: "16px",
               fontSize: "16.5px",
               fontWeight: 700,

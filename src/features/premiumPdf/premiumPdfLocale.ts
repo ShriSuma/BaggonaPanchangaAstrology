@@ -783,11 +783,13 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     cleaned = cleaned.replace(/[\u0900-\u0CFF]/gu, "");
   }
 
-  // 4b. Strip orphan colons, solitary numbers with colons/crosses/dots left behind after Latin removal (e.g. ": 7 × ..")
+  // 4b. Strip orphan colons, solitary numbers with colons/crosses/dots left behind after Latin removal (e.g. ": 7 × .."),
+  // while preserving valid word-attached colons inside prose (e.g. "ಪ್ರಶ್ನೆ: ...")
   cleaned = cleaned
     .replace(/:\s*\d+\s*[×x*•]?\s*[\.]*/g, "")
     .replace(/[×x*•]\s*[\.]*/g, "")
-    .replace(/\s*:\s*(?=[\s,.\-×*•]|$)/g, "")
+    .replace(/(?:^|\s):\s*(?=[\s,.\-×*•]|$)/gm, " ")
+    .replace(/:\s*(?=[,.\-×*•]|$)/gm, "")
     .replace(/^[ \t:,\.\-–—×*•~|]+(?=[^ \t\r\n:,\.\-–—×*•~|])/gm, "")
     .replace(/[ \t:,\-–—×*•~|]+$/gm, "")
     .replace(/^[ \t:,\.\-–—×*•~|]+$/gm, "");

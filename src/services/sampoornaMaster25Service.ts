@@ -3317,6 +3317,8 @@ export interface RenderedSectionChunkInput {
   heightMm: number;
   name: string;
   sliceIndex?: number;
+  sourceTopRatio?: number;
+  sourceBottomRatio?: number;
 }
 
 export interface PlannedA4Section {
@@ -3326,6 +3328,8 @@ export interface PlannedA4Section {
   renderHeightMm: number;
   renderXMm: number;
   name: string;
+  sourceTopRatio?: number;
+  sourceBottomRatio?: number;
 }
 
 export interface PlannedA4Page {
@@ -3361,6 +3365,8 @@ export function planSampoorna25A4Pages(
         renderHeightMm: sec.heightMm,
         renderXMm: layout.IMAGE_X_MM,
         name: sec.name,
+        sourceTopRatio: sec.sourceTopRatio ?? 0,
+        sourceBottomRatio: sec.sourceBottomRatio ?? 1,
       };
     }
     const ratio = maxH / sec.heightMm;
@@ -3373,6 +3379,8 @@ export function planSampoorna25A4Pages(
       renderHeightMm: maxH,
       renderXMm: renderX,
       name: sec.name,
+      sourceTopRatio: sec.sourceTopRatio ?? 0,
+      sourceBottomRatio: sec.sourceBottomRatio ?? 1,
     };
   };
 
@@ -3436,6 +3444,8 @@ function sliceCanvasToA4Chunks(
       imgData: sourceCanvas.toDataURL("image/jpeg", 0.95),
       heightMm: fullHeightMm,
       name: sectionName,
+      sourceTopRatio: 0,
+      sourceBottomRatio: 1,
     }];
   }
 
@@ -3443,6 +3453,7 @@ function sliceCanvasToA4Chunks(
   const chunks: RenderedSectionChunkInput[] = [];
   let offsetY = 0;
   let sliceIdx = 0;
+  const totalCanvasH = Math.max(1, sourceCanvas.height);
 
   while (offsetY < sourceCanvas.height) {
     const slicePx = Math.min(maxSlicePx, sourceCanvas.height - offsetY);
@@ -3460,6 +3471,8 @@ function sliceCanvasToA4Chunks(
         heightMm: sliceHeightMm,
         name: sectionName,
         sliceIndex: sliceIdx,
+        sourceTopRatio: offsetY / totalCanvasH,
+        sourceBottomRatio: (offsetY + slicePx) / totalCanvasH,
       });
     }
     sliceCanvas.width = 0;
@@ -3469,6 +3482,51 @@ function sliceCanvasToA4Chunks(
   }
 
   return chunks;
+}
+
+function renderNativePageTagImage(
+  label: string,
+  lang: SixLang
+): { imgData: string; widthMm: number; heightMm: number } | null {
+  try {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    const fontMap: Record<SixLang, string> = {
+      kn: "'Noto Serif Kannada', 'Noto Sans Kannada', serif",
+      mr: "'Noto Sans Devanagari', serif",
+      hi: "'Noto Sans Devanagari', serif",
+      te: "'Noto Sans Telugu', serif",
+      ta: "'Noto Sans Tamil', serif",
+      en: "'Outfit', Helvetica, sans-serif",
+    };
+    const fontStr = `700 22px ${fontMap[lang] || fontMap.en}`;
+    ctx.font = fontStr;
+    const metrics = ctx.measureText(label);
+    const padX = 12;
+    const wPx = Math.max(60, Math.ceil(metrics.width + padX * 2));
+    const hPx = 36;
+    canvas.width = wPx;
+    canvas.height = hPx;
+
+    ctx.fillStyle = "#FFF7ED";
+    ctx.fillRect(0, 0, wPx, hPx);
+    ctx.font = fontStr;
+    ctx.fillStyle = "#78350F";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "right";
+    ctx.fillText(label, wPx - 4, hPx / 2);
+
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const targetHMm = 4.6;
+    const targetWMm = Number(((wPx * targetHMm) / hPx).toFixed(3));
+    canvas.width = 0;
+    canvas.height = 0;
+    return { imgData, widthMm: targetWMm, heightMm: targetHMm };
+  } catch {
+    return null;
+  }
 }
 
 async function captureDomElementToCanvas(el: HTMLElement, minHeightPx = 40): Promise<HTMLCanvasElement | null> {
@@ -3660,15 +3718,29 @@ export async function captureSampoornaMaster25Pdf(
     let pages = planSampoorna25A4Pages(renderedSections, layout);
 
     // Pass 2: Synchronize dynamic chapter & section page numbers in the Booklet Index
+    let exactSectionPageMap: Record<string, number> = {};
+    const indexLinkItems: Array<{
+      targetKey: string;
+      leftRatio: number;
+      topRatio: number;
+      rightRatio: number;
+      bottomRatio: number;
+    }> = [];
+
     if (executiveIndexEl) {
-      const exactSectionPageMap: Record<string, number> = {};
-      for (const p of pages) {
-        for (const s of p.sections) {
-          if (!(s.name in exactSectionPageMap)) {
-            exactSectionPageMap[s.name] = p.pageNumber;
+      const computeSectionPageMap = (planned: PlannedA4Page[]) => {
+        const map: Record<string, number> = {};
+        for (const p of planned) {
+          for (const s of p.sections) {
+            if (!(s.name in map)) {
+              map[s.name] = p.pageNumber;
+            }
           }
         }
-      }
+        return map;
+      };
+
+      exactSectionPageMap = computeSectionPageMap(pages);
 
       const badgeEls = Array.from(executiveIndexEl.querySelectorAll("[data-index-page-for]")) as HTMLElement[];
       let indexUpdated = false;
@@ -3697,7 +3769,27 @@ export async function captureSampoornaMaster25Pdf(
             withoutOldIndex.splice(firstIdxPos, 0, ...updatedIdxChunks);
             renderedSections.splice(0, renderedSections.length, ...withoutOldIndex);
             pages = planSampoorna25A4Pages(renderedSections, layout);
+            exactSectionPageMap = computeSectionPageMap(pages);
           }
+        }
+      }
+
+      // Record normalized coordinates for every clickable Index row so we can bind PDF internal hyperlinks
+      const idxRect = executiveIndexEl.getBoundingClientRect();
+      const idxW = Math.max(1, idxRect.width || 900);
+      const idxH = Math.max(1, idxRect.height || executiveIndexEl.scrollHeight);
+      const rowEls = Array.from(executiveIndexEl.querySelectorAll("[data-index-link-target]")) as HTMLElement[];
+      for (const rowEl of rowEls) {
+        const targetKey = rowEl.getAttribute("data-index-link-target") || "";
+        const rRect = rowEl.getBoundingClientRect();
+        if (targetKey && rRect.height > 0) {
+          indexLinkItems.push({
+            targetKey,
+            leftRatio: Math.max(0, (rRect.left - idxRect.left) / idxW),
+            topRatio: Math.max(0, (rRect.top - idxRect.top) / idxH),
+            rightRatio: Math.min(1, (rRect.right - idxRect.left) / idxW),
+            bottomRatio: Math.min(1, (rRect.bottom - idxRect.top) / idxH),
+          });
         }
       }
     }
@@ -3709,6 +3801,15 @@ export async function captureSampoornaMaster25Pdf(
     });
 
     const totalPages = pages.length;
+    const indexPlacements: Array<{
+      pdfPage: number;
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+      sourceTopRatio: number;
+      sourceBottomRatio: number;
+    }> = [];
 
     for (let pIdx = 0; pIdx < pages.length; pIdx++) {
       const page = pages[pIdx];
@@ -3741,7 +3842,7 @@ export async function captureSampoornaMaster25Pdf(
           pdf.text("BAGGONA PANCHANGA  *  SAMPOORNA 25-CHAPTER FOLIO", layout.A4_WIDTH_MM / 2, 13.5, { align: "center" });
         }
         pdf.setDrawColor(217, 119, 6);
-        pdf.setLineWidth(0.25);
+        pdf.setLineWidth(0.22);
         pdf.line(layout.IMAGE_X_MM, 17.4, layout.IMAGE_X_MM + layout.IMAGE_W_MM, 17.4);
       }
 
@@ -3751,20 +3852,30 @@ export async function captureSampoornaMaster25Pdf(
 
       for (const sec of page.sections) {
         pdf.addImage(sec.imgData, "JPEG", sec.renderXMm, currentY, sec.renderWidthMm, sec.renderHeightMm, undefined, "FAST");
+        if (sec.name === "executive-index") {
+          indexPlacements.push({
+            pdfPage: pIdx + 1,
+            x: sec.renderXMm,
+            y: currentY,
+            w: sec.renderWidthMm,
+            h: sec.renderHeightMm,
+            sourceTopRatio: sec.sourceTopRatio ?? 0,
+            sourceBottomRatio: sec.sourceBottomRatio ?? 1,
+          });
+        }
         currentY += sec.renderHeightMm;
       }
 
       // 4. Running Footer strictly INSIDE the inner gold frame (< 289.2mm)
-      pdf.setDrawColor(180, 83, 9);
-      pdf.setLineWidth(0.25);
+      pdf.setDrawColor(217, 119, 6);
+      pdf.setLineWidth(0.22);
       pdf.line(11, layout.FOOTER_LINE_Y_MM, layout.A4_WIDTH_MM - 11, layout.FOOTER_LINE_Y_MM);
 
       if (runningFooterChunk) {
-        const fx = layout.IMAGE_X_MM + (layout.IMAGE_W_MM - runningFooterChunk.widthMm) / 2;
         pdf.addImage(
           runningFooterChunk.imgData,
           "JPEG",
-          fx,
+          layout.IMAGE_X_MM,
           282.1,
           runningFooterChunk.widthMm,
           runningFooterChunk.heightMm,
@@ -3778,29 +3889,51 @@ export async function captureSampoornaMaster25Pdf(
         pdf.text("BAGGONA PANCHANGA  *  SRI KSHETRA GOKARNA", 12, layout.FOOTER_TEXT_Y_MM);
       }
 
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(7.5);
-      pdf.setTextColor(146, 64, 14);
-      pdf.text(`${pIdx + 1} / ${totalPages}`, layout.A4_WIDTH_MM - 12, layout.FOOTER_TEXT_Y_MM, { align: "right" });
+      const footerPageText = `${formatPageTag6L(pIdx + 1, lang)} / ${toNativeDigits(totalPages, lang)}`;
+      const pageTagImg = renderNativePageTagImage(footerPageText, lang);
+      if (pageTagImg) {
+        const tagX = layout.A4_WIDTH_MM - 11.5 - pageTagImg.widthMm;
+        pdf.addImage(pageTagImg.imgData, "JPEG", tagX, 282.3, pageTagImg.widthMm, pageTagImg.heightMm, undefined, "FAST");
+      } else {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(120, 53, 15);
+        const asciiFallback = lang === "en" ? `Page ${pIdx + 1} / ${totalPages}` : `${pIdx + 1} / ${totalPages}`;
+        pdf.text(asciiFallback, layout.A4_WIDTH_MM - 12, layout.FOOTER_TEXT_Y_MM, { align: "right" });
+      }
 
-      // 5. Draw Double Gold Decorative Borders LAST on top so JPEG edges can NEVER overwrite them!
+      // 5. Clean Gold Page Frame drawn LAST on top so edges remain unbroken and uncluttered
       const ob = layout.OUTER_BORDER_INSET_MM;
       const ib = layout.INNER_BORDER_INSET_MM;
       pdf.setDrawColor(180, 83, 9); // amber-700
-      pdf.setLineWidth(0.55);
+      pdf.setLineWidth(0.45);
       pdf.rect(ob, ob, layout.A4_WIDTH_MM - ob * 2, layout.A4_HEIGHT_MM - ob * 2);
 
-      pdf.setDrawColor(217, 119, 6); // amber-500
-      pdf.setLineWidth(0.25);
+      pdf.setDrawColor(232, 190, 128); // subtle warm gold hairline
+      pdf.setLineWidth(0.15);
       pdf.rect(ib, ib, layout.A4_WIDTH_MM - ib * 2, layout.A4_HEIGHT_MM - ib * 2);
+    }
 
-      // Corner gold seal ornaments sitting crisply inside the outer/inner gap
-      pdf.setFillColor(180, 83, 9);
-      const cSize = 1.6;
-      pdf.rect(ob - 0.3, ob - 0.3, cSize, cSize, "F");
-      pdf.rect(layout.A4_WIDTH_MM - ob - cSize + 0.3, ob - 0.3, cSize, cSize, "F");
-      pdf.rect(ob - 0.3, layout.A4_HEIGHT_MM - ob - cSize + 0.3, cSize, cSize, "F");
-      pdf.rect(layout.A4_WIDTH_MM - ob - cSize + 0.3, layout.A4_HEIGHT_MM - ob - cSize + 0.3, cSize, cSize, "F");
+    // Bind interactive PDF hyperlinks for every chapter/section row in the Table of Contents
+    for (const placement of indexPlacements) {
+      const span = Math.max(0.001, placement.sourceBottomRatio - placement.sourceTopRatio);
+      for (const item of indexLinkItems) {
+        const targetPage = exactSectionPageMap[item.targetKey];
+        if (!targetPage || targetPage < 1 || targetPage > totalPages) continue;
+        if (item.bottomRatio <= placement.sourceTopRatio || item.topRatio >= placement.sourceBottomRatio) {
+          continue;
+        }
+        const clippedTop = Math.max(placement.sourceTopRatio, item.topRatio);
+        const clippedBot = Math.min(placement.sourceBottomRatio, item.bottomRatio);
+        const relTop = (clippedTop - placement.sourceTopRatio) / span;
+        const relBot = (clippedBot - placement.sourceTopRatio) / span;
+        const linkX = placement.x + item.leftRatio * placement.w;
+        const linkY = placement.y + relTop * placement.h;
+        const linkW = Math.max(10, (item.rightRatio - item.leftRatio) * placement.w);
+        const linkH = Math.max(2, (relBot - relTop) * placement.h);
+        pdf.setPage(placement.pdfPage);
+        pdf.link(linkX, linkY, linkW, linkH, { pageNumber: targetPage });
+      }
     }
 
     if (autoSave) {

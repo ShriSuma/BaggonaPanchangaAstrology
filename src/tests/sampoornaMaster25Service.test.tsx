@@ -560,11 +560,14 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(coverText).toContain(payloadKn.devoteeName);
     expect(coverText).toContain(payloadKn.coverPage.personalAssurancePara1);
 
-    // Index lists ALL 25 chapters plus user-details, calendar-qr, and priest contact with page tags
+    // Index lists Cover, Index, Preliminaries, ALL 25 chapters, calendar-qr, and priest contact with page tags
+    expect(indexEl.querySelector('[data-index-page-for="cover"]')?.textContent).toContain("ಪುಟ");
+    expect(indexEl.querySelector('[data-index-page-for="executive-index"]')?.textContent).toContain("ಪುಟ");
     for (let ch = 1; ch <= 25; ch++) {
       const pageBadge = indexEl.querySelector(`[data-index-page-for="chapter-${ch}"]`);
       expect(pageBadge, `Missing index page badge for chapter-${ch}`).not.toBeNull();
       expect(pageBadge?.textContent).toContain("ಪುಟ");
+      expect(indexEl.querySelector(`[data-index-link-target="chapter-${ch}"]`)).not.toBeNull();
     }
     expect(indexEl.querySelector('[data-index-page-for="user-details"]')).not.toBeNull();
     expect(indexEl.querySelector('[data-index-page-for="fifteen-day-calendar-qr"]')).not.toBeNull();
@@ -613,5 +616,36 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(payload.precisionProfile.gandantaSummary).toContain("Gandanta: Ascendant");
     expect(payload.precisionProfile.dignifiedSummary).toContain("Mars"); // Mars in Aries = Own Sign
     expect(payload.precisionProfile.dignifiedSummary).toContain("Jupiter"); // Jupiter in Cancer = Exalted
+  });
+
+  it("15. Enforces compact paragraph rhythm (zero space-evenly), clean single-border design, preserved colons, flex header wrapper, and English 'Page' labels", async () => {
+    const payloadKn = await prepareSampoornaMaster25Data(
+      { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+      "kn"
+    );
+    // Regression guard: word-attached colons in questions/titles must NOT be stripped by cleanEnglishFromRegionalText
+    expect(payloadKn.chapters[0].question).toContain("ಪ್ರಶ್ನೆ:");
+    expect(payloadKn.chapters[2].question).toContain("ಪ್ರಶ್ನೆ:");
+
+    const { container } = render(<SampoornaMaster25PdfTemplate data={payloadKn} />);
+    const html = container.innerHTML;
+    expect(html).not.toContain("space-evenly");
+
+    // Running header must contain an inner flex space-between wrapper immune to clone.style.display = "block"
+    const rhInner = container.querySelector("#sampoorna-master-25-running-header > div") as HTMLElement | null;
+    expect(rhInner).not.toBeNull();
+    expect(rhInner?.style.display).toBe("flex");
+    expect(rhInner?.style.justifyContent).toBe("space-between");
+
+    // Verify English report shows "Page N" in Index with clickable target links
+    cleanup();
+    const payloadEn = await prepareSampoornaMaster25Data(
+      { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+      "en"
+    );
+    const { container: enContainer } = render(<SampoornaMaster25PdfTemplate data={payloadEn} />);
+    expect(enContainer.querySelector('[data-index-page-for="cover"]')?.textContent).toBe("Page 1");
+    expect(enContainer.querySelector('[data-index-page-for="chapter-1"]')?.textContent).toBe("Page 4");
+    expect(enContainer.querySelector('[data-index-link-target="chapter-1"]')).not.toBeNull();
   });
 });
