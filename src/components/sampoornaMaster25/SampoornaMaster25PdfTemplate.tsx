@@ -20,6 +20,7 @@ import {
   type Master25Chapter,
 } from "../../services/sampoornaMaster25Service";
 import { formatPageTag6L } from "../../services/sampoornaMaster25BookletEngine";
+import { SampoornaChapterVisual } from "./SampoornaChapterVisuals";
 import { type SixLang, pick6 } from "../../features/fiveYearPrediction/fiveYearLocale";
 
 interface Props {
@@ -128,13 +129,13 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
     );
   };
 
-  const renderContemplationRibbon = (_badge?: string, guidance?: string) => {
+  const renderContemplationRibbon = (badge?: string, guidance?: string) => {
     if (!guidance) return null;
     return (
       <div
         style={{
-          marginTop: "18px",
-          paddingTop: "12px",
+          marginTop: "14px",
+          paddingTop: "10px",
           borderTop: "1px solid #d97706",
           letterSpacing: "normal",
         }}
@@ -142,14 +143,17 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
         <p
           style={{
             margin: 0,
-            fontSize: "17px",
-            lineHeight: 1.58,
+            fontSize: "16.5px",
+            lineHeight: 1.56,
             fontWeight: 600,
             color: "#78350f",
             letterSpacing: "normal",
             wordBreak: "break-word",
           }}
         >
+          {badge ? (
+            <strong style={{ color: "#b45309", marginRight: "6px" }}>{badge} •</strong>
+          ) : null}
           {guidance}
         </p>
       </div>
@@ -1354,6 +1358,15 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 ))}
               </div>
 
+              <SampoornaChapterVisual
+                chapterNumber={chapter.chapterNumber}
+                visualType={chapter.visualType}
+                metrics={data.chartVisualMetrics}
+                lang={lang}
+                activeDoshaProfiles={data.activeDoshaProfiles}
+                bhuktiEndDate={data.bhuktiEndDate}
+              />
+
               {renderContemplationRibbon(chapter.guidanceBadge, chapter.practicalGuidance)}
             </div>
           </div>
@@ -1394,6 +1407,34 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               "{data.familyProtectionHook}"
             </p>
           </div>
+
+          {data.chartVisualMetrics && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "12px",
+                letterSpacing: "normal",
+              }}
+            >
+              <div style={infoCellStyle}>
+                <div style={infoLabelStyle}>
+                  {pick6({ kn: "ಶುಭ ವಾರ & ಯೋಗಿ ದಿಕ್ಕು", mr: "शुभ वार व योगी दिशा", hi: "शुभ वार व योगी दिशा", te: "శుభ వారం & యోగి దిశ", ta: "நல்ல நாள் & யோகி திசை", en: "Personal Power Day & Direction" }, lang)}
+                </div>
+                <div style={infoValueStyle}>
+                  {data.yogiDay} • {data.yogiDirection}
+                </div>
+              </div>
+              <div style={infoCellStyle}>
+                <div style={infoLabelStyle}>
+                  {pick6({ kn: "ಸುವರ್ಣ ಶಿಖರ & ದೋಷ ಸಾರಾಂಶ", mr: "सुवर्ण काळ व मुख्य कृती", hi: "स्वर्णिम काल व मुख्य संकल्प", te: "సువర్ణ కాలం & పరిహారం", ta: "பொற்காலம் & முக்கிய தீர்வு", en: "Golden Horizon & Priority Focus" }, lang)}
+                </div>
+                <div style={infoValueStyle}>
+                  {n(data.chartVisualMetrics.nowYear + 2)}–{n(data.chartVisualMetrics.nowYear + 4)} • {data.activeDoshaProfiles?.[0]?.title || data.detectedDoshasSummary}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div
             style={{

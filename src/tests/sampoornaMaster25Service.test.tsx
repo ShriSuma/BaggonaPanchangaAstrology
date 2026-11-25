@@ -494,7 +494,7 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(fullTamilText).not.toMatch(/[\u0900-\u097F]/);
   });
 
-  it("13. Verifies Royal Booklet flow (Cover -> 25-Chapter Page Index -> Details -> Chapters), pure Indic isolation, and deep 5-paragraph chapters", async () => {
+  it("13. Verifies Royal Booklet flow (Cover -> 25-Chapter Page Index -> Details -> Chapters), pure Indic isolation, concise story prose, and dynamic chapter SVG visuals", async () => {
     const languages = ["kn", "mr", "hi", "te", "ta", "en"] as const;
     for (const lang of languages) {
       const payload = await prepareSampoornaMaster25Data(
@@ -505,35 +505,39 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       // 1. Cover personalization & emotional assurance
       expect(payload.coverPage.brandBannerTitle.length).toBeGreaterThan(5);
       expect(payload.coverPage.personalAssurancePara1).toContain(payload.devoteeName);
-      expect(payload.coverPage.personalAssurancePara2.length).toBeGreaterThan(80);
+      expect(payload.coverPage.personalAssurancePara2.length).toBeGreaterThan(60);
       expect(payload.precisionProfile.liveTarabalaHeadline.length).toBeGreaterThan(3);
       expect(payload.precisionProfile.badhakaSummary.length).toBeGreaterThan(3);
 
-      // 2. Every single chapter has >= 5 deep paragraphs + precision anchors preserved in payload
+      // 2. Every chapter uses 3 crisp plot-twist storytelling paragraphs + precision anchors + visualType
       payload.chapters.forEach((ch) => {
         expect(
           ch.paragraphs.length,
-          `[${lang}] Chapter ${ch.chapterNumber} must have at least 5 deep paragraphs`
-        ).toBeGreaterThanOrEqual(5);
+          `[${lang}] Chapter ${ch.chapterNumber} must have 3 concise storytelling paragraphs`
+        ).toBeGreaterThanOrEqual(3);
         expect(ch.precisionAnchors?.length || 0).toBeGreaterThanOrEqual(2);
+        expect(ch.visualType).toBeTruthy();
         const totalChars = ch.paragraphs.join(" ").length;
         expect(
           totalChars,
-          `[${lang}] Chapter ${ch.chapterNumber} narrative must be deeply substantive (>= 900 chars), got ${totalChars}`
-        ).toBeGreaterThanOrEqual(900);
+          `[${lang}] Chapter ${ch.chapterNumber} story must be crisp & compelling (>= 220 chars), got ${totalChars}`
+        ).toBeGreaterThanOrEqual(220);
       });
 
-      // 2b. Verify zero English token mixing inside Indic coverPage / details / chapters
+      // 2b. Verify zero English token mixing inside Indic coverPage / details / doshas
       if (lang !== "en") {
         const coverStrings = Object.values(payload.coverPage).join(" ");
         expect(coverStrings).not.toMatch(/[a-zA-Z]{2,}/);
         expect(payload.detectedDoshasSummary).not.toMatch(/[a-zA-Z]{2,}/);
         expect(payload.detectedYogasSummary).not.toMatch(/[a-zA-Z]{2,}/);
         expect(payload.birthPlace).not.toMatch(/[a-zA-Z]/);
+        for (const dp of payload.activeDoshaProfiles || []) {
+          expect(`${dp.title} ${dp.doingNow} ${dp.affectingArea} ${dp.exactAction}`).not.toMatch(/[a-zA-Z]{2,}/);
+        }
       }
     }
 
-    // 3. Verify strict DOM booklet section order & all 25 indexed chapter page markers in DOM
+    // 3. Verify strict DOM booklet section order, all 25 indexed chapter page markers, and SVG visuals in DOM
     const payloadKn = await prepareSampoornaMaster25Data(
       { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
       "kn"
@@ -548,6 +552,8 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(indexEl).not.toBeNull();
     expect(detailsEl).not.toBeNull();
     expect(ch1El).not.toBeNull();
+    // Chapters render interactive SVG infographics to fill lower A4 space creatively
+    expect(container.querySelectorAll("svg").length).toBeGreaterThanOrEqual(24);
 
     // Order check: cover -> executive-index -> user-details -> chapter-1
     expect(coverEl.compareDocumentPosition(indexEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -647,5 +653,65 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(enContainer.querySelector('[data-index-page-for="cover"]')?.textContent).toBe("Page 1");
     expect(enContainer.querySelector('[data-index-page-for="chapter-1"]')?.textContent).toBe("Page 4");
     expect(enContainer.querySelector('[data-index-link-target="chapter-1"]')).not.toBeNull();
+  });
+
+  it("16. Ensures per-person Panchanga uniqueness on Cover & Chapters, zero remedy spam in Ch 1-22, and structured Dosha cards in Ch 23", async () => {
+    const personBDevotee: KundliInput = {
+      name: "Meera Kulkarni",
+      birthDate: "1986-11-19",
+      birthTime: "21:40",
+      latitude: 12.9716,
+      longitude: 77.5946,
+      gender: "Female",
+      maritalStatus: "married",
+      childrenStatus: "has_children",
+    };
+    const personBKundli: KundliOutput = {
+      ...mockAdultKundli,
+      ascendant: 215,
+      lagnaRashi: { index: 7, english: "Scorpio", sanskrit: "Vrishchika" },
+      moonSign: { index: 2, english: "Gemini", sanskrit: "Mithuna" },
+      moonPada: 3,
+      planets: mockAdultKundli.planets.map((p, idx) => ({
+        ...p,
+        rashi: { index: (idx + 6) % 12, english: "Libra", sanskrit: "Tula" },
+        degree: ((p.degree + 170) % 360),
+      })),
+    };
+
+    const [pAEn, pBEn, pAKn, pBKn] = await Promise.all([
+      prepareSampoornaMaster25Data({ result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna" }, "en"),
+      prepareSampoornaMaster25Data({ result: personBKundli, input: personBDevotee, placeLabel: "Bengaluru" }, "en"),
+      prepareSampoornaMaster25Data({ result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna" }, "kn"),
+      prepareSampoornaMaster25Data({ result: personBKundli, input: personBDevotee, placeLabel: "Bengaluru" }, "kn"),
+    ]);
+
+    // Different people at the same table MUST get distinct Cover sentences and distinct story copy
+    expect(pAEn.coverPage.personalAssurancePara1).not.toBe(pBEn.coverPage.personalAssurancePara1);
+    expect(pAEn.coverPage.personalAssurancePara2).not.toBe(pBEn.coverPage.personalAssurancePara2);
+    expect(pAKn.coverPage.personalAssurancePara1).not.toBe(pBKn.coverPage.personalAssurancePara1);
+    expect(pAEn.chapters[0].paragraphs[0]).not.toBe(pBEn.chapters[0].paragraphs[0]);
+    expect(pAEn.chapters[4].paragraphs[0]).not.toBe(pBEn.chapters[4].paragraphs[0]);
+
+    // Chapters 1-22 must NOT spam temple/puja remedies
+    for (let i = 0; i < 22; i++) {
+      const chEnText = pAEn.chapters[i].paragraphs.join(" ");
+      const chKnText = pAKn.chapters[i].paragraphs.join(" ");
+      expect(chEnText).not.toMatch(/Rudrabhisheka|Navagraha Shanti|Tila Homa/i);
+      expect(chKnText).not.toMatch(/ರುದ್ರಾಭಿಷೇಕ|ನವಗ್ರಹ ಶಾಂತಿ|ತಿಲ ಹೋಮ/);
+    }
+
+    // Chapter 23 consolidated Dosha section must populate activeDoshaProfiles with DoingNow + Area + Action
+    expect(pAEn.activeDoshaProfiles && pAEn.activeDoshaProfiles.length).toBeGreaterThanOrEqual(1);
+    const firstDosha = pAEn.activeDoshaProfiles![0];
+    expect(firstDosha.doingNow.length).toBeGreaterThan(15);
+    expect(firstDosha.affectingArea.length).toBeGreaterThan(10);
+    expect(firstDosha.exactAction.length).toBeGreaterThan(15);
+
+    const { container } = render(<SampoornaMaster25PdfTemplate data={pAEn} />);
+    const ch23El = container.querySelector('[data-section="chapter-23"]');
+    expect(ch23El).not.toBeNull();
+    expect(ch23El?.textContent).toContain(firstDosha.doingNow);
+    expect(ch23El?.textContent).toContain(firstDosha.exactAction);
   });
 });
