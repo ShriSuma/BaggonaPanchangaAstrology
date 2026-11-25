@@ -155,6 +155,25 @@ export interface StoryEngineInput {
   nowYear: number;
 }
 
+export type NarrativeThemeKey =
+  | "cinema"
+  | "nakshatra"
+  | "yoga_karana"
+  | "near_far"
+  | "parable";
+
+export interface ChapterVisualSummary {
+  themeKey: NarrativeThemeKey;
+  themeBadge: string;
+  nearLabel: string;
+  nearValue: string;
+  farLabel: string;
+  farValue: string;
+  focusHouse?: number;
+  focusYearOffset?: number;
+  glanceVerdict: string;
+}
+
 export interface GeneratedStoryChapter {
   chapterNumber: number;
   sectionNumber: number;
@@ -162,11 +181,13 @@ export interface GeneratedStoryChapter {
   title: string;
   icon: string;
   question: string;
+  storyHook: string;
   paragraphs: string[];
   precisionAnchors: string[];
   guidanceBadge: string;
   practicalGuidance: string;
   visualType: ChapterVisualType;
+  visualSummary: ChapterVisualSummary;
 }
 
 // ============================================================================
@@ -650,6 +671,499 @@ export function computeChartVisualMetrics(ctx: StoryEngineInput): ChartVisualMet
     bhriguRashiName: ctx.bhriguBinduRashiName,
     nowYear: ctx.nowYear,
     dominantElementKey: ctx.primaryElem,
+  };
+}
+
+// ============================================================================
+// 5-THEME SHUFFLE ENGINE, VIVID HOOK EXAMPLES & NEAR-VS-FAR VISUAL SUMMARIES
+// ============================================================================
+
+const ALL_NARRATIVE_THEMES: NarrativeThemeKey[] = [
+  "cinema",
+  "nakshatra",
+  "yoga_karana",
+  "near_far",
+  "parable",
+];
+
+function buildShuffledChapterThemes(ctx: StoryEngineInput): Record<number, NarrativeThemeKey> {
+  const dobSum = (ctx.birthDate || "")
+    .split("")
+    .reduce((acc, ch) => acc + (ch.charCodeAt(0) || 0), 0);
+  const seedBase =
+    dobSum * 31 +
+    ctx.nakshatraIdx * 17 +
+    ctx.lagnaRashiIdx * 13 +
+    ctx.moonRashiIdx * 11 +
+    ctx.weekdayIdx * 7 +
+    (ctx.isShuklaPaksha ? 5 : 19);
+
+  const assignment: Record<number, NarrativeThemeKey> = {};
+  let prevBlockLast: NarrativeThemeKey | null = null;
+
+  for (let block = 0; block < 5; block++) {
+    const pool: NarrativeThemeKey[] = [...ALL_NARRATIVE_THEMES];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const h = Math.abs((seedBase + block * 97 + i * 53) * 2654435761) >>> 0;
+      const j = h % (i + 1);
+      const tmp = pool[i];
+      pool[i] = pool[j];
+      pool[j] = tmp;
+    }
+    if (prevBlockLast && pool[0] === prevBlockLast) {
+      const swap = pool[0];
+      pool[0] = pool[2];
+      pool[2] = swap;
+    }
+    for (let k = 0; k < 5; k++) {
+      const chNum = block * 5 + k + 1;
+      assignment[chNum] = pool[k];
+    }
+    prevBlockLast = pool[4];
+  }
+  return assignment;
+}
+
+type ChapterBucket = "mirror" | "pivot" | "transit" | "pillar" | "horizon" | "finale";
+
+function getChapterBucket(chNum: number): ChapterBucket {
+  if (chNum <= 2 || chNum === 5) return "mirror";
+  if (chNum === 3 || chNum === 4 || chNum === 6 || chNum === 18) return "pivot";
+  if (chNum >= 7 && chNum <= 11) return "transit";
+  if (chNum >= 12 && chNum <= 16) return "pillar";
+  if (chNum >= 17 && chNum <= 22) return "horizon";
+  return "finale";
+}
+
+function buildChapterThemeAndNarrativeLayer(args: {
+  chNum: number;
+  themeKey: NarrativeThemeKey;
+  ctx: StoryEngineInput;
+  savByHouse: number[];
+  peakHouseNum: number;
+  doshaProfiles: ActiveDoshaProfile[];
+  isChildOrInfant: boolean;
+  taraScore: number;
+  taraWord: string;
+}): {
+  storyHook: string;
+  extP1: string;
+  extP2: string;
+  extP3: string;
+  visualSummary: ChapterVisualSummary;
+} {
+  const {
+    chNum,
+    themeKey,
+    ctx,
+    savByHouse,
+    peakHouseNum,
+    doshaProfiles,
+    isChildOrInfant,
+    taraScore,
+    taraWord,
+  } = args;
+
+  const {
+    targetLang: lang,
+    devoteeName,
+    nakshatraName,
+    nakshatraPada,
+    yogaName,
+    karanaName,
+    weekdayName,
+    lagnaRashiName,
+    moonRashiName,
+    yogiPlanetName,
+    avayogiPlanetName,
+    localizedYogiDay,
+    localizedYogiDirection,
+    bhriguBinduRashiName,
+    maandiHouse,
+    shaniTransitRashi,
+    guruTransitRashi,
+    currentMahadasha,
+    currentBhuktiLord,
+    bhuktiEndDate,
+    dominantElement,
+    detectedYogasSummary,
+    house6Info,
+    nowYear,
+  } = ctx;
+
+  const n = (v: number | string) => digits(v, lang);
+  const bucket = getChapterBucket(chNum);
+
+  const themeBadge =
+    themeKey === "cinema"
+      ? pick6({ kn: "🎬 ಜೀವನ ಸಿನಿಮಾ ದೃಶ್ಯ", mr: "🎬 जीवन सिनेमा दृश्य", hi: "🎬 जीवन सिनेमा दृश्य", te: "🎬 జీవన సినిమా దృశ్యం", ta: "🎬 வாழ்க்கை சினிமா காட்சி", en: "🎬 Life Cinema Lens" }, lang)
+      : themeKey === "nakshatra"
+      ? pick6({ kn: `⭐ ನಾನು ನಿನ್ನ ${nakshatraName}`, mr: `⭐ मी तुझे ${nakshatraName}`, hi: `⭐ मैं तुम्हारा ${nakshatraName}`, te: `⭐ నేను నీ ${nakshatraName}`, ta: `⭐ நான் உன் ${nakshatraName}`, en: `⭐ Voice of ${nakshatraName}` }, lang)
+      : themeKey === "yoga_karana"
+      ? pick6({ kn: `⚡ ${yogaName} • ${karanaName}`, mr: `⚡ ${yogaName} • ${karanaName}`, hi: `⚡ ${yogaName} • ${karanaName}`, te: `⚡ ${yogaName} • ${karanaName}`, ta: `⚡ ${yogaName} • ${karanaName}`, en: `⚡ ${yogaName} & ${karanaName}` }, lang)
+      : themeKey === "near_far"
+      ? pick6({ kn: "🧭 ಹತ್ತಿರ ಮತ್ತು ದೂರ", mr: "🧭 जवळ आणि दूर", hi: "🧭 निकट बनाम दूर", te: "🧭 దగ్గర & దూరం", ta: "🧭 அருகில் & தொலைவில்", en: "🧭 Near vs Far Mirror" }, lang)
+      : pick6({ kn: "⛵ ಜೀವನ ಕಥಾ ನಿದರ್ಶನ", mr: "⛵ जीवन कथा उदाहरण", hi: "⛵ प्रेरक जीवन-प्रसंग", te: "⛵ జీవిత కథా ఉదాహరణ", ta: "⛵ வாழ்க்கை உதாரணக் கதை", en: "⛵ Real-Life Parable" }, lang);
+
+  // Build authentic 2-3 sentence captivating hook matching the shuffled theme + chapter bucket + child safety
+  const rawHook = (): string => {
+    if (isChildOrInfant && (chNum === 12 || chNum === 13 || chNum === 14)) {
+      if (themeKey === "cinema") {
+        return pick6({
+          kn: `ನಿಮ್ಮ ಕುಟುಂಬದ ಪುಟ್ಟ ಸಿನಿಮಾವನ್ನು ಊಹಿಸಿ: ಈ ಪುಟ್ಟ ಕಂದಮ್ಮ ${nakshatraName} ಬೆಳಕಿನಲ್ಲಿ ಅರಳುತ್ತಾ ಮನೆಗೆ ನಗು ತರುತ್ತಿದೆ! ಸುತ್ತಲಿನವರು ಬರೀ ಆಟವನ್ನೇ ಕಾಣುತ್ತಿದ್ದರೆ, ಈ ಮಗುವಿನ ಪ್ರತಿಯೊಂದು ಕುತೂಹಲವೂ ದೊಡ್ಡ ಭವಿಷ್ಯದ ಬೀಜವಾಗುತ್ತಿದೆ.`,
+          mr: `तुमच्या कुटुंबाच्या सुंदर सिनेमाचे हे पहिले दृश्य समजा: हे बाळ ${nakshatraName} तेजासह घरात आनंदाची लाट घेऊन आले आहे! प्रत्येक छोटा खेळ आणि हास्य उद्याच्या मोठ्या प्रतिभेची चाहूल देत आहे.`,
+          hi: `अपने घर की सबसे प्यारी फिल्म का दृश्य सोचें: यह बालक ${nakshatraName} की चमक लेकर परिवार में नई मुस्कान भर रहा है! इसकी हर छोटी जिज्ञासा आने वाले बड़े भविष्य की आधारशिला रख रही है।`,
+          te: `మీ ఇంటి అందమైన సినిమాలో ఇదే మొదటి సన్నివేశం: ${nakshatraName} వెలుగులో ఈ చిన్నారి మీ ఇంట ఆనందం నింపుతోంది! దీని ప్రతి చిన్న ప్రశ్న రేపటి గొప్ప ప్రతిభకు పునాది వేస్తోంది.`,
+          ta: `உங்கள் குடும்பத்தின் இனிய சினிமா காட்சியைப் பாருங்கள்: ${nakshatraName} ஒளியில் இந்தக் குழந்தை இல்லத்திற்கு மகிழ்ச்சி கொண்டுவந்துள்ளது! இதன் ஒவ்வொரு ஆர்வமும் நாளைய சாதனையின் விதையாகும்.`,
+          en: `Picture this opening scene in your family story: bathed in ${nakshatraName} starlight, this young child quietly awakens fresh warmth inside the home! Every curious glance and joyful question today is planting tomorrow's remarkable confidence.`,
+        }, lang);
+      }
+      if (themeKey === "nakshatra") {
+        return pick6({
+          kn: `ನಾನು ಈ ಕಂದಮ್ಮನ ಜನ್ಮ ನಕ್ಷತ್ರ ${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ${weekdayName}ದಿಂದ ನಾನು ಈ ಮಗುವಿನ ಮೃದು ಮನಸ್ಸನ್ನು ಕಾಯುತ್ತಿದ್ದೇನೆ — ಪ್ರೀತಿಯ ಮಾತು ಮತ್ತು ಶಾಂತ ವಾತಾವರಣವೇ ಇದಕ್ಕೆ ಅತಿ ದೊಡ್ಡ ಕವಚ.`,
+          mr: `मी या बाळाचे जन्म नक्षत्र ${nakshatraName} (चरण ${n(nakshatraPada)}) बोलत आहे! जन्म दिवसापासूनच मी या चिमुकल्याचे संरक्षण करत आहे — घरची शांतता आणि प्रेमाची ऊब हेच याचे खरे बळ आहे.`,
+          hi: `मैं इस बालक का जन्म नक्षत्र ${nakshatraName} (पाद ${n(nakshatraPada)}) बोल रहा हूं! पहले दिन से ही मैं इसकी कोमल ऊर्जा की रक्षा कर रहा हूं—घर की मिठास और धैर्य ही इसकी सबसे बड़ी ताकत बनेंगे।`,
+          te: `నేను ఈ చిన్నారి జన్మ నక్షత్రం ${nakshatraName} (పాదం ${n(nakshatraPada)}) మాట్లాడుతున్నాను! మొదటి శ్వాస నుండి ఈ బిడ్డను కాపాడుతున్నాను—ఇంటి ప్రేమ, ప్రశాంతతే దీనికి అసలైన కవచం.`,
+          ta: `நான் இந்தக் குழந்தையின் ஜென்ம நட்சத்திரம் ${nakshatraName} (பாதம் ${n(nakshatraPada)}) பேசுகிறேன்! முதல் நாளிலிருந்தே இந்தக் குழந்தையைக் காத்து வருகிறேன்—அன்பான வீட்டுச் சூழலே இதன் பெரும் பலம்.`,
+          en: `I am this child's birth star ${nakshatraName} (Pada ${nakshatraPada}), watching silently since ${weekdayName}! Every gentle encouragement spoken at home right now becomes an invisible lifelong shield around this bright young mind.`,
+        }, lang);
+      }
+      return pick6({
+        kn: `ನೋಡಿ ಹತ್ತಿರ ಮತ್ತು ದೂರದ ಚಿತ್ರ: ಈ ಕಂದನಿಗೆ ಕುತೂಹಲ ಮತ್ತು ಮನೆಯ ಪ್ರೀತಿ ಕೈಗೆಟುಕುವಷ್ಟು ಹತ್ತಿರದಲ್ಲಿವೆ; ಆದರೆ ಭಯ ಮತ್ತು ಬಾಲಾರಿಷ್ಟ ಆತಂಕಗಳು ಇದರಿಂದ ಬಹುದೂರ ಸರಿದಿವೆ.`,
+        mr: `जवळ आणि दूरचे सुंदर सत्य पहा: या बाळाच्या हाताशी अद्भुत कुतूहल व घरचे प्रेम आहे, तर कोणत्याही भीतीचे सावट यापासून खूप दूर सरले आहे.`,
+        hi: `पास और दूर का स्पष्ट चित्र देखें: इस बच्चे के बिल्कुल पास अद्भुत जिज्ञासा और पारिवारिक सुरक्षा है, जबकि अनावश्यक चिंता की छाया इससे कोसों दूर हट चुकी है।`,
+        te: `దగ్గర మరియు దూరం చిత్రం చూడండి: ఈ చిన్నారికి ఆనందం, ఇంటి రక్షణ చాలా దగ్గరలో ఉన్నాయి—అనవసర భయాలన్నీ దూరంగా తొలగిపోయాయి.`,
+        ta: `அருகிலும் தொலைவிலும் உள்ள உண்மை: இக்குழந்தையின் அருகே ஆர்வமும் பாதுகாப்பும் நிறைந்துள்ளன; தேவையற்ற அச்சங்கள் வெகு தொலைவில் விலகிவிட்டன.`,
+        en: `Look cleanly at near versus far: joyful curiosity, warmth, and playful confidence stand right at this child's fingertips today, while early worries drift quietly far behind.`,
+      }, lang);
+    }
+
+    if (themeKey === "cinema") {
+      if (bucket === "mirror") {
+        return pick6({
+          kn: `${devoteeName}, ನಿಮ್ಮ ಬದುಕನ್ನು ಒಂದು ಸೂಪರ್‌ಹಿಟ್ ಸಿನಿಮಾದಂತೆ ನೋಡಿದರೆ ಈಗ 'ಮಧ್ಯಂತರದ ಹಿಂದಿನ ನಿಗೂಢ ದೃಶ್ಯ' ನಡೆಯುತ್ತಿದೆ! ಪ್ರೇಕ್ಷಕರಿಗೆ ನಾಯಕ ಸುಮ್ಮನೆ ಕೂತಂತೆ ಕಂಡರೂ, ತೆರೆಯ ಹಿಂದೆ ನಿಮ್ಮ ಮನಸ್ಸು ಭವಿಷ್ಯದ ದೊಡ್ಡ ಯೋಜನೆಯನ್ನು ಹೆಣೆಯುತ್ತಿದೆ.`,
+          mr: `${devoteeName}, तुमचे आयुष्य एखाद्या दमदार सिनेमासारखे पाहिले तर सध्या 'मध्यंतरापूर्वीचा शांत पण महत्त्वाचा सीन' चालू आहे! बाहेरून सगळे शांत दिसले तरी मनात मोठ्या परिवर्तनाची पटकथा आकार घेत आहे.`,
+          hi: `${devoteeName}, यदि आपके जीवन को एक शानदार सिनेमा मानें, तो अभी 'इंटरवल से ठीक पहले वाला निर्णायक सीन' चल रहा है! बाहर सब सामान्य दिखते हुए भी भीतर बड़े बदलाव की पटकथा लिखी जा चुकी है।`,
+          te: `${devoteeName}, మీ జీవితాన్ని ఒక గొప్ప సినిమాగా ఊహించుకుంటే ఇప్పుడు 'ఇంటర్వెల్ ముందటి కీలక సన్నివేశం' నడుస్తోంది! బయటకు మౌనంగా ఉన్నా, మీ మనసు లోపల పెద్ద మలుపుకు స్క్రిప్ట్ సిద్ధమవుతోంది.`,
+          ta: `${devoteeName}, உங்கள் வாழ்க்கையை ஒரு திரைப்படமாகப் பார்த்தால் இப்போது 'இடைவேளைக்கு முந்தைய திருப்புமுனைக் காட்சி' ஓடுகிறது! வெளியே அமைதியாகத் தெரிந்தாலும் உள்ளே பெரிய மாற்றம் உருவாகிக்கொண்டிருக்கிறது.`,
+          en: `${devoteeName}, imagine your life right now on a cinema screen: we are right in the gripping scene before intermission! While everyone thinks you are waiting quietly on the sidelines, the director has already placed your next breakthrough right in the frame.`,
+        }, lang);
+      }
+      if (bucket === "pivot" || bucket === "transit") {
+        return pick6({
+          kn: `ಒಂದು ಸಿನಿಮಾದ ದೃಶ್ಯವನ್ನು ಊಹಿಸಿ: ಹೀರೋ ಇನ್ನೇನು ಗುರಿ ತಲುಪಬೇಕು ಎನ್ನುವಾಗಲೇ ಕಟ್ಟಕಡೆಯ ಬಾಗಿಲು ಮುಚ್ಚುತ್ತದೆ — ನೋಡುವವರಿಗೆ ನಿರಾಸೆ ಅನಿಸಿದರೂ, ಮುಂದಿನ ದೃಶ್ಯದಲ್ಲಿ ಆ ಬಾಗಿಲಿನ ಹಿಂದೆ ಅಪಾಯವಿತ್ತೆಂದು ಗೊತ್ತಾಗುತ್ತದೆ! ನಿಮ್ಮ ${shaniTransitRashi} – ${maandiHouse}ನೇ ಮನೆಯ ತಡೆಯೂ ಅಂತಹದ್ದೇ ರಕ್ಷಣೆ.`,
+          mr: `एका थरारक सिनेमाचा सीन आठवा: नायक अगदी शेवटच्या पायरीवर पोहोचताच दार बंद होते — पण नंतर कळते की त्यामागे मोठा धोका लपला होता! तुमच्या ${n(maandiHouse)}व्या भावातील विलंब आणि ${shaniTransitRashi} परीक्षा तुम्हाला अशाच मोठ्या संकटातून वाचवत आहे.`,
+          hi: `एक दिलचस्प फिल्मी दृश्य सोचें: नायक मंज़िल से बस एक कदम दूर होता है कि अचानक आखिरी दरवाज़ा अटक जाता है—पर अगले ही सीन में पता चलता है कि वह रुकावट किसी बड़े जाल से बचाने आई थी! आपका वर्तमान दौर ठीक यही कर रहा है।`,
+          te: `ఒక అద్భుతమైన సినిమా దృశ్యం ఊహించండి: హీరో గెలిచే చివరి క్షణంలో తలుపు ఆగిపోతుంది—కానీ తర్వాతి సీన్‌లోనే ఆ ఆలస్యం వల్లే పెద్ద ప్రమాదం తప్పిందని బయటపడుతుంది! మీ ${n(maandiHouse)}వ స్థాన అనుభవం కూడా అలాంటి రక్షణే.`,
+          ta: `ஒரு சினிமா காட்சியை நினைத்துப் பாருங்கள்: நாயகன் வெல்லும் கடைசி நொடியில் கதவு பூட்டப்படுகிறது—ஆனால் அடுத்த காட்சியில்தான் அந்தத் தாமதமே பெரிய ஆபத்தைத் தடுத்தது என்பது புரியும்! உங்கள் நிலையும் அதுதான்.`,
+          en: `Think of that unforgettable cinema twist: the hero reaches the final door at 99%, only for it to jam—until the very next scene reveals a hidden trap behind that lock! Look closely at your timeline: that pause saved you before accelerating Act 2.`,
+        }, lang);
+      }
+      return pick6({
+        kn: `ಸಿನಿಮಾದ ಕ್ಲೈಮ್ಯಾಕ್ಸ್ ಹತ್ತಿರ ಬರುತ್ತಿದೆ ${devoteeName}! ಮೊದಲಾರ್ಧದ ಕಠಿಣ ದೃಶ್ಯಗಳು ನಿಮ್ಮನ್ನು ಅಳಿಸಲು ಬಂದಿರಲಿಲ್ಲ — ಪ್ರೇಕ್ಷಕರು ಎದ್ದು ನಿಂತು ಚಪ್ಪಾಳೆ ತಟ್ಟುವ '${n(nowYear + 2)}–${n(nowYear + 4)}'ರ ಗೆಲುವಿನ ದೃಶ್ಯಕ್ಕೆ ತೂಕ ತುಂಬಲು ಬಂದಿದ್ದವು.`,
+        mr: `आता तुमच्या जीवन-सिनेमाचा विजयी क्लायमॅक्स जवळ येत आहे ${devoteeName}! पहिल्या भागातील संघर्ष तुम्हाला हरवण्यासाठी नाही, तर '${n(nowYear + 2)}–${n(nowYear + 4)}' मधील टाळ्यांच्या कडकडाटाची पार्श्वभूमी तयार करण्यासाठी होता.`,
+        hi: `अब आपकी कहानी का शानदार क्लाइमैक्स करीब आ रहा है ${devoteeName}! पहले हिस्से के कठिन दृश्य आपको हराने नहीं, बल्कि '${n(nowYear + 2)}–${n(nowYear + 4)}' में मिलने वाली गूंजती तालियों को यादगार बनाने आए थे।`,
+        te: `మీ జీవిత సినిమాకు అసలైన క్లైమాక్స్ దగ్గరవుతోంది ${devoteeName}! మొదటి భాగంలోని కష్టాలన్నీ మిమ్మల్ని ఓడించడానికి కాదు—'${n(nowYear + 2)}–${n(nowYear + 4)}' మధ్య రాబోయే గొప్ప విజయానికి బలమైన ఎత్తుగడ కోసమే.`,
+        ta: `உங்கள் வாழ்க்கைத் திரைப்படத்தின் வெற்றி கிளைமாக்ஸ் நெருங்குகிறது ${devoteeName}! முதல் பாதியின் சோதனைகள் உங்களைத் தடுக்கவில்லை—'${n(nowYear + 2)}–${n(nowYear + 4)}' பொற்கால வெற்றியைப் பிரம்மாண்டமாக்கவே வந்தன.`,
+        en: `Act 2 of your film is shifting gears fast, ${devoteeName}! Every tense opening scene was never wasted screen time—it built the exact resilience that makes your upcoming ${nowYear + 2}–${nowYear + 4} breakthrough unforgettable.`,
+      }, lang);
+    }
+
+    if (themeKey === "nakshatra") {
+      return pick6({
+        kn: `ನಾನು ನಿನ್ನ ಜನ್ಮ ನಕ್ಷತ್ರ ${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ${devoteeName}! ${weekdayName}ದ ಮೊದಲ ಉಸಿರಿನಿಂದ ನಿನ್ನ ಪಕ್ಕದಲ್ಲೇ ನಿಂತು ಎಲ್ಲವನ್ನೂ ನೋಡುತ್ತಿದ್ದೇನೆ. ಹೊರಗೆ ಯಾರೂ ನಿನ್ನ ಮೌನವನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳದಿದ್ದರೂ, ನಿನ್ನ ಹೃದಯದಲ್ಲಿ ಏನು ಓಡುತ್ತಿದೆ ಎಂದು ನನಗೆ ಚೆನ್ನಾಗಿ ಗೊತ್ತು.`,
+        mr: `मी तुझे जन्म नक्षत्र ${nakshatraName} (चरण ${n(nakshatraPada)}) बोलत आहे ${devoteeName}! तुझ्या जन्माच्या ${weekdayName} पासून मी तुझ्या प्रत्येक श्वासासोबत उभा आहे. जगाने तुझे मौन पाहिले, पण त्यामागे लपलेला तुझा प्रामाणिक संघर्ष फक्त मी जवळून पाहिला आहे.`,
+        hi: `मैं तुम्हारा जन्म नक्षत्र ${nakshatraName} (पाद ${n(nakshatraPada)}) बोल रहा हूं ${devoteeName}! जन्म के ${weekdayName} से आज तक मैंने तुम्हारे हर सुख-दुख को देखा है। दुनिया केवल तुम्हारी मुस्कान देखती है, पर भीतर चल रही सच्चाई मैं जानता हूं।`,
+        te: `నేను నీ జన్మ నక్షత్రం ${nakshatraName} (పాదం ${n(nakshatraPada)}) మాట్లాడుతున్నాను ${devoteeName}! పుట్టిన ${weekdayName} నుండి నీ పక్కనే ఉండి అన్నీ గమనిస్తున్నాను. బయటి వారు నీ మౌనాన్ని వేరేలా అర్థం చేసుకున్నా, నీ లోపలి నిజం నాకు బాగా తెలుసు.`,
+        ta: `நான் உன் ஜென்ம நட்சத்திரம் ${nakshatraName} (பாதம் ${n(nakshatraPada)}) பேசுகிறேன் ${devoteeName}! பிறந்த ${weekdayName} முதல் உன் மன ஓட்டத்தை நான் அருகிலிருந்து பார்த்துக் கொண்டிருக்கிறேன். உலகம் உன் அமைதியைப் புரியாமல் போனாலும், உன் உள்ளத்தின் வலி எனக்குத் தெரியும்.`,
+        en: `Listen closely: I am your birth star, ${nakshatraName} (Pada ${nakshatraPada}), speaking to you directly, ${devoteeName}. Since your very first breath on ${weekdayName}, I have stood inside every quiet decision—and I see exactly why your spirit refused to settle for cheap noise.`,
+      }, lang);
+    }
+
+    if (themeKey === "yoga_karana") {
+      return pick6({
+        kn: `ನಾನು ನಿನ್ನ ಜನ್ಮ ಯೋಗ '${yogaName}' ಹಾಗೂ ಕರಣ '${karanaName}' ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ನಿನ್ನ ಕೆಲಸದ ಗಡಿಯಾರವನ್ನು ನಡೆಸುವ ರಹಸ್ಯ ಎಂಜಿನ್ ನಾನೇ. ಕೆಲವೊಮ್ಮೆ ಯಾಕೆ ನಿನ್ನ ಪ್ರಯತ್ನಕ್ಕೆ ತಕ್ಷಣವೇ ಬ್ರೇಕ್ ಬೀಳುತ್ತದೆ ಮತ್ತು ಇನ್ನೊಂದು ದಿನ ರಾಕೆಟ್‌ನಂತೆ ಹಾರುತ್ತದೆ ಎಂಬ ಗುಟ್ಟು ನನ್ನಲ್ಲೇ ಇದೆ!`,
+        mr: `मी तुझा जन्म योग '${yogaName}' आणि करण '${karanaName}' बोलत आहे! तुझ्या कामाची गती आणि संधींचे टायमिंग ठरवणारे गुप्त इंजिन मीच आहे. कधी अचानक वेग का थांबतो आणि कधी काम क्षणात का फत्ते होते, याचे गुपित आज उघड करत आहे!`,
+        hi: `मैं तुम्हारा जन्म योग '${yogaName}' और करण '${karanaName}' बोल रहा हूं! तुम्हारे कर्म और भाग्य की घड़ी को चलाने वाला गुप्त तंत्र मैं ही हूं। कभी काम ९९% पर क्यों अटकता है और कभी एक ही दिन में क्यों बन जाता है—आज वही रहस्य समझो!`,
+        te: `నేను నీ జన్మ యోగం '${yogaName}' మరియు కరణం '${karanaName}' మాట్లాడుతున్నాను! నీ పనుల వేగాన్ని నడిపించే అసలైన గడియారం నేనే. కొన్నిసార్లు పనులు చివరి నిమిషంలో ఎందుకు ఆగుతాయో, మరికొన్నిసార్లు వేగంగా ఎందుకు పూర్తి అవుతాయో ఇప్పుడు చూడు!`,
+        ta: `நான் உன் பிறப்பு யோகம் '${yogaName}' மற்றும் கரணம் '${karanaName}' பேசுகிறேன்! உன் முயற்சிகளின் வேகத்தை இயக்கும் ரகசிய எந்திரம் நானே. சில நேரங்களில் ஏன் தடை வருகிறது, சில நாட்களில் ஏன் அபார வெற்றி கிடைக்கிறது என்ற உண்மையை இப்போது சொல்கிறேன்!`,
+        en: `I am your birth engine—${yogaName} Yoga paired with ${karanaName} Karana! While everyone looks outward for luck, I quietly control your timing valve: locking flawed doors right before disaster, then accelerating the exact open lane on ${localizedYogiDay}.`,
+      }, lang);
+    }
+
+    if (themeKey === "near_far") {
+      return pick6({
+        kn: `${devoteeName}, ಒಂದು ಕ್ಷಣ ನಿಂತು ಹತ್ತಿರ-ದೂರ ಗಮನಿಸು! ನಿನ್ನ ಕಷ್ಟವೆಲ್ಲಾ ಇನ್ನೂ ಬಹುದೂರದಲ್ಲಿ ಉಳಿದಿದೆ ಎಂದು ಭಯಪಡುತ್ತಿದ್ದೀಯಾ? ನಿಜವೆಂದರೆ: '${yogiPlanetName}' ಬಲದಿಂದ ಹೊಸ ದಾರಿ ನಿನ್ನ ಕೈಗೆಟುಕುವಷ್ಟು ಹತ್ತಿರ ಬಂದಿದೆ, ಮತ್ತು ಹಿಂದಿನ ಬಿರುಗಾಳಿ ಈಗಾಗಲೇ ದೂರ ಸರಿದಿದೆ!`,
+        mr: `${devoteeName}, एक क्षण थांब आणि जवळ-दूर नीट पहा! तुला वाटते यश अजून खूप लांब आहे, पण वास्तव वेगळे आहे: '${yogiPlanetName}' च्या साथीने मोठा बदल हाताच्या अंतरावर आला आहे आणि जुने वादळ कधीच दूर सरले आहे!`,
+        hi: `${devoteeName}, एक पल रुककर 'पास और दूर' का अंतर समझो! जिसे तुम बहुत दूर मान रहे हो, वह '${yogiPlanetName}' के प्रभाव से बिल्कुल तुम्हारे कदमों के पास खड़ा है—और जिस चिंता ने तुम्हें थकाया, वह अब दूर जा चुकी है!`,
+        te: `${devoteeName}, ఒక్క నిమిషం ఆగి దగ్గర-దూరం లెక్క చూడు! విజయం ఇంకా చాలా దూరంలో ఉందని నీవు అనుకుంటున్నావు కానీ నిజం వేరు: '${yogiPlanetName}' అండతో శుభ మార్పు నీ చేతికందేంత దగ్గరకు వచ్చింది!`,
+        ta: `${devoteeName}, ஒரு நொடி நின்று அருகையும் தொலைவையும் பார்! வெற்றி இன்னும் தொலைவில் உள்ளதாக நினைக்கிறாய்—ஆனால் உண்மையில் '${yogiPlanetName}' பலத்தால் மாற்றம் உன் கைக்கெட்டும் தூரத்திற்கு வந்துவிட்டது, பழைய சுமை விலகிப் போய்விட்டது!`,
+        en: `Pause and measure true distance right now, ${devoteeName}: what you fear is slipping away has actually arrived inches near you under ${yogiPlanetName} momentum—meanwhile the old doubts that kept you awake are already fading far into your rearview mirror.`,
+      }, lang);
+    }
+
+    // parable
+    return pick6({
+      kn: `ಒಂದು ನೈಜ ಉದಾಹರಣೆ ಕೇಳು ${devoteeName}: ಶಿಲ್ಪಿಯು ಕಲ್ಲಿಗೆ ೯೯ ಏಟು ಹೊಡೆದರೂ ಅದು ಒಡೆಯುವುದಿಲ್ಲ — ಆದರೆ ೧೦೦ನೇ ಮೃದು ಏಟಿಗೆ ಅದು ಮಹಾ ಮೂರ್ತಿಯಾಗುತ್ತದೆ! ನಿನ್ನ ಹಿಂದಿನ ೯೯ ಪ್ರಯತ್ನಗಳು ವ್ಯರ್ಥವಾಗಿಲ್ಲ; ಈ ಅಧ್ಯಾಯವೇ ಆ ೧೦೦ನೇ ನಿರ್ಣಾಯಕ ಏಟಿನ ರಹಸ್ಯ ಹೇಳುತ್ತಿದೆ.`,
+      mr: `एक सुंदर उदाहरण पहा ${devoteeName}: शिल्पकार दगडावर ९९ वेळा हातोडा मारतो तेव्हा काहीच घडल्यासारखे वाटत नाही — पण १०० व्या एका टप्प्याने दगडातून देवमूर्ती घडते! तुझे आत्तापर्यंतचे कष्ट वाया गेले नसून तू त्या १०० व्या क्षणाजवळ पोहोचला आहेस.`,
+      hi: `एक सुंदर उदाहरण देखो ${devoteeName}: मूर्तिकार पत्थर पर ९९ वार करता है तो कुछ टूटता नहीं दिखता—पर १००वां हल्का स्पर्श अद्भुत मूर्ति प्रकट कर देता है! तुम्हारा हर पिछला परिश्रम उसी ९९वें कदम का हिस्सा था, और तुम निर्णायक घड़ी के करीब हो।`,
+      te: `ఒక అద్భుత ఉదాహరణ చూడు ${devoteeName}: శిల్పి బండరాయిపై 99 దెబ్బలు వేసినప్పుడు ఏ మార్పూ కనిపించదు—కానీ 100వ దెబ్బకే అద్భుత శిల్పం బయటపడుతుంది! నీ పాత శ్రమ వృధా కాలేదు, నువ్వు ఆ 100వ విజయం అంచున ఉన్నావు.`,
+      ta: `ஒரு அழகான உதாரணம் கேள் ${devoteeName}: சிற்பி பாறையில் 99 முறை உளியால் அடிக்கும்போது எந்த மாற்றமும் தெரியாது—ஆனால் 100-வது அடியில்தான் சிலை உயிர் பெறும்! உன் பழைய உழைப்பு வீணாகவில்லை; அந்த 100-வது திருப்புமுனை வாசலில் நிற்கிறாய்.`,
+      en: `Think of the stone-carver's timeless story, ${devoteeName}: ninety-nine steady strikes barely leave a crack, until the hundredth quiet tap reveals the masterpiece waiting inside! None of your earlier grind went unseen—you are standing right beside that defining tap.`,
+    }, lang);
+  };
+
+  // Rich narrative extensions to bring every chapter paragraph to compelling 5–6 line depth (no remedies!)
+  const extP1 = chNum === 23 ? "" : isChildOrInfant
+    ? pick6({
+        kn: `ದಿನನಿತ್ಯದ ಮನೆಯ ಸಣ್ಣ ಸನ್ನಿವೇಶಗಳಲ್ಲೇ ಮಗುವಿನ ನೈಜ ಸ್ವಭಾವ ಪ್ರಕಾಶಿಸುತ್ತದೆ — ನಗು, ಕುತೂಹಲ ಮತ್ತು ಪೋಷಕರ ಮೃದು ಮಾತುಗಳು ಇದರ ಆಂತರಿಕ ಶಕ್ತಿಯನ್ನು ದಿನೇ ದಿನೇ ಇಮ್ಮಡಿಗೊಳಿಸುತ್ತವೆ.`,
+        mr: `घरातील रोजच्या छोट्या प्रसंगांतूनच बाळाची खरी क्षमता खुलते — आनंदी संवाद आणि सुरक्षित वातावरण यातून त्याचा आत्मविश्वास रोज वाढत जातो.`,
+        hi: `घर के छोटे-छोटे दैनिक क्षणों में ही इस बच्चे की वास्तविक प्रतिभा निखरती है—प्रेमपूर्ण संवाद और खुला माहौल इसके आत्मबल को दोगुना करता है।`,
+        te: `ఇంట్లోని రోజువారీ చిన్న ఆటపాటలు, నవ్వులలోనే ఈ చిన్నారి సహజ ప్రతిభ వెలుగు చూస్తుంది—తల్లిదండ్రుల ప్రశాంత మాటలు దీనికి అపారమైన ధైర్యాన్నిస్తాయి.`,
+        ta: `வீட்டின் அன்றாடச் சிறிய நிகழ்வுகளிலேயே குழந்தையின் தனித்திறன் வெளிப்படும்—பெற்றோரின் அன்பான வார்த்தைகளும் நிதானமும் இதன் ஆற்றலைப் பலமடங்கு பெருக்கும்.`,
+        en: `Notice how vividly this appears in tiny daily routines at home—gentle patience, warm encouragement, and unhurried play awaken this young spirit far faster than pressure ever could.`,
+      }, lang)
+    : themeKey === "near_far" || themeKey === "cinema"
+    ? pick6({
+        kn: `ನೀವು ದಿನನಿತ್ಯ ಎದುರಿಸುವ ಮಾತುಕತೆ, ಕೆಲಸದ ಜವಾಬ್ದಾರಿ ಮತ್ತು ಕುಟುಂಬದ ನಿರೀಕ್ಷೆಗಳ ನಡುವೆ ಈ ಗ್ರಹಗತಿ ಕನ್ನಡಿ ಹಿಡಿದಂತೆ ಸ್ಪಷ್ಟವಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತಿದೆ; ಎಲ್ಲಿ ಶಕ್ತಿ ಹರಿಯುತ್ತಿದೆ ಎಂಬುದನ್ನು ಗಮನಿಸಿದರೆ ಅರ್ಧ ಗೊಂದಲ ತಕ್ಷಣ ಕರಗುತ್ತದೆ.`,
+        mr: `दररोजच्या कामातील निर्णय, संवाद आणि कौटुंबिक जबाबदाऱ्या यांत हाच पॅटर्न स्पष्टपणे जाणवतो; तुमची ऊर्जा नेमकी कुठे अडकली आहे हे एकदा लक्षात आले की निम्मा ताण लगेच नाहीसा होतो.`,
+        hi: `दैनिक कामकाज, संबंधों और निर्णयों में यह प्रभाव आईने की तरह साफ़ झलकता है; जैसे ही आप समझते हैं कि आपकी ऊर्जा कहां जा रही है, आधी उलझन उसी क्षण शांत हो जाती है।`,
+        te: `రోజువారీ పనులు, కుటుంబ చర్చలు మరియు నిర్ణయాలలో ఈ ప్రభావం అద్దంలా స్పష్టంగా కనిపిస్తుంది; మీ శక్తి ఎటువైపు ప్రవహిస్తోందో గుర్తించిన క్షణమే సగం గందరగోళం తగ్గిపోతుంది.`,
+        ta: `அன்றாடப் பணிகள், குடும்ப உரையாடல்கள் மற்றும் முக்கிய முடிவுகளில் இந்த அமைப்பு கண்ணாடி போல் வெளிப்படுகிறது; உங்கள் ஆற்றல் எங்கே செல்கிறது எனப் பார்த்த நொடியில் பாதி குழப்பம் நீங்கும்.`,
+        en: `Look at how vividly this plays out in ordinary weekly conversations, finances, and family responsibilities—once you recognize this exact rhythm on screen instead of taking delays personally, half the mental tension melts immediately.`,
+      }, lang)
+    : pick6({
+        kn: `${nakshatraName} ಮತ್ತು '${yogaName}'ದ ಈ ವಿಶಿಷ್ಟ ಸಂಯೋಜನೆ ನಿಮ್ಮನ್ನು ಗಾಳಿಯಲ್ಲಿ ದೀಪದಂತೆ ಅಲ್ಲಾಡಲು ಬಿಡುವುದಿಲ್ಲ; ಮೇಲ್ನೋಟಕ್ಕೆ ಸಣ್ಣದಾಗಿ ಕಾಣುವ ನಿಮ್ಮ ಶಿಸ್ತು ಮತ್ತು ಪ್ರಾಮಾಣಿಕತೆಯೇ ಒಳಗೆ ದೊಡ್ಡ ಬಲವನ್ನು ಕಟ್ಟುತ್ತಿದೆ.`,
+        mr: `${nakshatraName} व '${yogaName}'ची ही खास जोड तुमच्यातील ठामपणा कधीही खचू देत नाही; वरवर साधी वाटणारी तुमची प्रामाणिकता आणि सातत्य आतमध्ये मोठी ताकद निर्माण करत आहे.`,
+        hi: `${nakshatraName} और '${yogaName}' का यह विशेष संयोग आपके धैर्य को कभी बिखरने नहीं देता; बाहर से साधारण दिखने वाला आपका अनुशासन ही भीतर से भविष्य की बड़ी नींव गढ़ रहा है।`,
+        te: `${nakshatraName} మరియు '${yogaName}' కలయిక మిమ్మల్ని ఒడిదుడుకులలోనూ నిలబెడుతుంది; బయటకు సాధారణంగా కనిపించే మీ క్రమశిక్షణ మరియు నిజాయితీ లోపల గొప్ప శక్తిని నిర్మిస్తున్నాయి.`,
+        ta: `${nakshatraName} மற்றும் '${yogaName}' இணைப்பு உங்களை ஒருபோதும் தளரவிடாது; வெளியே எளிமையாகத் தெரியும் உங்கள் நேர்மையும் ஒழுக்கமும் உள்ளே அசைக்க முடியாத பலத்தைக் கட்டுகின்றன.`,
+        en: `Backed quietly by your ${nakshatraName} spark and ${yogaName} timing engine, your steadiness holds even under silent pressure—everyday integrity is stacking compound trust behind scenes nobody else notices yet.`,
+      }, lang);
+
+  const extP2 = chNum === 23 ? "" : isChildOrInfant
+    ? pick6({
+        kn: `ಹತ್ತಿರದಲ್ಲಿರುವ ಸಂತೋಷವೇನೆಂದರೆ ಮಗುವಿನ ನೈಸರ್ಗಿಕ ಕಲಿಕಾ ಶಕ್ತಿ ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿದೆ; ತಂದೆ-ತಾಯಿ ಆತಂಕವನ್ನು ದೂರವಿಟ್ಟು ಪ್ರೋತ್ಸಾಹಿಸಿದಷ್ಟು ಭವಿಷ್ಯ ಇನ್ನೂ ಉಜ್ವಲವಾಗಿ ಬೆಳಗುತ್ತದೆ.`,
+        mr: `जवळ असलेली सुंदर गोष्ट म्हणजे बाळाची ग्रहणशक्ती खूप तीक्ष्ण आहे; पालकांनी विनाकारण काळजी दूर ठेवून हसता संवाद वाढवला की प्रगती झपाट्याने होते.`,
+        hi: `पास खड़ा सबसे बड़ा वरदान यह है कि इस बच्चे की सीखने की क्षमता अत्यंत प्रखर है; अभिभावक अनावश्यक चिंता दूर रखकर जितना प्रोत्साहन देंगे, उतना यह खिलेगा।`,
+        te: `దగ్గరగా ఉన్న ఆనందం ఏమిటంటే ఈ చిన్నారి గ్రహణశక్తి చాలా చురుకుగా ఉంది; తల్లిదండ్రులు ఆందోళనను దూరంగా ఉంచి నవ్వుతూ ప్రోత్సహిస్తే అద్భుతంగా ఎదుగుతుంది.`,
+        ta: `அருகிலுள்ள பெரிய நன்மை என்னவென்றால் குழந்தையின் கற்கும் திறன் மிகவும் கூர்மையானது; பெற்றோர் அச்சத்தைத் தவிர்த்து ஊக்கப்படுத்திய அளவுக்கு எதிர்காலம் ஒளிவீசும்.`,
+        en: `Notice what stands wonderfully near: bright curiosity and emotional resilience come naturally to this child—the further parents push comparison away, the stronger this young talent shines.`,
+      }, lang)
+    : pick6({
+        kn: `ಹತ್ತಿರ-ದೂರ ನೋಡಿ: ಹಳೆಯ ಗೊಂದಲ ಹಾಗೂ ತಪ್ಪು ನಿರೀಕ್ಷೆಗಳು ನಿಮ್ಮಿಂದ ದೂರ ಸರಿಯುತ್ತಿವೆ; ಅದೇ ಸಮಯದಲ್ಲಿ '${lagnaRashiName}' ಲಗ್ನಕ್ಕೆ ತಕ್ಕ ಸ್ಪಷ್ಟ ಗುರಿ ಮತ್ತು ಹೊಸ ಬಾಗಿಲುಗಳು ಹತ್ತಿರ ಬರುತ್ತಿವೆ.`,
+        mr: `जवळ आणि दूर नीट पहा: जुना गोंधळ व चुकीच्या अपेक्षा हळूहळू मागे सरत आहेत; त्याच वेळी तुमच्या '${lagnaRashiName}' स्वभावाशी जुळणारे नवे मार्ग व विश्वासू लोक हाताशी येत आहेत.`,
+        hi: `पास और दूर का स्पष्ट संकेत देखें: पुराने भ्रम और अनावश्यक बोझ अब आपसे दूर खिसक रहे हैं, जबकि आपके '${lagnaRashiName}' स्वभाव के अनुकूल ठोस अवसर कदम-दर-कदम पास आ रहे हैं।`,
+        te: `దగ్గర-దూరం గమనించండి: పాత గందరగోళం మరియు అనవసర అపోహలు మీ నుండి దూరంగా వెళ్ళిపోతున్నాయి; అదే సమయంలో మీ '${lagnaRashiName}' బలానికి సరిపోయే కొత్త దారులు దగ్గరవుతున్నాయి.`,
+        ta: `அருகும் தொலைவும் தெளிவாகத் தெரிகிறது: பழைய குழப்பமும் தேவையற்ற எதிர்பார்ப்புகளும் விலகிச் செல்கின்றன; அதே நேரத்தில் உங்கள் '${lagnaRashiName}' வலிமைக்கு ஏற்ற புதிய வாய்ப்புகள் அருகே வருகின்றன.`,
+        en: `Look at that clean distance contrast right inside your chart: outdated confusion and fair-weather friction are steadily receding far behind, while clearer timing and authentic doors aligned with your ${lagnaRashiName} core pull noticeably near.`,
+      }, lang);
+
+  const extP3 = chNum === 23 ? "" : isChildOrInfant
+    ? pick6({
+        kn: `ಪ್ರತಿದಿನ ಮಗುವಿನ ಜೊತೆ ನಗುತ್ತಾ ಕಳೆಯುವ ಶಾಂತ ಸಮಯವೇ ಇದರ ಬಾಲ್ಯದ ಸವಿ ನೆನಪು ಮತ್ತು ಮುಂದಿನ ದೊಡ್ಡ ಯಶಸ್ಸಿಗೆ ಭದ್ರ ಬುನಾದಿ.`,
+        mr: `दररोज बाळासोबत खेळलेला व हसलेला शांत वेळच त्याचे बालपण समृद्ध करतो आणि भविष्याचा पाया मजबूत करतो.`,
+        hi: `प्रतिदिन बच्चे के साथ बिताया गया शांत, हंसमुख समय ही इसके सुखद बचपन और उज्ज्वल भविष्य की सबसे पक्की नींव है।`,
+        te: `ప్రతిరోజూ చిన్నారితో ఆనందంగా గడిపే ప్రశాంత సమయమే దాని ఉజ్వల భవిష్యత్తుకు గట్టి పునాది.`,
+        ta: `தினமும் குழந்தையுடன் மகிழ்ச்சியாகச் செலவிடும் அமைதியான நேரமே அதன் இனிய எதிர்காலத்திற்கு வலுவான அடித்தளமாகும்.`,
+        en: `Warm unhurried moments spent listening and laughing together each day form the true anchor behind every future milestone.`,
+      }, lang)
+    : pick6({
+        kn: `ನೀವು ಇದನ್ನು ಸಂಕೀರ್ಣ ಗಣಿತವೆಂದು ತಲೆಕೆಡಿಸಿಕೊಳ್ಳಬೇಕಿಲ್ಲ — ಸರಿಯಾದ ವಾರ '${localizedYogiDay}', ಸ್ಪಷ್ಟ ಮಾತು ಹಾಗೂ ತಾಳ್ಮೆಯ ಹೆಜ್ಜೆಗಳೇ ಕಥೆಯನ್ನು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಿಸುತ್ತವೆ.`,
+        mr: `यासाठी मोठ्या तांत्रिक गणितात अडकण्याची गरज नाही — योग्य दिवस '${localizedYogiDay}', स्पष्ट संवाद आणि शांत सातत्य हीच तुमची कथा यशस्वी करतात.`,
+        hi: `इसमें किसी कठिन नियम की उलझन नहीं है—आपका शुभ दिन '${localizedYogiDay}', साफ़ निर्णय और धैर्यपूर्ण निरंतरता ही पूरी कहानी को आपके पक्ष में मोड़ देते हैं।`,
+        te: `దీని కోసం కష్టమైన గణనల గురించి ఆలోచించాల్సిన పనిలేదు—మీ శుభ రోజు '${localizedYogiDay}', స్పష్టమైన మాట మరియు ప్రశాంతమైన అడుగులే కథను మీకు అనుకూలంగా మలుపుతిప్పుతాయి.`,
+        ta: `இதற்குக் கடினமான விதிகள் எதுவும் தேவையில்லை—உங்கள் சுப நாளான '${localizedYogiDay}', தெளிவான பேச்சு மற்றும் நிதானமான முயற்சியே முழுக் கதையையும் உங்கள் பக்கம் திருப்பும்.`,
+        en: `Zero heavy formulas required here: move cleanly on your aligned day (${localizedYogiDay}), keep promises crisp, and watch practical clarity turn the whole storyline unmistakably in your favor.`,
+      }, lang);
+
+  // Per-chapter visual summary: what is NEAR, what is FAR, focusHouse/focusYearOffset, glanceVerdict!
+  const lblNear = pick6({ kn: "ಹತ್ತಿರ (ನಿಮ್ಮ ಕಡೆ ಬರುತ್ತಿದೆ)", mr: "जवळ (हाताशी येत आहे)", hi: "निकट (तेज़ी से पास आ रहा)", te: "దగ్గర (మీ వైపు వస్తున్నది)", ta: "அருகில் (உங்களிடம் வருவது)", en: "Near You Now" }, lang);
+  const lblFar = pick6({ kn: "ದೂರ (ಹಿಂದೆ ಸರಿಯುತ್ತಿದೆ)", mr: "दूर (मागे सरत आहे)", hi: "दूर (पीछे छूट रहा है)", te: "దూరం (తొలగిపోతున్నది)", ta: "தொலைவில் (விலகிச் செல்வது)", en: "Fading Behind" }, lang);
+
+  const chapterVisualLookup: Record<number, { near: string; far: string; verdict: string; house?: number; yr?: number }> = {
+    1: {
+      near: pick6({ kn: `ಇಂದಿನ ತಾರಾಬಲ (${n(taraScore)}%) & ಸ್ಪಷ್ಟತೆ`, mr: `आजची ताराबळ ऊर्जा (${n(taraScore)}%)`, hi: `आज का ताराबल (${n(taraScore)}%) एवं सूझ`, te: `నేటి తారాబలం (${n(taraScore)}%)`, ta: `இன்றைய தாராபலன் (${n(taraScore)}%)`, en: `Live Clarity (${taraScore}% • ${taraWord})` }, lang),
+      far: pick6({ kn: "ಹಳೆಯ ಗೊಂದಲ ಮತ್ತು ಮೌನ ಚಿಂತೆ", mr: "जुनी अस्वस्थता व गोंधळ", hi: "पुरानी दुविधा और चिंता", te: "పాత ఆందోళన & గందరగోళం", ta: "பழைய குழப்பம் & தயக்கம்", en: "Silent Confusion & Old Worry" }, lang),
+      verdict: `${taraWord} • ${n(taraScore)}%`,
+    },
+    2: {
+      near: pick6({ kn: `${yogiPlanetName} ಗುಪ್ತ ಬೆಂಬಲ`, mr: `${yogiPlanetName} चे गुप्त पाठबळ`, hi: `${yogiPlanetName} का गुप्त संरक्षण`, te: `${yogiPlanetName} రక్షణ బలం`, ta: `${yogiPlanetName} ரகசிய ஆதரவு`, en: `${yogiPlanetName} Silent Support` }, lang),
+      far: pick6({ kn: "ನಕಲಿ ನಿರೀಕ್ಷೆಗಳ ಭಾರ", mr: "इतरांच्या अवास्तव अपेक्षा", hi: "अनुचित अपेक्षाओं का बोझ", te: "ఇతరుల భారమైన అంచనాలు", ta: "தேவையற்ற எதிர்பார்ப்பு சுமை", en: "One-Sided Expectations" }, lang),
+      verdict: `${yogiPlanetName}`,
+    },
+    3: {
+      near: pick6({ kn: "ಶುದ್ಧ ಅನುಭವ & ಹೊಸ ಆರಂಭ", mr: "परिपक्वता व नवे वळण", hi: "अर्जित विवेक एवं नया आरंभ", te: "అనుభవం & కొత్త దారి", ta: "பக்குவம் & புதிய தொடக்கம்", en: "Seasoned Wisdom & Fresh Reset" }, lang),
+      far: pick6({ kn: "ಕಳೆದ ೨೪ ತಿಂಗಳ ಪರೀಕ್ಷೆ", mr: "मागील २४ महिन्यांचा त्रास", hi: "बीते २४ महीनों की परीक्षा", te: "గత 24 నెలల కఠిన పరీక్ష", ta: "கடந்த 24 மாத சோதனை", en: "24-Month Storm Filter" }, lang),
+      verdict: pick6({ kn: "೨೪ ತಿಂಗಳ ಪಾಠ ಮುಕ್ತಾಯ", mr: "कसोटी टप्पा मागे", hi: "कठिन चरण समाप्त", te: "పరీక్ష ముగింపు", ta: "சோதனை முடிவு", en: "24-Month Pivot Done" }, lang),
+    },
+    4: {
+      near: pick6({ kn: `${n(maandiHouse)}ನೇ ಭಾವದ ೧% ಕೀಲಿ`, mr: `${n(maandiHouse)}व्या स्थानाची १% किल्ली`, hi: `${n(maandiHouse)}वें भाव की अंतिम १% कुंजी`, te: `${n(maandiHouse)}వ స్థాన 1% తాళం`, ta: `${n(maandiHouse)}-ம் இட 1% திறவுகோல்`, en: `House ${maandiHouse} Final 1% Key` }, lang),
+      far: pick6({ kn: "೯೯% ಹಂತದ ಆಕಸ್ಮಿಕ ತಡೆ", mr: "९९% वरील शेवटचा अडथळा", hi: "९९% पर अंतिम मिनट का अवरोध", te: "99% వద్ద ఆగే ఆలస్యం", ta: "99%-ல் வரும் தாமதம்", en: "99% Finish-Line Freeze" }, lang),
+      verdict: `${n(maandiHouse)} • ೯೯% -> ೧೦೦%`,
+      house: maandiHouse,
+    },
+    5: {
+      near: pick6({ kn: `${dominantElement} ನೈಸರ್ಗಿಕ ಶಕ್ತಿ`, mr: `${dominantElement} मूळ ताकद`, hi: `${dominantElement} मुख्य शक्ति`, te: `${dominantElement} బలం`, ta: `${dominantElement} இயல்பு`, en: `${dominantElement} Core Edge` }, lang),
+      far: pick6({ kn: "ಎಲ್ಲವನ್ನೂ ಒಬ್ಬರೇ ಹೊರುವ ಒತ್ತಡ", mr: "एकाकी ताण व घाई", hi: "अकेले सब संभालने का दबाव", te: "ఒంటరిగా మోసే ఒత్తిడి", ta: "தனியாகச் சுமக்கும் அழுத்தம்", en: "Silent Self-Overload" }, lang),
+      verdict: `${dominantElement}`,
+    },
+    6: {
+      near: pick6({ kn: `${localizedYogiDay} • ${localizedYogiDirection}`, mr: `${localizedYogiDay} • ${localizedYogiDirection}`, hi: `${localizedYogiDay} • ${localizedYogiDirection}`, te: `${localizedYogiDay} • ${localizedYogiDirection}`, ta: `${localizedYogiDay} • ${localizedYogiDirection}`, en: `${localizedYogiDay} • ${localizedYogiDirection}` }, lang),
+      far: pick6({ kn: `${avayogiPlanetName} ಅವಸರದ ತಪ್ಪು`, mr: `${avayogiPlanetName} घाईचा फटका`, hi: `${avayogiPlanetName} जल्दबाजी की भूल`, te: `${avayogiPlanetName} తొందరపాటు`, ta: `${avayogiPlanetName} அவசரத் தவறு`, en: `${avayogiPlanetName} Hasty Traps` }, lang),
+      verdict: `${yogiPlanetName} ★`,
+      house: peakHouseNum,
+    },
+    7: {
+      near: pick6({ kn: `${currentBhuktiLord} ಅವಕಾಶ (${n(bhuktiEndDate)})`, mr: `${currentBhuktiLord} संधी (${n(bhuktiEndDate)})`, hi: `${currentBhuktiLord} अवसर (${n(bhuktiEndDate)})`, te: `${currentBhuktiLord} అవకాశం (${n(bhuktiEndDate)})`, ta: `${currentBhuktiLord} வாய்ப்பு (${n(bhuktiEndDate)})`, en: `${currentBhuktiLord} Window (${bhuktiEndDate})` }, lang),
+      far: pick6({ kn: "ಹಳೆಯ ಅಸಂಬದ್ಧ ದಿನಚರಿ", mr: "जुन्या निष्क्रिय सवयी", hi: "पुरानी निष्क्रिय आदतें", te: "పాత నిరుపయోగ అలవాట్లు", ta: "பழைய செயலற்ற பழக்கங்கள்", en: "Outgrown Routine Loops" }, lang),
+      verdict: `${currentMahadasha} • ${currentBhuktiLord}`,
+    },
+    8: {
+      near: pick6({ kn: `೧೦ ವರ್ಷದ ಶಾಶ್ವತ ಅಡಿಪಾಯ`, mr: `१० वर्षांचा भक्कम पाया`, hi: `१० वर्षों की अटल नींव`, te: `10 ఏళ్ల గట్టి పునాది`, ta: `10 ஆண்டு உறுதியான அடித்தளம்`, en: `10-Year Solid Foundation` }, lang),
+      far: pick6({ kn: "ಸ್ವಾರ್ಥ ಸಂಬಂಧ & ಸುಲಭ ದಾರಿ", mr: "तात्पुरते शॉर्टकट व दिखावा", hi: "अस्थायी सहारे और शॉर्टकट", te: "తాత్కాలిక షార్ట్‌కట్‌లు", ta: "போலி ஆதரவும் குறுக்கு வழியும்", en: "Flimsy Shortcuts & Fake Allies" }, lang),
+      verdict: `${shaniTransitRashi}`,
+      house: ctx.shaniHouseFromMoon,
+    },
+    9: {
+      near: pick6({ kn: `${guruTransitRashi} ಗುರು ಬಲ & ಮಾರ್ಗದರ್ಶನ`, mr: `${guruTransitRashi} गुरु कृपा व संधी`, hi: `${guruTransitRashi} गुरु कृपा एवं मार्गदर्शन`, te: `${guruTransitRashi} గురు వరం & దారి`, ta: `${guruTransitRashi} குரு அருள் & வழிகாட்டல்`, en: `${guruTransitRashi} Mentor & Relief` }, lang),
+      far: pick6({ kn: "ಸಣ್ಣ ಯೋಚನೆಯ ಪರಿಧಿ", mr: "संकुचित विचारसरणी", hi: "सीमित सोच का दायरा", te: "చిన్న ఆలోచనల హద్దులు", ta: "குறுகிய சிந்தனை எல்லை", en: "Narrow Self-Doubt" }, lang),
+      verdict: `${guruTransitRashi}`,
+      house: ctx.guruHouseFromMoon,
+    },
+    10: {
+      near: pick6({ kn: `${moonRashiName} ವಾಸ್ತವ ಸ್ಪಷ್ಟತೆ`, mr: `${moonRashiName} स्पष्ट वास्तव`, hi: `${moonRashiName} स्पष्ट विवेक`, te: `${moonRashiName} వాస్తవ దృష్టి`, ta: `${moonRashiName} உண்மைத் தெளிவு`, en: `${moonRashiName} Grounded Clarity` }, lang),
+      far: pick6({ kn: "ರಾಹು ಆತುರದ ಕಾಲ್ಪನಿಕ ಭಯ", mr: "राहु भ्रम व काल्पनिक भीती", hi: "राहु का काल्पनिक भय व लालच", te: "రాహు భ్రమ & అపోహలు", ta: "ராகு மாயையும் வீண் பயமும்", en: "Shadow Anxiety & Hype" }, lang),
+      verdict: pick6({ kn: "ವಾಸ್ತವ ಜಯ", mr: "स्पष्ट दृष्टी", hi: "स्पष्ट दृष्टि", te: "స్పష్టత", ta: "தெளிவு", en: "Clear Lens" }, lang),
+      house: ctx.rahuHouseFromMoon,
+    },
+    11: {
+      near: pick6({ kn: `${detectedYogasSummary}`, mr: `${detectedYogasSummary}`, hi: `${detectedYogasSummary}`, te: `${detectedYogasSummary}`, ta: `${detectedYogasSummary}`, en: `${detectedYogasSummary}` }, lang),
+      far: pick6({ kn: "ಮೌನ ಸಂಕೋಚ & ಹಿಂಜರಿಕೆ", mr: "बोलण्यातला संकोच व कमीपणा", hi: "संकोच और आत्म-संशय", te: "మొహమాటం & సంకోచం", ta: "தயக்கமும் மௌனமும்", en: "Muted Voice & Hesitation" }, lang),
+      verdict: pick6({ kn: "ಸುಪ್ತ ರಾಜಯೋಗ", mr: "राजयोग जागृती", hi: "राजयोग जागृति", te: "రాజయోగ బలం", ta: "ராஜயோக ஆற்றல்", en: "Crown Gifts Awake" }, lang),
+    },
+    12: isChildOrInfant
+      ? {
+          near: pick6({ kn: `ಬಾಲ ಪ್ರತಿಭೆ & ${house6Info.lordName} ರಕ್ಷೆ`, mr: `तल्लख बुद्धी व सुरक्षा`, hi: `तीव्र जिज्ञासा व सुरक्षा`, te: `తెలివైన ఆసక్తి & రక్షణ`, ta: `அறிவு வளர்ச்சியும் பாதுகாப்பும்`, en: `Bright Curiosity & Shield` }, lang),
+          far: pick6({ kn: "ಬೇರೆಯವರೊಡನೆ ಹೋಲಿಕೆಯ ಒತ್ತಡ", mr: "इतरांशी तुलनेचा ताण", hi: "तुलना का अनावश्यक दबाव", te: "ఇతరులతో పోలికల భారం", ta: "பிறருடன் ஒப்பிடும் அழுத்தம்", en: "Forced Pace Comparisons" }, lang),
+          verdict: pick6({ kn: "ಬಾಲ ವಿಕಾಸ", mr: "बाल प्रतिभा", hi: "बाल प्रतिभा", te: "బాల ప్రతిభ", ta: "குழந்தை திறன்", en: "Early Genius" }, lang),
+          house: 5,
+        }
+      : {
+          near: pick6({ kn: `೧೦ನೇ ಮನೆ ನಾಯಕತ್ವ (${n(savByHouse[9])} ಅಂಕ)`, mr: `१०वे स्थान नेतृत्व (${n(savByHouse[9])} गुण)`, hi: `१०वां भाव नेतृत्व (${n(savByHouse[9])} अंक)`, te: `10వ స్థాన నాయకత్వం (${n(savByHouse[9])})`, ta: `10-ம் இட தலைமை (${n(savByHouse[9])})`, en: `House 10 Authority (${savByHouse[9]} SAV)` }, lang),
+          far: pick6({ kn: "ಗುರುತು ಸಿಗದ ಹೆಚ್ಚುವರಿ ದುಡಿಮೆ", mr: "विनाश्रेय राबणे", hi: "अदृश्य परिश्रम में उलझाव", te: "గుర్తింపు లేని శ్రమ", ta: "அங்கீகாரமற்ற உழைப்பு", en: "Invisible Uncredited Grunt Work" }, lang),
+          verdict: pick6({ kn: `ಮನೆ ೧೦ • ${n(savByHouse[9])} ಅಂಕ`, mr: `स्थान १० • ${n(savByHouse[9])} गुण`, hi: `भाव १० • ${n(savByHouse[9])} अंक`, te: `స్థానం 10 • ${n(savByHouse[9])}`, ta: `வீடு 10 • ${n(savByHouse[9])}`, en: `House 10 • ${savByHouse[9]}` }, lang),
+          house: 10,
+        },
+    13: isChildOrInfant
+      ? {
+          near: pick6({ kn: "ಕುಟುಂಬದ ಲಕ್ಷ್ಮಿ & ಭವಿಷ್ಯ ನಿಧಿ", mr: "कौटुंबिक समृद्धी व बचत", hi: "पारिवारिक समृद्धि व बचत", te: "కుటుంబ శుభ ఐశ్వర్యం", ta: "குடும்ப வளம் & சேமிப்பு", en: "Family Cushion & Security" }, lang),
+          far: pick6({ kn: "ಅನಗತ್ಯ ಆಡಂಬರದ ವೆಚ್ಚ", mr: "अनावश्यक दिखावा", hi: "अनावश्यक दिखावे का व्यय", te: "ఆడంబర వృథా ఖర్చులు", ta: "தேவையற்ற ஆடம்பர செலவு", en: "Unplanned Clutter Spending" }, lang),
+          verdict: pick6({ kn: "ವಂಶ ಲಕ್ಷ್ಮಿ", mr: "समृद्धी योग", hi: "समृद्धि योग", te: "లక్ష్మీ యోగం", ta: "வளமை யோகம்", en: "Family Fortune" }, lang),
+          house: 2,
+        }
+      : {
+          near: pick6({ kn: `೧೧ನೇ ಮನೆ ಆದಾಯ (${n(savByHouse[10])} ಅಂಕ)`, mr: `११वे स्थान आवक (${n(savByHouse[10])} गुण)`, hi: `११वां भाव लाभ (${n(savByHouse[10])} अंक)`, te: `11వ స్థాన లాభం (${n(savByHouse[10])})`, ta: `11-ம் இட வருமானம் (${n(savByHouse[10])})`, en: `House 11 Inflow (${savByHouse[10]} SAV)` }, lang),
+          far: pick6({ kn: "ಮೊಹಮ್ಮದ/ದಾಕ್ಷಿಣ್ಯದ ಸೋರಿಕೆ", mr: "भावनेपोटी होणारी गळती", hi: "संकोच में अनावश्यक खर्च", te: "మొహమాటపు వృథా ఖర్చు", ta: "உணர்ச்சிவசப்பட்ட செலவுகள்", en: "Politeness Money Leaks" }, lang),
+          verdict: pick6({ kn: `ಮನೆ ೧೧ • ${n(savByHouse[10])} ಅಂಕ`, mr: `स्थान ११ • ${n(savByHouse[10])} गुण`, hi: `भाव ११ • ${n(savByHouse[10])} अंक`, te: `స్థానం 11 • ${n(savByHouse[10])}`, ta: `வீடு 11 • ${n(savByHouse[10])}`, en: `House 11 • ${savByHouse[10]}` }, lang),
+          house: 11,
+        },
+    14: isChildOrInfant
+      ? {
+          near: pick6({ kn: "ಪೋಷಕರ ಪ್ರೀತಿ & ಮನೆಯ ನಗು", mr: "आई-वडिलांची ऊब व प्रेम", hi: "माता-पिता का स्नेह व शांति", te: "తల్లిదండ్రుల ప్రేమ & ఆనందం", ta: "பெற்றோர் அன்பும் மகிழ்ச்சியும்", en: "Parent Warmth & Home Joy" }, lang),
+          far: pick6({ kn: "ಕಠಿಣ ಗದರಿಕೆ & ಭಯ", mr: "कठोर रागावणे व तणाव", hi: "कठोर डांट व भय", te: "కోపం & కఠిన వాతావరణం", ta: "கடுமையான பேச்சும் அச்சமும்", en: "Harsh Tension & Fear" }, lang),
+          verdict: pick6({ kn: "ಪ್ರೇಮ ರಕ್ಷೆ", mr: "प्रेमळ सहवास", hi: "पारिवारिक स्नेह", te: "కుటుంబ ప్రేమ", ta: "குடும்ப அன்பு", en: "Home Harmony" }, lang),
+          house: 4,
+        }
+      : {
+          near: pick6({ kn: `೭ನೇ ಮನೆ ಸೌಹಾರ್ದ (${n(savByHouse[6])} ಅಂಕ)`, mr: `७वे स्थान सलोखा (${n(savByHouse[6])} गुण)`, hi: `७वां भाव सामंजस्य (${n(savByHouse[6])} अंक)`, te: `7వ స్థాన సామరస్యం (${n(savByHouse[6])})`, ta: `7-ம் இட ஒற்றுமை (${n(savByHouse[6])})`, en: `House 7 Bond (${savByHouse[6]} SAV)` }, lang),
+          far: pick6({ kn: "ಮಾತನಾಡದ ಮೌನ ಗೋಡೆ", mr: "न बोलल्यामुळे आलेला अबोला", hi: "अनकहे मौन की दूरी", te: "మాట్లాడని మౌన దూరం", ta: "பேசாத மௌன இடைவெளி", en: "Silent Pride & Distance" }, lang),
+          verdict: pick6({ kn: `ಮನೆ ೭ • ${n(savByHouse[6])} ಅಂಕ`, mr: `स्थान ७ • ${n(savByHouse[6])} गुण`, hi: `भाव ७ • ${n(savByHouse[6])} अंक`, te: `స్థానం 7 • ${n(savByHouse[6])}`, ta: `வீடு 7 • ${n(savByHouse[6])}`, en: `House 7 • ${savByHouse[6]}` }, lang),
+          house: 7,
+        },
+    15: {
+      near: pick6({ kn: `೫ನೇ ಮನೆ ಬುದ್ಧಿ & ಕಲೆ (${n(savByHouse[4])} ಅಂಕ)`, mr: `५वे स्थान कल्पकता (${n(savByHouse[4])} गुण)`, hi: `५वां भाव सृजन (${n(savByHouse[4])} अंक)`, te: `5వ స్థాన ప్రతిభ (${n(savByHouse[4])})`, ta: `5-ம் இட படைப்பு (${n(savByHouse[4])})`, en: `House 5 Spark (${savByHouse[4]} SAV)` }, lang),
+      far: pick6({ kn: "ಕೇವಲ ಯಾಂತ್ರಿಕ ದಿನಚರಿ", mr: "कोरडी यांत्रिक दिनचर्या", hi: "नीरस यांत्रिक दिनचर्या", te: "ఆనందం లేని యాంత్రిక శ్రమ", ta: "மகிழ்ச்சியற்ற இயந்திர வாழ்க்கை", en: "Joyless Mechanical Grind" }, lang),
+      verdict: pick6({ kn: `ಮನೆ ೫ • ${n(savByHouse[4])} ಅಂಕ`, mr: `स्थान ५ • ${n(savByHouse[4])} गुण`, hi: `भाव ५ • ${n(savByHouse[4])} अंक`, te: `స్థానం 5 • ${n(savByHouse[4])}`, ta: `வீடு 5 • ${n(savByHouse[4])}`, en: `House 5 • ${savByHouse[4]}` }, lang),
+      house: 5,
+    },
+    16: {
+      near: pick6({ kn: `${house6Info.lordName} ದೇಹಬಲ & ಚೇತರಿಕೆ`, mr: `${house6Info.lordName} रोगप्रतिकार व तंदुरुस्ती`, hi: `${house6Info.lordName} प्राण ऊर्जा व स्फूर्ति`, te: `${house6Info.lordName} జీవశక్తి & ఆరోగ్యం`, ta: `${house6Info.lordName} உடல் ஆரோக்கியம்`, en: `${house6Info.lordName} Core Stamina` }, lang),
+      far: pick6({ kn: "ತಲೆಯ ಒತ್ತಡ & ನಿದ್ದೆಯ ಕೊರತೆ", mr: "विचारांचा ताण व कमी झोप", hi: "अति-चिंता एवं नींद की कमी", te: "ఆలోచనల ఒత్తిడి & నిద్రలేమి", ta: "மன அழுத்தம் & தூக்கமின்மை", en: "Mental Heat & Poor Rest" }, lang),
+      verdict: pick6({ kn: `ಮನೆ ೬ • ${n(savByHouse[5])} ಅಂಕ`, mr: `स्थान ६ • ${n(savByHouse[5])} गुण`, hi: `भाव ६ • ${n(savByHouse[5])} अंक`, te: `స్థానం 6 • ${n(savByHouse[5])}`, ta: `வீடு 6 • ${n(savByHouse[5])}`, en: `Health Shield` }, lang),
+      house: 6,
+    },
+    17: {
+      near: pick6({ kn: "೯೦ ದಿನಗಳಲ್ಲೇ ಹೊಸ ಚಾಲನೆ", mr: "९० दिवसांत नवी गती", hi: "९० दिनों में ठोस गति", te: "90 రోజుల్లో కొత్త కదలిక", ta: "90 நாட்களில் புதிய வேகம்", en: "90-Day Ignition Spark" }, lang),
+      far: pick6({ kn: "ನಿಂತ ನೀರಿನಂತೆ ಇದ್ದ ವಿಳಂಬ", mr: "अडकलेली जुनी कामे", hi: "लंबित कार्यों का ठहराव", te: "ఆగిపోయిన పాత స్థితి", ta: "தேங்கி நின்ற தாமதம்", en: "Stalled Waiting Loops" }, lang),
+      verdict: pick6({ kn: "೯೦ ದಿನದ ವೇಗ", mr: "९० दिवस वेग", hi: "९० दिन की गति", te: "90 రోజుల వేగం", ta: "90 நாள் வேகம்", en: "Next 90 Days" }, lang),
+      yr: 0,
+    },
+    18: {
+      near: pick6({ kn: `${bhriguBinduRashiName} ಅದೃಷ್ಟ ತಿರುವು`, mr: `${bhriguBinduRashiName} सुवर्ण बिंदू`, hi: `${bhriguBinduRashiName} भृगु बिंदु उदय`, te: `${bhriguBinduRashiName} అదృష్ట బిందువు`, ta: `${bhriguBinduRashiName} பிருகு பிந்து`, en: `${bhriguBinduRashiName} Destiny Point` }, lang),
+      far: pick6({ kn: "ಸಣ್ಣ ಯೋಚನೆಯ ಸಂಶಯ", mr: "आत्मविश्वासाची कमतरता", hi: "छोटी झिझक और संदेह", te: "అనవసర సందేహం", ta: "சந்தேகமும் தயக்கமும்", en: "Self-Doubt & Waiting" }, lang),
+      verdict: `${bhriguBinduRashiName}`,
+    },
+    19: {
+      near: pick6({ kn: `${n(nowYear)} ಶಿಸ್ತು & ನಿಚ್ಚಳ ಅಡಿಪಾಯ`, mr: `${n(nowYear)} पायाभरणी व सुसूत्रता`, hi: `${n(nowYear)} स्पष्ट आधार व नियंत्रण`, te: `${n(nowYear)} గట్టి పునాది`, ta: `${n(nowYear)} சீரான அடித்தளம்`, en: `${nowYear} Reset & Control` }, lang),
+      far: pick6({ kn: "ಹಳೆಯ ಸಮಯ ವ್ಯರ್ಥ ಮಾಡುವ ಹೊರೆ", mr: "अनावश्यक जुने ओझे", hi: "समय बर्बाद करने वाले बोझ", te: "సమయం వృథా చేసే భారాలు", ta: "தேவையற்ற பழைய சுமைகள்", en: "Time-Draining Obligations" }, lang),
+      verdict: `${n(nowYear)} (${n(1)})`,
+      yr: 0,
+    },
+    20: {
+      near: pick6({ kn: `${n(nowYear + 1)} ಹೊಸ ವೇದಿಕೆ & ಕೀರ್ತಿ`, mr: `${n(nowYear + 1)} नवी झेप व मान`, hi: `${n(nowYear + 1)} बड़ा मंच व पहचान`, te: `${n(nowYear + 1)} కొత్త హోదా & కీర్తి`, ta: `${n(nowYear + 1)} புதிய மேடை & புகழ்`, en: `${nowYear + 1} Spotlight Surge` }, lang),
+      far: pick6({ kn: "ಚಿಕ್ಕ ಗುರಿಯ ಮಿತಿ", mr: "लहान ध्येयांची मर्यादा", hi: "सीमित दायरे की झिझक", te: "చిన్న లక్ష్యాల హద్దులు", ta: "சிறிய எல்லைத் தயக்கம்", en: "Playing Too Small" }, lang),
+      verdict: `${n(nowYear + 1)} (${n(2)})`,
+      yr: 1,
+    },
+    21: {
+      near: pick6({ kn: `${n(nowYear + 2)}–${n(nowYear + 3)} ಆಸ್ತಿ & ಕುಟುಂಬ ಸುಖ`, mr: `${n(nowYear + 2)}–${n(nowYear + 3)} मालमत्ता व सुख`, hi: `${n(nowYear + 2)}–${n(nowYear + 3)} संपत्ति व उत्सव`, te: `${n(nowYear + 2)}–${n(nowYear + 3)} ఆస్తి & వేడుక`, ta: `${n(nowYear + 2)}–${n(nowYear + 3)} சொத்து & மகிழ்ச்சி`, en: `${nowYear + 2}–${nowYear + 3} Tangible Crest` }, lang),
+      far: pick6({ kn: "ಆರ್ಥಿಕ ಜವಾಬ್ದಾರಿಯ ಆತಂಕ", mr: "मोठ्या खर्चाची काळजी", hi: "आर्थिक अस्थिरता का तनाव", te: "ఆర్థిక భారం & చింత", ta: "பொருளாதாரக் கவலை", en: "Funding Anxiety" }, lang),
+      verdict: `${n(nowYear + 2)}–${n(nowYear + 3)}`,
+      yr: 2,
+    },
+    22: {
+      near: pick6({ kn: `${n(nowYear + 4)} ಸ್ವಾತಂತ್ರ್ಯ & ನೆಮ್ಮದಿ`, mr: `${n(nowYear + 4)} शांत व खंबीर स्थान`, hi: `${n(nowYear + 4)} स्थायी स्वतंत्रता`, te: `${n(nowYear + 4)} శాశ్వత ప్రశాంతత`, ta: `${n(nowYear + 4)} நிரந்தர நிம்மதி`, en: `${nowYear + 4} Lasting Freedom` }, lang),
+      far: pick6({ kn: "ದೈನಂದಿನ ಹೋರಾಟದ ದಣಿವು", mr: "रोजची धावपळ व थकवा", hi: "दैनिक संघर्ष की थकान", te: "రోజువారీ పరుగుల అలసట", ta: "தினசரிப் போராட்டச் சோர்வு", en: "Daily Crisis Scramble" }, lang),
+      verdict: `${n(nowYear + 4)} (${n(5)})`,
+      yr: 4,
+    },
+    23: {
+      near: pick6({ kn: `${n(doshaProfiles.length)} ನಿಖರ ಪರಿಹಾರಗಳು`, mr: `${n(doshaProfiles.length)} अचूक उपाय`, hi: `${n(doshaProfiles.length)} सटीक समाधान`, te: `${n(doshaProfiles.length)} ఖచ్చిత పరిహారాలు`, ta: `${n(doshaProfiles.length)} துல்லிய தீர்வுகள்`, en: `${doshaProfiles.length} Targeted Solutions` }, lang),
+      far: pick6({ kn: "ಗೊಂದಲಮಯ ನೂರು ಪೂಜೆಗಳು", mr: "भीती व अनावश्यक खर्च", hi: "भय व अनगिनत कर्मकांड", te: "వందల కొద్దీ గందరగోళం", ta: "குழப்பமான சடங்குகள்", en: "Blanket Ritual Confusion" }, lang),
+      verdict: pick6({ kn: `${n(doshaProfiles.length)} ಸಕ್ರಿಯ ಅಂಶಗಳು`, mr: `${n(doshaProfiles.length)} सक्रिय मुद्दे`, hi: `${n(doshaProfiles.length)} सक्रिय बिंदु`, te: `${n(doshaProfiles.length)} ముఖ్యాంశాలు`, ta: `${n(doshaProfiles.length)} முக்கிய அம்சங்கள்`, en: `${doshaProfiles.length} Active Items` }, lang),
+    },
+    24: {
+      near: pick6({ kn: `${localizedYogiDay} • ೫ ನಿಮಿಷ ನಿಯಮ`, mr: `${localizedYogiDay} • ५ मिनिटे नियम`, hi: `${localizedYogiDay} • ५-मिनट सूत्र`, te: `${localizedYogiDay} • 5 నిమిషాల సూత్రం`, ta: `${localizedYogiDay} • 5 நிமிட நெறி`, en: `${localizedYogiDay} • 5-Min Rhythm` }, lang),
+      far: pick6({ kn: "ಪಾಲಿಸಲಾಗದ ಕಠಿಣ ನಿಯಮಗಳು", mr: "क्लिष्ट नियमांचे ओझे", hi: "कठिन नियमों का बोझ", te: "కష్టమైన నియమాల భారం", ta: "சிக்கலான விதிமுறைகள்", en: "Complicated Exhaustion" }, lang),
+      verdict: `${localizedYogiDay}`,
+    },
+    25: {
+      near: pick6({ kn: `${n(peakHouseNum)}ನೇ ಭಾವ + ಗೋಕರ್ಣ ಆಶೀರ್ವಾದ`, mr: `गोकर्ण आशीर्वाद व ${n(nowYear + 2)}–${n(nowYear + 4)}`, hi: `गोकर्ण आशीर्वाद व ${n(peakHouseNum)}वां बल`, te: `గోకర్ణ ఆశీస్సు & ${n(peakHouseNum)}వ బలం`, ta: `கோகர்ண ஆசி & பொற்காலம்`, en: `Peak House ${peakHouseNum} + Gokarna Grace` }, lang),
+      far: pick6({ kn: "ಅಧ್ಯಾಯ ೧ರ ಹಳೆಯ ಭಯ", mr: "पहिल्या अध्यायाची चिंता", hi: "अध्याय १ की पुरानी चिंता", te: "మొదటి అధ్యాయపు చింత", ta: "முதல் அத்தியாயக் கவலை", en: "Chapter 1 Doubts Cleared" }, lang),
+      verdict: pick6({ kn: "ಸಂಪೂರ್ಣ ಶುಭಂ", mr: "शुभं भवतु", hi: "शुभं भवतु", te: "శుభం భవతు", ta: "சுபம் பவத்து", en: "Shubham Bhavatu" }, lang),
+      house: peakHouseNum,
+    },
+  };
+
+  const entry = chapterVisualLookup[chNum] || chapterVisualLookup[1];
+
+  return {
+    storyHook: cleanRegional(rawHook(), lang),
+    extP1: cleanRegional(extP1, lang),
+    extP2: cleanRegional(extP2, lang),
+    extP3: cleanRegional(extP3, lang),
+    visualSummary: {
+      themeKey,
+      themeBadge: cleanRegional(themeBadge, lang),
+      nearLabel: cleanRegional(lblNear, lang),
+      nearValue: cleanRegional(entry.near, lang),
+      farLabel: cleanRegional(lblFar, lang),
+      farValue: cleanRegional(entry.far, lang),
+      focusHouse: entry.house,
+      focusYearOffset: entry.yr,
+      glanceVerdict: cleanRegional(entry.verdict, lang),
+    },
   };
 }
 
@@ -1985,9 +2499,9 @@ export function buildDynamicStoryChapters(
         en: `${devoteeName}, remember the quiet worry where Chapter 1 began? Looking across your entire chart—${lagnaRashiName} ascendant, ${moonRashiName} Moon, ${nakshatraName} star, and the active turning points ahead—the final verdict is unmistakable: none of those delays came to defeat you; they cleared space for what truly fits you.`,
       },
       p2: {
-        kn: `ನಿಮ್ಮ ಪ್ರಮುಖ ಮುಖ್ಯಾಂಶಗಳು (Highlights): ನಿಮ್ಮ '${yogiPlanetName}' ಯೋಗಿ ಬಲ, ${peakHouseNum}ನೇ ಮನೆಯ ವಿಶೇಷ ಸಾಮರ್ಥ್ಯ, ಮತ್ತು '${n(nowYear + 2)}–${n(nowYear + 4)}'ರ ಸುವರ್ಣ ದಿಗಂತ ನಿಮ್ಮ ಕುಟುಂಬವನ್ನು ಗೌರವದ ಸ್ಥಾನದಲ್ಲಿ ನಿಲ್ಲಿಸಲಿದೆ. ಸತ್ಯದ ಹಾದಿ, ಸ್ವಾಭಿಮಾನ ಮತ್ತು ಸಂಬಂಧಗಳ ಕಾಳಜಿ ನಿಮ್ಮ ಅಜೇಯ ಶಕ್ತಿಗಳಾಗಿವೆ.`,
-        mr: `तुमच्या कथेचे मुख्य सार (Highlights): योगी '${yogiPlanetName}' चे पाठबळ, तुमची जन्मजात बुद्धिमत्ता आणि ${n(nowYear + 2)}–${n(nowYear + 4)} मधील सुवर्ण काळ तुमच्या कुटुंबाला मोठी प्रतिष्ठा देईल. प्रामाणिकपणा आणि धैर्य हीच तुमची ताकद आहे.`,
-        hi: `मुख्य सारांश (Highlights): आपका '${yogiPlanetName}' बल, जन्मजात विवेक और ${n(nowYear + 2)}–${n(nowYear + 4)} का स्वर्णिम चरण आपके परिवार को सम्मान व स्थिरता दिलाएंगे। धैर्य और सत्यनिष्ठा आपकी अजेय शक्तियां हैं।`,
+        kn: `ನಿಮ್ಮ ಪ್ರಮುಖ ಮುಖ್ಯಾಂಶಗಳು: ನಿಮ್ಮ '${yogiPlanetName}' ಯೋಗಿ ಬಲ, ${peakHouseNum}ನೇ ಮನೆಯ ವಿಶೇಷ ಸಾಮರ್ಥ್ಯ, ಮತ್ತು '${n(nowYear + 2)}–${n(nowYear + 4)}'ರ ಸುವರ್ಣ ದಿಗಂತ ನಿಮ್ಮ ಕುಟುಂಬವನ್ನು ಗೌರವದ ಸ್ಥಾನದಲ್ಲಿ ನಿಲ್ಲಿಸಲಿದೆ. ಸತ್ಯದ ಹಾದಿ, ಸ್ವಾಭಿಮಾನ ಮತ್ತು ಸಂಬಂಧಗಳ ಕಾಳಜಿ ನಿಮ್ಮ ಅಜೇಯ ಶಕ್ತಿಗಳಾಗಿವೆ.`,
+        mr: `तुमच्या कथेचे मुख्य सार: योगी '${yogiPlanetName}' चे पाठबळ, तुमची जन्मजात बुद्धिमत्ता आणि ${n(nowYear + 2)}–${n(nowYear + 4)} मधील सुवर्ण काळ तुमच्या कुटुंबाला मोठी प्रतिष्ठा देईल. प्रामाणिकपणा आणि धैर्य हीच तुमची ताकद आहे.`,
+        hi: `मुख्य सारांश: आपका '${yogiPlanetName}' बल, जन्मजात विवेक और ${n(nowYear + 2)}–${n(nowYear + 4)} का स्वर्णिम चरण आपके परिवार को सम्मान व स्थिरता दिलाएंगे। धैर्य और सत्यनिष्ठा आपकी अजेय शक्तियां हैं।`,
         te: `ముఖ్య సారాంశం: మీ '${yogiPlanetName}' బలం, సహజ ప్రతిభ మరియు ${n(nowYear + 2)}–${n(nowYear + 4)} మధ్య రానున్న సువర్ణ కాలం మీ కుటుంబాన్ని ఉన్నత స్థానంలో నిలబెడతాయి. నిజాయితీ, సహనమే మీ విజయ రహస్యం.`,
         ta: `முக்கிய சாரம்: உங்கள் '${yogiPlanetName}' பலம், இயல்பான திறமை மற்றும் ${n(nowYear + 2)}–${n(nowYear + 4)} பொற்காலம் உங்கள் குடும்பத்திற்குப் பெருமையையும் நிம்மதியையும் தரும். நேர்மையும் துணிச்சலும் உங்கள் வெற்றியின் அடிப்படை.`,
         en: `Key Highlights Locked In: your Peak Strength Sector (House ${peakHouseNum}), your ${yogiPlanetName} advantage on ${localizedYogiDay}, and the ascending arc peaking across ${nowYear + 2}–${nowYear + 4}. Walk with quiet confidence—never measure your path against anyone else's clock.`,
@@ -2013,24 +2527,51 @@ export function buildDynamicStoryChapters(
     }
   );
 
+  // Shuffled 5-Theme Story Lens (cinema, nakshatra, yoga_karana, near_far, parable) + 5-6 line enrichment
+  const themeAssignment = buildShuffledChapterThemes(ctx);
+
   // Sort strictly 1..25 and clean all strings for 100% selected-language purity
   return list
     .sort((a, b) => a.n - b.n)
-    .map((item) => ({
-      chapterNumber: item.n,
-      sectionNumber: item.sec,
-      sectionTitle: cleanRegional(item.secTitle, lang),
-      title: cleanRegional(pick6(item.title, lang), lang),
-      icon: item.icon,
-      question: cleanRegional(pick6(item.question, lang), lang),
-      paragraphs: [
-        cleanRegional(pick6(item.p1, lang), lang),
-        cleanRegional(pick6(item.p2, lang), lang),
-        cleanRegional(pick6(item.p3, lang), lang),
-      ],
-      precisionAnchors: item.anchors,
-      guidanceBadge: cleanRegional(pick6(item.badge, lang), lang),
-      practicalGuidance: cleanRegional(pick6(item.reflection, lang), lang),
-      visualType: item.visual,
-    }));
+    .map((item) => {
+      const themeKey = themeAssignment[item.n] || "cinema";
+      const layer = buildChapterThemeAndNarrativeLayer({
+        chNum: item.n,
+        themeKey,
+        ctx,
+        savByHouse,
+        peakHouseNum,
+        doshaProfiles,
+        isChildOrInfant,
+        taraScore,
+        taraWord,
+      });
+
+      const baseP1 = cleanRegional(pick6(item.p1, lang), lang);
+      const baseP2 = cleanRegional(pick6(item.p2, lang), lang);
+      const baseP3 = cleanRegional(pick6(item.p3, lang), lang);
+      const minTargetLen = lang === "en" ? 390 : 280;
+      const expandTo5Lines = (base: string, ext: string) =>
+        ext && base.length < minTargetLen ? cleanRegional(`${base} ${ext}`, lang) : base;
+
+      return {
+        chapterNumber: item.n,
+        sectionNumber: item.sec,
+        sectionTitle: cleanRegional(item.secTitle, lang),
+        title: cleanRegional(pick6(item.title, lang), lang),
+        icon: item.icon,
+        question: cleanRegional(pick6(item.question, lang), lang),
+        storyHook: layer.storyHook,
+        paragraphs: [
+          expandTo5Lines(baseP1, layer.extP1),
+          expandTo5Lines(baseP2, layer.extP2),
+          expandTo5Lines(baseP3, layer.extP3),
+        ],
+        precisionAnchors: item.anchors,
+        guidanceBadge: cleanRegional(pick6(item.badge, lang), lang),
+        practicalGuidance: cleanRegional(pick6(item.reflection, lang), lang),
+        visualType: item.visual,
+        visualSummary: layer.visualSummary,
+      };
+    });
 }

@@ -509,28 +509,43 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       expect(payload.precisionProfile.liveTarabalaHeadline.length).toBeGreaterThan(3);
       expect(payload.precisionProfile.badhakaSummary.length).toBeGreaterThan(3);
 
-      // 2. Every chapter uses 3 crisp plot-twist storytelling paragraphs + precision anchors + visualType
+      // 2. Every chapter uses 5-theme shuffled story hooks, Near/Far visual summary, and rich 5-6 line prose
+      const themeSet = new Set<string>();
       payload.chapters.forEach((ch) => {
+        expect(ch.storyHook && ch.storyHook.length).toBeGreaterThanOrEqual(40);
+        expect(ch.visualSummary?.themeKey).toBeTruthy();
+        expect(ch.visualSummary?.nearValue.length).toBeGreaterThan(2);
+        expect(ch.visualSummary?.farValue.length).toBeGreaterThan(2);
+        expect(ch.visualSummary?.glanceVerdict.length).toBeGreaterThan(2);
+        if (ch.visualSummary?.themeKey) themeSet.add(ch.visualSummary.themeKey);
+
         expect(
           ch.paragraphs.length,
-          `[${lang}] Chapter ${ch.chapterNumber} must have 3 concise storytelling paragraphs`
+          `[${lang}] Chapter ${ch.chapterNumber} must have 3 rich storytelling paragraphs`
         ).toBeGreaterThanOrEqual(3);
         expect(ch.precisionAnchors?.length || 0).toBeGreaterThanOrEqual(2);
         expect(ch.visualType).toBeTruthy();
         const totalChars = ch.paragraphs.join(" ").length;
         expect(
           totalChars,
-          `[${lang}] Chapter ${ch.chapterNumber} story must be crisp & compelling (>= 220 chars), got ${totalChars}`
-        ).toBeGreaterThanOrEqual(220);
+          `[${lang}] Chapter ${ch.chapterNumber} story must be substantial (>= 420 chars), got ${totalChars}`
+        ).toBeGreaterThanOrEqual(420);
       });
+      // All 5 themes appear shuffled across the 25 chapters
+      expect(themeSet.size).toBe(5);
 
-      // 2b. Verify zero English token mixing inside Indic coverPage / details / doshas
+      // 2b. Verify zero English token mixing inside Indic coverPage / storyHook / visualSummary / doshas
       if (lang !== "en") {
         const coverStrings = Object.values(payload.coverPage).join(" ");
         expect(coverStrings).not.toMatch(/[a-zA-Z]{2,}/);
         expect(payload.detectedDoshasSummary).not.toMatch(/[a-zA-Z]{2,}/);
         expect(payload.detectedYogasSummary).not.toMatch(/[a-zA-Z]{2,}/);
         expect(payload.birthPlace).not.toMatch(/[a-zA-Z]/);
+        for (const ch of payload.chapters) {
+          expect(ch.storyHook || "").not.toMatch(/[a-zA-Z]{2,}/);
+          expect(ch.visualSummary?.nearValue || "").not.toMatch(/[a-zA-Z]{2,}/);
+          expect(ch.visualSummary?.farValue || "").not.toMatch(/[a-zA-Z]{2,}/);
+        }
         for (const dp of payload.activeDoshaProfiles || []) {
           expect(`${dp.title} ${dp.doingNow} ${dp.affectingArea} ${dp.exactAction}`).not.toMatch(/[a-zA-Z]{2,}/);
         }
@@ -692,6 +707,15 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(pAKn.coverPage.personalAssurancePara1).not.toBe(pBKn.coverPage.personalAssurancePara1);
     expect(pAEn.chapters[0].paragraphs[0]).not.toBe(pBEn.chapters[0].paragraphs[0]);
     expect(pAEn.chapters[4].paragraphs[0]).not.toBe(pBEn.chapters[4].paragraphs[0]);
+
+    // 5 Narrative themes rotate/shuffle without consecutive repeats and differ between charts
+    const seqA = pAEn.chapters.map((c) => c.visualSummary?.themeKey);
+    const seqB = pBEn.chapters.map((c) => c.visualSummary?.themeKey);
+    expect(new Set(seqA).size).toBe(5);
+    expect(seqA.join(",")).not.toBe(seqB.join(","));
+    for (let i = 1; i < seqA.length; i++) {
+      expect(seqA[i]).not.toBe(seqA[i - 1]);
+    }
 
     // Chapters 1-22 must NOT spam temple/puja remedies
     for (let i = 0; i < 22; i++) {

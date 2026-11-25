@@ -56,6 +56,7 @@ import {
   computeChartVisualMetrics,
   buildDynamicStoryChapters,
   type ChapterVisualType,
+  type ChapterVisualSummary,
   type ActiveDoshaProfile,
   type ChartVisualMetrics,
   type StoryEngineInput
@@ -81,11 +82,13 @@ export interface Master25Chapter {
   title: string;
   icon: string;
   question: string;
+  storyHook?: string;
   paragraphs: string[];
   precisionAnchors?: string[];
   guidanceBadge?: string;
   practicalGuidance?: string;
   visualType?: ChapterVisualType;
+  visualSummary?: ChapterVisualSummary;
 }
 
 export interface CalendarQrSectionData {

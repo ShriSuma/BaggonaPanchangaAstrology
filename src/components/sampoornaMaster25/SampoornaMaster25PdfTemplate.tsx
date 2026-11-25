@@ -95,27 +95,63 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
     return (
       <div
         style={{
-          borderBottom: "1.5px solid #d97706",
-          paddingBottom: "8px",
-          marginBottom: "14px",
+          borderBottom: "2px solid rgba(180, 83, 9, 0.36)",
+          paddingBottom: "7px",
+          marginBottom: "10px",
           letterSpacing: "normal",
         }}
       >
         <div
           style={{
-            fontSize: "15px",
-            fontWeight: 700,
-            color: "#92400e",
-            marginBottom: "4px",
-            letterSpacing: "normal",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "5px",
           }}
         >
-          {chWord}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "3px 12px",
+              backgroundColor: "rgba(180, 83, 9, 0.1)",
+              color: "#78350f",
+              borderRadius: "9999px",
+              border: "1px solid rgba(146, 64, 14, 0.28)",
+              fontSize: "13px",
+              fontWeight: 800,
+              letterSpacing: "normal",
+            }}
+          >
+            <span>{chapter.icon}</span>
+            <span>{chWord}</span>
+            {chapter.visualSummary?.themeBadge && (
+              <>
+                <span style={{ opacity: 0.45 }}>•</span>
+                <span style={{ color: "#92400e" }}>{chapter.visualSummary.themeBadge}</span>
+              </>
+            )}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "13.5px",
+              color: "#92400e",
+              opacity: 0.72,
+            }}
+          >
+            <span>❖</span>
+            <span>✦</span>
+          </div>
         </div>
         <h2
           style={{
-            fontSize: "24px",
-            lineHeight: 1.36,
+            fontSize: "22px",
+            lineHeight: 1.32,
             fontWeight: 800,
             color: "#451a03",
             margin: 0,
@@ -134,26 +170,30 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
     return (
       <div
         style={{
-          marginTop: "14px",
-          paddingTop: "10px",
-          borderTop: "1px solid #d97706",
+          marginTop: "10px",
+          padding: "9px 14px",
+          background: "linear-gradient(to right, rgba(254, 243, 199, 0.9), rgba(255, 247, 237, 0.85), rgba(254, 243, 199, 0.9))",
+          border: "1px solid rgba(217, 119, 6, 0.35)",
+          borderRadius: "8px",
           letterSpacing: "normal",
         }}
       >
         <p
           style={{
             margin: 0,
-            fontSize: "16.5px",
-            lineHeight: 1.56,
-            fontWeight: 600,
+            fontSize: "15.5px",
+            lineHeight: 1.48,
+            fontWeight: 700,
             color: "#78350f",
             letterSpacing: "normal",
             wordBreak: "break-word",
           }}
         >
           {badge ? (
-            <strong style={{ color: "#b45309", marginRight: "6px" }}>{badge} •</strong>
-          ) : null}
+            <strong style={{ color: "#9a3412", marginRight: "6px" }}>❖ {badge}:</strong>
+          ) : (
+            <strong style={{ color: "#9a3412", marginRight: "6px" }}>❖</strong>
+          )}
           {guidance}
         </p>
       </div>
@@ -1312,7 +1352,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "flex-start",
-                padding: "14px 22px",
+                padding: "12px 20px",
                 boxSizing: "border-box",
                 letterSpacing: "normal",
               }}
@@ -1321,12 +1361,14 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div
                 style={{
-                  borderLeft: "3px solid #d97706",
-                  padding: "6px 14px",
-                  marginBottom: "16px",
-                  fontSize: "19px",
-                  fontWeight: 700,
-                  lineHeight: 1.48,
+                  borderLeft: "4px solid #b45309",
+                  backgroundColor: "rgba(254, 243, 199, 0.55)",
+                  borderRadius: "0 8px 8px 0",
+                  padding: "6px 13px",
+                  marginBottom: "9px",
+                  fontSize: "17.5px",
+                  fontWeight: 800,
+                  lineHeight: 1.44,
                   color: "#78350f",
                   wordBreak: "break-word",
                 }}
@@ -1334,11 +1376,47 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 {chapter.question}
               </div>
 
+              {chapter.storyHook && (
+                <div
+                  style={{
+                    background: "linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%)",
+                    border: "1px solid #e6c280",
+                    borderLeft: "4px solid #d97706",
+                    borderRadius: "8px",
+                    padding: "9px 14px",
+                    marginBottom: "4px",
+                    fontSize: "16.5px",
+                    fontWeight: 700,
+                    lineHeight: 1.5,
+                    color: "#451a03",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  <span style={{ color: "#b45309", marginRight: "6px" }}>❖</span>
+                  {chapter.storyHook}
+                </div>
+              )}
+
+              <SampoornaChapterVisual
+                chapterNumber={chapter.chapterNumber}
+                visualType={chapter.visualType}
+                metrics={data.chartVisualMetrics}
+                visualSummary={chapter.visualSummary}
+                lang={lang}
+                activeDoshaProfiles={data.activeDoshaProfiles}
+                bhuktiEndDate={data.bhuktiEndDate}
+              />
+
               <div
                 style={{
+                  marginTop: "10px",
+                  backgroundColor: "#fffaf0",
+                  border: "1px solid #f0d7a7",
+                  borderRadius: "10px",
+                  padding: "12px 16px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "13px",
+                  gap: "10px",
                 }}
               >
                 {chapter.paragraphs.map((para, pIdx) => (
@@ -1346,8 +1424,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                     key={pIdx}
                     style={{
                       margin: 0,
-                      fontSize: "18.5px",
-                      lineHeight: 1.66,
+                      fontSize: "16.5px",
+                      lineHeight: 1.55,
                       color: "#1f1206",
                       letterSpacing: "normal",
                       wordBreak: "break-word",
@@ -1357,15 +1435,6 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                   </p>
                 ))}
               </div>
-
-              <SampoornaChapterVisual
-                chapterNumber={chapter.chapterNumber}
-                visualType={chapter.visualType}
-                metrics={data.chartVisualMetrics}
-                lang={lang}
-                activeDoshaProfiles={data.activeDoshaProfiles}
-                bhuktiEndDate={data.bhuktiEndDate}
-              />
 
               {renderContemplationRibbon(chapter.guidanceBadge, chapter.practicalGuidance)}
             </div>
