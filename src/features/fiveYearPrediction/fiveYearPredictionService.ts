@@ -159,178 +159,235 @@ export async function captureFiveYearPredictionPdf(
   onProgress?.(92, "ಉನ್ನತ ಗುಣಮಟ್ಟದ ಬಗ್ಗೋಣ ಪಂಚವರ್ಷ ಮಹಾ ಮುದ್ರಣ ಸಿದ್ಧತೆ...");
 
   const pdfWidthMm = 210;
-  const sections = Array.from(containerEl.querySelectorAll(".pdf-section")) as HTMLElement[];
+  const contentXMm = 7.5;
+  const contentWidthMm = pdfWidthMm - contentXMm * 2; // 195mm inside 6mm inner gold frame
+  const borderClearanceMm = 8.5; // Top & bottom gutter outside 4mm/6mm double gold border
 
-  if (!sections || sections.length === 0) {
-    throw new Error("No .pdf-section elements found in the 5-Year Prediction container.");
-  }
+  const parentEl = containerEl.parentElement;
+  const originalParentStyle = parentEl?.getAttribute("style") || "";
+  const originalContainerStyle = containerEl.getAttribute("style") || "";
 
-  // Pre-wait for web fonts to avoid missing Indic ligatures
-  if (document.fonts && document.fonts.ready) {
-    try {
-      await document.fonts.ready;
-    } catch {
-      // Font loading failure fallback
+  try {
+    // Ensure hidden hosts (both parentEl in BhavishyaView/AntarangadaSatya and containerEl in DevoteePackageDownloadPage)
+    // render visibly at exact 900px width before measuring & cloning Indic typography
+    if (parentEl && parentEl !== document.body && parentEl.id !== "root") {
+      parentEl.setAttribute(
+        "style",
+        "position: fixed; left: 0px; top: 0px; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; height: auto; overflow: visible; background-color: #FFF7ED;"
+      );
     }
-  }
+    containerEl.style.width = "900px";
+    containerEl.style.opacity = "1";
+    containerEl.style.visibility = "visible";
+    containerEl.style.height = "auto";
+    containerEl.style.overflow = "visible";
+    containerEl.style.boxSizing = "border-box";
 
-  const renderedSections: { imgData: string; heightMm: number; name: string }[] = [];
+    // Pre-wait for web fonts to avoid missing Indic ligatures
+    if (document.fonts && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch {
+        // Font loading failure fallback
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 400));
 
-  for (let i = 0; i < sections.length; i++) {
-    const sectionEl = sections[i];
-    const sectionName = sectionEl.getAttribute("data-section") || `section-${i}`;
+    const sections = Array.from(containerEl.querySelectorAll(".pdf-section")) as HTMLElement[];
 
-    const stepProgress = 92 + Math.floor((i / sections.length) * 6);
-    onProgress?.(stepProgress, `ಮುದ್ರಣ ಪ್ರಕ್ರಿಯೆ: ${sectionName} (${i + 1}/${sections.length})...`);
+    if (!sections || sections.length === 0) {
+      throw new Error("No .pdf-section elements found in the 5-Year Prediction container.");
+    }
 
-    // Create offscreen container
-    const tempBox = document.createElement("div");
-    tempBox.style.position = "absolute";
-    tempBox.style.left = "-9999px";
-    tempBox.style.top = "0";
-    tempBox.style.width = "900px";
-    tempBox.style.backgroundColor = "#FFF7ED";
-    tempBox.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
-    tempBox.style.letterSpacing = "normal";
-    tempBox.style.textIndent = "0px";
-    tempBox.className = "bg-orange-50 text-amber-950 font-serif";
+    const renderedSections: { imgData: string; heightMm: number; name: string }[] = [];
 
-    const sectionClone = sectionEl.cloneNode(true) as HTMLElement;
-    sectionClone.style.display = "block";
-    sectionClone.style.width = "100%";
-    sectionClone.style.letterSpacing = "normal";
-    sectionClone.style.textIndent = "0px";
-    sectionClone.querySelectorAll("*").forEach(el => {
-      const htmlEl = el as HTMLElement;
-      if (htmlEl.style) {
-        htmlEl.style.letterSpacing = "normal";
-        htmlEl.style.textIndent = "0px";
-        if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
-          htmlEl.style.filter = "none";
+    for (let i = 0; i < sections.length; i++) {
+      const sectionEl = sections[i];
+      const sectionName = sectionEl.getAttribute("data-section") || `section-${i}`;
+
+      const stepProgress = 92 + Math.floor((i / sections.length) * 6);
+      onProgress?.(stepProgress, `ಮುದ್ರಣ ಪ್ರಕ್ರಿಯೆ: ${sectionName} (${i + 1}/${sections.length})...`);
+
+      // Render each section inside an isolated fixed container at (left: 0, top: 0)
+      // conforming to baggona-pdf-layout-guard (never -9999px)
+      const tempBox = document.createElement("div");
+      tempBox.style.position = "fixed";
+      tempBox.style.left = "0px";
+      tempBox.style.top = "0px";
+      tempBox.style.width = "900px";
+      tempBox.style.boxSizing = "border-box";
+      tempBox.style.overflowX = "hidden";
+      tempBox.style.overflowY = "visible";
+      tempBox.style.zIndex = "-9999";
+      tempBox.style.backgroundColor = "#FFF7ED";
+      tempBox.style.pointerEvents = "none";
+      tempBox.style.opacity = "1";
+      tempBox.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
+      tempBox.style.letterSpacing = "normal";
+      tempBox.style.textIndent = "0px";
+      tempBox.className = "bg-orange-50 text-amber-950 font-serif";
+
+      const sectionClone = sectionEl.cloneNode(true) as HTMLElement;
+      sectionClone.style.display = "block";
+      sectionClone.style.width = "100%";
+      sectionClone.style.maxWidth = "900px";
+      sectionClone.style.boxSizing = "border-box";
+      sectionClone.style.margin = "0";
+      sectionClone.style.overflowX = "hidden";
+      sectionClone.style.letterSpacing = "normal";
+      sectionClone.style.textIndent = "0px";
+      sectionClone.querySelectorAll("*").forEach(el => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl.style) {
+          htmlEl.style.letterSpacing = "normal";
+          htmlEl.style.textIndent = "0px";
+          htmlEl.style.boxSizing = "border-box";
+          if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
+            htmlEl.style.filter = "none";
+          }
+          if (htmlEl.tagName === "P" || htmlEl.tagName === "DIV" || htmlEl.tagName === "SPAN") {
+            htmlEl.style.overflowWrap = "anywhere";
+          }
+        }
+      });
+
+      tempBox.appendChild(sectionClone);
+      document.body.appendChild(tempBox);
+
+      const trueHeight = Math.max(tempBox.scrollHeight, tempBox.offsetHeight, sectionClone.scrollHeight, sectionClone.offsetHeight, 200);
+      tempBox.style.height = `${trueHeight}px`;
+
+      // Defensive scale clamping to stay below browser HTML5 canvas 16,384px limit
+      const sectionScale = trueHeight * 2 > 15000 ? Math.max(1, Math.floor(15000 / trueHeight)) : 2;
+
+      let canvas: HTMLCanvasElement | null = null;
+      try {
+        canvas = await html2canvas(tempBox, {
+          scale: sectionScale,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#FFF7ED",
+          allowTaint: true,
+          scrollX: 0,
+          scrollY: 0,
+          width: 900,
+          height: trueHeight,
+          windowWidth: 900,
+          windowHeight: trueHeight + 600
+        });
+      } finally {
+        if (tempBox.parentElement) {
+          document.body.removeChild(tempBox);
         }
       }
-    });
 
-    tempBox.appendChild(sectionClone);
-    document.body.appendChild(tempBox);
+      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+        console.warn(`[captureFiveYearPredictionPdf] Empty canvas for section: ${sectionName}`);
+        continue;
+      }
 
-    const trueHeight = Math.max(tempBox.scrollHeight, tempBox.offsetHeight, sectionClone.scrollHeight, 200);
-    tempBox.style.height = `${trueHeight}px`;
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const heightMm = (canvas.height * contentWidthMm) / canvas.width;
 
-    let canvas: HTMLCanvasElement | null = null;
-    try {
-      canvas = await html2canvas(tempBox, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#FFF7ED",
-        allowTaint: true,
-        scrollX: 0,
-        scrollY: 0,
-        width: 900,
-        height: trueHeight,
-        windowWidth: 900,
-        windowHeight: trueHeight + 600
+      renderedSections.push({
+        imgData,
+        heightMm,
+        name: sectionName
       });
-    } finally {
-      if (tempBox.parentElement) {
-        document.body.removeChild(tempBox);
+    }
+
+    // Calculate total continuous height in mm
+    const totalPdfHeightMm = renderedSections.reduce((sum, s) => sum + s.heightMm, 0);
+    if (totalPdfHeightMm <= 0) {
+      throw new Error("Calculated 5-Year PDF height is zero. Cannot generate empty PDF.");
+    }
+
+    // Partition rendered sections across pages to strictly stay below jsPDF's hard 14,400 userUnit (5080mm) limit
+    const MAX_SAFE_PAGE_CONTENT_MM = 5000 - borderClearanceMm * 2;
+    const pages: { sections: typeof renderedSections; contentHeightMm: number }[] = [];
+
+    if (totalPdfHeightMm <= MAX_SAFE_PAGE_CONTENT_MM) {
+      // Ideal case: everything fits on 1 single continuous royal scroll without page breaks
+      pages.push({ sections: renderedSections, contentHeightMm: totalPdfHeightMm });
+    } else {
+      // If content exceeds 5000mm, distribute evenly across balanced pages
+      const targetPageHeightMm = Math.ceil(totalPdfHeightMm / 2);
+      let currentPageSections: typeof renderedSections = [];
+      let currentPageHeightMm = 0;
+
+      for (let i = 0; i < renderedSections.length; i++) {
+        const sec = renderedSections[i];
+        const remainingSections = renderedSections.length - i;
+        if (currentPageSections.length >= 3 && currentPageHeightMm >= targetPageHeightMm && remainingSections >= 2) {
+          pages.push({ sections: currentPageSections, contentHeightMm: currentPageHeightMm });
+          currentPageSections = [sec];
+          currentPageHeightMm = sec.heightMm;
+        } else {
+          currentPageSections.push(sec);
+          currentPageHeightMm += sec.heightMm;
+        }
+      }
+      if (currentPageSections.length > 0) {
+        pages.push({ sections: currentPageSections, contentHeightMm: currentPageHeightMm });
       }
     }
 
-    if (!canvas || canvas.width === 0 || canvas.height === 0) {
-      console.warn(`[captureFiveYearPredictionPdf] Empty canvas for section: ${sectionName}`);
-      continue;
-    }
-
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
-    const heightMm = (canvas.height * pdfWidthMm) / canvas.width;
-
-    renderedSections.push({
-      imgData,
-      heightMm,
-      name: sectionName
+    const firstPageTotalHeightMm = pages[0].contentHeightMm + borderClearanceMm * 2;
+    const pdf = new jsPDF({
+      orientation: "p",
+      unit: "mm",
+      format: [pdfWidthMm, firstPageTotalHeightMm],
+      compress: true
     });
-  }
 
-  // Calculate total continuous height in mm
-  const totalPdfHeightMm = renderedSections.reduce((sum, s) => sum + s.heightMm, 0);
-  if (totalPdfHeightMm <= 0) {
-    throw new Error("Calculated 5-Year PDF height is zero. Cannot generate empty PDF.");
-  }
+    for (let pIdx = 0; pIdx < pages.length; pIdx++) {
+      const page = pages[pIdx];
+      const pageHeightMm = page.contentHeightMm + borderClearanceMm * 2;
+      if (pIdx > 0) {
+        pdf.addPage([pdfWidthMm, pageHeightMm], "p");
+      }
 
-  // Partition rendered sections across pages to strictly stay below jsPDF's hard 14,400 userUnit (5080mm) limit
-  const MAX_SAFE_PAGE_HEIGHT_MM = 5000;
-  const pages: { sections: typeof renderedSections; heightMm: number }[] = [];
+      // 1. Fill background with warm royal parchment (#FFF7ED)
+      pdf.setFillColor(255, 247, 237);
+      pdf.rect(0, 0, pdfWidthMm, pageHeightMm, "F");
 
-  if (totalPdfHeightMm <= MAX_SAFE_PAGE_HEIGHT_MM) {
-    // Ideal case: everything fits on 1 single continuous royal scroll without page breaks
-    pages.push({ sections: renderedSections, heightMm: totalPdfHeightMm });
-  } else {
-    // If content exceeds 5000mm, distribute evenly across balanced pages
-    const targetPageHeightMm = Math.ceil(totalPdfHeightMm / 2);
-    let currentPageSections: typeof renderedSections = [];
-    let currentPageHeightMm = 0;
+      // 2. Add each section sequentially inside the bordered content gutter (never touching 4mm/6mm borders)
+      let currentYMm = borderClearanceMm;
+      for (const sec of page.sections) {
+        pdf.addImage(sec.imgData, "JPEG", contentXMm, currentYMm, contentWidthMm, sec.heightMm, undefined, "FAST");
+        currentYMm += sec.heightMm;
+      }
 
-    for (let i = 0; i < renderedSections.length; i++) {
-      const sec = renderedSections[i];
-      const remainingSections = renderedSections.length - i;
-      if (currentPageSections.length >= 3 && currentPageHeightMm >= targetPageHeightMm && remainingSections >= 2) {
-        pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
-        currentPageSections = [sec];
-        currentPageHeightMm = sec.heightMm;
+      // 3. Draw outer & inner royal gold double borders for this page
+      // Outer border: 4mm margin, 0.75mm line, amber-700 (#B45309)
+      pdf.setDrawColor(180, 83, 9);
+      pdf.setLineWidth(0.75);
+      pdf.rect(4, 4, pdfWidthMm - 8, pageHeightMm - 8, "S");
+
+      // Inner border: 6mm margin, 0.25mm line
+      pdf.setDrawColor(180, 83, 9);
+      pdf.setLineWidth(0.25);
+      pdf.rect(6, 6, pdfWidthMm - 12, pageHeightMm - 12, "S");
+    }
+
+    onProgress?.(100, "ಬಗ್ಗೋಣ ಪಂಚವರ್ಷ ಮಹಾ ಮುದ್ರಣ ಯಶಸ್ವಿಯಾಗಿ ಸಿದ್ಧಗೊಂಡಿದೆ!");
+
+    if (autoSave) {
+      savePdfBlob(pdf, fileName);
+    }
+    return pdf;
+  } finally {
+    if (originalContainerStyle) {
+      containerEl.setAttribute("style", originalContainerStyle);
+    } else {
+      containerEl.removeAttribute("style");
+    }
+    if (parentEl && parentEl !== document.body && parentEl.id !== "root") {
+      if (originalParentStyle) {
+        parentEl.setAttribute("style", originalParentStyle);
       } else {
-        currentPageSections.push(sec);
-        currentPageHeightMm += sec.heightMm;
+        parentEl.removeAttribute("style");
       }
     }
-    if (currentPageSections.length > 0) {
-      pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
-    }
   }
-
-  // Create jsPDF document with the first page height
-  const firstPage = pages[0];
-  const pdf = new jsPDF({
-    orientation: "p",
-    unit: "mm",
-    format: [pdfWidthMm, firstPage.heightMm],
-    compress: true
-  });
-
-  for (let pIdx = 0; pIdx < pages.length; pIdx++) {
-    const page = pages[pIdx];
-    if (pIdx > 0) {
-      pdf.addPage([pdfWidthMm, page.heightMm], "p");
-    }
-
-    // 1. Fill background with warm royal parchment (#FFF7ED)
-    pdf.setFillColor(255, 247, 237);
-    pdf.rect(0, 0, pdfWidthMm, page.heightMm, "F");
-
-    // 2. Add each section seamlessly sequentially without any gaps
-    let currentYMm = 0;
-    for (const sec of page.sections) {
-      pdf.addImage(sec.imgData, "JPEG", 0, currentYMm, pdfWidthMm, sec.heightMm, undefined, "FAST");
-      currentYMm += sec.heightMm;
-    }
-
-    // 3. Draw outer & inner royal gold double borders for this page
-    // Outer border: 4mm margin, 0.75mm line, amber-700 (#B45309)
-    pdf.setDrawColor(180, 83, 9);
-    pdf.setLineWidth(0.75);
-    pdf.rect(4, 4, pdfWidthMm - 8, page.heightMm - 8, "S");
-
-    // Inner border: 6mm margin, 0.25mm line
-    pdf.setDrawColor(180, 83, 9);
-    pdf.setLineWidth(0.25);
-    pdf.rect(6, 6, pdfWidthMm - 12, page.heightMm - 12, "S");
-  }
-
-  onProgress?.(100, "ಬಗ್ಗೋಣ ಪಂಚವರ್ಷ ಮಹಾ ಮುದ್ರಣ ಯಶಸ್ವಿಯಾಗಿ ಸಿದ್ಧಗೊಂಡಿದೆ!");
-
-  if (autoSave) {
-    savePdfBlob(pdf, fileName);
-  }
-  return pdf;
 }

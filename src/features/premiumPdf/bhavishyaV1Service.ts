@@ -2356,15 +2356,22 @@ export async function captureBhavishyaV1Pdf(
   const lang = options?.lang || "kn";
   const parentEl = containerEl.parentElement;
   const originalStyle = parentEl?.getAttribute("style") || "";
+  const originalContainerStyle = containerEl.getAttribute("style") || "";
 
   try {
-    if (parentEl) {
+    if (parentEl && parentEl !== document.body && parentEl.id !== "root") {
       // Use width 900px, position fixed left 0 top 0 so all Indic fonts and CSS layouts render accurately
       parentEl.setAttribute(
         "style",
-        "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFF7ED;"
+        "position: fixed; left: 0px; top: 0px; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; height: auto; overflow: visible; background-color: #FFF7ED;"
       );
     }
+    containerEl.style.width = "900px";
+    containerEl.style.opacity = "1";
+    containerEl.style.visibility = "visible";
+    containerEl.style.height = "auto";
+    containerEl.style.overflow = "visible";
+    containerEl.style.boxSizing = "border-box";
 
     await document.fonts.ready;
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -2424,8 +2431,53 @@ export async function captureBhavishyaV1Pdf(
       throw new BhavishyaValidationError(errMsg, ["Astrologer's Summary (Saramsha)"]);
     }
 
-    const pdfWidthMm = 210; // Standard A4 width in mm
+    const pdfWidthMm = 210; // Standard 210mm width in continuous heritage scroll
+    const contentXMm = 7.5; // 1.5mm pure gutter inside 6mm inner gold border
+    const contentWidthMm = pdfWidthMm - contentXMm * 2; // 195mm printable width
+    const borderClearanceMm = 8.5; // 2.5mm pure gutter top & bottom inside 6mm inner gold border
     const renderedSections: { imgData: string; heightMm: number; name: string }[] = [];
+
+    const sanitizeCloneTree = (rootClone: HTMLElement) => {
+      rootClone.style.display = "block";
+      rootClone.style.width = "100%";
+      rootClone.style.maxWidth = "900px";
+      rootClone.style.boxSizing = "border-box";
+      rootClone.style.margin = "0";
+      rootClone.style.overflowX = "hidden";
+      rootClone.style.letterSpacing = "normal";
+      rootClone.querySelectorAll("*").forEach(el => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl.style) {
+          htmlEl.style.letterSpacing = "normal";
+          htmlEl.style.boxSizing = "border-box";
+          if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
+            htmlEl.style.filter = "none";
+          }
+          if (htmlEl.tagName === "P" || htmlEl.tagName === "DIV" || htmlEl.tagName === "SPAN") {
+            htmlEl.style.overflowWrap = "anywhere";
+          }
+        }
+      });
+    };
+
+    const createIsolatedCaptureHost = () => {
+      const box = document.createElement("div");
+      box.style.position = "fixed";
+      box.style.left = "0px";
+      box.style.top = "0px";
+      box.style.width = "900px";
+      box.style.boxSizing = "border-box";
+      box.style.overflowX = "hidden";
+      box.style.overflowY = "visible";
+      box.style.zIndex = "-9999";
+      box.style.backgroundColor = "#FFF7ED";
+      box.style.pointerEvents = "none";
+      box.style.opacity = "1";
+      box.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
+      box.style.letterSpacing = "normal";
+      box.className = "bg-orange-50 text-amber-950 font-serif";
+      return box;
+    };
 
     // Render each section to an individual high-DPI canvas (safe from 16,384px dimension limits)
     for (let i = 0; i < sections.length; i++) {
@@ -2446,56 +2498,21 @@ export async function captureBhavishyaV1Pdf(
           : `10. Rendering High-Definition Section (${i + 1}/${sections.length})...`
       );
 
-      // Render each section in an isolated top-level container at (left: 0, top: 0)
-      // using position absolute (NOT fixed) with explicit height to guarantee html2canvas
-      // captures the entire content height without clipping tall sections like Yogas or Doshas!
-      const tempBox = document.createElement("div");
-      tempBox.style.position = "absolute";
-      tempBox.style.left = "0px";
-      tempBox.style.top = "0px";
-      tempBox.style.width = "900px";
-      tempBox.style.overflow = "visible";
-      tempBox.style.zIndex = "-9999";
-      tempBox.style.backgroundColor = "#FFF7ED";
-      tempBox.style.pointerEvents = "none";
-      tempBox.style.opacity = "1";
-      tempBox.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
-      tempBox.style.letterSpacing = "normal";
-      tempBox.className = "bg-orange-50 text-amber-950 font-serif";
-
+      // Render each section in an isolated fixed container at (left: 0, top: 0)
+      // with explicit 900px width and explicit true height to conform to baggona-pdf-layout-guard
+      const tempBox = createIsolatedCaptureHost();
       const sectionClone = sectionEl.cloneNode(true) as HTMLElement;
-      sectionClone.style.display = "block";
-      sectionClone.style.width = "100%";
-      sectionClone.style.margin = "0";
-      sectionClone.style.letterSpacing = "normal";
-
-      // Sanitize all descendants in the clone: enforce normal letterSpacing & eliminate CSS drop-shadow filters
-      // that break Indic conjunct shaper / cause duplicate overlapping text in html2canvas
-      sectionClone.querySelectorAll("*").forEach(el => {
-        const htmlEl = el as HTMLElement;
-        if (htmlEl.style) {
-          htmlEl.style.letterSpacing = "normal";
-          if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
-            htmlEl.style.filter = "none";
-          }
-        }
-      });
+      sanitizeCloneTree(sectionClone);
 
       tempBox.appendChild(sectionClone);
       document.body.appendChild(tempBox);
 
-      // Measure true rendered height with all fonts and nested elements expanded
-      const measuredSectionHeight = Math.max(
-        sectionEl.scrollHeight || 0,
-        sectionEl.offsetHeight || 0,
-        sectionEl.getBoundingClientRect().height || 0
-      );
+      // Measure true rendered height inside the fixed 900px capture host (unaffected by mobile viewport width)
       const trueHeight = Math.max(
         tempBox.scrollHeight,
         tempBox.offsetHeight,
         sectionClone.scrollHeight,
         sectionClone.offsetHeight,
-        measuredSectionHeight,
         350
       );
       tempBox.style.height = `${trueHeight}px`;
@@ -2530,7 +2547,7 @@ export async function captureBhavishyaV1Pdf(
       }
 
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      const heightMm = (canvas.height * pdfWidthMm) / canvas.width;
+      const heightMm = (canvas.height * contentWidthMm) / canvas.width;
 
       renderedSections.push({
         imgData,
@@ -2555,53 +2572,41 @@ export async function captureBhavishyaV1Pdf(
       );
       if (domSummaryEl) {
         try {
-          const tempSummaryBox = document.createElement("div");
-          tempSummaryBox.style.position = "absolute";
-          tempSummaryBox.style.left = "-9999px";
-          tempSummaryBox.style.top = "0";
-          tempSummaryBox.style.width = "900px";
-          tempSummaryBox.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
-          tempSummaryBox.style.letterSpacing = "normal";
-          tempSummaryBox.className = "bg-orange-50 text-amber-950 font-serif";
-
+          const tempSummaryBox = createIsolatedCaptureHost();
           const summaryClone = domSummaryEl.cloneNode(true) as HTMLElement;
-          summaryClone.style.display = "block";
-          summaryClone.style.width = "100%";
-          summaryClone.style.letterSpacing = "normal";
-          summaryClone.querySelectorAll("*").forEach(el => {
-            const htmlEl = el as HTMLElement;
-            if (htmlEl.style) {
-              htmlEl.style.letterSpacing = "normal";
-              if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
-                htmlEl.style.filter = "none";
-              }
-            }
-          });
+          sanitizeCloneTree(summaryClone);
           tempSummaryBox.appendChild(summaryClone);
           document.body.appendChild(tempSummaryBox);
 
           const sumHeight = Math.max(tempSummaryBox.scrollHeight, tempSummaryBox.offsetHeight, summaryClone.scrollHeight, 400);
           tempSummaryBox.style.height = `${sumHeight}px`;
+          const sumScale = sumHeight * 2 > 15000 ? Math.max(1, Math.floor(15000 / sumHeight)) : 2;
 
-          const sumCanvas = await html2canvas(tempSummaryBox, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: "#FFF7ED",
-            allowTaint: true,
-            scrollX: 0,
-            scrollY: 0,
-            width: 900,
-            height: sumHeight,
-            windowWidth: 900,
-            windowHeight: sumHeight + 600
-          });
-          document.body.removeChild(tempSummaryBox);
+          let sumCanvas: HTMLCanvasElement | null = null;
+          try {
+            sumCanvas = await html2canvas(tempSummaryBox, {
+              scale: sumScale,
+              useCORS: true,
+              logging: false,
+              backgroundColor: "#FFF7ED",
+              allowTaint: true,
+              scrollX: 0,
+              scrollY: 0,
+              width: 900,
+              height: sumHeight,
+              windowWidth: 900,
+              windowHeight: sumHeight + 600
+            });
+          } finally {
+            if (tempSummaryBox.parentElement) {
+              document.body.removeChild(tempSummaryBox);
+            }
+          }
 
           if (sumCanvas && sumCanvas.width > 0 && sumCanvas.height > 0) {
             renderedSections.push({
               imgData: sumCanvas.toDataURL("image/jpeg", 0.95),
-              heightMm: (sumCanvas.height * pdfWidthMm) / sumCanvas.width,
+              heightMm: (sumCanvas.height * contentWidthMm) / sumCanvas.width,
               name: "summary-recovered"
             });
             console.log("[captureBhavishyaV1Pdf] Successfully recovered Saramsha section canvas.");
@@ -2619,12 +2624,12 @@ export async function captureBhavishyaV1Pdf(
     }
 
     // Partition rendered sections across pages to strictly stay below jsPDF's hard 14,400 userUnit (5080mm) limit
-    const MAX_SAFE_PAGE_HEIGHT_MM = 5000;
-    const pages: { sections: typeof renderedSections; heightMm: number }[] = [];
+    const MAX_SAFE_PAGE_CONTENT_MM = 5000 - borderClearanceMm * 2;
+    const pages: { sections: typeof renderedSections; contentHeightMm: number }[] = [];
 
-    if (totalPdfHeightMm <= MAX_SAFE_PAGE_HEIGHT_MM) {
+    if (totalPdfHeightMm <= MAX_SAFE_PAGE_CONTENT_MM) {
       // Ideal case: everything fits on 1 single continuous royal scroll without page breaks
-      pages.push({ sections: renderedSections, heightMm: totalPdfHeightMm });
+      pages.push({ sections: renderedSections, contentHeightMm: totalPdfHeightMm });
     } else {
       // If content genuinely exceeds 5000mm, distribute evenly across balanced pages to prevent tiny orphan pages
       const targetPageHeightMm = Math.ceil(totalPdfHeightMm / 2);
@@ -2635,7 +2640,7 @@ export async function captureBhavishyaV1Pdf(
         const sec = renderedSections[i];
         const remainingSections = renderedSections.length - i;
         if (currentPageSections.length >= 3 && currentPageHeightMm >= targetPageHeightMm && remainingSections >= 2) {
-          pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
+          pages.push({ sections: currentPageSections, contentHeightMm: currentPageHeightMm });
           currentPageSections = [sec];
           currentPageHeightMm = sec.heightMm;
         } else {
@@ -2644,33 +2649,35 @@ export async function captureBhavishyaV1Pdf(
         }
       }
       if (currentPageSections.length > 0) {
-        pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
+        pages.push({ sections: currentPageSections, contentHeightMm: currentPageHeightMm });
       }
     }
 
     // Create jsPDF document with the first page height
     const firstPage = pages[0];
+    const firstPageTotalHeightMm = firstPage.contentHeightMm + borderClearanceMm * 2;
     const pdf = new jsPDF({
       orientation: "p",
       unit: "mm",
-      format: [pdfWidthMm, firstPage.heightMm],
+      format: [pdfWidthMm, firstPageTotalHeightMm],
       compress: true
     });
 
     for (let pIdx = 0; pIdx < pages.length; pIdx++) {
       const page = pages[pIdx];
+      const pageHeightMm = page.contentHeightMm + borderClearanceMm * 2;
       if (pIdx > 0) {
-        pdf.addPage([pdfWidthMm, page.heightMm], "p");
+        pdf.addPage([pdfWidthMm, pageHeightMm], "p");
       }
 
       // 1. Fill background with warm royal parchment (#FFF7ED)
       pdf.setFillColor(255, 247, 237);
-      pdf.rect(0, 0, pdfWidthMm, page.heightMm, "F");
+      pdf.rect(0, 0, pdfWidthMm, pageHeightMm, "F");
 
-      // 2. Add each section seamlessly sequentially on this page
-      let currentYMm = 0;
+      // 2. Add each section sequentially inside the bordered content gutter (never touching 4mm/6mm borders)
+      let currentYMm = borderClearanceMm;
       for (const sec of page.sections) {
-        pdf.addImage(sec.imgData, "JPEG", 0, currentYMm, pdfWidthMm, sec.heightMm, undefined, "FAST");
+        pdf.addImage(sec.imgData, "JPEG", contentXMm, currentYMm, contentWidthMm, sec.heightMm, undefined, "FAST");
         currentYMm += sec.heightMm;
       }
 
@@ -2678,12 +2685,12 @@ export async function captureBhavishyaV1Pdf(
       // Outer border: 4mm margin, 0.75mm line, amber-700 (#B45309)
       pdf.setDrawColor(180, 83, 9);
       pdf.setLineWidth(0.75);
-      pdf.rect(4, 4, pdfWidthMm - 8, page.heightMm - 8, "S");
+      pdf.rect(4, 4, pdfWidthMm - 8, pageHeightMm - 8, "S");
 
       // Inner border: 6mm margin, 0.25mm dashed line
       pdf.setDrawColor(180, 83, 9);
       pdf.setLineWidth(0.25);
-      pdf.rect(6, 6, pdfWidthMm - 12, page.heightMm - 12, "S");
+      pdf.rect(6, 6, pdfWidthMm - 12, pageHeightMm - 12, "S");
     }
 
     options?.onProgress?.(
@@ -2704,8 +2711,17 @@ export async function captureBhavishyaV1Pdf(
     }
     return pdf;
   } finally {
-    if (parentEl) {
-      parentEl.setAttribute("style", originalStyle);
+    if (originalContainerStyle) {
+      containerEl.setAttribute("style", originalContainerStyle);
+    } else {
+      containerEl.removeAttribute("style");
+    }
+    if (parentEl && parentEl !== document.body && parentEl.id !== "root") {
+      if (originalStyle) {
+        parentEl.setAttribute("style", originalStyle);
+      } else {
+        parentEl.removeAttribute("style");
+      }
     }
   }
 }

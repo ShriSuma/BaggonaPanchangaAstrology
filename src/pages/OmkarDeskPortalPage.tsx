@@ -1668,7 +1668,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
         </div>
 
         {/* Bhavishya V1 PDF Ref Container */}
-        <div ref={bhavishyaV1Ref} style={{ width: "794px", background: "#ffffff" }}>
+        <div ref={bhavishyaV1Ref} style={{ width: "900px", background: "#FFF7ED" }}>
           {bhavishyaV1Payload && (
             <PdfTemplate
               theme="sunrise"

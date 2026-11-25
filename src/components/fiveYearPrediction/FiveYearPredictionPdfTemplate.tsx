@@ -52,7 +52,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
   const textColorClass = "text-amber-950";
   const borderColorClass = "border-amber-700/40";
   const primaryColorClass = "text-amber-800";
-  const sectionClass = "pdf-section px-12 py-5 relative";
+  const sectionClass = "pdf-section px-12 py-6 relative";
 
   // Traditional Sacred Invocations
   const sacredInvocation = isKn
@@ -107,7 +107,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
         <div className="flex items-center justify-between gap-4 mb-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/10 text-amber-900 rounded-full border border-amber-800/30">
             <span className="text-amber-800 text-sm">{icon}</span>
-            <span className="text-xs font-black tracking-widest uppercase">
+            <span className="text-xs font-black tracking-normal uppercase" style={{ letterSpacing: 'normal' }}>
               {badge}
             </span>
           </div>
@@ -117,7 +117,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             <span>ॐ</span>
           </div>
         </div>
-        <h2 className="text-3xl font-extrabold text-amber-950 font-serif tracking-normal leading-relaxed">
+        <h2 className="text-3xl font-extrabold text-amber-950 font-serif tracking-normal leading-relaxed break-words">
           {fullTitle}
         </h2>
       </div>
@@ -144,13 +144,13 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
     return (
       <div className="rounded-xl border-2 border-amber-700/30 bg-gradient-to-r from-amber-100/90 via-orange-50/80 to-amber-100/90 p-5 mb-8 shadow-xs relative overflow-hidden">
-        <div className="flex items-center gap-2 mb-2 text-amber-900 text-xs font-black tracking-widest uppercase">
+        <div className="flex items-center gap-2 mb-2 text-amber-900 text-xs font-black tracking-normal uppercase" style={{ letterSpacing: 'normal' }}>
           <span className="text-amber-800">{icon}</span>
           <span>{label}</span>
         </div>
         <div className="flex items-start gap-3">
           <span className="text-xl text-amber-800 leading-none pt-0.5">❖</span>
-          <p className="text-lg font-bold text-amber-950 leading-relaxed font-serif italic">
+          <p className="text-lg font-bold text-amber-950 leading-relaxed font-serif italic break-words">
             {questionText}
           </p>
         </div>
@@ -260,6 +260,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
       id="five-year-prediction-pdf-container"
       style={{
         width: "900px",
+        boxSizing: "border-box",
         height: "max-content",
         fontFamily: activeFontFamily,
         letterSpacing: "normal"
@@ -271,19 +272,18 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
       <div className={`absolute inset-8 border border-dashed ${borderColorClass} pointer-events-none opacity-60`} />
 
       {/* ── COVER / HEADER SECTION ────────────────────────────────────────── */}
-      <div data-section="cover" className="pdf-section text-center mt-4 mb-4 px-12 pt-4 pb-2 relative z-10">
-        <p className="text-xs font-semibold text-amber-900/80 tracking-widest uppercase mb-3">
+      <div data-section="cover" className="pdf-section text-center px-12 pt-8 pb-6 relative z-10">
+        <p className="text-xs font-semibold text-amber-900/80 tracking-normal uppercase mb-3" style={{ letterSpacing: 'normal' }}>
           {sacredInvocation}
         </p>
 
-        <div className="inline-block relative px-12 py-3 mb-4">
-          <div className="absolute inset-0 border-y border-amber-700/40 transform -skew-x-12 pointer-events-none" />
-          <h1 className={`text-4xl font-extrabold ${primaryColorClass} leading-relaxed tracking-normal font-serif`}>
+        <div className="inline-block relative px-10 py-3 mb-4 rounded-lg border-y-2 border-amber-700/45 bg-amber-100/25">
+          <h1 className={`text-4xl font-extrabold ${primaryColorClass} leading-relaxed tracking-normal font-serif break-words`}>
             {t("docTitle")}
           </h1>
         </div>
 
-        <p className="text-2xl italic font-serif text-amber-900/90 tracking-normal leading-relaxed mb-6">
+        <p className="text-2xl italic font-serif text-amber-900/90 tracking-normal leading-relaxed mb-6 break-words">
           {t("docSubtitle")}
         </p>
 
@@ -293,11 +293,11 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           <div className="w-24 border-b-2 border-amber-700/60" />
         </div>
 
-        <div className="flex items-center justify-center gap-4 text-xs font-bold text-amber-900">
-          <span className="bg-amber-100/90 px-4 py-1.5 rounded-full border border-amber-700/30 shadow-xs">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-bold text-amber-900">
+          <span className="bg-amber-100/90 px-4 py-1.5 rounded-full border border-amber-700/30 shadow-xs break-words">
             🗓️ {formatNumber6L(data.startYear, lang)} – {formatNumber6L(data.endYear, lang)} ({formatNumber6L(5, lang)} {isKn ? "ವರ್ಷಗಳ ಮಹಾ ಭವಿಷ್ಯ ನಕ್ಷೆ" : isMr ? "वर्षांचा महा भविष्य आराखडा" : isHi ? "वर्षीय महा भविष्य खाका" : "Years Sovereign Roadmap"})
           </span>
-          <span className="bg-amber-100/90 px-4 py-1.5 rounded-full border border-amber-700/30 shadow-xs">
+          <span className="bg-amber-100/90 px-4 py-1.5 rounded-full border border-amber-700/30 shadow-xs break-words">
             🏛️ {isKn ? "ಅಧಿಕೃತ ಜ್ಯೋತಿಷ್ಯ ಮುದ್ರಣ ಪ್ರಕಾಶನ • ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ" : isMr ? "अधिकृत ज्योतिष मुद्रण आवृत्ती • श्री क्षेत्र गोकर्ण" : isHi ? "आधिकारिक ज्योतिष मुद्रण संस्करण • श्री क्षेत्र गोकर्ण" : isTe ? "అధికారిక జ్యోతిష్య ముద్రణ ప్రచురణ • శ్రీ క్షేత్ర గోకర్ణ" : isTa ? "அதிகாரப்பூர்வ ஜோதிட வெளியீடு • ஸ்ரீ கோகர்ண க்ஷேத்திரம்" : "Official Consecrated Publication • Sri Kshetra Gokarna"}
           </span>
         </div>
@@ -313,32 +313,32 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
             <div className="relative z-10 space-y-4">
               {/* Badge & Focus Theme */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-amber-700/30 pb-3">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-800/20 border border-amber-800/40 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest shadow-2xs">
-                  <span className="text-amber-800 text-sm">✨</span>
-                  <span>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-amber-700/30 pb-3">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-800/20 border border-amber-800/40 rounded-full text-xs font-black text-amber-950 uppercase tracking-normal shadow-2xs min-w-0 break-words" style={{ letterSpacing: 'normal' }}>
+                  <span className="text-amber-800 text-sm shrink-0">✨</span>
+                  <span className="break-words">
                     {isKn ? "ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಮನಸ್ಸನ್ನು ಆವರಿಸಿರುವ ಮುಖ್ಯ ಚಿಂತೆ & ಜ್ಯೋತಿಷ್ಯ ದರ್ಶನ"
                       : isMr ? "सध्या आपल्या मनातील मुख्य विचार व ज्योतिषीय दर्शन"
                         : isHi ? "वर्तमान में आपके मन का मुख्य चिंतन एवं ज्योतिषीय दर्शन"
-                          : isTe ? "ప్రస్తుతం మీ మనస్సులోని ప్రధాన చింత & జ్యోతిష్య దర్శనం"
+                          : isTe ? "ప్రస్తుతం మీ మనస్సులోని ప్రధాన చింత & జ్యೋತಿಷ్య దర్శనం"
                             : isTa ? "தற்போது உங்கள் மனதில் உள்ள முதன்மை சிந்தனை & ஜோதிட தரிசனம்"
                               : "Current Soul Inquest & Astronomical Focus"}
                   </span>
                 </div>
-                <span className="text-xs font-black text-amber-900 bg-amber-200/80 px-3 py-1 rounded-lg border border-amber-600/40">
+                <span className="text-xs font-black text-amber-900 bg-amber-200/80 px-3 py-1 rounded-lg border border-amber-600/40 shrink-0">
                   🎯 {data.openingHook.coreFocusTheme}
                 </span>
               </div>
 
               {/* Mind-Reading Opening Line in Royal Highlight Card */}
               <div className="p-4 rounded-xl bg-amber-900/10 border-2 border-amber-600/60 shadow-xs">
-                <p className="text-xl font-black text-amber-950 font-serif italic leading-relaxed text-justify">
+                <p className="text-xl font-black text-amber-950 font-serif italic leading-relaxed text-left break-words">
                   "{data.openingHook.openingLine}"
                 </p>
               </div>
 
               {/* Beautifully Narrated First Paragraph */}
-              <p className="text-base font-medium text-amber-950 font-serif leading-relaxed text-justify indent-6">
+              <p className="text-base font-medium text-amber-950 font-serif leading-relaxed text-left break-words">
                 {data.openingHook.firstParagraph}
               </p>
 
@@ -359,15 +359,15 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
         <div data-section="current-life-status" className={sectionClass}>
           {/* Section Header Banner with Royal Gold Badge */}
           <div className="border-b-2 border-amber-700/40 pb-4 mb-8 relative">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-200/60 border border-amber-500/40 rounded-full text-xs font-bold text-amber-900 uppercase tracking-widest mb-2 shadow-2xs">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-200/60 border border-amber-500/40 rounded-full text-xs font-bold text-amber-900 uppercase tracking-normal mb-2 shadow-2xs" style={{ letterSpacing: 'normal' }}>
               <span className="text-amber-800">⚡</span>
               <span>{data.currentLifeStatus.bannerBadge}</span>
             </div>
-            <h2 className={`text-3xl font-extrabold font-serif ${primaryColorClass} tracking-wide flex items-center gap-3`}>
-              <span className="text-3xl">🧭</span>
-              <span>{data.currentLifeStatus.title}</span>
+            <h2 className={`text-3xl font-extrabold font-serif ${primaryColorClass} tracking-normal flex items-center gap-3 break-words`} style={{ letterSpacing: 'normal' }}>
+              <span className="text-3xl shrink-0">🧭</span>
+              <span className="min-w-0 break-words">{data.currentLifeStatus.title}</span>
             </h2>
-            <p className="text-sm text-amber-900/80 font-serif italic mt-1 leading-relaxed">
+            <p className="text-sm text-amber-900/80 font-serif italic mt-1 leading-relaxed break-words">
               {data.currentLifeStatus.subtitle}
             </p>
           </div>
@@ -376,7 +376,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             {/* 0. Emotional Empathy & Heart Reassurance Card */}
             {data.currentLifeStatus.emotionalEmpathyHeading && (
               <div className="rounded-xl border-2 border-amber-600/70 bg-gradient-to-r from-amber-100/95 via-yellow-50/90 to-amber-100/95 p-6 shadow-xs font-serif">
-                <div className="flex items-center gap-2 mb-2 text-amber-900 text-xs font-black tracking-widest uppercase">
+                <div className="flex items-center gap-2 mb-2 text-amber-900 text-xs font-black tracking-normal uppercase" style={{ letterSpacing: 'normal' }}>
                   <span className="text-amber-800 text-lg">💖</span>
                   <span>{data.currentLifeStatus.emotionalEmpathyHeading}</span>
                 </div>
@@ -732,23 +732,23 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">
+                <div className="grid grid-cols-3 gap-3 pt-1">
                   {data.planetaryCalculations.map((p, pIdx) => (
-                    <div key={p.planetName || pIdx} className="rounded-xl border border-amber-700/30 bg-white/70 p-3 shadow-2xs space-y-1">
-                      <div className="flex items-center justify-between gap-1 border-b border-amber-700/20 pb-1">
-                        <span className="font-black text-amber-950 text-sm flex items-center gap-1">
-                          <span className="text-amber-700">✦</span>
-                          {p.localizedName}
+                    <div key={p.planetName || pIdx} className="rounded-xl border border-amber-700/30 bg-white/70 p-3 shadow-2xs space-y-1 min-w-0">
+                      <div className="flex flex-wrap items-center justify-between gap-1 border-b border-amber-700/20 pb-1">
+                        <span className="font-black text-amber-950 text-sm flex items-center gap-1 min-w-0 break-words">
+                          <span className="text-amber-700 shrink-0">✦</span>
+                          <span className="break-words">{p.localizedName}</span>
                         </span>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
                           {p.dignity}
                         </span>
                       </div>
-                      <div className="text-xs text-amber-900 font-serif space-y-0.5">
-                        <p className="font-semibold text-amber-950">
+                      <div className="text-xs text-amber-900 font-serif space-y-0.5 break-words">
+                        <p className="font-semibold text-amber-950 break-words">
                           {p.localizedRashi} ({p.degreeFormatted}) • {formatNumber6L(p.house, lang)} {isKn ? "ನೇ ಭಾವ" : isMr ? "वे भाव" : isHi ? "वें भाव" : "H"}
                         </p>
-                        <p className="text-amber-800/80">
+                        <p className="text-amber-800/80 break-words">
                           {isKn ? "ನಕ್ಷತ್ರ" : isMr ? "नक्षत्र" : isHi ? "नक्षत्र" : "Nakshatra"}: {p.nakshatra}
                         </p>
                       </div>
@@ -771,17 +771,17 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
             <div className="relative z-10 space-y-4">
               {/* Header Title */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-amber-700/30 pb-3">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-800/15 border border-amber-800/30 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest mb-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-amber-700/30 pb-3">
+                <div className="min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-800/15 border border-amber-800/30 rounded-full text-xs font-black text-amber-950 uppercase tracking-normal mb-1.5 break-words" style={{ letterSpacing: 'normal' }}>
                     <span>🪙💍</span>
                     <span>{data.nagaluRoadmap.title}</span>
                   </div>
-                  <p className="text-xs text-amber-900/80 font-serif italic">
+                  <p className="text-xs text-amber-900/80 font-serif italic break-words">
                     {data.nagaluRoadmap.subtitle}
                   </p>
                 </div>
-                <div className="px-3 py-1.5 bg-amber-200/80 rounded-xl border border-amber-600/40 text-xs font-black text-amber-950">
+                <div className="px-3 py-1.5 bg-amber-200/80 rounded-xl border border-amber-600/40 text-xs font-black text-amber-950 shrink-0">
                   {data.nagaluRoadmap.favorableGemstoneMetals}
                 </div>
               </div>
@@ -789,7 +789,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               {/* Dhana Bhava Narrative in Clean Heritage Q&A Format */}
               <div className="space-y-3 text-xs font-serif pt-1">
                 <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                     {isKn ? "ಪ್ರಶ್ನೆ: ಜನ್ಮ ಕುಂಡಲಿಯ ಧನಭಾವ (೨ನೇ ಮನೆ) & ದ್ರವ್ಯ ಸಂಚಯ ಯೋಗದ ಸ್ಥಿತಿ ಏನು?"
                       : isMr ? "प्रश्न: जन्मपत्रिकेतील द्वितीय भाव व सुवर्ण संचय योगाची स्थिती काय आहे?"
                       : isHi ? "प्रश्न: जन्म कुंडली के द्वितीय भाव एवं स्वर्ण संचय योग की स्थिति क्या है?"
@@ -803,7 +803,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 </div>
 
                 <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                     {isKn ? "ಪ್ರಶ್ನೆ: ಮುಂಬರುವ ೫ ವರ್ಷಗಳ ಒಟ್ಟು ಚಿನ್ನ-ಆಭರಣ ವೃದ್ಧಿ ಮುನ್ನೋಟ ಹೇಗಿದೆ?"
                       : isMr ? "प्रश्न: आगामी ५ वर्षांचा एकूण सुवर्ण व दागिने वृद्धी अहवाल काय सांगतो?"
                       : isHi ? "प्रश्न: आगामी ५ वर्षों का समग्र स्वर्ण-आभूषण वृद्धि फलादेश क्या है?"
@@ -880,8 +880,8 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-xl pointer-events-none" />
 
           <div className="relative z-10 space-y-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-amber-700/30 pb-3">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/15 border border-amber-800/30 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-700/30 pb-3">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/15 border border-amber-800/30 rounded-full text-xs font-black text-amber-950 uppercase tracking-normal" style={{ letterSpacing: 'normal' }}>
                 <span>✨</span>
                 <span>
                   {isKn ? "೫ ವರ್ಷಗಳ ಜೀವಮಾನದ ಸುವರ್ಣ ತಿರುವು • ತ್ವರಿತ ದರ್ಶನ"
@@ -900,7 +900,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             {/* Clean Heritage Question & Answer Executive Flow */}
             <div className="space-y-3 text-xs font-serif pt-1">
               <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                   {isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ಮುಂಬರುವ ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ ಹಾಗೂ ಪ್ರಾಣಶಕ್ತಿ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
                     : isMr ? "वर्षातील मुख्य प्रश्न: आगामी ५ वर्षांचा सुवर्ण भाग्योदय व प्राणशक्ती स्थिती कशी आहे?"
                     : isHi ? "वर्ष का मुख्य प्रश्न: आगामी ५ वर्षों का स्वर्णिम भाग्योदय एवं प्राणशक्ति स्थिति कैसी है?"
@@ -914,7 +914,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </div>
 
               <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                   {isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ಈ ಪಂಚವರ್ಷಕ್ಕೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಹಾಗೂ ಮುಖ್ಯ ಪರಿಹಾರವೇನು?"
                     : isMr ? "वर्षातील मुख्य प्रश्न: या पंचवार्षिक काळासाठी मुख्य दैवी रक्षा कवच व उपाय काय?"
                     : isHi ? "वर्ष का मुख्य प्रश्न: इस पंचवर्षीय काल हेतु मुख्य रक्षा कवच एवं परिहार क्या है?"
@@ -928,7 +928,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </div>
 
               <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                   {isKn ? "೫ ವರ್ಷಗಳ ದೈವಿಕ ಧ್ಯೇಯವಾಕ್ಯ (ಆತ್ಮ ಚಿಂತನೆ):"
                     : isMr ? "५ वर्षांचे दिव्य जीवनसूत्र (आत्मचिंतन):"
                     : isHi ? "५-वर्षीय दिव्य जीवन सूत्र (आत्म चिंतन):"
@@ -987,13 +987,13 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           {/* Golden Highlight Peak & Caution Inquests in Clean Q&A Heritage Layout */}
           <div className="space-y-4 pt-4 border-t border-amber-700/20 text-xs font-serif">
             <div className="border-l-2 border-amber-700/50 pl-4 py-1 space-y-1">
-              <span className="text-xs font-black text-amber-900 uppercase tracking-widest flex items-center gap-2 mb-1">
+              <span className="text-xs font-black text-amber-900 uppercase tracking-normal flex items-center gap-2 mb-1" style={{ letterSpacing: 'normal' }}>
                 <span>⭐</span>
                 <span>{isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ ಪರ್ವ ಕಾಲ ಯಾವುದು?" : isMr ? "वर्षातील मुख्य प्रश्न: सुवर्ण भाग्योदय पर्व काळ कोणता?" : isHi ? "वर्ष का मुख्य प्रश्न: स्वर्णिम भाग्योदय काल कौन सा है?" : "Annual Inquest: Which is the Golden Peak Opportunity Window?"}</span>
               </span>
-              <p className="text-amber-950 font-serif leading-relaxed text-sm">
+              <p className="text-amber-950 font-serif leading-relaxed text-sm break-words">
                 <strong className="font-black text-amber-900 mr-2">{isKn ? "ಸುವರ್ಣ ಭಾಗ್ಯೋದಯ ಪರ್ವ:" : isMr ? "सुवर्ण भाग्योदय पर्व:" : isHi ? "स्वर्णिम भाग्योदय काल:" : "Golden Peak Opportunity:"} {data.macroSummary.peakGoldenYear}</strong> — {isKn
-                  ? "ಈ ಅವಧಿಯಲ್ಲಿ ಗುರುಬಲ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿ ಅನುಕೂಲತೆಯಿಂದ ನೂತನ ಉದ್ಯೋಗ, ಗೃಹಪ್ರವೇಶ, ಹೂಡಿಕೆಯಲ್ಲಿ ಗರಿಷ್ಠ ಲಾಭ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವ ಲಭಿಸಲಿದೆ."
+                  ? "ಈ ಅವಧಿಯಲ್ಲಿ ಗುರುಬಲ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿ ಅನುಕೂಲತೆಯಿಂದ ನೂತನ ಉದ್ಯೋಗ, ಗೃಹಪ್ರವೇಶ, ಹೂಡಿಕೆಯಲ್ಲಿ ಗರಿಷ್ಠ ಲಭ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವ ಲಭಿಸಲಿದೆ."
                   : isMr
                     ? "या काळात गुरूचे पाठबळ व दशा-भुक्तीच्या शुभ प्रभावाने मोठे यश, घर खरेदी व आर्थिक समृद्धीचे योग आहेत."
                     : isHi
@@ -1003,11 +1003,11 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             </div>
 
             <div className="border-l-2 border-amber-700/50 pl-4 py-1 space-y-1">
-              <span className="text-xs font-black text-amber-900 uppercase tracking-widest flex items-center gap-2 mb-1">
+              <span className="text-xs font-black text-amber-900 uppercase tracking-normal flex items-center gap-2 mb-1" style={{ letterSpacing: 'normal' }}>
                 <span>🛡️</span>
                 <span>{isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ತಾಳ್ಮೆ ಹಾಗೂ ಎಚ್ಚರಿಕೆಯ ಅವಧಿ ಯಾವುದು?" : isMr ? "वर्षातील मुख्य प्रश्न: संयम व सावधगिरीचा काळ कोणता?" : isHi ? "वर्ष का मुख्य प्रश्न: धैर्य एवं सावधानी का काल कौन सा है?" : "Annual Inquest: Which is the Patience & Deliberation Window?"}</span>
               </span>
-              <p className="text-amber-950 font-serif leading-relaxed text-sm">
+              <p className="text-amber-950 font-serif leading-relaxed text-sm break-words">
                 <strong className="font-black text-amber-900 mr-2">{isKn ? "ತಾಳ್ಮೆ ಹಾಗೂ ಎಚ್ಚರಿಕೆಯ ಅವಧಿ:" : isMr ? "संयम व सावधगिरीचा काळ:" : isHi ? "धैर्य एवं सावधानी का काल:" : "Patience & Deliberation Window:"} {data.macroSummary.cautionPeriodYear}</strong> — {isKn
                   ? "ಶನಿ ಗೋಚಾರದ ಪ್ರಭಾವವಿರುವುದರಿಂದ ಆತುರದ ಹೂಡಿಕೆ ನಿರ್ಧಾರಗಳನ್ನು ತಪ್ಪಿಸಿ, ಹಿರಿಯರ ಸಲಹೆ ಪಡೆದು ವಿವೇಕದಿಂದ ಹೆಜ್ಜೆ ಇಡುವುದು ಕ್ಷೇಮಕರ."
                   : isMr
@@ -1022,12 +1022,12 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           {/* 5-Year High-Confidence Milestone Matrix */}
           {data.milestoneMatrix && data.milestoneMatrix.length > 0 && (
             <div className="pt-6 border-t border-amber-700/20 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-black text-amber-950 font-serif flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-xl font-black text-amber-950 font-serif flex items-center gap-2 min-w-0 break-words">
                   <span>🏆</span>
                   <span>{t("milestoneMatrixTitle")}</span>
                 </h3>
-                <span className="text-xs font-black bg-amber-900 text-amber-100 px-3 py-1 rounded-full shadow-xs">
+                <span className="text-xs font-black bg-amber-900 text-amber-100 px-3 py-1 rounded-full shadow-xs shrink-0">
                   {isKn ? "೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ಗಣನೆ" : isMr ? "१००% अचूक भाकीत" : isHi ? "१००% सटीक फलादेश" : "100% Deterministic"}
                 </span>
               </div>
@@ -1112,10 +1112,10 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
             {/* Subtitle / Planetary Driver */}
             <div className="border-b border-amber-700/20 pb-3">
-              <span className="text-xs font-black uppercase tracking-widest text-amber-800 block mb-1">
+              <span className="text-xs font-black uppercase tracking-normal text-amber-800 block mb-1" style={{ letterSpacing: 'normal' }}>
                 {isKn ? "ಗ್ರಹ ದೃಷ್ಟಿ ಹಾಗೂ ಪ್ರಭಾವ" : isMr ? "ग्रह दृष्टी व प्रभाव" : isHi ? "ग्रह दृष्टि एवं प्रभाव" : "Planetary Influence & Driving Axis"}
               </span>
-              <p className="text-base font-bold text-amber-900 font-serif italic">
+              <p className="text-base font-bold text-amber-900 font-serif italic break-words">
                 {ch.subtitle}
               </p>
             </div>
@@ -1125,7 +1125,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               {ch.paragraphs.map((p, pIdx) => (
                 <p
                   key={`chap-p-${chIdx}-${pIdx}`}
-                  className="text-lg text-amber-950 font-serif leading-relaxed text-left"
+                  className="text-lg text-amber-950 font-serif leading-relaxed text-left break-words"
                 >
                   {p}
                 </p>
@@ -1134,12 +1134,12 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
             {/* Key Guidance Shield */}
             <div className="rounded-xl border border-amber-800/30 bg-gradient-to-r from-amber-100/90 to-orange-100/70 p-5 mt-6 flex items-start gap-3 shadow-xs">
-              <span className="text-2xl text-amber-800 leading-none pt-0.5">💡</span>
-              <div className="flex-1">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-900 block mb-1">
+              <span className="text-2xl text-amber-800 leading-none pt-0.5 shrink-0">💡</span>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-black uppercase tracking-normal text-amber-900 block mb-1" style={{ letterSpacing: 'normal' }}>
                   {isKn ? "ಪಂಚವರ್ಷದ ಶಾಸ್ತ್ರೋಕ್ತ ಸಲಹೆ" : isMr ? "५ वर्षांचा शास्त्रोक्त सल्ला" : isHi ? "पंचवर्षीय शास्त्रोक्त परामर्श" : "Sovereign Remedial Counsel"}
                 </span>
-                <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
+                <p className="text-base font-bold text-amber-950 font-serif leading-relaxed break-words">
                   {ch.keyAdvice}
                 </p>
               </div>
@@ -1177,19 +1177,19 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
           <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
             {/* Status Ribbon */}
-            <div className="flex items-center justify-between border-b border-amber-700/20 pb-3">
-              <div>
-                <span className="text-xs font-black uppercase tracking-widest text-amber-800 block mb-1">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-700/20 pb-3">
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-black uppercase tracking-normal text-amber-800 block mb-1" style={{ letterSpacing: 'normal' }}>
                   {isKn ? "ಕುಂಡಲಿ ಕರ್ಮ ಸ್ಥಿತಿ" : isMr ? "कुंडली कर्म स्थिती" : isHi ? "कुंडली कर्म स्थिति" : "Karmic Dosha Disposition"}
                 </span>
-                <p className="text-base font-bold text-amber-900 font-serif italic">
+                <p className="text-base font-bold text-amber-900 font-serif italic break-words">
                   {isKn ? "ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರೋಕ್ತ ದೋಷ ಪರೀಕ್ಷೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ"
                     : isMr ? "बृहत् पराशर शास्त्रोक्त दोष परीक्षण व गोकर्ण शांती"
                       : isHi ? "पाराशर शास्त्र सम्मत दोष परीक्षण एवं गोकर्ण शांति"
                         : "Parashari Dosha Evaluation & Gokarna Shanti Shield"}
                 </p>
               </div>
-              <span className="bg-amber-900 text-amber-100 font-black text-xs px-3.5 py-1.5 rounded-full shadow-xs">
+              <span className="bg-amber-900 text-amber-100 font-black text-xs px-3.5 py-1.5 rounded-full shadow-xs shrink-0">
                 {data.doshaAnalysis.overallDoshaScore}
               </span>
             </div>
@@ -1283,7 +1283,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             <div className="rounded-xl border border-amber-800/30 bg-gradient-to-r from-amber-100/90 to-orange-100/70 p-5 mt-4 flex items-start gap-3 shadow-xs">
               <span className="text-2xl text-amber-800 leading-none pt-0.5">🛡️</span>
               <div className="flex-1">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-900 block mb-1">
+                <span className="text-xs font-black uppercase tracking-normal text-amber-900 block mb-1">
                   {isKn ? "ಪಂಚವರ್ಷದ ದೋಷ ಶಮನ ರಕ್ಷಾ ಕವಚ" : isMr ? "५ वर्षांचे दोष शमन रक्षा कवच" : isHi ? "५-वर्षीय दोष शमन रक्षा कवच" : "5-Year Protective Shield Summary"}
                 </span>
                 <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
@@ -1354,7 +1354,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             {/* Astronomical Details: Dasha, Muntha, Moorthy Nirnaya, SAV in Clean Q&A Ribbon */}
             <div className="rounded-xl border border-amber-700/30 bg-amber-100/60 p-4 mb-6 shadow-xs font-serif text-xs">
               <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5 space-y-1">
-                <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                   {isKn ? "ಜ್ಯೋತಿಷ್ಯ ಪಂಚಾಂಗ ಗಣನೆ (ಸಂವತ್ಸರ, ದಶಾ, ಮುಂಥಾ & ಮೂರ್ತಿ ನಿರ್ಣಯ):"
                     : isMr ? "ज्योतिष पंचांग गणना (संवत्सर, दशा, मुंथा व मूर्ती निर्णय):"
                     : isHi ? "ज्योतिष पंचांग गणना (संवत्सर, दशा, मुंथा एवं मूर्ति निर्णय):"
@@ -1379,7 +1379,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 {/* Core Takeaway Inquest */}
                 {yr.yearTakeawayOneLiner && (
                   <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-1">
+                    <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-1">
                       {isKn ? "ವರ್ಷದ ಪ್ರಮುಖ ಪ್ರಶ್ನೆ: ಈ ವರ್ಷದ ಮುಖ್ಯಾಂಶ (ಏಕವಾಕ್ಯ ಸಾರಾಂಶ) ಹಾಗೂ ಪ್ರಮುಖ ತಿರುವು ಏನು?"
                         : isMr ? "वर्षातील मुख्य प्रश्न: या वर्षाचा मुख्य निष्कर्ष (एका ओळीत सारांश) काय आहे?"
                         : isHi ? "वर्ष का मुख्य प्रश्न: इस वर्ष का मुख्य निष्कर्ष (एक पंक्ति में सार) क्या है?"
@@ -1405,7 +1405,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 {/* 4 Pillars Annual Verdict in Q&A Flow */}
                 {yr.fourPillarsAnnualVerdict && (
                   <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5 space-y-1">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                       {isChild
                         ? (isKn ? "ಪ್ರಶ್ನೆ: ಜೀವನದ ೪ ಸ್ತಂಭಗಳ (ವಿದ್ಯಾಭ್ಯಾಸ, ಪೋಷಕರ ನಿಧಿ, ಕುಟುಂಬ, ಆರೋಗ್ಯ) ವಾರ್ಷಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
                           : isMr ? "प्रश्न: बालजीवनाचे ४ स्तंभ (शिक्षण, शैक्षणिक निधी, कुटुंब, आरोग्य) या वर्षात कसे राहतील?"
@@ -1442,7 +1442,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 {/* Golden Months & Caution Month in Q&A */}
                 {(yr.goldenMonthsHighlight || yr.cautionMonthHighlight) && (
                   <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                       {isKn ? "ಪ್ರಶ್ನೆ: ಯಾವ ತಿಂಗಳುಗಳು ಅತ್ಯಂತ ಸುವರ್ಣ ಫಲಪ್ರದ ಹಾಗೂ ಯಾವಾಗ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ?"
                         : isMr ? "प्रश्न: कोणते महिने सर्वाधिक सुवर्ण फलदायी व कधी सावधगिरी आवश्यक?"
                         : isHi ? "प्रश्न: कौन से महीने सर्वाधिक स्वर्णिम फलदायी एवं कब सावधानी आवश्यक है?"
@@ -1468,7 +1468,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               {/* Gochara Confluence & Astronomical Analysis in Clean Q&A */}
               <div className="space-y-3 pb-4 border-b border-amber-700/20 text-xs font-serif">
                 <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5 space-y-1">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                     {isKn ? "ಪ್ರಶ್ನೆ: ಶನಿ ಹಾಗೂ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಗೋಚಾರ ಫಲ ಹೇಗಿದೆ?"
                       : isMr ? "प्रश्न: शनि व देवगुरूंचे गोचर फळ काय सांगते?"
                       : isHi ? "प्रश्न: शनि एवं देवगुरु बृहस्पति का गोचर फल कैसा है?"
@@ -1483,7 +1483,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
                 {(yr.taraBala || yr.vedhaAnalysis) && (
                   <div className="border-l-2 border-amber-700/50 pl-3.5 py-0.5 space-y-1">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                    <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                       {isKn ? "ಪ್ರಶ್ನೆ: ನವತಾರಾ ಬಲ ಹಾಗೂ ಗೋಚಾರ ನಿರ್ವೇಧ ಸ್ಥಿತಿಯ ಫಲವೇನು?"
                         : isMr ? "प्रश्न: नवतारा बळ व गोचर वेध स्थितीचा काय प्रभाव आहे?"
                         : isHi ? "प्रश्न: नवतारा बल एवं गोचर वेध स्थिति का क्या प्रभाव है?"
@@ -1514,7 +1514,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                     return (
                       <div key={`yr-${idx}-p-${pIdx}`} className="space-y-1.5">
                         {subhead && (
-                          <h4 className="text-sm font-black text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+                          <h4 className="text-sm font-black text-amber-900 uppercase tracking-normal flex items-center gap-1.5">
                             <span className="text-amber-700">❖</span>
                             <span>{subhead}</span>
                           </h4>
@@ -1575,7 +1575,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               {/* Turning Point, Opportunity & Caution Inquests in Clean Q&A Heritage Layout */}
               <div className="space-y-3 pt-4 border-t border-amber-700/20 text-xs font-serif">
                 <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                     {isKn ? "ಪ್ರಶ್ನೆ: ಈ ವರ್ಷದ ಪ್ರಮುಖ ತಿರುವು, ಸುವರ್ಣಾವಕಾಶ ಹಾಗೂ ಎಚ್ಚರಿಕೆ ಏನು?"
                       : isMr ? "प्रश्न: या वर्षाचे मुख्य वळण, सुवर्णसंधी व काय दक्षता घ्यावी?"
                       : isHi ? "प्रश्न: इस वर्ष का मुख्य मोड़, स्वर्णिम अवसर एवं क्या सावधानी रखें?"
@@ -1594,7 +1594,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 </div>
 
                 <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                     🛕 {isKn ? "ವಾರ್ಷಿಕ ಪರಿಹಾರ ಹಾಗೂ ಅನುಷ್ಠಾನ" : isMr ? "वार्षिक उपाय व अनुष्ठान" : isHi ? "वार्षिक परिहार एवं अनुष्ठान" : "Annual Remedial Shield"}
                   </span>
                   <p className="text-xs font-bold text-amber-950 leading-relaxed font-sans">
@@ -1625,8 +1625,8 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
         {/* Part A: Auspicious Decision Muhurtas & Financial Roadmap */}
         {data.muhurtaWindows && data.muhurtaWindows.length > 0 && (
           <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6 mb-8">
-            <div className="flex items-center justify-between border-b border-amber-700/20 pb-3">
-              <h3 className="text-xl font-black text-amber-950 font-serif flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-700/20 pb-3">
+              <h3 className="text-xl font-black text-amber-950 font-serif flex items-center gap-2 min-w-0 break-words">
                 <span>🗓️</span>
                 <span>{t("muhurtaSectionTitle")}</span>
               </h3>
@@ -1740,12 +1740,12 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                     src={data.sacredDeityImage.imagePath}
                     alt={data.sacredDeityImage.deityName}
                     crossOrigin="anonymous"
-                    className="w-16 h-20 sm:w-20 sm:h-24 object-contain rounded-lg block shadow-2xs"
+                    className="w-20 h-24 object-contain rounded-lg block shadow-2xs"
                   />
                 </div>
               )}
               <div>
-                <span className="text-xs font-black uppercase tracking-widest text-amber-800 block">
+                <span className="text-xs font-black uppercase tracking-normal text-amber-800 block">
                   {isKn
                     ? "ಪಂಚವರ್ಷ ರಕ್ಷಾ ಸ್ತೋತ್ರ"
                     : isMr
@@ -1775,7 +1775,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
           {/* Sanskrit Verse in Dignified Display */}
           <div className="p-6 rounded-xl bg-amber-100/70 border-2 border-amber-600/50 text-center space-y-3">
-            <span className="text-xs font-bold text-amber-800 uppercase tracking-widest block">
+            <span className="text-xs font-bold text-amber-800 uppercase tracking-normal block">
               {isKn ? "॥ ಮೂಲ ಶಾಸ್ತ್ರೋಕ್ತ ಶ್ಲೋಕ ॥" : isMr ? "॥ मूळ शास्त्रोक्त श्लोक ॥" : isHi ? "॥ मूल शास्त्रोक्त श्लोक ॥" : "|| Sacred Scriptural Shloka ||"}
             </span>
             <p
@@ -1799,7 +1799,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           {/* Chanting Protocol in Clean Q&A Flow */}
           <div className="border-t border-amber-700/20 pt-3 text-xs font-serif">
             <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-              <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+              <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                 {isKn ? "ಪ್ರಶ್ನೆ: ಸ್ತೋತ್ರ ಪಾರಾಯಣದ ಸಮಯ, ದಿಕ್ಕು ಹಾಗೂ ವಿಶೇಷ ಸಮರ್ಪಣೆ ಏನು?"
                   : isMr ? "प्रश्न: स्तोत्र पठणाची वेळ, दिशा व विशेष उपाय काय?"
                   : isHi ? "प्रश्न: स्तोत्र पाठ का समय, दिशा एवं विशेष समर्पण क्या है?"
@@ -1820,7 +1820,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
         <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6 font-serif">
           <div className="space-y-4 text-xs font-serif">
             <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-              <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+              <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                 {isKn ? "ಪ್ರಶ್ನೆ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾ ಸಂಕಲ್ಪ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಾ ಕವಚಗಳು ಯಾವುವು?"
                   : isMr ? "प्रश्न: श्री गोकर्ण क्षेत्र महा संकल्प व मुख्य दैवी उपाय काय आहेत?"
                   : isHi ? "प्रश्न: श्री गोकर्ण क्षेत्र महा संकल्प एवं मुख्य दैवीय परिहार क्या हैं?"
@@ -1846,9 +1846,9 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           </div>
 
           <div className="pt-4 border-t border-amber-700/20 space-y-3">
-            {/* Year-Specific Gokarna Remedies Table */}
+            {/* Year-Specific Gokarna Remedies Narrative Cards */}
             {data.yearSpecificRemedies && data.yearSpecificRemedies.length > 0 && (
-              <div className="col-span-2 pt-4 space-y-3 border-t border-amber-700/20">
+              <div className="pt-4 space-y-3 border-t border-amber-700/20">
                 <span className="font-black text-amber-950 text-base flex items-center gap-2">
                   <span>🔱</span>
                   <span>{isKn ? "೫ ವರ್ಷಗಳ ನಿರ್ದಿಷ್ಟ ಗೋಕರ್ಣ ಪರಿಹಾರಗಳ ಕಾರ್ಯಕ್ರಮ" : isMr ? "५ वर्षांचे विशिष्ट गोकर्ण उपाय व सेवा" : isHi ? "५-वर्षीय विशिष्ट गोकर्ण परिहार एवं सेवा" : "Year-Specific Gokarna Shanti Remedies"}</span>
@@ -1858,7 +1858,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   <div className="rounded-xl border border-amber-700/30 bg-amber-100/50 p-4 shadow-2xs">
                     <div className="flex items-center gap-2 mb-1.5 text-amber-900 font-bold text-sm">
                       <span className="text-amber-800">❖</span>
-                      <span>
+                      <span className="break-words">
                         {isKn ? "ಪ್ರಶ್ನೆ: ಪ್ರತಿ ವರ್ಷ ಎದುರಾಗುವ ಗ್ರಹ ದೋಷಗಳಿಗೆ ಗೋಕರ್ಣ ಸನ್ನಿಧಾನದ ನಿರ್ದಿಷ್ಟ ಸೇವೆಗಳಾವುವು?"
                           : isMr ? "प्रश्न: प्रत्येक वर्षी ग्रह दोषांवर मात करण्यासाठी गोकर्ण क्षेत्रातील विशिष्ट सेवा कोणत्या?"
                           : isHi ? "प्रश्न: प्रतिवर्ष ग्रह जनित बाधाओं के निवारण हेतु गोकर्ण क्षेत्र की विशिष्ट सेवाएं कौन सी हैं?"
@@ -1878,11 +1878,11 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                             {yrRem.transitChallenge}
                           </span>
                         </div>
-                        <p className="text-sm text-amber-950 font-serif leading-relaxed">
+                        <p className="text-sm text-amber-950 font-serif leading-relaxed break-words">
                           <span className="font-bold text-amber-900">🏛️ {isKn ? "ಗೋಕರ್ಣ ಸೇವಾ ಸಂಕಲ್ಪ: " : "Gokarna Seva: "}</span>
                           {yrRem.gokarnaSeva}
                         </p>
-                        <div className="text-xs font-bold text-amber-900 bg-amber-50/70 p-2 rounded-lg border border-amber-200">
+                        <div className="text-xs font-bold text-amber-900 bg-amber-50/70 p-2 rounded-lg border border-amber-200 break-words">
                           <span>📿 {isKn ? "ದೈನಂದಿನ ಮಂತ್ರ: " : "Daily Mantra: "}</span>
                           <span className="text-amber-950">{yrRem.mantra}</span>
                         </div>
@@ -1895,13 +1895,13 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
             {/* Nakshatra Sacred Tree (Vriksha Aradhana) */}
             {data.nakshatraVriksha && (
-              <div className="col-span-2 p-5 rounded-xl bg-amber-100/60 border border-amber-300 space-y-2 shadow-2xs font-serif">
-                <div className="flex items-center justify-between">
-                  <span className="font-black text-amber-950 text-sm flex items-center gap-2">
+              <div className="p-5 rounded-xl bg-amber-100/60 border border-amber-300 space-y-2 shadow-2xs font-serif">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-black text-amber-950 text-sm flex items-center gap-2 min-w-0 break-words">
                     <span>🌳</span>
                     <span>{isKn ? `ಜನ್ಮ ನಕ್ಷತ್ರ ಪವಿತ್ರ ವೃಕ್ಷ ಆರಾಧನೆ (${data.nakshatra} ನಕ್ಷತ್ರ):` : isMr ? `जन्म नक्षत्र पवित्र वृक्ष आराधना:` : isHi ? `जन्म नक्षत्र पवित्र वृक्ष आराधना:` : `Nakshatra Sacred Tree Worship:`}</span>
                   </span>
-                  <span className="bg-amber-200 text-amber-950 font-black text-xs px-3 py-1 rounded border border-amber-400">
+                  <span className="bg-amber-200 text-amber-950 font-black text-xs px-3 py-1 rounded border border-amber-400 shrink-0">
                     {data.nakshatraVriksha.vrikshaName}
                   </span>
                 </div>
@@ -1938,7 +1938,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           {data.familyDestinyInterlocking && (
             <div className="space-y-4">
               <div className="border-b border-amber-700/20 pb-3">
-                <span className="text-xs font-black uppercase tracking-widest text-amber-800 block mb-1">
+                <span className="text-xs font-black uppercase tracking-normal text-amber-800 block mb-1" style={{ letterSpacing: 'normal' }}>
                   {t("familyInterlockTitle")}
                 </span>
                 <p className="text-sm font-bold text-amber-900 font-serif italic">
@@ -1951,7 +1951,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
               <div className="space-y-3 text-xs font-serif pt-1">
                 <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                     {isKn ? "ಪ್ರಶ್ನೆ: ಕುಟುಂಬದ ಸದಸ್ಯರ ಜಾತಕ ಹಾಗೂ ಪರಸ್ಪರ ಸಮನ್ವಯದ ಫಲವೇನು?"
                       : isMr ? "प्रश्न: कौटुंबिक सदस्यांच्या पत्रिका व परस्पर समन्वयाचे काय फळ आहे?"
                       : isHi ? "प्रश्न: पारिवारिक सदस्यों की कुंडलियों एवं परस्पर समन्वय का क्या प्रभाव है?"
@@ -1973,7 +1973,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
               {/* Dignified Family Astrological Harmony Guidance Note */}
               <div className="rounded-xl border border-amber-600/50 bg-amber-100/80 p-5 shadow-xs font-serif space-y-2 mt-4">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-normal text-amber-900 flex items-center gap-2">
                   <span>✨</span>
                   <span>{isKn ? "ಕುಟುಂಬದ ಸಾಮರಸ್ಯ ಹಾಗೂ ಸಾಮೂಹಿಕ ಶುಭ ಸಂಕಲ್ಪ" : isMr ? "कौटुंबिक समन्वय व सामूहिक शुभ संकल्प" : isHi ? "पारिवारिक सामंजस्य एवं सामूहिक शुभ संकल्प" : "Family Collective Auspicious Guidance"}</span>
                 </span>
@@ -2004,7 +2004,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
           <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
             <div className="border-b border-amber-700/20 pb-3">
-              <span className="text-xs font-black uppercase tracking-widest text-amber-800 block mb-1">
+              <span className="text-xs font-black uppercase tracking-normal text-amber-800 block mb-1" style={{ letterSpacing: 'normal' }}>
                 {isKn ? "೫ ವರ್ಷಗಳ ಸಮಗ್ರ ಕರ್ಮಗತಿ, ಸುವರ್ಣ ತಿರುವು ಹಾಗೂ ಮಾರ್ಗದರ್ಶನ"
                   : isMr ? "५ वर्षांचा समग्र कर्मप्रवास, सुवर्ण संधी व जीवन मार्गदर्शन"
                     : isHi ? "५ वर्षों का समग्र कर्मप्रवाह, स्वर्णिम अवसर एवं जीवन मार्गदर्शन"
@@ -2045,7 +2045,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
               <div className="space-y-3 text-xs font-serif pt-1">
                 <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                     {isKn ? "ಪ್ರಶ್ನೆ: ದೈವಜ್ಞ ಚತುರ್ವಿಧ ಜೀವನ ರಕ್ಷಾ ಸೂತ್ರಗಳ ಮಾರ್ಗದರ್ಶನವೇನು?"
                       : isMr ? "प्रश्न: दैवज्ञ चार जीवन आधारस्तंभांचे मार्गदर्शन काय आहे?"
                       : isHi ? "प्रश्न: दैवज्ञ चतुर्विध जीवन सुरक्षा सूत्रों का क्या मार्गदर्शन है?"
@@ -2096,7 +2096,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   src={data.sacredDeityImage.imagePath}
                   alt={data.sacredDeityImage.deityName}
                   crossOrigin="anonymous"
-                  className="w-48 sm:w-56 h-auto max-h-72 object-contain rounded-xl mx-auto block shadow-xs"
+                  className="w-56 h-auto max-h-72 object-contain rounded-xl mx-auto block shadow-xs"
                 />
               </div>
 
@@ -2116,7 +2116,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             {/* 100% Dynamic Devotee Shloka Card in Devotee's Selected Script */}
             <div className="rounded-2xl border-2 border-amber-600/50 bg-amber-100/50 p-7 shadow-sm text-center font-serif space-y-5">
               <div className="border-b border-amber-700/20 pb-4 space-y-3">
-                <span className="text-xs font-black uppercase tracking-widest text-amber-800">
+                <span className="text-xs font-black uppercase tracking-normal text-amber-800">
                   {isKn ? "॥ ಜನ್ಮ ಜಾತಕಾನುಸಾರ ಸಿದ್ಧಪಡಿಸಿದ ಪಾವನ ಮಂತ್ರ ॥"
                     : isMr ? "॥ जन्मपत्रिकेनुसार सिद्ध केलेला पवित्र मंत्र ॥"
                       : isHi ? "॥ जन्म कुंडली अनुसार सिद्ध किया गया पावन मंत्र ॥"
@@ -2138,7 +2138,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
               {/* Devotional Meaning in Devotee Language */}
               <div className="space-y-2 text-left">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                <span className="text-xs font-black uppercase tracking-normal text-amber-900 flex items-center gap-1.5">
                   <span>📖</span>
                   <span>{isKn ? "ಪಾವನ ಮಂತ್ರದ ತಾತ್ಪರ್ಯ & ದೈವಾನುಗ್ರಹ:" : isMr ? "मंत्राचा भावार्थ व कृपाशीर्वाद:" : isHi ? "मंत्र का भावार्थ एवं कृपाशीर्वाद:" : isTe ? "పవిత్ర మంత్ర తాత్పర్యం & దైవానుగ్రహం:" : isTa ? "புனித மந்திர அர்த்தம் & தெய்வ அருள்:" : "Sacred Meaning & Divine Grace:"}</span>
                 </span>
@@ -2153,7 +2153,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               {/* Chanting Protocols in Clean Q&A Flow */}
               <div className="border-t border-amber-700/20 pt-3 text-xs font-serif">
                 <div className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
+                  <span className="text-[11px] font-black uppercase tracking-normal text-amber-900 block mb-0.5">
                     {isKn ? "ಪ್ರಶ್ನೆ: ಶ್ಲೋಕ ಜಪಾನುಷ್ಠಾನದ ವಿಧಿ ಹಾಗೂ ಶುಭ ಸಮಯವೇನು?"
                       : isMr ? "प्रश्न: श्लोक पठणाची पद्धती व शुभ वेळ कोणती?"
                       : isHi ? "प्रश्न: श्लोक जप विधि एवं शुभ समय क्या है?"
@@ -2186,18 +2186,18 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 <span className="text-3xl">🕉️</span>
               </div>
 
-              <h3 className="text-base font-black text-amber-950 uppercase tracking-widest font-serif">
+              <h3 className="text-base font-black text-amber-950 uppercase tracking-normal font-serif" style={{ letterSpacing: 'normal' }}>
                 {t("blessingHeader")}
               </h3>
 
               <p
-                className="text-base text-amber-950 leading-relaxed font-serif italic max-w-2xl mx-auto text-left sm:text-center break-words"
+                className="text-base text-amber-950 leading-relaxed font-serif italic max-w-2xl mx-auto text-center break-words"
                 style={{ textIndent: 0, letterSpacing: 'normal' }}
               >
                 {data.astrologerBlessing}
               </p>
 
-              <div className="pt-4 border-t border-amber-700/20 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-amber-900 font-semibold font-serif">
+              <div className="pt-4 border-t border-amber-700/20 flex flex-row items-center justify-between gap-4 text-xs text-amber-900 font-semibold font-serif">
                 <div className="text-left space-y-0.5">
                   <p className="font-black text-amber-950 text-sm">
                     {isKn
@@ -2243,7 +2243,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                           ? "॥ த்வதீயம் வஸ்து கோவிந்த துப்யமேவ சமர்பயே । சர்வே பவந்து சுகினஹ் சர்வே சந்து நிராமயாஹ் ॥"
                           : "॥ Tvadiyam Vastu Govinda Tubhyameva Samarpaye | Sarve Bhavantu Sukhinah Sarve Santu Niramayah ॥"}
                 </p>
-                <p className="text-[11px] text-amber-800/80 font-bold tracking-wider">
+                <p className="text-[11px] text-amber-800/80 font-bold tracking-normal">
                   {isKn
                     ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ • ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ॥"
                     : isMr || isHi
@@ -2262,7 +2262,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
       {/* ── HOTEL PILGRIMAGE DEVOTEE STAY PRIVILEGE ADVERTISEMENT ─────────── */}
       {data.hotelPrivilegeCard && (
-        <div data-section="hotel-hospitality-privilege" className={sectionClass}>
+        <div data-section="hotel-hospitality-privilege" className={`${sectionClass} pb-10`}>
           <div className="relative rounded-2xl border-2 border-amber-600/80 bg-gradient-to-br from-amber-100/90 via-orange-50/90 to-amber-100/90 p-8 shadow-xl overflow-hidden font-serif">
             {/* Ornate Inner Frame */}
             <div className="absolute inset-2 border border-amber-700/40 rounded-xl pointer-events-none" />
@@ -2277,21 +2277,21 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             <div className="relative z-10 space-y-6">
               {/* Header Ribbon */}
               <div className="text-center space-y-2 border-b border-amber-700/30 pb-5">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-600/15 border border-amber-600/40 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest shadow-2xs">
+                <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-1.5 bg-amber-600/15 border border-amber-600/40 rounded-full text-xs font-black text-amber-950 uppercase tracking-normal shadow-2xs" style={{ letterSpacing: 'normal' }}>
                   <span>🏨</span>
-                  <span>{data.hotelPrivilegeCard.bannerTitle}</span>
+                  <span className="break-words">{data.hotelPrivilegeCard.bannerTitle}</span>
                 </div>
-                <h3 className="text-2xl font-black text-amber-950 font-serif tracking-normal mt-2">
+                <h3 className="text-2xl font-black text-amber-950 font-serif tracking-normal mt-2 break-words">
                   {data.hotelPrivilegeCard.tagline}
                 </h3>
-                <p className="text-sm text-amber-900/90 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-sm text-amber-900/90 max-w-3xl mx-auto leading-relaxed break-words">
                   {data.hotelPrivilegeCard.description}
                 </p>
               </div>
 
               {/* 15% Devotee Discount Offer Banner */}
               <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 border-2 border-amber-500/60 text-center shadow-xs">
-                <span className="text-base sm:text-lg font-black text-amber-950 tracking-normal block">
+                <span className="text-lg font-black text-amber-950 tracking-normal block break-words">
                   {data.hotelPrivilegeCard.privilegeOfferBadge}
                 </span>
               </div>
@@ -2300,7 +2300,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               <div className="space-y-2 text-xs font-serif">
                 {data.hotelPrivilegeCard.amenities.map((item, idx) => (
                   <div key={`hotel-amenity-${idx}`} className="border-l-2 border-amber-700/50 pl-3.5 py-1">
-                    <p className="text-amber-950 font-sans leading-relaxed">
+                    <p className="text-amber-950 font-sans leading-relaxed break-words">
                       <span className="text-base mr-1.5">{item.icon}</span>
                       <strong className="text-amber-900">{item.title}:</strong> {item.desc}
                     </p>
@@ -2309,16 +2309,16 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </div>
 
               {/* Proximity & Booking Hotline Card */}
-              <div className="rounded-xl border border-amber-700/40 bg-amber-200/50 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-left space-y-1">
-                  <p className="text-xs font-black text-amber-950">{data.hotelPrivilegeCard.proximityHighlights}</p>
-                  <p className="text-xs text-amber-900 italic">{data.hotelPrivilegeCard.priestSevaAssistance}</p>
+              <div className="rounded-xl border border-amber-700/40 bg-amber-200/50 p-5 flex flex-row items-center justify-between gap-4">
+                <div className="text-left space-y-1 flex-1 min-w-0">
+                  <p className="text-xs font-black text-amber-950 break-words">{data.hotelPrivilegeCard.proximityHighlights}</p>
+                  <p className="text-xs text-amber-900 italic break-words">{data.hotelPrivilegeCard.priestSevaAssistance}</p>
                 </div>
-                <div className="shrink-0 text-center sm:text-right p-3 rounded-lg bg-amber-900 text-amber-50 shadow-xs">
-                  <span className="text-[10px] uppercase tracking-widest text-amber-300 block font-bold">
+                <div className="shrink-0 text-right p-3 rounded-lg bg-amber-900 text-amber-50 shadow-xs">
+                  <span className="text-[10px] uppercase tracking-normal text-amber-300 block font-bold" style={{ letterSpacing: 'normal' }}>
                     {isKn ? "ನೇರ ಮುಂಗಡ ಬುಕಿಂಗ್" : isMr ? "थेट आगाऊ बुकिंग" : isHi ? "सीधा अग्रिम आरक्षण" : "Direct Booking & WhatsApp"}
                   </span>
-                  <span className="text-sm sm:text-base font-black text-amber-100 tracking-wider block mt-0.5">
+                  <span className="text-base font-black text-amber-100 tracking-normal block mt-0.5" style={{ letterSpacing: 'normal' }}>
                     📞 9972339362 / 9481389362
                   </span>
                 </div>

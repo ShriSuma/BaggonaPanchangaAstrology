@@ -1152,7 +1152,7 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
         fontFamily: indicFontFamily,
         letterSpacing: "normal"
       }}
-      className="w-full rounded-2xl border-2 border-amber-700/50 bg-gradient-to-b from-amber-50 via-amber-100/40 to-amber-50 p-6 md:p-8 shadow-md relative overflow-hidden"
+      className="w-full rounded-2xl border-2 border-amber-700/50 bg-gradient-to-b from-amber-50 via-amber-100/40 to-amber-50 p-8 shadow-md relative overflow-hidden"
     >
       {/* Decorative Golden Corner Accents */}
       <div className="absolute top-2 left-2 text-amber-700 text-lg opacity-40 select-none">❖</div>
@@ -1182,7 +1182,7 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
         </div>
         <h3
           style={{ letterSpacing: "normal" }}
-          className="text-2xl md:text-3xl font-extrabold text-amber-950 leading-relaxed"
+          className="text-3xl font-extrabold text-amber-950 leading-relaxed"
         >
           {baseLang === "kn"
             ? `ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ಮುನ್ನಡೆಸುತ್ತಿರುವ ಪ್ರಧಾನ ಗ್ರಹ: ${dashaLordDisplayName}`
@@ -1203,8 +1203,8 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
       </div>
 
       {/* Visual Significance & Purpose Explanation Card */}
-      <div className="bg-white/85 border border-amber-700/30 rounded-xl p-4 md:p-5 mb-6 shadow-sm text-left">
-        <div className="flex items-center gap-2 mb-2 text-amber-900 font-bold text-sm md:text-base border-b border-amber-600/20 pb-1.5">
+      <div className="bg-white/85 border border-amber-700/30 rounded-xl p-5 mb-6 shadow-sm text-left">
+        <div className="flex items-center gap-2 mb-2 text-amber-900 font-bold text-base border-b border-amber-600/20 pb-1.5">
           <span>✦</span>
           <span>
             {baseLang === "kn"
@@ -1218,7 +1218,7 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
               : "Significance of this Section & Celestial Mandala"}
           </span>
         </div>
-        <p className="text-xs md:text-sm text-amber-950/90 leading-relaxed font-medium">
+        <p className="text-sm text-amber-950/90 leading-relaxed font-medium break-words">
           {baseLang === "kn"
             ? "ಪ್ರತಿಯೊಬ್ಬರ ಜೀವನದಲ್ಲೂ ಜನ್ಮ ಲಗ್ನ ಮತ್ತು ಚಂದ್ರ ರಾಶಿಯ ಜೊತೆಗೆ, ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಒಬ್ಬ ಪ್ರಮುಖ ಗ್ರಹವು ನಿಮ್ಮ ಸಂಪೂರ್ಣ ಜೀವನವನ್ನು (ಆರೋಗ್ಯ, ವೃತ್ತಿ, ಬುದ್ಧಿ ಮತ್ತು ಮನಸ್ಸು) ಮುನ್ನಡೆಸುತ್ತಿರುತ್ತದೆ. ಇದನ್ನೇ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ 'ಮಹಾದಶಾಧಿಪತಿ' ಎನ್ನಲಾಗುತ್ತದೆ. ಮೇಲಿನ ದೈವಿಕ ಮಂಡಲ ಚಿತ್ರದಲ್ಲಿ, ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ರಕ್ಷಿಸಿ ಮುನ್ನಡೆಸುತ್ತಿರುವ ಪ್ರಧಾನ ಗ್ರಹವನ್ನು ಕೇಂದ್ರದಲ್ಲೂ, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ ಹಾಗೂ ರಾಶಿಯ ಶಕ್ತಿಗಳನ್ನು ಸುತ್ತಲೂ ಚಿತ್ರಿಸಲಾಗಿದೆ. ಈ ಗ್ರಹದ ಮಂತ್ರ ಮತ್ತು ಸತ್ಕರ್ಮಗಳನ್ನು ಅನುಸರಿಸುವುದರಿಂದ ದೋಷಗಳು ದೂರವಾಗಿ, ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಕಾಲವು ಸದಾ ಶುಭದಾಯಕವೂ ಸುರಕ್ಷಿತವೂ ಆಗಿರುತ್ತದೆ."
             : baseLang === "hi"
@@ -1233,15 +1233,15 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
 
       {/* Central Astral Mandala Visual (High-DPI SVG with Golden Vectors) */}
       <div className="flex flex-col items-center justify-center my-4">
-        <div className="relative w-72 h-72 md:w-88 md:h-88 flex items-center justify-center">
+        <div className="relative w-80 h-80 flex items-center justify-center">
           {/* Subtle Ambient Glow Behind Mandala */}
           <div
-            className="absolute inset-0 rounded-full blur-2xl opacity-50 pointer-events-none"
+            className="absolute inset-0 rounded-full opacity-30 pointer-events-none"
             style={{ backgroundColor: theme.glowColor }}
           />
 
           <svg
-            className="w-full h-full relative z-10 drop-shadow-xl"
+            className="w-full h-full relative z-10"
             viewBox="0 0 400 400"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -1299,7 +1299,7 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
               fontFamily: indicFontFamily,
               letterSpacing: "normal"
             }}
-            className="text-xl md:text-2xl font-bold text-amber-950 leading-relaxed"
+            className="text-2xl font-bold text-amber-950 leading-relaxed"
           >
             {beejaMantra}
           </p>
@@ -1307,13 +1307,13 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
       </div>
 
       {/* 4 Indic Sacred Cosmic Alignment Badges */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+      <div className="grid grid-cols-2 gap-4 mt-6">
         {/* Badge 1: Lagna Guardian & Element */}
-        <div className="bg-white/85 border border-amber-800/20 rounded-xl p-4 shadow-sm flex items-start gap-3">
+        <div className="bg-white/85 border border-amber-800/20 rounded-xl p-4 shadow-sm flex items-start gap-3 min-w-0">
           <div className="w-10 h-10 rounded-full bg-amber-700/10 border border-amber-700/30 flex items-center justify-center shrink-0 text-xl">
             🛡️
           </div>
-          <div style={{ letterSpacing: "normal" }}>
+          <div className="min-w-0 flex-1 break-words" style={{ letterSpacing: "normal" }}>
             <span
               style={{ letterSpacing: "normal" }}
               className="text-xs font-bold text-amber-800 block"
@@ -1353,11 +1353,11 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
         </div>
 
         {/* Badge 2: Moon Sign & Nakshatra */}
-        <div className="bg-white/85 border border-amber-800/20 rounded-xl p-4 shadow-sm flex items-start gap-3">
+        <div className="bg-white/85 border border-amber-800/20 rounded-xl p-4 shadow-sm flex items-start gap-3 min-w-0">
           <div className="w-10 h-10 rounded-full bg-amber-700/10 border border-amber-700/30 flex items-center justify-center shrink-0 text-xl">
             🌙
           </div>
-          <div style={{ letterSpacing: "normal" }}>
+          <div className="min-w-0 flex-1 break-words" style={{ letterSpacing: "normal" }}>
             <span
               style={{ letterSpacing: "normal" }}
               className="text-xs font-bold text-amber-800 block"
@@ -1396,11 +1396,11 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
         </div>
 
         {/* Badge 3: Running Dasha-Bhukti */}
-        <div className="bg-white/85 border border-amber-800/20 rounded-xl p-4 shadow-sm flex items-start gap-3">
+        <div className="bg-white/85 border border-amber-800/20 rounded-xl p-4 shadow-sm flex items-start gap-3 min-w-0">
           <div className="w-10 h-10 rounded-full bg-amber-700/10 border border-amber-700/30 flex items-center justify-center shrink-0 text-xl">
             ☸
           </div>
-          <div style={{ letterSpacing: "normal" }}>
+          <div className="min-w-0 flex-1 break-words" style={{ letterSpacing: "normal" }}>
             <span
               style={{ letterSpacing: "normal" }}
               className="text-xs font-bold text-amber-800 block"
@@ -1447,11 +1447,11 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
         </div>
 
         {/* Badge 4: Gochara Transit Alignment */}
-        <div className="bg-white/85 border border-amber-800/20 rounded-xl p-4 shadow-sm flex items-start gap-3">
+        <div className="bg-white/85 border border-amber-800/20 rounded-xl p-4 shadow-sm flex items-start gap-3 min-w-0">
           <div className="w-10 h-10 rounded-full bg-amber-700/10 border border-amber-700/30 flex items-center justify-center shrink-0 text-xl">
             ✨
           </div>
-          <div style={{ letterSpacing: "normal" }}>
+          <div className="min-w-0 flex-1 break-words" style={{ letterSpacing: "normal" }}>
             <span
               style={{ letterSpacing: "normal" }}
               className="text-xs font-bold text-amber-800 block"
@@ -1508,7 +1508,7 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             fontFamily: indicFontFamily,
             letterSpacing: "normal"
           }}
-          className="text-sm md:text-base font-bold text-amber-950 leading-relaxed"
+          className="text-base font-bold text-amber-950 leading-relaxed break-words"
         >
           {baseLang === "kn"
             ? "॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಹಾಗೂ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ಸದಾ ಜಾಗೃತ ಕೃಪಾಕಟಾಕ್ಷವು ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಿ, ಪ್ರಸ್ತುತ ದಶಾ ಕಾಲದಲ್ಲಿ ಸಕಲ ಸನ್ಮಂಗಳಗಳನ್ನು ಕರುಣಿಸಲಿ ॥"

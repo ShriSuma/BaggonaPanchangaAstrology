@@ -358,7 +358,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         <div className="flex items-center justify-between gap-4 mb-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/10 text-amber-900 rounded-full border border-amber-800/30">
             <span className="text-amber-800 text-sm">{icon}</span>
-            <span className="text-xs font-black tracking-widest uppercase">
+            <span className="text-xs font-black tracking-normal uppercase" style={{ letterSpacing: 'normal' }}>
               {badge}
             </span>
           </div>
@@ -368,7 +368,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <span>ॐ</span>
           </div>
         </div>
-        <h2 className="text-3xl font-extrabold text-amber-950 font-serif tracking-normal leading-relaxed">
+        <h2 className="text-3xl font-extrabold text-amber-950 font-serif tracking-normal leading-relaxed break-words">
           {fullTitle}
         </h2>
       </div>
@@ -395,7 +395,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         <div className="flex items-center justify-between gap-4 mb-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/10 text-amber-900 rounded-full border border-amber-800/30">
             <span className="text-amber-800 text-sm">{icon}</span>
-            <span className="text-xs font-black tracking-widest uppercase">
+            <span className="text-xs font-black tracking-normal uppercase" style={{ letterSpacing: 'normal' }}>
               {badgeText}
             </span>
           </div>
@@ -405,7 +405,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <span>ॐ</span>
           </div>
         </div>
-        <h2 className="text-3xl font-extrabold text-amber-950 font-serif leading-relaxed">
+        <h2 className="text-3xl font-extrabold text-amber-950 font-serif leading-relaxed break-words">
           {title}
         </h2>
       </div>
@@ -430,13 +430,13 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
     return (
       <div className="rounded-xl border-2 border-amber-700/30 bg-gradient-to-r from-amber-100/90 via-orange-50/80 to-amber-100/90 p-5 mb-8 shadow-xs relative overflow-hidden">
-        <div className="flex items-center gap-2 mb-2 text-amber-900 text-xs font-black tracking-widest uppercase">
+        <div className="flex items-center gap-2 mb-2 text-amber-900 text-xs font-black tracking-normal uppercase" style={{ letterSpacing: 'normal' }}>
           <span className="text-amber-800">{icon}</span>
           <span>{label}</span>
         </div>
         <div className="flex items-start gap-3">
           <span className="text-xl text-amber-800 leading-none pt-0.5">❖</span>
-          <p className="text-lg font-bold text-amber-950 leading-relaxed font-serif italic">
+          <p className="text-lg font-bold text-amber-950 leading-relaxed font-serif italic break-words">
             {questionText}
           </p>
         </div>
@@ -447,17 +447,16 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
   return (
     <div
       ref={ref}
-      style={{ width: '900px', height: 'max-content', fontFamily: activeFontFamily, letterSpacing: 'normal' }}
+      style={{ width: '900px', boxSizing: 'border-box', height: 'max-content', fontFamily: activeFontFamily, letterSpacing: 'normal' }}
       className={`${solidBgClass} ${textColorClass} relative overflow-hidden`}
     >
       <div className={`absolute inset-6 border-[3px] ${borderColorClass} pointer-events-none rounded-sm opacity-90`} />
       <div className={`absolute inset-8 border border-dashed ${borderColorClass} pointer-events-none opacity-60`} />
 
       {/* ── Cover / Header Section ────────────────────────────────────────── */}
-      <div data-section="cover" className="pdf-section text-center mt-10 mb-6 px-16 pt-8 pb-4">
-        <div className="inline-block relative px-12 py-3 mb-4">
-          <div className="absolute inset-0 border-y border-amber-700/40 transform -skew-x-12 pointer-events-none" />
-          <h1 className={`text-4xl font-extrabold ${primaryColorClass} leading-relaxed tracking-normal`}>
+      <div data-section="cover" className="pdf-section text-center px-14 pt-10 pb-6">
+        <div className="inline-block relative px-10 py-3 mb-4 rounded-lg border-y-2 border-amber-700/45 bg-amber-100/25">
+          <h1 className={`text-4xl font-extrabold ${primaryColorClass} leading-relaxed tracking-normal break-words`}>
             {translations.title}
           </h1>
         </div>
@@ -867,7 +866,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                     );
                   }
                   return (
-                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
+                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                       {cleaned}
                     </p>
                   );
@@ -919,7 +918,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                     );
                   }
                   return (
-                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
+                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                       {cleaned}
                     </p>
                   );
@@ -971,7 +970,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                     );
                   }
                   return (
-                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
+                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                       {cleaned}
                     </p>
                   );
@@ -989,15 +988,15 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <div className="absolute inset-2 border border-dashed border-amber-700/30 rounded-lg pointer-events-none" />
             <div className="flex items-center gap-3 border-b-2 border-amber-700/40 pb-3 mb-6 relative z-10">
               <span className="text-3xl text-amber-800">✧</span>
-              <h2 className={`text-3xl font-extrabold ${primaryColorClass} leading-normal tracking-normal`}>
+              <h2 className={`text-3xl font-extrabold ${primaryColorClass} leading-normal tracking-normal break-words`}>
                 {premiumData.maandiInquest.title}
               </h2>
             </div>
             <div className="space-y-6 relative z-10">
-              <p className="text-xl leading-loose text-amber-950 text-justify font-medium break-words">
+              <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words">
                 {premiumData.maandiInquest.paragraph1}
               </p>
-              <p className="text-xl leading-loose text-amber-950 text-justify font-medium break-words pt-4 border-t border-amber-700/20">
+              <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words pt-4 border-t border-amber-700/20">
                 {premiumData.maandiInquest.paragraph2}
               </p>
             </div>
@@ -1109,10 +1108,10 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           )}
           <div className="space-y-8">
             {premiumData!.doshas!.map((dosha, idx) => (
-              <div key={idx} className="rounded-xl border border-rose-300/80 bg-rose-50/70 p-6 shadow-sm space-y-4" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+              <div key={idx} className="rounded-xl border border-rose-300/80 bg-rose-50/70 p-6 shadow-sm space-y-4 overflow-hidden" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                 <div className="flex items-center gap-2 border-b border-rose-200 pb-2">
                   <span className="text-xl text-rose-800">🛡️</span>
-                  <h3 className="text-2xl font-bold text-rose-950 font-serif">{cleanPara(dosha.name)}</h3>
+                  <h3 className="text-2xl font-bold text-rose-950 font-serif break-words">{cleanPara(dosha.name)}</h3>
                 </div>
                 {cleanSectionNarrative(dosha.impact || "").map((cleaned, pIdx) => (
                   <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
@@ -1120,7 +1119,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   </p>
                 ))}
                 {dosha.remedy && (
-                  <div className="mt-4 pt-4 border-t border-rose-200 bg-amber-50/80 -mx-6 -mb-6 p-6 rounded-b-xl border-t border-amber-300">
+                  <div className="mt-4 p-5 border border-amber-300 bg-amber-50/80 rounded-xl">
                     <h4 className="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
                       <span>✨</span>
                       <span>{translations.remedyTitle}</span>
@@ -1148,10 +1147,10 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           )}
           <div className="space-y-8">
             {premiumData!.gochara!.map((gochara, idx) => (
-              <div key={idx} className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm space-y-4" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+              <div key={idx} className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm space-y-4 overflow-hidden" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                 <div className="flex items-center gap-2 border-b border-amber-700/20 pb-2">
                   <span className="text-xl text-amber-800">🪐</span>
-                  <h3 className="text-2xl font-bold text-amber-950 font-serif">{cleanPara(gochara.name)}</h3>
+                  <h3 className="text-2xl font-bold text-amber-950 font-serif break-words">{cleanPara(gochara.name)}</h3>
                 </div>
                 {cleanSectionNarrative(gochara.impact || "").map((cleaned, pIdx) => (
                   <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
@@ -1159,7 +1158,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   </p>
                 ))}
                 {gochara.remedy && (
-                  <div className="mt-4 pt-4 border-t border-amber-700/20 bg-amber-100/50 -mx-6 -mb-6 p-6 rounded-b-xl">
+                  <div className="mt-4 p-5 border border-amber-700/25 bg-amber-100/50 rounded-xl">
                     <h4 className="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
                       <span>✨</span>
                       <span>{translations.remedyTitle}</span>
@@ -1179,9 +1178,9 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       {premiumData?.dashaGocharaCompass && (
         <div data-section="dasha-gochara-compass" className={sectionClass}>
           <div className="border-b-2 border-amber-700/30 pb-3 mb-8">
-            <h2 className="text-3xl font-bold text-amber-950 leading-normal flex items-center justify-between">
-              <span>{translations.dashaGocharaCompassTitle || premiumData.dashaGocharaCompass.title}</span>
-              <span className="text-xl font-normal text-amber-800 bg-amber-100/70 border border-amber-900/10 px-3 py-1 rounded-full shadow-sm">
+            <h2 className="text-3xl font-bold text-amber-950 leading-normal flex flex-wrap items-center justify-between gap-3">
+              <span className="min-w-0 break-words">{translations.dashaGocharaCompassTitle || premiumData.dashaGocharaCompass.title}</span>
+              <span className="text-lg font-normal text-amber-800 bg-amber-100/70 border border-amber-900/10 px-3 py-1 rounded-full shadow-sm shrink-0">
                 {translations.dashaGocharaCompassSubtitle || premiumData.dashaGocharaCompass.subtitle}
               </span>
             </h2>
@@ -1319,8 +1318,8 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   )}
                 </div>
                 {/* Card */}
-                <div className="flex-1 bg-white/80 border border-amber-900/20 shadow-sm p-6 rounded-xl mb-2">
-                  <span className="text-amber-900 font-bold text-lg bg-amber-100/80 inline-block px-3 py-1 rounded w-fit border border-amber-900/10 shadow-sm mb-3 block font-serif">
+                <div className="flex-1 min-w-0 bg-white/80 border border-amber-900/20 shadow-sm p-6 rounded-xl mb-2">
+                  <span className="text-amber-900 font-bold text-lg bg-amber-100/80 inline-block max-w-full break-words px-3 py-1 rounded border border-amber-900/10 shadow-sm mb-3 font-serif">
                     {item.dateRange}
                   </span>
                   {cleanSectionNarrative(item.impact || "").map((cleaned, pIdx) => (
@@ -1483,7 +1482,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                       );
                     }
                     return (
-                      <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
+                      <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                         {cleaned}
                       </p>
                     );
@@ -1644,9 +1643,9 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           <div className="relative z-10 space-y-6">
             {/* Header Ribbon */}
             <div className="text-center space-y-2 border-b border-amber-700/30 pb-5">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-600/15 border border-amber-600/40 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest shadow-2xs">
+              <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-1.5 bg-amber-600/15 border border-amber-600/40 rounded-full text-xs font-black text-amber-950 uppercase tracking-normal shadow-2xs" style={{ letterSpacing: 'normal' }}>
                 <span>🏨</span>
-                <span>
+                <span className="break-words">
                   {langKey === "kn" ? "॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಯಾತ್ರಾರ್ಥಿ ಪವಿತ್ರ ವಾಸ್ತವ್ಯ & ಆತಿಥ್ಯ ಸೌಲಭ್ಯ ॥"
                     : langKey === "hi" ? "॥ श्री क्षेत्र गोकर्ण तीर्थयात्री पावन निवास एवं आतिथ्य सुविधा ॥"
                     : langKey === "te" ? "॥ శ్రీ క్షేత్ర గోకర్ణ తీర్థయాత్రికుల పవిత్ర నివాసం & ఆతిథ్య సౌకర్యం ॥"
@@ -1654,7 +1653,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                     : "|| SRI KSHETRA GOKARNA PILGRIMAGE DEVOTEE STAY & HOSPITALITY PRIVILEGE ||"}
                 </span>
               </div>
-              <h3 className="text-2xl font-black text-amber-950 font-serif tracking-normal mt-2">
+              <h3 className="text-2xl font-black text-amber-950 font-serif tracking-normal mt-2 break-words">
                 {langKey === "kn" ? "ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ ದರ್ಶನ, ದೋಷ ಪರಿಹಾರ & ಆತ್ಮಲಿಂಗ ಪೂಜೆಗಾಗಿ ಗೋಕರ್ಣಕ್ಕೆ ಆಗಮಿಸುವ ಭಕ್ತಾದಿಗಳಿಗೆ ಪ್ರಶಾಂತ ಯಾತ್ರಾರ್ಥಿ ನಿವಾಸ ಗೌರವ"
                   : langKey === "hi" ? "महाबलेश्वर दर्शन, दोष निवारण एवं आत्मलिंग पूजा हेतु गोकर्ण पधारने वाले श्रद्धालुओं के लिए शांत व पावन निवास"
                   : langKey === "te" ? "మహాబలేశ్వర దర్శనం, దోష నివారణ & ఆత్మలింగ పూజ కోసం గోకర్ణం వచ్చే భక్తుల కోసం ప్రశాంతమైన పవిత్ర నివాసం"
@@ -1672,7 +1671,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
             {/* 15% Devotee Discount Offer Banner */}
             <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 border-2 border-amber-500/60 text-center shadow-xs">
-              <span className="text-base sm:text-lg font-black text-amber-950 tracking-normal block">
+              <span className="text-lg font-black text-amber-950 tracking-normal block break-words">
                 {langKey === "kn" ? "🎁 ಈ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ವರದಿ ಹೊಂದಿರುವ ಭಕ್ತಾದಿಗಳಿಗೆ ವಾಸ್ತವ್ಯ ಶುಲ್ಕದಲ್ಲಿ ೧೫% ವಿಶೇಷ ರಿಯಾಯಿತಿ!"
                   : langKey === "hi" ? "🎁 इस बग्गोण पंचांग रिपोर्ट धारक श्रद्धालुओं हेतु कक्ष किराए में १५% विशेष छूट!"
                   : langKey === "te" ? "🎁 ఈ బగ్గోణ పంచాంగ నివేదిక ఉన్న భక్తులకు గది అద్దెలో 15% ప్రత్యేక రాయితీ!"
@@ -1682,62 +1681,62 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             </div>
 
             {/* Amenities Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
-                <span className="text-2xl pt-0.5 leading-none">🛏️</span>
-                <div className="flex-1">
-                  <span className="text-sm font-black text-amber-950 block">
+            <div className="grid grid-cols-3 gap-3.5">
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3 min-w-0">
+                <span className="text-2xl pt-0.5 leading-none shrink-0">🛏️</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-black text-amber-950 block break-words">
                     {langKey === "kn" ? "ವಿಶಾಲ ಎಸಿ & ಡಿಲಕ್ಸ್ ಕೊಠಡಿಗಳು" : langKey === "hi" ? "सुसज्जित एसी एवं डीलक्स कक्ष" : "Clean AC & Deluxe Rooms"}
                   </span>
-                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5 break-words">
                     {langKey === "kn" ? "ಶುದ್ಧ, ಗಾಳಿ-ಬೆಳಕಿನಿಂದ ಕೂಡಿದ ಪ್ರಶಾಂತ ವಾತಾವರಣ" : langKey === "hi" ? "स्वच्छ, शांत एवं पारिवारिक वातावरण" : "Serene, well-ventilated, hygienic family accommodation"}
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
-                <span className="text-2xl pt-0.5 leading-none">🔱</span>
-                <div className="flex-1">
-                  <span className="text-sm font-black text-amber-950 block">
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3 min-w-0">
+                <span className="text-2xl pt-0.5 leading-none shrink-0">🔱</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-black text-amber-950 block break-words">
                     {langKey === "kn" ? "ದೇವಸ್ಥಾನಕ್ಕೆ ನಡಿಗೆಯ ನಿಕಟ ದೂರ" : langKey === "hi" ? "मंदिर से पैदल दूरी" : "Close Walk to Temple & Beach"}
                   </span>
-                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5 break-words">
                     {langKey === "kn" ? "ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ & ಸಮುದ್ರ ತೀರಕ್ಕೆ ಕೇವಲ ೫ ನಿಮಿಷಗಳ ನಡಿಗೆ" : langKey === "hi" ? "महाबलेश्वर मंदिर एवं समुद्र तट से मात्र ५ मिनट की पैदल दूरी" : "Just 5 minutes walking distance to Mahabaleshwara Sanctum & Beach"}
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
-                <span className="text-2xl pt-0.5 leading-none">🍲</span>
-                <div className="flex-1">
-                  <span className="text-sm font-black text-amber-950 block">
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3 min-w-0">
+                <span className="text-2xl pt-0.5 leading-none shrink-0">🍲</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-black text-amber-950 block break-words">
                     {langKey === "kn" ? "ಶುದ್ಧ ಸಾತ್ವಿಕ ಬ್ರಾಹ್ಮಣ ಭೋಜನ" : langKey === "hi" ? "शुद्ध सात्विक शाकाहारी भोजन" : "Pure Satvik Vegetarian Dining"}
                   </span>
-                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5 break-words">
                     {langKey === "kn" ? "ಸಾಂಪ್ರದಾಯಿಕ ರುಚಿಕರ ದಕ್ಷಿಣ ಭಾರತೀಯ ಸಸ್ಯಾಹಾರಿ ಊಟ & ಉಪಾಹಾರ" : langKey === "hi" ? "पारंपरिक स्वादिष्ट दक्षिण भारतीय सात्विक भोजन" : "Traditional, wholesome South Indian Satvik meals and breakfast"}
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
-                <span className="text-2xl pt-0.5 leading-none">🕉️</span>
-                <div className="flex-1">
-                  <span className="text-sm font-black text-amber-950 block">
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3 min-w-0">
+                <span className="text-2xl pt-0.5 leading-none shrink-0">🕉️</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-black text-amber-950 block break-words">
                     {langKey === "kn" ? "ಪೂಜಾ ಸಂಕಲ್ಪ & ದರ್ಶನ ಮಾರ್ಗದರ್ಶನ" : langKey === "hi" ? "पूजा संकल्प एवं दर्शन मार्गदर्शन" : "Pooja Sankalpa & Priest Assistance"}
                   </span>
-                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5 break-words">
                     {langKey === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ನೇತೃತ್ವದಲ್ಲಿ ದೇವಸ್ಥಾನದ ವಿಶೇಷ ಸೇವಾ ಸಂಕಲ್ಪ ನೆರವು" : langKey === "hi" ? "श्रीराम पंडित जी के सान्निध्य में विशेष सेवा संकल्प सहयोग" : "Dedicated guidance and Sankalpa coordination with Shreeram Pandit"}
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
-                <span className="text-2xl pt-0.5 leading-none">🚗</span>
-                <div className="flex-1">
-                  <span className="text-sm font-black text-amber-950 block">
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3 min-w-0">
+                <span className="text-2xl pt-0.5 leading-none shrink-0">🚗</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-black text-amber-950 block break-words">
                     {langKey === "kn" ? "ವಿಶಾಲ ಪಾರ್ಕಿಂಗ್ & ೨೪/೭ ಸೇವೆ" : langKey === "hi" ? "विशाल पार्किंग एवं २४/७ सेवा" : "Spacious Parking & 24/7 Desk"}
                   </span>
-                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5 break-words">
                     {langKey === "kn" ? "ಸುರಕ್ಷಿತ ವಾಹನ ನಿಲುಗಡೆ ಹಾಗೂ ಅತಿಥಿಗಳಿಗೆ ಆತ್ಮೀಕ ಸತ್ಕಾರ" : langKey === "hi" ? "सुरक्षित वाहन पार्किंग तथा विनम्र श्रद्धालु सेवा" : "Secure vehicle parking and warm, responsive devotee care"}
                   </span>
                 </div>
@@ -1745,24 +1744,24 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             </div>
 
             {/* Proximity & Booking Hotline Card */}
-            <div className="rounded-xl border border-amber-700/40 bg-amber-200/50 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-left space-y-1">
-                <p className="text-xs font-black text-amber-950">
+            <div className="rounded-xl border border-amber-700/40 bg-amber-200/50 p-5 flex flex-row items-center justify-between gap-4">
+              <div className="text-left space-y-1 flex-1 min-w-0">
+                <p className="text-xs font-black text-amber-950 break-words">
                   {langKey === "kn" ? "📍 ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನ, ಕೋಟಿತೀರ್ಥ ಪುಣ್ಯಕೊಳ ಹಾಗೂ ಮುಖ್ಯ ಕಡಲತೀರಕ್ಕೆ ಅತ್ಯಂತ ಸಮೀಪದಲ್ಲಿದೆ."
                     : langKey === "hi" ? "📍 श्री महाबलेश्वर मंदिर, कोटितीर्थ पावन सरोवर एवं मुख्य समुद्र तट के अत्यंत निकट स्थित।"
                     : "📍 Centrally located within short walking distance to Sri Mahabaleshwara Temple, Kotitheertha Holy Pond & Gokarna Beach."}
                 </p>
-                <p className="text-xs text-amber-900 italic">
+                <p className="text-xs text-amber-900 italic break-words">
                   {langKey === "kn" ? "ಸೂಚನೆ: ಗೋಕರ್ಣಕ್ಕೆ ಹೊರಡುವ ಮುನ್ನ ಮೇಲ್ಕಂಡ ಸಂಖ್ಯೆಗೆ ಕರೆ ಮಾಡಿ ಕೊಠಡಿ ಕಾಯ್ದಿರಿಸಿ ಮತ್ತು ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ೧೫% ರಿಯಾಯಿತಿ ಪಡೆಯಿರಿ."
                     : langKey === "hi" ? "सूचना: गोकर्ण प्रस्थान से पूर्व दिए गए नंबर पर संपर्क कर कक्ष आरक्षित करें एवं १५% छूट का लाभ प्राप्त करें।"
                     : "Note: Call or WhatsApp before arriving at Gokarna to confirm your room reservation and claim your 15% Devotee Discount."}
                 </p>
               </div>
-              <div className="shrink-0 text-center sm:text-right p-3 rounded-lg bg-amber-900 text-amber-50 shadow-xs">
-                <span className="text-[10px] uppercase tracking-widest text-amber-300 block font-bold">
+              <div className="shrink-0 text-right p-3 rounded-lg bg-amber-900 text-amber-50 shadow-xs">
+                <span className="text-[10px] uppercase tracking-normal text-amber-300 block font-bold" style={{ letterSpacing: 'normal' }}>
                   {langKey === "kn" ? "ನೇರ ಮುಂಗಡ ಬುಕಿಂಗ್" : langKey === "hi" ? "सीधा अग्रिम आरक्षण" : "Direct Booking & WhatsApp"}
                 </span>
-                <span className="text-sm sm:text-base font-black text-amber-100 tracking-wider block mt-0.5">
+                <span className="text-base font-black text-amber-100 tracking-normal block mt-0.5" style={{ letterSpacing: 'normal' }}>
                   📞 9972339362 / 9481389362
                 </span>
               </div>
@@ -1772,7 +1771,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       </div>
 
       {/* ── Sanskrit Shloka & Sacred Astrologer's Ashirvada Blessing ──────── */}
-      <div data-section="ashirvada" className="pdf-section w-full px-14 pt-8 pb-32 text-center relative">
+      <div data-section="ashirvada" className="pdf-section w-full px-14 pt-8 pb-10 text-center relative">
         {/* Sacred Sanskrit Shloka */}
         <div className={`text-center px-16 py-10 mb-8 border-y-[3px] border-double ${borderColorClass} bg-amber-100/30`}>
           <p className="text-3xl font-bold leading-loose text-amber-900" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>
@@ -1796,11 +1795,11 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         {/* Official Priest Seal */}
         {translations.priestSeal && (
           <div
-            className="mt-8 mx-auto max-w-4xl px-8 py-3 rounded-full border border-amber-600/40 bg-gradient-to-r from-amber-500/10 via-amber-600/15 to-amber-500/10 text-amber-950 font-bold text-sm tracking-normal shadow-xs flex items-center justify-center gap-3"
+            className="mt-8 mx-auto max-w-4xl px-8 py-3 rounded-full border border-amber-600/40 bg-gradient-to-r from-amber-500/10 via-amber-600/15 to-amber-500/10 text-amber-950 font-bold text-sm tracking-normal shadow-xs flex flex-wrap items-center justify-center gap-3"
             style={{ letterSpacing: 'normal' }}
           >
             <span className="text-amber-600 text-base flex-shrink-0">✦</span>
-            <span className="tracking-normal leading-relaxed text-center" style={{ letterSpacing: 'normal' }}>
+            <span className="tracking-normal leading-relaxed text-center break-words min-w-0" style={{ letterSpacing: 'normal' }}>
               {translations.priestSeal}
             </span>
             <span className="text-amber-600 text-base flex-shrink-0">✦</span>
@@ -1813,7 +1812,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
 
         {/* Publication Footer with Generous Bottom Clearance */}
-        <div className="mt-6 text-center text-amber-800 text-base font-bold uppercase pb-12 pt-6 leading-normal border-t border-amber-700/30">
+        <div className="mt-6 text-center text-amber-800 text-base font-bold uppercase pb-6 pt-6 leading-normal border-t border-amber-700/30">
           {translations.footer || (langKey === "kn" ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ ॥" : langKey === "hi" ? "॥ बग्गोण पंचांग प्रकाशन ॥" : langKey === "te" ? "॥ బగ్గోణ పంచాంగ ప్రచురణ ॥" : langKey === "ta" ? "॥ பக்கோண பஞ்சாங்க வெளியீடு ॥" : "॥ Baggona Panchanga Publication ॥")}
         </div>
       </div>
