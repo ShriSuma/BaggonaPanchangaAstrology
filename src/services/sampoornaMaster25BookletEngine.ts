@@ -16,6 +16,7 @@
 import type { KundliOutput } from "../core/AstroTypes";
 import { PlanetName } from "../core/AstroTypes";
 import { signLord } from "../core/KundliInsightsEngine";
+import { resolveDevoteeDisplayName, transliterateName } from "../utils/transliterator";
 import { type SixLang, pick6, RASHI_6L, GRAHA_6L } from "../features/fiveYearPrediction/fiveYearLocale";
 import {
   type RashiIndex,
@@ -613,7 +614,7 @@ export function buildChapterPrecisionEnrichment(params: {
   isChildOrInfant: boolean;
   isSenior: boolean;
   ext: ExtendedPrecisionMetrics;
-}): { extraParagraph: string; precisionAnchors: string[] } {
+}): { extraParagraphs: string[]; precisionAnchors: string[] } {
   const {
     chapterNumber,
     targetLang,
@@ -784,6 +785,9 @@ export function buildChapterPrecisionEnrichment(params: {
       ? "horizon"
       : "remedy";
 
+  let extraParagraph = "";
+  let precisionAnchors: string[] = [];
+
   if (chBand === "hook") {
     const ch1Extra = pick6(
       {
@@ -835,13 +839,9 @@ export function buildChapterPrecisionEnrichment(params: {
       `${n(bhuktiEndDate)}`
     ];
 
-    return {
-      extraParagraph: chapterNumber === 1 ? ch1Extra : chapterNumber === 2 ? ch2Extra : ch3Extra,
-      precisionAnchors: chapterNumber === 1 ? anchors1 : chapterNumber === 2 ? anchors2 : anchors3
-    };
-  }
-
-  if (chBand === "secret") {
+    extraParagraph = chapterNumber === 1 ? ch1Extra : chapterNumber === 2 ? ch2Extra : ch3Extra;
+    precisionAnchors = chapterNumber === 1 ? anchors1 : chapterNumber === 2 ? anchors2 : anchors3;
+  } else if (chBand === "secret") {
     const ch4Extra = pick6(
       {
         kn: `ವಿಶೇಷ ಬಾಧಕ-ಮಾಂದಿ ಸಮನ್ವಯ ಗಣಿತ: ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನಕ್ಕೆ ${n(badhakaHouse)}ನೇ ಮನೆಯು 'ಬಾಧಕ ಸ್ಥಾನ'ವಾಗಿದ್ದು, ಬಾಧಕಾಧಿಪತಿ ${badhakaInfo.lordName} (${n(badhakaInfo.placedHouse)}ನೇ ಭಾವ) ಹಾಗೂ ${n(maandiHouse)}ನೇ ಭಾವದ ಮಾಂದಿಯು (${maandiRashiName}) ಜಂಟಿಯಾಗಿ ಕೊನೆಯ ಕ್ಷಣದ ವಿಳಂಬವನ್ನು ಸೃಷ್ಟಿಸುತ್ತವೆ. ಅದೇ ಸಮಯದಲ್ಲಿ ನಿಮ್ಮ ಲಗ್ನ ಸರ್ವಾಷ್ಟಕವರ್ಗ ಬಲವು ${n(savByHouse[1])} ಬಿಂದುಗಳಷ್ಟಿರುವುದರಿಂದ ನಿಮ್ಮ ಆಂತರಿಕ ಚೇತನ ಗಟ್ಟಿಯಾಗಿದೆ; ನಿಯಮಿತ ಶನಿವಾರ ತೈಲಾಭಿಷೇಕ ಮತ್ತು ಬಾಧಕ ದೋಷ ಶಾಂತಿಯಿಂದ ೯೯% ಗಂಟು ಪೂರ್ಣವಾಗಿ ಕರಗುತ್ತದೆ.`,
@@ -894,13 +894,9 @@ export function buildChapterPrecisionEnrichment(params: {
       `${avayogiPlanetName}`
     ];
 
-    return {
-      extraParagraph: chapterNumber === 4 ? ch4Extra : chapterNumber === 5 ? ch5Extra : ch6Extra,
-      precisionAnchors: chapterNumber === 4 ? anchors4 : chapterNumber === 5 ? anchors5 : anchors6
-    };
-  }
-
-  if (chBand === "power") {
+    extraParagraph = chapterNumber === 4 ? ch4Extra : chapterNumber === 5 ? ch5Extra : ch6Extra;
+    precisionAnchors = chapterNumber === 4 ? anchors4 : chapterNumber === 5 ? anchors5 : anchors6;
+  } else if (chBand === "power") {
     const ch7Extra = pick6(
       {
         kn: `ಲಗ್ನ ಮೈತ್ರಿ ಹಾಗೂ ದಶಾ ಕಾರ್ಯವಿಧಾನ: ${lagnaRashiName} ಲಗ್ನಕ್ಕೆ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಮಹಾದಶಾ ನಾಥ ${currentMahadasha} ಗ್ರಹವು '${mahaNatureLabel}' ಆಗಿದ್ದು, ಅಂತರ್ದಶಾ ನಾಥ ${currentBhuktiLord} ಗ್ರಹವು '${bhuktiNatureLabel}' ಪಾತ್ರ ವಹಿಸುತ್ತಿದೆ (ಪ್ರಸ್ತುತ ಹಂತದ ಅವಧಿ: ${n(bhuktiEndDate)} ವರೆಗೆ). ${retroNote}; ಅಲ್ಲದೆ ${combustNote}. ಆದ್ದರಿಂದ ಈ ಕಾಲಘಟ್ಟವನ್ನು ಕೇವಲ ನಿರೀಕ್ಷೆಯಲ್ಲಿ ಕಳೆಯದೆ, ಸಕಾಲಿಕ ಶಿಸ್ತು ಹಾಗೂ ಶಿವನ ಅನುಗ್ರಹದೊಂದಿಗೆ ಸುವರ್ಣಾವಕಾಶವನ್ನಾಗಿ ರೂಪಿಸಿಕೊಳ್ಳುವುದು ಅತ್ಯುತ್ತಮ.`,
@@ -969,7 +965,7 @@ export function buildChapterPrecisionEnrichment(params: {
       11: [`${dignStr}`, `${n(savByHouse[10])} / ${n(savByHouse[11])}`, `${house1Info.lordName}`]
     };
 
-    const extra =
+    extraParagraph =
       chapterNumber === 7
         ? ch7Extra
         : chapterNumber === 8 || chapterNumber === 9
@@ -977,11 +973,8 @@ export function buildChapterPrecisionEnrichment(params: {
         : chapterNumber === 10
         ? ch10Extra
         : ch11Extra;
-
-    return { extraParagraph: extra, precisionAnchors: anchorMap[chapterNumber] || [] };
-  }
-
-  if (chBand === "pillar") {
+    precisionAnchors = anchorMap[chapterNumber] || [];
+  } else if (chBand === "pillar") {
     const map: Record<number, { text: string; anchors: string[] }> = {
       12: {
         text: isChildOrInfant
@@ -1111,10 +1104,9 @@ export function buildChapterPrecisionEnrichment(params: {
       }
     };
     const chosen = map[chapterNumber] || map[12];
-    return { extraParagraph: chosen.text, precisionAnchors: chosen.anchors };
-  }
-
-  if (chBand === "horizon") {
+    extraParagraph = chosen.text;
+    precisionAnchors = chosen.anchors;
+  } else if (chBand === "horizon") {
     const ch17or18 =
       chapterNumber === 17
         ? pick6(
@@ -1159,13 +1151,10 @@ export function buildChapterPrecisionEnrichment(params: {
         ? [`${bhriguBinduRashiName} (${n(bhriguDeg)})`, `${n(savByHouse[10])} / ${n(savByHouse[11])}`, `${yogiPlanetName}`]
         : [`${dignStr}`, `${n(savByHouse[10])} / ${n(savByHouse[2])}`, `${n(bhuktiEndDate)}`];
 
-    return {
-      extraParagraph: chapterNumber === 17 || chapterNumber === 18 ? ch17or18 : yearHorizonExtra,
-      precisionAnchors: anchorHorizon
-    };
-  }
-
-  // REMEDY CHAPTERS (23, 24, 25)
+    extraParagraph = chapterNumber === 17 || chapterNumber === 18 ? ch17or18 : yearHorizonExtra;
+    precisionAnchors = anchorHorizon;
+  } else {
+    // REMEDY CHAPTERS (23, 24, 25)
   const ch23Extra = pick6(
     {
       kn: `ದೋಷ ಪರಿಹಾರದ ನಿಖರ ಚಿಕಿತ್ಸಾ ಕ್ರಮ: ನಿಮ್ಮ ಲಗ್ನಕ್ಕೆ ${n(badhakaHouse)}ನೇ ಭಾವದ ಬಾಧಕಾಧಿಪತಿ ${badhakaInfo.lordName} ಹಾಗೂ ${n(maandiHouse)}ನೇ ಭಾವದ ಮಾಂದಿ ಮತ್ತು ${knotNote} ಇವುಗಳ ಸೂಕ್ಷ್ಮ ಪ್ರಭಾವವನ್ನು ಗಮನದಲ್ಲಿರಿಸಿಕೊಂಡು, ಪ್ರದರ್ಶನದ ದುಬಾರಿ ವಿಧಿಗಳಿಗಿಂತ ಶುದ್ಧ ವೈದಿಕ ಸಂಕಲ್ಪವನ್ನು ಆರಿಸಿರಿ. ಅಲ್ಲದೆ ನಿಮ್ಮ ಯೋಗಿ ಗ್ರಹವಾದ '${yogiPlanetName}' ದೇವತಾ ಆರಾಧನೆಯನ್ನು ಬಾಧಕ ಹಾಗೂ ದೋಷ ಶಾಂತಿಯೊಂದಿಗೆ ಜೋಡಿಸುವುದರಿಂದ, ಭಂಗ ಯೋಗಗಳು ವೇಗವಾಗಿ ಜಾಗೃತವಾಗಿ ಜೀವನದ ಹಾದಿ ಸುಗಮವಾಗುತ್ತದೆ.`,
@@ -1202,14 +1191,112 @@ export function buildChapterPrecisionEnrichment(params: {
     targetLang
   );
 
-  const remedyAnchors: Record<number, string[]> = {
-    23: [`${n(badhakaHouse)} (${badhakaInfo.lordName})`, `${maandiRashiName} (${n(maandiHouse)})`, `${yogiPlanetName}`],
-    24: [`${nakshatraName} (${n(nakshatraPada)})`, `${yogiPlanetName}`, `${currentMahadasha}`],
-    25: [`${lagnaRashiName}`, `${moonRashiName}`, `${yogiPlanetName}`]
-  };
+    const remedyAnchors: Record<number, string[]> = {
+      23: [`${n(badhakaHouse)} (${badhakaInfo.lordName})`, `${maandiRashiName} (${n(maandiHouse)})`, `${yogiPlanetName}`],
+      24: [`${nakshatraName} (${n(nakshatraPada)})`, `${yogiPlanetName}`, `${currentMahadasha}`],
+      25: [`${lagnaRashiName}`, `${moonRashiName}`, `${yogiPlanetName}`]
+    };
+
+    extraParagraph = chapterNumber === 23 ? ch23Extra : chapterNumber === 24 ? ch24Extra : ch25Extra;
+    precisionAnchors = remedyAnchors[chapterNumber] || [];
+  }
+
+  // 5th Holistic Chart-Specific Life Application Paragraph (strictly age-safe & pure native script)
+  const fifthParagraph =
+    chBand === "hook" || chBand === "secret"
+      ? pick6(
+          {
+            kn: `ಪ್ರಾಯೋಗಿಕ ಜೀವನ ಸಮನ್ವಯ: ${devoteeName}, ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ ${nakshatraName} ಹಾಗೂ ${lagnaRashiName} ಲಗ್ನಾಧಿಪತಿ ${house1Info.lordName} (${house1Info.placedRashi}) ನೀಡಿರುವ ಅಂತಃಪ್ರಜ್ಞೆಯು ಸಾಮಾನ್ಯರಿಗಿಂತ ತೀಕ್ಷ್ಣವಾಗಿದೆ. ಪ್ರತಿದಿನ ಬೆಳಗ್ಗೆ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವ ಮುನ್ನ ಮನಸ್ಸನ್ನು ಶಾಂತಗೊಳಿಸಿ, ಭಾಗ್ಯಾಧಿಪತಿ ${house9Info.lordName} ಮತ್ತು ಧನ ಯೋಗಿ ${yogiPlanetName} ಗ್ರಹಗಳ ಆಶೀರ್ವಾದವನ್ನು ಸ್ಮರಿಸಿ. ಸಕಾರಾತ್ಮಕ ಮಾತು, ಸತ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ಆಂತರಿಕ ಗೊಂದಲಗಳು ದೂರವಾಗಿ ಸ್ಥಿರ ನೆಮ್ಮದಿ ನೆಲೆಸುತ್ತದೆ.`,
+            mr: `व्यावहारिक जीवन समन्वय: ${devoteeName}, आपल्या ${nakshatraName} नक्षत्राने व लग्नेश ${house1Info.lordName} (${house1Info.placedRashi}) यांनी आपणास सखोल अंतर्ज्ञान दिले आहे. दररोज सकाळी घाई न करता शांतपणे विचारांचा आढावा घ्या व भाग्याधिपती ${house9Info.lordName} तसेच योगी ${yogiPlanetName} यांचे स्मरण करा. संयम, सत्यनिष्ठा व श्री गोकर्ण महाबळेश्वराच्या आशीर्वादाने मनातील सर्व अस्वस्थता दूर होऊन स्थैर्य लाभेल.`,
+            hi: `व्यावहारिक जीवन समन्वय: ${devoteeName}, आपके ${nakshatraName} नक्षत्र एवं लग्नेश ${house1Info.lordName} (${house1Info.placedRashi}) ने आपको गहरा विवेक और अंतर्ज्ञान प्रदान किया है। प्रातः महत्वपूर्ण निर्णय लेने से पूर्व चित्त को शांत कर भाग्येश ${house9Info.lordName} तथा योगी ग्रह ${yogiPlanetName} का स्मरण करें। सत्यनिष्ठा, धैर्य और श्री गोकर्ण महाबलेश्वर की कृपा से जीवन में स्थिर शांति स्थापित होती है।`,
+            te: `ఆచరణాత్మక జీవన సమన్వయం: ${devoteeName}, మీ ${nakshatraName} నక్షత్రం మరియు లగ్నాధిపతి ${house1Info.lordName} (${house1Info.placedRashi}) మీకు అద్భుతమైన అంతర్దృష్టిని అందించాయి. ప్రతిరోజూ ఉదయం ప్రశాంత మనస్సుతో నిర్ణయాలు తీసుకుని, భాగ్యాధిపతి ${house9Info.lordName} మరియు యోగి ${yogiPlanetName} అనుగ్రహాన్ని స్మరించండి. సత్యం, సహనం మరియు గోకర్ణ మహాబలేశ్వరుని రక్షణ మీకు శాశ్వత శాంతిని ప్రసాదిస్తాయి.`,
+            ta: `நடைமுறை வாழ்க்கை ஒருங்கிணைப்பு: ${devoteeName}, உங்கள் ${nakshatraName} நட்சத்திரமும் லக்னாதிபதி ${house1Info.lordName} (${house1Info.placedRashi}) நிலையும் உங்களுக்கு ஆழ்ந்த உள்ளுணர்வைத் தந்துள்ளன. தினமும் காலையில் அமைதியான மனதுடன் முக்கிய முடிவுகளை எடுத்து, பாக்கியாதிபதி ${house9Info.lordName} மற்றும் யோகி ${yogiPlanetName} அருளை நினையுங்கள். நேர்மையும் பொறுமையும் கோகர்ண ஈசன் அருளும் நிலையான மன அமைதியைத் தரும்.`,
+            en: `Daily Integration Guidance: ${devoteeName}, your ${nakshatraName} sensitivity guided by ascendant lord ${house1Info.lordName} in ${house1Info.placedRashi} grants sharper discernment than you often credit yourself for. Anchor quiet morning reflection before high-stakes conversations, align with 9th fortune lord ${house9Info.lordName} and Yogi ${yogiPlanetName}, and trust Sri Kshetra Gokarna's steady protection.`
+          },
+          targetLang
+        )
+      : chBand === "power" || chBand === "horizon"
+      ? pick6(
+          {
+            kn: `ಸಮಗ್ರ ಕಾಲಮಾನ ಮತ್ತು ಕಾರ್ಯತಂತ್ರ: ಪ್ರಸ್ತುತ ${currentMahadasha} – ${currentBhuktiLord} (${n(bhuktiEndDate)}) ಹಂತವು ಬೃಗು ಬಿಂದುವಿನ (${bhriguBinduRashiName}) ತಿರುವಿನೊಂದಿಗೆ ಸಮನ್ವಯಗೊಳ್ಳುತ್ತಿರುವುದರಿಂದ, ಹಂತ-ಹಂತವಾದ ಯೋಜನೆಯೇ ದೀರ್ಘಕಾಲಿಕ ಯಶಸ್ಸಿನ ರಹಸ್ಯವಾಗಿದೆ. ನಿಮ್ಮ ಕರ್ಮ ಭಾವಾಧಿಪತಿ ${house10Info.lordName} (${n(house10Info.placedHouse)}ನೇ ಭಾವ) ಹಾಗೂ ಲಾಭಾಧಿಪತಿ ${house11Info.lordName} ಶಕ್ತಿಯು ಶಿಸ್ತುಬದ್ಧ ಪ್ರಯತ್ನಗಳಿಗೆ ಖಚಿತ ಪ್ರತಿಫಲ ನೀಡುತ್ತದೆ. ${isMinor ? "ವಿದ್ಯಾರ್ಥಿ ದೆಸೆಯಲ್ಲಿ ಉತ್ತಮ ಸಂಸ್ಕಾರ, ಶಿಸ್ತುಬದ್ಧ ಓದು ಮತ್ತು ಆರೋಗ್ಯಕರ ದಿನಚರಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು" : "ಆದಾಯ-ಖರ್ಚುಗಳ ಲೆಕ್ಕಾಚಾರವನ್ನು ಪಾರದರ್ಶಕವಾಗಿಟ್ಟು, ಹೊಸ ಹೆಜ್ಜೆಗಳನ್ನು ಶುಭ ದಿನದಂದು ಆರಂಭಿಸುವುದು"} ನಿಮಗೆ ಅನಪೇಕ್ಷಿತ ವಿಳಂಬಗಳಿಂದ ಸಂಪೂರ್ಣ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.`,
+            mr: `समग्र कालमान व कार्यनीती: चालू ${currentMahadasha} – ${currentBhuktiLord} (${n(bhuktiEndDate)}) दशा आणि भृगु बिंदू (${bhriguBinduRashiName}) यांचा संयोग पाहता टप्प्याटप्प्याने नियोजन करणेच दीर्घकालीन प्रगतीची गुरुकिल्ली आहे. कर्मेश ${house10Info.lordName} (${n(house10Info.placedHouse)}वे स्थान) व लाभेश ${house11Info.lordName} यांचे पाठबळ प्रामाणिक कष्टांना निश्चित फळ देते. ${isMinor ? "विद्यार्थी दशेत शिस्तबद्ध अभ्यास, चांगले संस्कार व आरोग्याची काळजी घेणे आणि गुरुजनांचा आदर राखणे" : "जमा-खर्चाचा स्पष्ट ताळमेळ राखून महत्त्वाचे आर्थिक किंवा व्यावसायिक निर्णय शुभ दिवशी घेणे"} अनपेक्षित अडथळ्यांपासून आपले संरक्षण करेल व कुटुंबात स्थैर्य वाढवेल.`,
+            hi: `समग्र काल-नियोजन एवं रणनीति: वर्तमान ${currentMahadasha} – ${currentBhuktiLord} (${n(bhuktiEndDate)}) तथा भृगु बिंदु (${bhriguBinduRashiName}) के समन्वयानुसार क्रमबद्ध योजना ही स्थायी सिद्धि का रहस्य है। कर्मेश ${house10Info.lordName} (${n(house10Info.placedHouse)}वां भाव) और लाभेश ${house11Info.lordName} का शुभ संयोग आपके निष्ठावान प्रयासों को ठोस सफलता में परिवर्तित करता है। ${isMinor ? "बाल्य एवं विद्यार्थी काल में अनुशासित अध्ययन, सुसंस्कार व दिनचर्या बनाए रखना" : "आय-व्यय का संतुलन रखते हुए शुभ दिवस पर महत्वपूर्ण कार्य प्रारंभ करना"} अप्रत्याशित अवरोधों से पूर्ण सुरक्षा प्रदान करता है।`,
+            te: `సమగ్ర కాలమాన వ్యూహం: ప్రస్తుత ${currentMahadasha} – ${currentBhuktiLord} (${n(bhuktiEndDate)}) దశ మరియు భృగు బిందువు (${bhriguBinduRashiName}) కలయికను బట్టి క్రమపద్ధతిలో ప్రణాళిక వేసుకోవడమే దీర్ఘకాలిక విజయానికి రహస్యం. దశమాధిపతి ${house10Info.lordName} మరియు లాభాధిపతి ${house11Info.lordName} బలం వల్ల మీ కృషికి తగిన గౌరవం, ధనలాభం చేకూరుతాయి. ${isMinor ? "విద్యార్థి దశలో క్రమశిక్షణతో కూడిన చదువు, మంచి అలవాట్లు మరియు ఆరోగ్యం కాపాడుకోవడం" : "ఆదాయ-వ్యయాలను సమన్వయం చేసుకుంటూ శుభ రోజున ముఖ్య పనులు ప్రారంభించడం"} ఆటంకాల నుండి పూర్తి రక్షణ మరియు కుటుంబ సౌభాగ్యాన్ని ఇస్తుంది.`,
+            ta: `முழுமையான கால திட்டமிடல்: நடப்பு ${currentMahadasha} – ${currentBhuktiLord} (${n(bhuktiEndDate)}) தசையும் பிருகு பிந்து (${bhriguBinduRashiName}) இணைவும் படிப்படியான திட்டமிடலே நிலையான வெற்றிக்கான வழி என்பதைக் காட்டுகின்றன. கர்மாதிபதி ${house10Info.lordName} மற்றும் லாபாதிபதி ${house11Info.lordName} ஆகியோரின் பலம் உங்கள் நேர்மையான முயற்சிகளுக்கு உரிய பலனைத் தரும். ${isMinor ? "இளமைப் பருவத்தில் ஒழுக்கமான கல்வி, நல்ல பழக்கங்கள் மற்றும் ஆரோக்கியத்தைப் பேணுவது" : "வரவு-செலவுகளைத் தெளிவாகக் கண்காணித்து சுப நாளில் முக்கிய பணிகளைத் தொடங்குவது"} தேவையற்ற தாமதங்களைத் தவிர்க்கும்.`,
+            en: `Integrated Timing Blueprint: uniting active ${currentMahadasha}–${currentBhuktiLord} (through ${bhuktiEndDate}) with Bhrigu Bindu (${bhriguBinduRashiName}) proves methodical planning conquers turbulence. Your 10th career lord ${house10Info.lordName} (House ${house10Info.placedHouse}) and 11th gains lord ${house11Info.lordName} steadily convert patient execution into tangible prosperity. ${isMinor ? `Maintaining joyful academic discipline, healthy rest, and parental trust builds an unshakable foundation for coming decades.` : `Keeping accounts transparent, avoiding impulsive commitments, and launching critical steps aligned with Yogi ${yogiPlanetName}'s auspicious weekday neutralizes unforeseen friction cleanly.`}`
+          },
+          targetLang
+        )
+      : pick6(
+          {
+            kn: `ಕುಟುಂಬ-ಧರ್ಮ ಸಂರಕ್ಷಣೆಯ ಅಂತಿಮ ಸೂತ್ರ: ${devoteeName}, ನಿಮ್ಮ ೪ನೇ ಮನೆಯ (${house4Info.placedRashi}) ಗೃಹ ಶಾಂತಿ ಹಾಗೂ ೯ನೇ ಮನೆಯ (${house9Info.lordName}) ಭಾಗ್ಯಬಲವು ಸದಾ ದೈವಿಕ ರಕ್ಷಣೆಯಲ್ಲಿದೆ. ಮನೆಯಲ್ಲಿ ಪ್ರತಿದಿನ ಸಂಜೆ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ, ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಹಾಗೂ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗದ ಸ್ಮರಣೆಯೊಂದಿಗೆ ಶುಭ ಕರ್ಮಗಳನ್ನು ಮುಂದುವರಿಸುವುದರಿಂದ ವಂಶದ ಪ್ರತಿಯೊಂದು ಹೆಜ್ಜೆಯಲ್ಲೂ ಆರೋಗ್ಯ, ಗೌರವ ಮತ್ತು ಸಮೃದ್ಧಿ ವೃದ್ಧಿಯಾಗುತ್ತದೆ.`,
+            mr: `कौटुंबिक धर्मसंरक्षणाचा मूलमंत्र: ${devoteeName}, आपल्या चतुर्थ भावातील (${house4Info.placedRashi}) गृहशांती व नवम भावातील (${house9Info.lordName}) भाग्यबळ सदैव ईश्वरीय रक्षणाखाली आहे. दररोज संध्याकाळी घरात तुपाचा दिवा लावून वडीलधाऱ्यांचा आशीर्वाद व गोकर्ण आत्मलिंगाचे स्मरण ठेवल्याने घरात आरोग्य, समाधान व सौख्य अखंड नांदते.`,
+            hi: `पारिवारिक कल्याण एवं धर्म-संरक्षण सूत्र: ${devoteeName}, आपके चतुर्थ भाव (${house4Info.placedRashi}) की गृह शांति एवं नवम भाव (${house9Info.lordName}) का भाग्य बल निरंतर ईश्वरीय संरक्षण में है। प्रतिदिन संध्या में शुद्ध घी का दीपक जलाकर बड़ों का आशीर्वाद एवं गोकर्ण आत्मलिंग का स्मरण करने से कुल में आरोग्य, मान और सुख बढ़ता है।`,
+            te: `కుటుంబ సంరక్షణ మరియు ధర్మ సూత్రం: ${devoteeName}, మీ 4వ గృహ స్థానం (${house4Info.placedRashi}) మరియు 9వ భాగ్య స్థానం (${house9Info.lordName}) ఎల్లప్పుడూ దైవ రక్షణలో ఉంటాయి. ప్రతిరోజూ సాయంత్రం ఇంట్లో నేతి దీపం వెలిగించి, పెద్దల ఆశీస్సులతో శ్రీ గోకర్ణ ఆత్మలింగాన్ని స్మరించడం వల్ల కుటుంబంలో ఆరోగ్యం, కీర్తి మరియు సౌభాగ్యం వెల్లివిరుస్తాయి.`,
+            ta: `குடும்ப அறப் பாதுகாப்பு நெறி: ${devoteeName}, உங்கள் 4-ம் வீட்டின் (${house4Info.placedRashi}) இல்லற அமைதியும் 9-ம் வீட்டின் (${house9Info.lordName}) பாக்கிய பலமும் எப்போதும் இறை அருளில் உள்ளன. தினமும் மாலையில் நெய் தீபம் ஏற்றி பெரியோரின் ஆசியுடன் கோகர்ண ஆத்மலிங்கத்தை வணங்கி வருவது குடும்பத்தில் நலமும் செல்வமும் நிலைக்கச் செய்யும்.`,
+            en: `Household Dharma Sanctuary Axiom: ${devoteeName}, your 4th domestic sector (${house4Info.placedRashi}) and 9th fortune pillar (${house9Info.lordName}) stand guarded under lasting grace. Lighting an evening lamp with gratitude for elders and recalling Sri Gokarna's Atma Linga sustains unbroken wellness, dignity, and domestic peace.`
+          },
+          targetLang
+        );
 
   return {
-    extraParagraph: chapterNumber === 23 ? ch23Extra : chapterNumber === 24 ? ch24Extra : ch25Extra,
-    precisionAnchors: remedyAnchors[chapterNumber] || []
+    extraParagraphs: [extraParagraph, fifthParagraph],
+    precisionAnchors
   };
+}
+
+const PLACE_TERMS_6L: Record<string, Record<SixLang, string>> = {
+  india: { kn: "ಭಾರತ", mr: "भारत", hi: "भारत", te: "భారతదేశం", ta: "இந்தியா", en: "India" },
+  karnataka: { kn: "ಕರ್ನಾಟಕ", mr: "कर्नाटक", hi: "कर्नाटक", te: "కర్ణాటక", ta: "கர்நாடகா", en: "Karnataka" },
+  maharashtra: { kn: "ಮಹಾರಾಷ್ಟ್ರ", mr: "महाराष्ट्र", hi: "महाराष्ट्र", te: "మహారాష్ట్ర", ta: "மகாராஷ்டிரா", en: "Maharashtra" },
+  "tamil nadu": { kn: "ತಮಿಳುನಾಡು", mr: "तमिळनाडू", hi: "तमिलनाडु", te: "తమిళనాడు", ta: "தமிழ்நாடு", en: "Tamil Nadu" },
+  "andhra pradesh": { kn: "ಆಂಧ್ರ ಪ್ರದೇಶ", mr: "आंध्र प्रदेश", hi: "आंध्र प्रदेश", te: "ఆంధ్ర ప్రదేశ్", ta: "ஆந்திர பிரதேசம்", en: "Andhra Pradesh" },
+  telangana: { kn: "ತೆಲಂಗಾಣ", mr: "तेलंगणा", hi: "तेलंगाना", te: "తెలంగాణ", ta: "తెలంగాణ", en: "Telangana" },
+  kerala: { kn: "ಕೇರಳ", mr: "केरळ", hi: "केरल", te: "కేరళ", ta: "கேரளா", en: "Kerala" },
+  gokarna: { kn: "ಗೋಕರ್ಣ", mr: "गोकर्ण", hi: "गोकर्ण", te: "గోకర్ణ", ta: "கோகர்ணா", en: "Gokarna" },
+  bengaluru: { kn: "ಬೆಂಗಳೂರು", mr: "बेंगळुरू", hi: "बेंगलुरु", te: "బెంగళూరు", ta: "பெங்களூரு", en: "Bengaluru" },
+  bangalore: { kn: "ಬೆಂಗಳೂರು", mr: "बेंगळुरू", hi: "बेंगलुरु", te: "బెంగళూరు", ta: "பெங்களூரு", en: "Bangalore" },
+  mysuru: { kn: "ಮೈಸೂರು", mr: "म्हैसूर", hi: "मैसूरु", te: "మైసూరు", ta: "மைசூரு", en: "Mysuru" },
+  mysore: { kn: "ಮೈಸೂರು", mr: "म्हैसूर", hi: "मैसूर", te: "మైసూరు", ta: "மைசூர்", en: "Mysore" },
+  mangaluru: { kn: "ಮಂಗಳೂರು", mr: "मंगळुरू", hi: "मंगलुरु", te: "మంగళూరు", ta: "மங்களூரு", en: "Mangaluru" },
+  mangalore: { kn: "ಮಂಗಳೂರು", mr: "मंगळुरू", hi: "मंगलोर", te: "మంగళూరు", ta: "மங்களூர்", en: "Mangalore" },
+  udupi: { kn: "ಉಡುಪಿ", mr: "उडुपी", hi: "उडुपी", te: "ఉడుపి", ta: "உடுப்பி", en: "Udupi" },
+  honnavar: { kn: "ಹೊನ್ನಾವರ", mr: "होन्नावर", hi: "होन्नावर", te: "హొన్నావర్", ta: "ஹொன்னாவர்", en: "Honnavar" },
+  kumta: { kn: "ಕುಮಟಾ", mr: "कुमटा", hi: "कुमटा", te: "కుమటా", ta: "கும்தா", en: "Kumta" },
+  karwar: { kn: "ಕಾರವಾರ", mr: "कारवार", hi: "कारवार", te: "కార్వార్", ta: "கார்வார்", en: "Karwar" },
+  sirsi: { kn: "ಶಿರಸಿ", mr: "सिरसी", hi: "सिरसी", te: "సిర్సి", ta: "சிர்சி", en: "Sirsi" },
+  hubballi: { kn: "ಹುಬ್ಬಳ್ಳಿ", mr: "हुबळी", hi: "हुबली", te: "హుబ్లీ", ta: "ஹுப்பள்ளி", en: "Hubballi" },
+  dharwad: { kn: "ಧಾರವಾಡ", mr: "धारवाड", hi: "धारवाड़", te: "ధార్వాడ్", ta: "தார்வாட்", en: "Dharwad" },
+  mumbai: { kn: "ಮುಂಬೈ", mr: "मुंबई", hi: "मुंबई", te: "ముంబై", ta: "மும்பை", en: "Mumbai" },
+  pune: { kn: "ಪುಣೆ", mr: "पुणे", hi: "पुणे", te: "పుణే", ta: "புனே", en: "Pune" },
+  hyderabad: { kn: "ಹೈದರಾಬಾದ್", mr: "हैदराबाद", hi: "हैदराबाद", te: "హైదరాబాద్", ta: "ஹைதராபாத்", en: "Hyderabad" },
+  chennai: { kn: "ಚೆನ್ನೈ", mr: "चेन्नई", hi: "चेन्नई", te: "చెన్నై", ta: "சென்னை", en: "Chennai" },
+  delhi: { kn: "ದೆಹಲಿ", mr: "दिल्ली", hi: "दिल्ली", te: "ఢిల్లీ", ta: "டெல்லி", en: "Delhi" }
+};
+
+/**
+ * Resolves place labels into pure selected-language script so Latin city names
+ * do not mix into regional-language booklet covers/headers (and vice versa).
+ */
+export function resolvePlaceDisplayName(rawPlace: string, lang: SixLang): string {
+  const clean = (rawPlace || "").trim();
+  if (!clean) return "";
+  return clean
+    .split(",")
+    .map((segment) => {
+      const part = segment.trim();
+      const lower = part.toLowerCase();
+      if (PLACE_TERMS_6L[lower]?.[lang]) {
+        return PLACE_TERMS_6L[lower][lang];
+      }
+      if (lang === "en") {
+        return resolveDevoteeDisplayName(part, "en");
+      }
+      const localizedPart = /[a-zA-Z]/.test(part)
+        ? transliterateName(part, lang)
+        : resolveDevoteeDisplayName(part, lang);
+      return formatDigits(localizedPart, lang);
+    })
+    .filter(Boolean)
+    .join(", ");
 }

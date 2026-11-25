@@ -445,10 +445,13 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(detailsText).toContain(payload.yogaName);
     expect(detailsText).toContain(payload.karanaName);
     expect(detailsText).toContain(payload.janmaHora);
-    expect(detailsText).toContain("Gokarna, Karnataka");
+    expect(detailsText).toContain(payload.birthPlace);
+    expect(payload.birthPlace).not.toMatch(/[a-zA-Z]/);
+    expect(detailsText).not.toContain(`${payload.pakshaName} ${payload.pakshaName}`);
 
     expect(container.querySelector('[data-section="executive-index"]')).not.toBeNull();
     expect(container.querySelector("#sampoorna-master-25-running-header")).not.toBeNull();
+    expect(container.querySelector("#sampoorna-master-25-running-footer")).not.toBeNull();
     expect(container.querySelector("table")).toBeNull();
 
     // Ensure ZERO responsive classes or transform-skew glitches exist in rendered markup
@@ -491,7 +494,7 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(fullTamilText).not.toMatch(/[\u0900-\u097F]/);
   });
 
-  it("13. Verifies Royal Booklet flow (Cover -> 25-Chapter Page Index -> Details -> Chapters), cover emotional copy, and deep 4-paragraph chapters", async () => {
+  it("13. Verifies Royal Booklet flow (Cover -> 25-Chapter Page Index -> Details -> Chapters), pure Indic isolation, and deep 5-paragraph chapters", async () => {
     const languages = ["kn", "mr", "hi", "te", "ta", "en"] as const;
     for (const lang of languages) {
       const payload = await prepareSampoornaMaster25Data(
@@ -506,19 +509,28 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       expect(payload.precisionProfile.liveTarabalaHeadline.length).toBeGreaterThan(3);
       expect(payload.precisionProfile.badhakaSummary.length).toBeGreaterThan(3);
 
-      // 2. Every single chapter has >= 4 deep paragraphs + precision anchor pills
+      // 2. Every single chapter has >= 5 deep paragraphs + precision anchors preserved in payload
       payload.chapters.forEach((ch) => {
         expect(
           ch.paragraphs.length,
-          `[${lang}] Chapter ${ch.chapterNumber} must have at least 4 deep paragraphs`
-        ).toBeGreaterThanOrEqual(4);
+          `[${lang}] Chapter ${ch.chapterNumber} must have at least 5 deep paragraphs`
+        ).toBeGreaterThanOrEqual(5);
         expect(ch.precisionAnchors?.length || 0).toBeGreaterThanOrEqual(2);
         const totalChars = ch.paragraphs.join(" ").length;
         expect(
           totalChars,
-          `[${lang}] Chapter ${ch.chapterNumber} narrative must be deeply substantive (>= 600 chars), got ${totalChars}`
-        ).toBeGreaterThanOrEqual(600);
+          `[${lang}] Chapter ${ch.chapterNumber} narrative must be deeply substantive (>= 900 chars), got ${totalChars}`
+        ).toBeGreaterThanOrEqual(900);
       });
+
+      // 2b. Verify zero English token mixing inside Indic coverPage / details / chapters
+      if (lang !== "en") {
+        const coverStrings = Object.values(payload.coverPage).join(" ");
+        expect(coverStrings).not.toMatch(/[a-zA-Z]{2,}/);
+        expect(payload.detectedDoshasSummary).not.toMatch(/[a-zA-Z]{2,}/);
+        expect(payload.detectedYogasSummary).not.toMatch(/[a-zA-Z]{2,}/);
+        expect(payload.birthPlace).not.toMatch(/[a-zA-Z]/);
+      }
     }
 
     // 3. Verify strict DOM booklet section order & all 25 indexed chapter page markers in DOM

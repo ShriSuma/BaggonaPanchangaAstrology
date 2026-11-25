@@ -2287,13 +2287,40 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       let fileName: string;
 
       if (master25PdfRef.current && master25Payload) {
+        const pdfLang: SixLang = (selectedLang === "kn" || selectedLang === "hi" || selectedLang === "mr" || selectedLang === "te" || selectedLang === "ta") ? selectedLang : "en";
+        // Re-prepare payload if language changed since precomputation
+        let activePayload = master25Payload;
+        if (master25Payload.targetLanguage !== pdfLang && computedKundli) {
+          try {
+            const effectiveTime = isTimeUnknown ? "12:00" : birthTime;
+            activePayload = await prepareSampoornaMaster25Data(
+              {
+                kundli: computedKundli,
+                placeLabel: selectedCityName,
+                input: {
+                  name: devoteeName.trim(),
+                  birthDate,
+                  birthTime: effectiveTime,
+                  latitude,
+                  longitude,
+                  gender: gender === "female" ? "Female" : "Male"
+                }
+              },
+              pdfLang
+            );
+            setMaster25Payload(activePayload);
+            await new Promise(resolve => setTimeout(resolve, 300));
+          } catch (syncErr) {
+            console.warn("Language sync re-prepare warning:", syncErr);
+          }
+        }
         fileName = `Baggona_Sampoorna_25_Chapter_Master_Report_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
         pdf = await captureSampoornaMaster25Pdf(
           master25PdfRef.current,
           fileName,
           true,
           {
-            lang: (selectedLang === "kn" || selectedLang === "hi" || selectedLang === "mr" || selectedLang === "te" || selectedLang === "ta") ? selectedLang : "en",
+            lang: pdfLang,
             onProgress: (p) => {
               setPdfProgress(p);
               if (!isPartOfBatch) setScreenLoaderProgress(p);
@@ -2301,7 +2328,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               else if (p < 80) setPdfStageText(stages.s2);
               else setPdfStageText(stages.s3);
             },
-            payload: master25Payload
+            payload: activePayload
           }
         );
       } else {

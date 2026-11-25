@@ -24,9 +24,9 @@ import { computeMaandi } from "../core/MaandiEngine";
 import { siderealLongitudes } from "../core/EphemerisEngine";
 import { detectChartYogas, signLord, type YogaId } from "../core/KundliInsightsEngine";
 import { computeSarvashtakavarga } from "../features/fiveYearPrediction/fiveYearPredictionEngine";
-import { getLocalizedDevoteeName } from "../features/premiumPdf/dynamicBhavishyaEngine";
 import { cleanEnglishFromRegionalText } from "../features/premiumPdf/premiumPdfLocale";
 import { cleanDegreesFromText, cleanPunctuationArtifacts } from "../features/premiumPdf/yogaDoshaGocharaEnricher";
+import { resolveDevoteeDisplayName } from "../utils/transliterator";
 import {
   getFunctionalNature,
   checkNeechaBhanga,
@@ -48,6 +48,7 @@ import {
   computeExtendedPrecisionMetrics,
   buildChapterPrecisionEnrichment,
   formatPageTag6L,
+  resolvePlaceDisplayName,
   type BookletCoverContent,
   type ExtendedPrecisionMetrics
 } from "./sampoornaMaster25BookletEngine";
@@ -194,6 +195,15 @@ export interface SampoornaMaster25Payload {
   footerText: string;
 }
 
+function cleanRegionalPreserveBullets(text: string, lang: SixLang): string {
+  if (!text || lang === "en") return text;
+  return text
+    .split("•")
+    .map((seg) => cleanEnglishFromRegionalText(seg, lang).trim())
+    .filter(Boolean)
+    .join(" • ");
+}
+
 // ============================================================================
 // 2. NATIVE DIGITS & NUMBER FORMATTING
 // ============================================================================
@@ -208,8 +218,8 @@ export function toNativeDigits(num: number | string, lang: SixLang): string {
 
   const digits = (lang === "kn") ? knDigits
     : (lang === "mr" || lang === "hi") ? hiDigits
-    : (lang === "te") ? teDigits
-    : taDigits;
+      : (lang === "te") ? teDigits
+        : taDigits;
 
   return s.replace(/\d/g, d => digits[parseInt(d, 10)] || d);
 }
@@ -330,10 +340,10 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
 
 export async function prepareSampoornaMaster25Data(
   sessionOrData: any,
-  langArg: SixLang = "kn",
+  langArg?: SixLang,
   options?: { onProgress?: (pct: number, msg: string) => void }
 ): Promise<SampoornaMaster25Payload> {
-  const targetLang: SixLang = (sessionOrData?.targetLanguage as SixLang) || langArg || "kn";
+  const targetLang: SixLang = langArg || (sessionOrData?.targetLanguage as SixLang) || "kn";
   options?.onProgress?.(10, pick6({
     kn: "೧. ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಜಾತಕ ಗಣಿತ ಪರಿಶೀಲನೆ...",
     mr: "१. जन्म कुंडली व गणितीय पडताळणी...",
@@ -351,25 +361,33 @@ export async function prepareSampoornaMaster25Data(
   }
 
   const rawName = input?.name || "Devotee";
-  const localizedDevoteeName = getLocalizedDevoteeName(rawName, targetLang);
+  const localizedDevoteeName = resolveDevoteeDisplayName(rawName, targetLang);
   const birthDate = input?.birthDate || "1990-01-01";
   const birthTime = input?.birthTime || "12:00";
   const lat = input?.latitude || 14.5479;
   const lng = input?.longitude || 74.3188;
   const pin = input?.pincode ? String(input.pincode) : "";
   const rawPlace = sessionOrData?.placeLabel || sessionOrData?.homePlaceName || (input as any)?.place;
+  const nsDir = lat >= 0
+    ? pick6({ kn: "ಉ", mr: "उ", hi: "उ", te: "ఉ", ta: "வ", en: "N" }, targetLang)
+    : pick6({ kn: "ದ", mr: "द", hi: "द", te: "ద", ta: "தெ", en: "S" }, targetLang);
+  const ewDir = lng >= 0
+    ? pick6({ kn: "ಪೂ", mr: "पू", hi: "पू", te: "తూ", ta: "கி", en: "E" }, targetLang)
+    : pick6({ kn: "ಪ", mr: "प", hi: "प", te: "ప", ta: "மே", en: "W" }, targetLang);
   const birthPlace = rawPlace
-    ? String(rawPlace)
+    ? resolvePlaceDisplayName(String(rawPlace), targetLang)
     : input?.latitude
-      ? `${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E`
+      ? `${toNativeDigits(Math.abs(lat).toFixed(2), targetLang)}°${nsDir}, ${toNativeDigits(Math.abs(lng).toFixed(2), targetLang)}°${ewDir}`
       : pick6({
-          kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ",
-          mr: "श्री क्षेत्र गोकर्ण",
-          hi: "श्री क्षेत्र गोकर्ण",
-          te: "శ్రీ క్షేత్ర గోకర్ణ",
-          ta: "ஸ்ரீ கோகர்ண க்ஷேத்திரம்",
-          en: "Sri Kshetra Gokarna"
-        }, targetLang);
+        kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ",
+        mr: "श्री क्षेत्र गोकर्ण",
+        hi: "श्री क्षेत्र गोकर्ण",
+        te: "శ్రీ క్షేత్ర గోకర్ణ",
+        ta: "ஸ்ரீ கோகர்ண க்ஷேத்திரம்",
+        en: "Sri Kshetra Gokarna"
+      }, targetLang);
+
+  const cleanRegionalLabel = (val: string): string => cleanRegionalPreserveBullets(val, targetLang);
   const gender: "male" | "female" = (input?.gender?.toLowerCase() === "female") ? "female" : "male";
   const maritalStatus = input?.maritalStatus || "unmarried";
   const childrenStatus = input?.childrenStatus || "no_children";
@@ -482,15 +500,15 @@ export async function prepareSampoornaMaster25Data(
     targetLang === "kn"
       ? (traditional?.pakshaKn || "ಶುಕ್ಲ")
       : targetLang === "mr"
-      ? (traditional?.paksha5L?.hi || "शुक्ल")
-      : (traditional?.paksha5L?.[targetLang] || traditional?.paksha || "Shukla");
+        ? (traditional?.paksha5L?.hi || "शुक्ल")
+        : (traditional?.paksha5L?.[targetLang] || traditional?.paksha || "Shukla");
 
   const rawTithiName =
     targetLang === "kn"
       ? (traditional?.tithiKn || traditional?.tithi || "ಪ್ರತಿಪದೆ")
       : targetLang === "mr"
-      ? (traditional?.tithi5L?.hi || traditional?.tithi5L?.en || traditional?.tithi || "प्रतिपदा")
-      : (traditional?.tithi5L?.[targetLang] || (targetLang === "en" ? traditional?.tithi : traditional?.tithiKn) || "Pratipada");
+        ? (traditional?.tithi5L?.hi || traditional?.tithi5L?.en || traditional?.tithi || "प्रतिपदा")
+        : (traditional?.tithi5L?.[targetLang] || (targetLang === "en" ? traditional?.tithi : traditional?.tithiKn) || "Pratipada");
 
   const isPurnimaOrAmavasya = /purnima|amavasya|ಹುಣ್ಣಿಮೆ|ಅಮಾವಾಸ್ಯೆ|पूर्णिमा|अमावस्या|పౌర్ణమి|అమావాస్య|பௌர்ணமி|அமாவாசை/i.test(rawTithiName);
   const tithiName = (!isPurnimaOrAmavasya && !rawTithiName.includes(pakshaName))
@@ -506,15 +524,15 @@ export async function prepareSampoornaMaster25Data(
     targetLang === "kn"
       ? (traditional?.yogaKn || traditional?.yoga || "ಸಿದ್ಧಿ")
       : targetLang === "mr"
-      ? (traditional?.yoga5L?.hi || traditional?.yoga || "सिद्धि")
-      : (traditional?.yoga5L?.[targetLang] || traditional?.yoga || "Siddha");
+        ? (traditional?.yoga5L?.hi || traditional?.yoga || "सिद्धि")
+        : (traditional?.yoga5L?.[targetLang] || traditional?.yoga || "Siddha");
 
   const karanaName =
     targetLang === "kn"
       ? (traditional?.karanaKn || traditional?.karana || "ಬವ")
       : targetLang === "mr"
-      ? (traditional?.karana5L?.hi || traditional?.karana || "बव")
-      : (traditional?.karana5L?.[targetLang] || traditional?.karana || "Bava");
+        ? (traditional?.karana5L?.hi || traditional?.karana || "बव")
+        : (traditional?.karana5L?.[targetLang] || traditional?.karana || "Bava");
 
   const weekdayIdx = typeof traditional?.weekdayIndex === "number" ? traditional.weekdayIndex : (isNaN(birthDt.getDay()) ? 0 : birthDt.getDay());
   const weekdayName = WEEKDAY_6L[weekdayIdx]?.[targetLang] || WEEKDAY_6L[weekdayIdx]?.en || "Sunday";
@@ -651,16 +669,18 @@ export async function prepareSampoornaMaster25Data(
   const beneficYogasLocalized = detectedYogaIds
     .filter((id) => id !== "kemadruma")
     .map((id) => YOGA_LABELS_6L[id][targetLang]);
-  const detectedYogasSummary = beneficYogasLocalized.length > 0
-    ? beneficYogasLocalized.join(", ")
-    : pick6({
+  const detectedYogasSummary = cleanRegionalLabel(
+    beneficYogasLocalized.length > 0
+      ? beneficYogasLocalized.join(", ")
+      : pick6({
         kn: "ಧನ-ಕರ್ಮ ಸ್ಥಾನಾಧಿಪತಿಗಳ ಶುಭ ಸಂಯೋಗ",
         mr: "धन-कर्मेश शुभ संयोग",
         hi: "धन-कर्मेश शुभ संयोग",
         te: "ధన-కర్మాధిపతుల శుభ కలయిక",
         ta: "தன-கர்மாதிபதி சுப சேர்க்கை",
         en: "Natal Benefic Dispositor Harmony"
-      }, targetLang);
+      }, targetLang)
+  );
 
   const getHouseLordPlacement = (houseNum: number) => {
     const rIdx = ((lagnaRashiIdx + houseNum - 1) % 12) as RashiIndex;
@@ -688,22 +708,25 @@ export async function prepareSampoornaMaster25Data(
       .filter((d) => d.isDetected)
       .slice(0, 4)
       .map((d) => {
-        if (targetLang === "mr") return d.name.hi || d.name.en;
-        return d.name[targetLang] || d.name.en;
-      });
+        const rawLabel = targetLang === "mr" ? (d.name.hi || d.name.en) : (d.name[targetLang] || d.name.en);
+        return cleanRegionalLabel(rawLabel);
+      })
+      .filter(Boolean);
   } catch {
     activeDoshaNames = [];
   }
-  const detectedDoshasSummary = activeDoshaNames.length > 0
-    ? activeDoshaNames.join(", ")
-    : pick6({
+  const detectedDoshasSummary = cleanRegionalLabel(
+    activeDoshaNames.length > 0
+      ? activeDoshaNames.join(", ")
+      : pick6({
         kn: `ಸೂಕ್ಷ್ಮ ${toNativeDigits(maandiHouse, targetLang)}ನೇ ಭಾವದ ಮಾಂದಿ ಗಂಟು`,
         mr: `${toNativeDigits(maandiHouse, targetLang)}व्या स्थानातील मांदी गाठ`,
         hi: `${toNativeDigits(maandiHouse, targetLang)}वें भाव की मांदी ग्रंथि`,
         te: `${toNativeDigits(maandiHouse, targetLang)}వ స్థాన మాంది గ్రంథి`,
         ta: `${toNativeDigits(maandiHouse, targetLang)}-ஆம் இட மாந்தி முடிச்சு`,
         en: `Subtle Maandi Knot in House ${maandiHouse}`
-      }, targetLang);
+      }, targetLang)
+  );
 
   // South Indian Accuracy Variables
   const rawYogi = secretProfile.yogiPlanet || "Jupiter";
@@ -722,13 +745,13 @@ export async function prepareSampoornaMaster25Data(
   const isYogiGemProhibited = isHawalaProhibited || isVajraProhibited || isYogiFunctionalMaraka;
   const localizedYogiGemstone = isYogiGemProhibited
     ? pick6({
-        kn: `ಲಗ್ನ ಮೈತ್ರಿ ಪ್ರಕಾರ ರತ್ನ ಬದಲು '${localizedYogiColor}' ವಸ್ತ್ರ & ಮಂತ್ರ ಜಪ ಶ್ರೇಷ್ಠ`,
-        mr: `लग्न नियमानुसार रत्नाऐवजी '${localizedYogiColor}' वस्त्र व मंत्र जप उत्तम`,
-        hi: `लग्न मर्यादानुसार रत्न के स्थान पर '${localizedYogiColor}' वस्त्र एवं मंत्र जप श्रेष्ठ`,
-        te: `లగ్న నియమం ప్రకారం రత్నానికి బదులుగా '${localizedYogiColor}' వస్త్రం & మంత్ర జపం శ్రేష్ఠం`,
-        ta: `லக்ன விதிப்படி ரத்தினத்திற்கு பதிலாக '${localizedYogiColor}' ஆடை & மந்திர ஜபம் உத்தமம்`,
-        en: `Per Parashari Lagna harmony, prioritize '${localizedYogiColor}' attire & Japa instead of gem`
-      }, targetLang)
+      kn: `ಲಗ್ನ ಮೈತ್ರಿ ಪ್ರಕಾರ ರತ್ನ ಬದಲು '${localizedYogiColor}' ವಸ್ತ್ರ & ಮಂತ್ರ ಜಪ ಶ್ರೇಷ್ಠ`,
+      mr: `लग्न नियमानुसार रत्नाऐवजी '${localizedYogiColor}' वस्त्र व मंत्र जप उत्तम`,
+      hi: `लग्न मर्यादानुसार रत्न के स्थान पर '${localizedYogiColor}' वस्त्र एवं मंत्र जप श्रेष्ठ`,
+      te: `లగ్న నియమం ప్రకారం రత్నానికి బదులుగా '${localizedYogiColor}' వస్త్రం & మంత్ర జపం శ్రేష్ఠం`,
+      ta: `லக்ன விதிப்படி ரத்தினத்திற்கு பதிலாக '${localizedYogiColor}' ஆடை & மந்திர ஜபம் உத்தமம்`,
+      en: `Per Parashari Lagna harmony, prioritize '${localizedYogiColor}' attire & Japa instead of gem`
+    }, targetLang)
     : yogiAttrs6L.gemstone;
   const localizedYogiDeity = yogiAttrs6L.deity;
 
@@ -759,7 +782,7 @@ export async function prepareSampoornaMaster25Data(
   const lagnaNameLocalized = RASHI_6L[lagnaRashiIdx]?.[targetLang] || "Aries";
   const moonRashiLocalized = RASHI_6L[moonRashiIdx]?.[targetLang] || "Taurus";
 
-  const coverPage = buildBookletCoverContent({
+  const rawCoverPage = buildBookletCoverContent({
     devoteeName: localizedDevoteeName,
     birthDate,
     birthTime,
@@ -770,6 +793,19 @@ export async function prepareSampoornaMaster25Data(
     nakshatraPada,
     targetLang
   });
+  const coverPage: BookletCoverContent =
+    targetLang === "en"
+      ? rawCoverPage
+      : {
+        brandBannerTitle: cleanRegionalLabel(rawCoverPage.brandBannerTitle),
+        kshetraSubtitle: cleanRegionalLabel(rawCoverPage.kshetraSubtitle),
+        exclusiveForTag: cleanRegionalLabel(rawCoverPage.exclusiveForTag),
+        bookletEditionLine: cleanRegionalLabel(rawCoverPage.bookletEditionLine),
+        personalAssurancePara1: cleanRegionalLabel(rawCoverPage.personalAssurancePara1),
+        personalAssurancePara2: cleanRegionalLabel(rawCoverPage.personalAssurancePara2),
+        sealHeading: cleanRegionalLabel(rawCoverPage.sealHeading),
+        confidentialFooterNote: cleanRegionalLabel(rawCoverPage.confidentialFooterNote)
+      };
 
   options?.onProgress?.(50, pick6({
     kn: "೩. ೨೫ ಆಳವಾದ ಅಧ್ಯಾಯಗಳ ಸಂಯೋಜನೆ (ಪ್ರಶ್ನೋತ್ತರ ಶೈಲಿ, ಶೂನ್ಯ ಕೋಷ್ಟಕ)...",
@@ -981,11 +1017,11 @@ export async function prepareSampoornaMaster25Data(
     qrDataUrl: calendarQrDataUrl,
     googleCalendarUrl: calUrl,
     description: pick6({
-      kn: "ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಲಗ್ನಕ್ಕೆ ನಿಖರವಾಗಿ ಸರಿಹೊಂದುವಂತೆ ೧೫ ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನವನ್ನು ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಆಕ್ಟಿವೇಟ್ ಮಾಡಿಕೊಳ್ಳಲು ಕೆಳಗಿನ ಅಧಿಕೃತ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
-      mr: "आपल्या जन्म नक्षत्र, चंद्र रास व लग्नानुसार १५ दिवसांचे अचूक दैनिक दर्शन आपल्या मोबाईल कॅलेंडरवर जोडण्यासाठी खालील QR कोड स्कॅन करा.",
-      hi: "अपने जन्म नक्षत्र, चंद्र राशि एवं लग्न के अनुसार १५ दिनों का सटीक दैनिक दर्शन अपने मोबाइल कैलेंडर में सक्रिय करने हेतु नीचे दिए गए QR कोड को स्कैन करें।",
-      te: "మీ జన్మ నక్షత్రం, చంద్ర రాశి మరియు లగ్నానికి అనుగుణంగా 15 రోజుల దైనిక దర్శనాన్ని మీ మొబైల్ క్యాలెండర్‌లో యాక్టివేట్ చేసుకోవడానికి క్రింది QR కోడ్‌ను స్కాన్ చేయండి.",
-      ta: "உங்கள் பிறந்த நட்சத்திரம், ராசி மற்றும் லக்னத்திற்கு ஏற்ப 15 நாட்கள் தினசரி தரிசனத்தை உங்கள் போன் காலண்டரில் இணைக்க கீழே உள்ள QR குறியீட்டை ஸ்கேன் செய்யவும்.",
+      kn: "ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಲಗ್ನಕ್ಕೆ ನಿಖರವಾಗಿ ಸರಿಹೊಂದುವಂತೆ ೧೫ ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನವನ್ನು ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಆಕ್ಟಿವೇಟ್ ಮಾಡಿಕೊಳ್ಳಲು ಕೆಳಗಿನ ಅಧಿಕೃತ ಕ್ಯೂಆರ್ ಸಂಕೇತವನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
+      mr: "आपल्या जन्म नक्षत्र, चंद्र रास व लग्नानुसार १५ दिवसांचे अचूक दैनिक दर्शन आपल्या मोबाईल कॅलेंडरवर जोडण्यासाठी खालील क्यूआर कोड स्कॅन करा.",
+      hi: "अपने जन्म नक्षत्र, चंद्र राशि एवं लग्न के अनुसार १५ दिनों का सटीक दैनिक दर्शन अपने मोबाइल कैलेंडर में सक्रिय करने हेतु नीचे दिए गए क्यूआर कोड को स्कैन करें।",
+      te: "మీ జన్మ నక్షత్రం, చంద్ర రాశి మరియు లగ్నానికి అనుగుణంగా 15 రోజుల దైనిక దర్శనాన్ని మీ మొబైల్ క్యాలెండర్‌లో యాక్టివేట్ చేసుకోవడానికి క్రింది క్యూఆర్ కోడ్‌ను స్కాన్ చేయండి.",
+      ta: "உங்கள் பிறந்த நட்சத்திரம், ராசி மற்றும் லக்னத்திற்கு ஏற்ப 15 நாட்கள் தினசரி தரிசனத்தை உங்கள் போன் காலண்டரில் இணைக்க கீழே உள்ள கியூஆர் குறியீட்டை ஸ்கேன் செய்யவும்.",
       en: "Scan the official QR code below to sync your personalized 15-Day Daily Darshana directly to your phone calendar, calculated mathematically for your exact birth coordinates."
     }, targetLang),
     features: [
@@ -993,7 +1029,7 @@ export async function prepareSampoornaMaster25Data(
         kn: "ದೈನಂದಿನ ತಾರಾಬಲ & ಶುಭ ತಾರೆ ನಿರ್ಣಯ (ಪ್ರತಿ ದಿನವೂ ನಿಮ್ಮ ನಕ್ಷತ್ರಕ್ಕೆ ಸಿಗುವ ಶುಭ ಬಲ)",
         mr: "दैनिक ताराबल व शुभ तारा विश्लेषण (दररोजचे नक्षत्र बल)",
         hi: "दैनिक ताराबल एवं शुभ तारा निर्णय (प्रतिदिन का नक्षत्र बल)",
-        te: "రోజువారీ తారాబలం & శుభ తార నిర్ణయం (ప్రతిరోజు నక్షత్ర బలం)",
+        te: "రోజువారీ తారాబలం & శుభ తార నిర్ణయం (ప్రతిరోజు నक्षత్ర బలం)",
         ta: "தினசரி தாராபலம் & சுப தாரை கணிப்பு (நட்சத்திர பலன்)",
         en: "Daily Tarabala & Auspicious Star alignment for your Janma Nakshatra"
       }, targetLang),
@@ -1014,20 +1050,20 @@ export async function prepareSampoornaMaster25Data(
         en: "Precise Rahu Kala, Gulika Kala, and Yamaganda Kala timings"
       }, targetLang),
       pick6({
-        kn: "ಪ್ರತಿದಿನ ಬೆಳಗ್ಗೆ ೭:೦೦ ಗಂಟೆಗೆ ನಿಮ್ಮ ಫೋನ್‌ನಲ್ಲಿ ಜ್ಯೋತಿಷ್ಯ ಸೂಚನೆ (Smart Alert)",
+        kn: "ಪ್ರತಿದಿನ ಬೆಳಗ್ಗೆ ೭:೦೦ ಗಂಟೆಗೆ ನಿಮ್ಮ ಫೋನ್‌ನಲ್ಲಿ ದೈನಂದಿನ ಜ್ಯೋತಿಷ್ಯ ಸೂಚನೆ",
         mr: "दररोज सकाळी ७:०० वाजता मोबाईलवर दैनिक अलर्ट",
-        hi: "प्रतिदिन प्रातः ७:०० बजे आपके फोन पर दैनिक ज्योतिषीय अलर्ट",
-        te: "ప్రతిరోజూ ఉదయం 7:00 గంటలకు ఫోన్‌లో స్మార్ట్ అలర్ట్",
-        ta: "தினமும் காலை 7:00 மணிக்கு போனில் சிறப்பு அறிவிப்பு (Smart Alert)",
+        hi: "प्रतिदिन प्रातः ७:०० बजे आपके फोन पर दैनिक ज्योतिषीय सूचना",
+        te: "ప్రతిరోజూ ఉదయం 7:00 గంటలకు ఫోన్‌లో దైనిక జ్యోతిష్య అలర్ట్",
+        ta: "தினமும் காலை 7:00 மணிக்கு போனில் சிறப்பு தினசரி அறிவிப்பு",
         en: "Morning 7:00 AM Smart Astrological Reminder Notification directly on phone"
       }, targetLang)
     ],
     scanInstructions: pick6({
-      kn: "ಕ್ಯಾಮೆರಾ ಅಥವಾ Google Lens ಮೂಲಕ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ 'Add to Calendar' ಒತ್ತಿ.",
-      mr: "कॅमेरा किंवा Google Lens ने स्कॅन करून 'Add to Calendar' वर टॅप करा.",
-      hi: "कैमरा अथवा Google Lens से स्कैन करें और 'Add to Calendar' पर टैप करें।",
-      te: "కెమెరా లేదా Google Lens ద్వారా స్కాన్ చేసి 'Add to Calendar' నొక్కండి.",
-      ta: "கேமரா அல்லது Google Lens மூலம் ஸ்கேன் செய்து 'Add to Calendar' தட்டவும்.",
+      kn: "ಮೊಬೈಲ್ ಕ್ಯಾಮೆರಾ ಅಥವಾ ಗೂಗಲ್ ಲೆನ್ಸ್ ಮೂಲಕ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ 'ಕ್ಯಾಲೆಂಡರ್‌ಗೆ ಸೇರಿಸಿ' ಒತ್ತಿ.",
+      mr: "कॅमेरा किंवा गुगल लेन्सने स्कॅन करून 'कॅलेंडरमध्ये जोडा' वर टॅप करा.",
+      hi: "कैमरा अथवा गूगल लेंस से स्कैन करें और 'कैलेंडर में जोड़ें' पर टैप करें।",
+      te: "కెమెరా లేదా గూగుల్ లెన్స్ ద్వారా స్కాన్ చేసి 'క్యాలెండర్‌లో చేర్చండి' నొక్కండి.",
+      ta: "கேமரா அல்லது கூகுள் லென்ஸ் மூலம் ஸ்கேன் செய்து 'காலண்டரில் சேர்' தட்டவும்.",
       en: "Scan with your phone camera or Google Lens and tap 'Add to Calendar'."
     }, targetLang),
     upsellNoticeTitle: pick6({
@@ -1297,15 +1333,15 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
 
   const shaniPhase6L = isSadeSati
     ? pick6({
-        kn: `ಸಾಡೇಸಾತಿ ಶನಿ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
-        mr: `साडेसाती शनी (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
-        hi: `साढ़ेसाती शनि (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
-        te: `ఏల్నాటి శని (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
-        ta: `ஏழரை சனி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
-        en: `Sade Sati Saturn (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
-      }, targetLang)
+      kn: `ಸಾಡೇಸಾತಿ ಶನಿ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
+      mr: `साडेसाती शनी (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
+      hi: `साढ़ेसाती शनि (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
+      te: `ఏల్నాటి శని (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
+      ta: `ஏழரை சனி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
+      en: `Sade Sati Saturn (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
+    }, targetLang)
     : isAshtamaShani
-    ? pick6({
+      ? pick6({
         kn: `ಅಷ್ಟಮ ಶನಿ ಸಂಚಾರ (ಚಂದ್ರನಿಂದ ೮ನೇ ಮನೆ — ${shaniTransitRashi})`,
         mr: `अष्टम शनी भ्रमण (चंद्रापासून ८वे स्थान — ${shaniTransitRashi})`,
         hi: `अष्टम शनि गोचर (चंद्र से ८वां भाव — ${shaniTransitRashi})`,
@@ -1313,45 +1349,45 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
         ta: `அஷ்டம சனி பெயர்ச்சி (சந்திரனிலிருந்து 8-ம் இடம் — ${shaniTransitRashi})`,
         en: `Ashtama Shani (8th House from Moon in ${shaniTransitRashi})`
       }, targetLang)
-    : isKantakaShani
-    ? pick6({
-        kn: `ಕಂಟಕ / ಅರ್ಧಾಷ್ಟಮ ಶನಿ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
-        mr: `कंटक / अर्धाष्टम शनी (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
-        hi: `कंटक / अर्धाष्टम शनि (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
-        te: `కంటక శని (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
-        ta: `கண்டக / அர்த்தாஷ்டம சனி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
-        en: `Kantaka Saturn (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
-      }, targetLang)
-    : isShaniBenefic
-    ? pick6({
-        kn: `ಶುಭ ಉಪಚಯ ಶನಿ ಸಂಚಾರ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
-        mr: `शुभ उपचय शनी गोचर (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
-        hi: `शुभ उपचय शनि गोचर (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
-        te: `శుభ ఉపచయ శని గోచారం (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
-        ta: `சுப உபசய சனி பெயர்ச்சி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
-        en: `Auspicious Upachaya Saturn (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
-      }, targetLang)
-    : pick6({
-        kn: `ಸಮಸ್ಥಿತಿ ಶನಿ ಸಂಚಾರ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
-        mr: `सम शनी गोचर (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
-        hi: `सामान्य शनि गोचर (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
-        te: `సాధారణ శని సంచారం (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
-        ta: `நடுநிலை சனி பெயர்ச்சி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
-        en: `Measured Saturn Transit (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
-      }, targetLang);
+      : isKantakaShani
+        ? pick6({
+          kn: `ಕಂಟಕ / ಅರ್ಧಾಷ್ಟಮ ಶನಿ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
+          mr: `कंटक / अर्धाष्टम शनी (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
+          hi: `कंटक / अर्धाष्टम शनि (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
+          te: `కంటక శని (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
+          ta: `கண்டக / அர்த்தாஷ்டம சனி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
+          en: `Kantaka Saturn (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
+        }, targetLang)
+        : isShaniBenefic
+          ? pick6({
+            kn: `ಶುಭ ಉಪಚಯ ಶನಿ ಸಂಚಾರ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
+            mr: `शुभ उपचय शनी गोचर (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
+            hi: `शुभ उपचय शनि गोचर (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
+            te: `శుభ ఉపచయ శని గోచారం (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
+            ta: `சுப உபசய சனி பெயர்ச்சி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
+            en: `Auspicious Upachaya Saturn (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
+          }, targetLang)
+          : pick6({
+            kn: `ಸಮಸ್ಥಿತಿ ಶನಿ ಸಂಚಾರ (ಚಂದ್ರನಿಂದ ${n(shaniHouseFromMoon)}ನೇ ಮನೆ — ${shaniTransitRashi})`,
+            mr: `सम शनी गोचर (चंद्रापासून ${n(shaniHouseFromMoon)}वे स्थान — ${shaniTransitRashi})`,
+            hi: `सामान्य शनि गोचर (चंद्र से ${n(shaniHouseFromMoon)}वां भाव — ${shaniTransitRashi})`,
+            te: `సాధారణ శని సంచారం (చంద్రుని నుండి ${n(shaniHouseFromMoon)}వ స్థానం — ${shaniTransitRashi})`,
+            ta: `நடுநிலை சனி பெயர்ச்சி (சந்திரனிலிருந்து ${n(shaniHouseFromMoon)}-ம் இடம் — ${shaniTransitRashi})`,
+            en: `Measured Saturn Transit (House ${shaniHouseFromMoon} from Moon in ${shaniTransitRashi})`
+          }, targetLang);
 
   const elementRemedyAdvice6L =
     primaryElem === "water"
       ? pick6({
-          kn: `ಈ ${dominantElement} ಪ್ರಧಾನತೆಯು ನಿಮಗೆ ಅಗಾಧ ಅಂತಃಪ್ರಜ್ಞೆ, ಕರುಣೆ ಹಾಗೂ ಪರಿಸ್ಥಿತಿಗೆ ತಕ್ಕಂತೆ ಹೊಂದಿಕೊಳ್ಳುವ ಸಾಮರ್ಥ್ಯ ನೀಡಿದ್ದರೂ, ಕೆಲವೊಮ್ಮೆ ಇತರರ ನೋವನ್ನು ಮನಸ್ಸಿಗೆ ಹಚ್ಚಿಕೊಂಡು ಆಲಸ್ಯ ಅಥವಾ ಭಾವನಾತ್ಮಕ ಭಾರಕ್ಕೆ ಒಳಗಾಗಬಹುದು. ಮುಂಜಾನೆಯ ಸೂರ್ಯ ದರ್ಶನ ಮತ್ತು 'ಅಗ್ನಿ ತತ್ವ' (ಶಿಸ್ತುಬದ್ಧ ದಿನಚರಿ) ಹೆಚ್ಚಿಸಿಕೊಳ್ಳುವುದರಿಂದ ನಿಮ್ಮ ಶಕ್ತಿ ಜಾಗೃತವಾಗುತ್ತದೆ.`,
-          mr: `या ${dominantElement} प्रधानतेमुळे आपल्यात अपार संवेदनशीलता व अंतर्ज्ञान असले, तरी इतरांच्या दुःखाचा मनावर अतिभार येऊ शकतो. पहाटेचे सूर्यदर्शन व शिस्तबद्ध दिनचर्येने 'अग्नी तत्त्व' संतुलित राहील.`,
-          hi: `इस ${dominantElement} की प्रधानता से आपमें गहन अंतर्ज्ञान एवं करुणा है, किंतु दूसरों की पीड़ा से मन शीघ्र द्रवित हो जाता है। प्रातः सूर्य दर्शन एवं नियमित प्राणायाम से 'अग्नि तत्त्व' का संतुलन आपकी ऊर्जा को जाग्रत रखेगा।`,
-          te: `ఈ ${dominantElement} ప్రాధాన్యం మీకు అద్భుతమైన అంతర్దృష్టిని ఇచ్చినా, ఒక్కోసారి భావోద్వేగ భారం కలగవచ్చు. ఉదయం సూర్య దర్శనం ద్వారా 'అగ్ని తత్వాన్ని' సమతుల్యం చేసుకోండి.`,
-          ta: `இந்த ${dominantElement} ஆதிக்கம் உங்களுக்கு ஆழ்ந்த உள்ளுணர்வையும் கருணையையும் தந்தாலும், சில நேரங்களில் உணர்ச்சி வசப்படச் செய்யலாம். அதிகாலை சூரிய தரிசனம் 'அக்னி தத்துவத்தை' சமநிலைப்படுத்தும்.`,
-          en: `While this ${dominantElement} constitution grants deep empathy and intuitive intelligence, it can also tempt emotional absorption or inertia. Cultivating solar discipline ('Agni Tattva' — early sunlight, crisp routines, and decisive boundaries) energizes your execution.`
-        }, targetLang)
+        kn: `ಈ ${dominantElement} ಪ್ರಧಾನತೆಯು ನಿಮಗೆ ಅಗಾಧ ಅಂತಃಪ್ರಜ್ಞೆ, ಕರುಣೆ ಹಾಗೂ ಪರಿಸ್ಥಿತಿಗೆ ತಕ್ಕಂತೆ ಹೊಂದಿಕೊಳ್ಳುವ ಸಾಮರ್ಥ್ಯ ನೀಡಿದ್ದರೂ, ಕೆಲವೊಮ್ಮೆ ಇತರರ ನೋವನ್ನು ಮನಸ್ಸಿಗೆ ಹಚ್ಚಿಕೊಂಡು ಆಲಸ್ಯ ಅಥವಾ ಭಾವನಾತ್ಮಕ ಭಾರಕ್ಕೆ ಒಳಗಾಗಬಹುದು. ಮುಂಜಾನೆಯ ಸೂರ್ಯ ದರ್ಶನ ಮತ್ತು 'ಅಗ್ನಿ ತತ್ವ' (ಶಿಸ್ತುಬದ್ಧ ದಿನಚರಿ) ಹೆಚ್ಚಿಸಿಕೊಳ್ಳುವುದರಿಂದ ನಿಮ್ಮ ಶಕ್ತಿ ಜಾಗೃತವಾಗುತ್ತದೆ.`,
+        mr: `या ${dominantElement} प्रधानतेमुळे आपल्यात अपार संवेदनशीलता व अंतर्ज्ञान असले, तरी इतरांच्या दुःखाचा मनावर अतिभार येऊ शकतो. पहाटेचे सूर्यदर्शन व शिस्तबद्ध दिनचर्येने 'अग्नी तत्त्व' संतुलित राहील.`,
+        hi: `इस ${dominantElement} की प्रधानता से आपमें गहन अंतर्ज्ञान एवं करुणा है, किंतु दूसरों की पीड़ा से मन शीघ्र द्रवित हो जाता है। प्रातः सूर्य दर्शन एवं नियमित प्राणायाम से 'अग्नि तत्त्व' का संतुलन आपकी ऊर्जा को जाग्रत रखेगा।`,
+        te: `ఈ ${dominantElement} ప్రాధాన్యం మీకు అద్భుతమైన అంతర్దృష్టిని ఇచ్చినా, ఒక్కోసారి భావోద్వేగ భారం కలగవచ్చు. ఉదయం సూర్య దర్శనం ద్వారా 'అగ్ని తత్వాన్ని' సమతుల్యం చేసుకోండి.`,
+        ta: `இந்த ${dominantElement} ஆதிக்கம் உங்களுக்கு ஆழ்ந்த உள்ளுணர்வையும் கருணையையும் தந்தாலும், சில நேரங்களில் உணர்ச்சி வசப்படச் செய்யலாம். அதிகாலை சூரிய தரிசனம் 'அக்னி தத்துவத்தை' சமநிலைப்படுத்தும்.`,
+        en: `While this ${dominantElement} constitution grants deep empathy and intuitive intelligence, it can also tempt emotional absorption or inertia. Cultivating solar discipline ('Agni Tattva' — early sunlight, crisp routines, and decisive boundaries) energizes your execution.`
+      }, targetLang)
       : primaryElem === "earth"
-      ? pick6({
+        ? pick6({
           kn: `ಈ ${dominantElement} ಪ್ರಧಾನತೆಯು ನಿಮಗೆ ಸ್ಥಿರತೆ, ವಿಶ್ವಾಸಾರ್ಹತೆ ಹಾಗೂ ಪ್ರಾಯೋಗಿಕ ಕೌಶಲ್ಯವನ್ನು ನೀಡಿದರೂ, ಕೆಲವೊಮ್ಮೆ ಬದಲಾವಣೆಗೆ ಒಗ್ಗಿಕೊಳ್ಳಲು ವಿಳಂಬ ಅಥವಾ ಅತಿಯಾದ ಜವಾಬ್ದಾರಿಯ ಹೊರೆ ಉಂಟಾಗಬಹುದು. ಮುಕ್ತ ಗಾಳಿಯಲ್ಲಿ ನಡಿಗೆ ಹಾಗೂ 'ವಾಯು-ಜಲ ತತ್ವ'ಗಳನ್ನು ಪೋಷಿಸುವುದರಿಂದ ಮನಸ್ಸು ಹಗುರ ಹಾಗೂ ಚುರುಕಾಗುತ್ತದೆ.`,
           mr: `या ${dominantElement} प्रधानतेमुळे आपल्यामध्ये स्थिरता व व्यावहारिक शहाणपण असले, तरी बदल स्वीकारण्यात कधीकधी जडत्व येते. मोकळ्या हवेत चालणे व 'वायू-जल तत्त्व' वाढवण्याने मन प्रफुल्लित राहील.`,
           hi: `इस ${dominantElement} की प्रधानता से आपको अद्भुत धैर्य एवं व्यावहारिक कुशलता मिली है, तथापि कभी-कभी परिवर्तन के प्रति संकोच होता है। प्रातः खुले वातावरण में भ्रमण एवं 'वायु-जल तत्त्व' के संवर्धन से मन प्रफुल्लित रहेगा।`,
@@ -1359,7 +1395,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
           ta: `இந்த ${dominantElement} ஆதிக்கம் உங்களுக்கு உறுதியையும் பொறுமையையும் தந்தாலும், மாற்றங்களை ஏற்கச் சிறிது தயக்கம் வரலாம். நடைப்பயிற்சி மற்றும் பிராணாயாமம் மூலம் 'வாயு-நீர் தத்துவத்தை' மேம்படுத்தலாம்.`,
           en: `While this ${dominantElement} matrix endows unshakable patience and practical stewardship, it can occasionally invite rigidity or over-burdened caution. Introducing fresh airflow, movement, and Water lightness refreshes agility.`
         }, targetLang)
-      : pick6({
+        : pick6({
           kn: `ಈ ${dominantElement} ಪ್ರಧಾನತೆಯು ನಿಮಗೆ ಅದ್ಭುತ ಕಾರ್ಯಕ್ಷಮತೆ ಹಾಗೂ ತೀಕ್ಷ್ಣ ಬುದ್ಧಿ ನೀಡಿದರೂ, ಕೆಲವೊಮ್ಮೆ ತೀವ್ರ ಆವೇಶ ಅಥವಾ ಅತಿಯಾದ ಆಲೋಚನೆಯಿಂದ ನಿದ್ರಾಹೀನತೆಯನ್ನು ಉಂಟುಮಾಡಬಹುದು. 'ಜಲ ತತ್ವ'ವನ್ನು ಹೆಚ್ಚಿಸಿಕೊಳ್ಳುವುದರಿಂದ ನಿಮ್ಮ ಬುದ್ಧಿ ಮತ್ತಷ್ಟು ಶಾಂತ ಹಾಗೂ ಸ್ಥಿರವಾಗುತ್ತದೆ.`,
           mr: `या ${dominantElement} प्रधानतेमुळे आपल्यात उत्तम निर्णयक्षमता आहे, पण कधीकधी अतिविचार व रागामुळे अस्वस्थता येते. 'जल तत्त्वाचे' संतुलन राखल्यास मन अधिक शांत व एकाग्र होईल.`,
           hi: `यह ${dominantElement} प्रधानता आपको अदम्य कार्यक्षमता एवं तीव्र बुद्धि प्रदान करती है, परंतु कभी-कभी अति-चिंतन एवं व्यग्रता भी देती है। 'जल तत्त्व' के संवर्धन से आपका विवेक शांत एवं स्थिर होगा।`,
@@ -1811,7 +1847,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       pick6({
         kn: `${devoteeName}, ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪರಮ ಸತ್ಯವೇನೆಂದರೆ ದಶೆಗಳೇ ಮನುಷ್ಯನ ಹಣೆಬರಹವನ್ನು ಕಾರ್ಯರೂಪಕ್ಕೆ ತರುವ ಕಾಲಪುರುಷನ ಕೈಗಳು. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನಕ್ಕೆ ${currentMahadasha} ಮಹಾದಶೆಯು ನಡೆಯುತ್ತಿದ್ದು, ಇದರೊಂದಿಗೆ ${currentBhuktiLord} ಅಂತರ್ದಶೆಯು ಸಕ್ರಿಯವಾಗಿದೆ. ಈ ಎರಡು ಗ್ರಹಗಳ ಪರಸ್ಪರ ಸಂಬಂಧವು ನಿಮ್ಮ ದೈನಂದಿನ ಚಿಂತನೆ, ವೃತ್ತಿ ಯೋಜನೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಗಳ ಮೇಲೆ ನೇರ ಪ್ರಭಾವ ಬೀರುತ್ತಿದೆ. ${isDashaSandhi ? "ವಿಶೇಷ ಎಚ್ಚರಿಕೆ: ನೀವು ಪ್ರಸ್ತುತ 'ದಶಾ ಸಂಧಿ' (ಒಂದು ಮಹಾದಶೆ ಮುಗಿದು ಇನ್ನೊಂದು ಪ್ರಾರಂಭವಾಗುವ ಅತ್ಯಂತ ಸಂವೇದನಾಶೀಲ ಕಾಲಘಟ್ಟ)ಯಲ್ಲಿದ್ದೀರಿ. ಈ ಸಮಯದಲ್ಲಿ ಹಠಾತ್ ಹೊಸ ಹೂಡಿಕೆ ಅಥವಾ ಉದ್ಯೋಗ ಬದಲಾವಣೆಗಿಂತ ಮುನ್ನ ಎಚ್ಚರಿಕೆ ವಹಿಸುವುದು ಅತ್ಯಾವಶ್ಯಕ." : "ದಶಾನಾಥರು ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನಕ್ಕೆ ಪೂರಕವಾದ ಸತ್ಫಲಗಳನ್ನು ನೀಡುವ ಸನ್ನದ್ಧತೆಯಲ್ಲಿದ್ದಾರೆ."}`,
         mr: `${devoteeName}, ज्योतिषशास्त्राचा मूलभूत नियम आहे की दशाच माणसाचे नशीब घडवतात. सध्या आपल्या ${lagnaRashiName} लग्नासाठी ${currentMahadasha} महादशा व ${currentBhuktiLord} अंतर्दशा सुरू आहे. हे दोन ग्रह आपल्या दैनंदिन निर्णय, नोकरी-व्यवसाय आणि कौटुंबिक स्थितीवर मोठा प्रभाव टाकत आहेत. ${isDashaSandhi ? "महत्त्वाची सूचना: आपण सध्या 'दशा संधिक' काळातून जात आहात. हा काळ संक्रमणशील असल्याने घाईघाईत कोणताही मोठा निर्णय घेणे टाळावे." : "दशा स्वामी आपल्याला योग्य दिशेने नेण्यासाठी अनुकूल आहेत."}`,
-        hi: `${devoteeName}, ज्योतिष शास्त्र के सिद्धांत के अनुसार दशाएं ही प्रारब्ध के कर्मों को प्रकट करती हैं। आपके ${lagnaRashiName} लग्न के लिए वर्तमान में ${currentMahadasha} महादशा के साथ ${currentBhuktiLord} अंतर्दशा प्रभावी है। इन दोनों अधिपति ग्रहों का परस्पर संबंध आपके करियर, धन प्रवाह और मानसिक शांति पर गहरा असर डाल रहा है। ${isDashaSandhi ? "अति-संवेदनशील सूचना: आप 'दशा संधि' के नाज़ुक दौर में हैं। इस संधिकाल में किसी भी प्रकार का अनावश्यक आर्थिक जोखिम न लें और पुरानी योजनाओं को ही मजबूत करें।" : "दशाधिपति ग्रह आपके पक्ष में शुभ फल देने हेतु तत्पर हैं।" }`,
+        hi: `${devoteeName}, ज्योतिष शास्त्र के सिद्धांत के अनुसार दशाएं ही प्रारब्ध के कर्मों को प्रकट करती हैं। आपके ${lagnaRashiName} लग्न के लिए वर्तमान में ${currentMahadasha} महादशा के साथ ${currentBhuktiLord} अंतर्दशा प्रभावी है। इन दोनों अधिपति ग्रहों का परस्पर संबंध आपके करियर, धन प्रवाह और मानसिक शांति पर गहरा असर डाल रहा है। ${isDashaSandhi ? "अति-संवेदनशील सूचना: आप 'दशा संधि' के नाज़ुक दौर में हैं। इस संधिकाल में किसी भी प्रकार का अनावश्यक आर्थिक जोखिम न लें और पुरानी योजनाओं को ही मजबूत करें।" : "दशाधिपति ग्रह आपके पक्ष में शुभ फल देने हेतु तत्पर हैं।"}`,
         te: `${devoteeName}, జ్యోతిష్య శాస్త్రం ప్రకారం దశలే జీవిత గమనాన్ని నిర్దేశిస్తాయి. మీ ${lagnaRashiName} లగ్నానికి ప్రస్తుతం ${currentMahadasha} మహాదశ మరియు ${currentBhuktiLord} అంతర్దశ నడుస్తున్నాయి. ${isDashaSandhi ? "ముఖ్య గమనిక: మీరు 'దశా సంధి' కాలంలో ఉన్నందున కొత్త రిస్క్‌లు తీసుకోకుండా ప్రస్తుత పనులను నిలకడగా కొనసాగించడం శ్రేయస్కరం." : "దశానాథులు మీకు శుభ ఫలితాలు అందించడానికి సిద్ధంగా ఉన్నారు."}`,
         ta: `${devoteeName}, ஜோதிட சாஸ்திரப்படி மனிதனின் விதியை செயல்படுத்தும் காலச்சக்கரமே தசாபுக்தியாகும். உங்கள் ${lagnaRashiName} லக்னத்திற்கு இப்போது ${currentMahadasha} மகாதசையும் ${currentBhuktiLord} அந்தர்தசையும் இயங்கி வருகின்றன. ${isDashaSandhi ? "முக்கிய எச்சரிக்கை: நீங்கள் 'தசா சந்தி' காலகட்டத்தில் உள்ளதால் அவசர முடிவுகளையும் புதிய கடன்களையும் தவிர்க்கவும்." : "தசா நாதர்கள் உங்களுக்கு நற்பலன்களைத் தர சாதகமாக உள்ளனர்."}`,
         en: `${devoteeName}, in classical Parashari Jyotish, Vimshottari Dashas are the supreme clockwork that awakens dormant natal promises. Your ${lagnaRashiName} ascendant is currently traversing ${currentMahadasha} Mahadasha modulated by ${currentBhuktiLord} Bhukti. ${isDashaSandhi ? "CRITICAL VEDIC TRANSITION ALERT: You are traversing a Dasha Sandhi threshold (the twilight transition between two major planetary epochs). Consolidate your existing assets and emotional boundaries rather than embarking on high-friction adventures." : "Your dasha dispositors are dynamically aligned to translate sustained labor into tangible progress."}`
@@ -2100,15 +2136,15 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     sectionTitle: sec3,
     title: isInfant || ageCategory === "early_child" || ageCategory === "child"
       ? pick6({
-          kn: "ಬಾಲಾರಿಷ್ಟ ರಕ್ಷೆ, ವಿದ್ಯಾಭ್ಯಾಸದ ಅಡಿಪಾಯ & ಪ್ರತಿಭಾ ವಿಕಾಸ",
-          mr: "बालारिष्ट संरक्षण, शिक्षणाचा पाया व बुद्धिमत्ता विकास",
-          hi: "बालारिष्ट सुरक्षा, विद्यारंभ एवं प्रतिभा विकास",
-          te: "బాలారిష్ట రక్షణ, విద్యా పునాది & ప్రతిభా వికాసం",
-          ta: "பாலாரிஷ்ட பாதுகாப்பு, கல்வி அடித்தளம் & திறமை வளர்ச்சி",
-          en: "Early Cognitive Foundation, Learning Aptitude & Protection"
-        }, targetLang)
+        kn: "ಬಾಲಾರಿಷ್ಟ ರಕ್ಷೆ, ವಿದ್ಯಾಭ್ಯಾಸದ ಅಡಿಪಾಯ & ಪ್ರತಿಭಾ ವಿಕಾಸ",
+        mr: "बालारिष्ट संरक्षण, शिक्षणाचा पाया व बुद्धिमत्ता विकास",
+        hi: "बालारिष्ट सुरक्षा, विद्यारंभ एवं प्रतिभा विकास",
+        te: "బాలారిష్ట రక్షణ, విద్యా పునాది & ప్రతిభా వికాసం",
+        ta: "பாலாரிஷ்ட பாதுகாப்பு, கல்வி அடித்தளம் & திறமை வளர்ச்சி",
+        en: "Early Cognitive Foundation, Learning Aptitude & Protection"
+      }, targetLang)
       : isSenior
-      ? pick6({
+        ? pick6({
           kn: "ಜೀವನ ನಿವೃತ್ತಿ, ಗೌರವ ಪ್ರತಿಷ್ಠೆ, ಮಾರ್ಗದರ್ಶನ & ವಂಶೋದ್ಧಾರ",
           mr: "निवृत्तीनंतरचा सन्मान, मार्गदर्शन व प्रतिष्ठा",
           hi: "जीवन निवृत्ति, सामाजिक प्रतिष्ठा, मार्गदर्शन एवं सम्मान",
@@ -2116,7 +2152,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
           ta: "ஓய்வுக்கால பெருமை, சமூக அந்தஸ்து & வழிகாட்டல்",
           en: "Elder Legacy, Advisory Eminence & Life Culmination"
         }, targetLang)
-      : pick6({
+        : pick6({
           kn: "ವೃತ್ತಿ ಭವಿಷ್ಯ, ಉದ್ಯೋಗ ಉನ್ನತಿ, ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆ & ಅಧಿಕಾರ ಯೋಗ",
           mr: "कारकीर्द, नोकरीत प्रगती, व्यवसाय वृद्धी व अधिकार योग",
           hi: "आजीविका, पदोन्नति, व्यापार विस्तार एवं अधिकार योग",
@@ -2127,21 +2163,21 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     icon: "💼",
     question: isInfant || ageCategory === "early_child" || ageCategory === "child"
       ? pick6({
-          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ಈ ಮುಗ್ಧ ಶಿಶುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ, ಬುದ್ಧಿಮತ್ತೆ ಹಾಗೂ ಬಾಲ್ಯದ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗೆ ಗ್ರಹಗಳು ಯಾವ ಸೂಚನೆ ನೀಡುತ್ತಿವೆ?`,
-          mr: `प्रश्न: ${devoteeName}, या बाळाच्या बुद्धिमत्ता, शिक्षण व निरोगी वाढीसाठी ग्रहांचे काय मार्गदर्शन आहे?`,
-          hi: `प्रश्न: ${devoteeName}, इस बालक की विद्या, कुशाग्र बुद्धि एवं बाल्यकालीन स्वास्थ्य सुरक्षा हेतु ग्रहों का क्या निर्देश है?`,
-          te: `ప్రశ్న: ${devoteeName}, ఈ చిన్నారి విద్యాభ్యాసం, తెలివితేటలు & బాల్య రక్షణకు గ్రహాలు ఇచ్చే సూచన ఏమిటి?`,
-          ta: `கேள்வி: ${devoteeName}, இந்தக் குழந்தையின் கல்வி வளர்ச்சி, புத்திக்கூர்மை மற்றும் பால பருவ நலனுக்கு கிரகங்கள் கூறும் வழி என்ன?`,
-          en: `Question: ${devoteeName}, what planetary indicators govern this young child's intellectual foundation, cognitive gifts, and protection?`
-        }, targetLang)
+        kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ಈ ಮುಗ್ಧ ಶಿಶುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ, ಬುದ್ಧಿಮತ್ತೆ ಹಾಗೂ ಬಾಲ್ಯದ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗೆ ಗ್ರಹಗಳು ಯಾವ ಸೂಚನೆ ನೀಡುತ್ತಿವೆ?`,
+        mr: `प्रश्न: ${devoteeName}, या बाळाच्या बुद्धिमत्ता, शिक्षण व निरोगी वाढीसाठी ग्रहांचे काय मार्गदर्शन आहे?`,
+        hi: `प्रश्न: ${devoteeName}, इस बालक की विद्या, कुशाग्र बुद्धि एवं बाल्यकालीन स्वास्थ्य सुरक्षा हेतु ग्रहों का क्या निर्देश है?`,
+        te: `ప్రశ్న: ${devoteeName}, ఈ చిన్నారి విద్యాభ్యాసం, తెలివితేటలు & బాల్య రక్షణకు గ్రహాలు ఇచ్చే సూచన ఏమిటి?`,
+        ta: `கேள்வி: ${devoteeName}, இந்தக் குழந்தையின் கல்வி வளர்ச்சி, புத்திக்கூர்மை மற்றும் பால பருவ நலனுக்கு கிரகங்கள் கூறும் வழி என்ன?`,
+        en: `Question: ${devoteeName}, what planetary indicators govern this young child's intellectual foundation, cognitive gifts, and protection?`
+      }, targetLang)
       : pick6({
-          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಯಶಸ್ಸು ಯಾವಾಗ ಸಿಗಲಿದೆ ಹಾಗೂ ಯಾವ ಕ್ಷೇತ್ರದಲ್ಲಿ ನಿಮಗೆ ಅಗಾಧ ಕೀರ್ತಿ ಲಭಿಸುತ್ತದೆ?`,
-          mr: `प्रश्न: ${devoteeName}, आपल्या कारकिर्दीत सर्वोच्च यश कधी मिळेल व कोणत्या क्षेत्रात मान-सन्मान वाढेल?`,
-          hi: `प्रश्न: ${devoteeName}, आपके कार्यक्षेत्र में सर्वोच्च उत्थान कब होगा एवं किस दिशा में आपको स्थायी ख्याति प्राप्त होगी?`,
-          te: `ప్రశ్న: ${devoteeName}, మీ వృత్తి జీవితంలో అత్యున్నత విజయం ఎప్పుడు లభిస్తుంది మరియు ఏ రంగం మీకు అనుకూలం?`,
-          ta: `கேள்வி: ${devoteeName}, உங்கள் தொழில் வாழ்க்கையில் மாபெரும் வெற்றி எப்போது கிட்டும்? எந்தத் துறை உங்களுக்கு புகழைத் தரும்?`,
-          en: `Question: ${devoteeName}, what celestial timing governs your career pinnacles, and which professional arena unlocks your authority?`
-        }, targetLang),
+        kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಯಶಸ್ಸು ಯಾವಾಗ ಸಿಗಲಿದೆ ಹಾಗೂ ಯಾವ ಕ್ಷೇತ್ರದಲ್ಲಿ ನಿಮಗೆ ಅಗಾಧ ಕೀರ್ತಿ ಲಭಿಸುತ್ತದೆ?`,
+        mr: `प्रश्न: ${devoteeName}, आपल्या कारकिर्दीत सर्वोच्च यश कधी मिळेल व कोणत्या क्षेत्रात मान-सन्मान वाढेल?`,
+        hi: `प्रश्न: ${devoteeName}, आपके कार्यक्षेत्र में सर्वोच्च उत्थान कब होगा एवं किस दिशा में आपको स्थायी ख्याति प्राप्त होगी?`,
+        te: `ప్రశ్న: ${devoteeName}, మీ వృత్తి జీవితంలో అత్యున్నత విజయం ఎప్పుడు లభిస్తుంది మరియు ఏ రంగం మీకు అనుకూలం?`,
+        ta: `கேள்வி: ${devoteeName}, உங்கள் தொழில் வாழ்க்கையில் மாபெரும் வெற்றி எப்போது கிட்டும்? எந்தத் துறை உங்களுக்கு புகழைத் தரும்?`,
+        en: `Question: ${devoteeName}, what celestial timing governs your career pinnacles, and which professional arena unlocks your authority?`
+      }, targetLang),
     paragraphs: [
       pick6({
         kn: isInfant || ageCategory === "early_child" || ageCategory === "child"
@@ -2234,39 +2270,39 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     sectionTitle: sec3,
     title: isChildOrInfant
       ? pick6({
-          kn: "ಬಾಲ ಲಕ್ಷ್ಮಿ ಯೋಗ, ವಿದ್ಯಾ ನಿಧಿ ಭದ್ರತೆ & ಕುಟುಂಬದ ಸಮೃದ್ಧಿ",
-          mr: "बाल लक्ष्मी योग, शिक्षण निधी सुरक्षा व कौटुंबिक समृद्धी",
-          hi: "बाल लक्ष्मी योग, विद्या कोष सुरक्षा एवं पारिवारिक समृद्धि",
-          te: "బాల లక్ష్మి యోగం, విద్యా నిధి భద్రత & కుటుంబ ఐశ్వర్యం",
-          ta: "பால லட்சுமி யோகம், கல்வி நிதி பாதுகாப்பு & குடும்ப வளம்",
-          en: "Childhood Abundance Yoga, Educational Security & Family Prosperity"
-        }, targetLang)
+        kn: "ಬಾಲ ಲಕ್ಷ್ಮಿ ಯೋಗ, ವಿದ್ಯಾ ನಿಧಿ ಭದ್ರತೆ & ಕುಟುಂಬದ ಸಮೃದ್ಧಿ",
+        mr: "बाल लक्ष्मी योग, शिक्षण निधी सुरक्षा व कौटुंबिक समृद्धी",
+        hi: "बाल लक्ष्मी योग, विद्या कोष सुरक्षा एवं पारिवारिक समृद्धि",
+        te: "బాల లక్ష్మి యోగం, విద్యా నిధి భద్రత & కుటుంబ ఐశ్వర్యం",
+        ta: "பால லட்சுமி யோகம், கல்வி நிதி பாதுகாப்பு & குடும்ப வளம்",
+        en: "Childhood Abundance Yoga, Educational Security & Family Prosperity"
+      }, targetLang)
       : pick6({
-          kn: "ಧನಾಗಮನ, ಆರ್ಥಿಕ ಭದ್ರತೆ, ಉಳಿತಾಯ & ಶಾಶ್ವತ ಆಸ್ತಿ ಸೃಷ್ಟಿ",
-          mr: "धनलाभ, आर्थिक स्थैर्य, बचत व संपत्ती निर्मिती",
-          hi: "धन आगमन, वित्तीय स्थिरता, संचय एवं स्थायी संपत्ति निर्माण",
-          te: "ధన ప్రాప్తి, ఆర్థిక భద్రత, పొదుపు & శాశ్వత ఆస్తి నిర్మాణం",
-          ta: "தன வரவு, நிதி ஸ்திரத்தன்மை, சேமிப்பு & நிரந்தர சொத்து சேர்க்கை",
-          en: "Wealth Accumulation, Financial Fortification & Asset Generation"
-        }, targetLang),
+        kn: "ಧನಾಗಮನ, ಆರ್ಥಿಕ ಭದ್ರತೆ, ಉಳಿತಾಯ & ಶಾಶ್ವತ ಆಸ್ತಿ ಸೃಷ್ಟಿ",
+        mr: "धनलाभ, आर्थिक स्थैर्य, बचत व संपत्ती निर्मिती",
+        hi: "धन आगमन, वित्तीय स्थिरता, संचय एवं स्थायी संपत्ति निर्माण",
+        te: "ధన ప్రాప్తి, ఆర్థిక భద్రత, పొదుపు & శాశ్వత ఆస్తి నిర్మాణం",
+        ta: "தன வரவு, நிதி ஸ்திரத்தன்மை, சேமிப்பு & நிரந்தர சொத்து சேர்க்கை",
+        en: "Wealth Accumulation, Financial Fortification & Asset Generation"
+      }, targetLang),
     icon: "💰",
     question: isChildOrInfant
       ? pick6({
-          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ಈ ಕಂದನ ಜಾತಕದಲ್ಲಿ ಕುಟುಂಬದ ಏಳಿಗೆ ಹಾಗೂ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸದ ಸಂಪತ್ತು ಹೇಗಿದೆ?`,
-          mr: `प्रश्न: ${devoteeName}, या बाळाच्या कुंडलीत कौटुंबिक समृद्धी व उच्च शिक्षणाचा आधार कसा आहे?`,
-          hi: `प्रश्न: ${devoteeName}, इस बालक की कुंडली में पारिवारिक समृद्धि एवं उच्च शिक्षा कोष की स्थिति कैसी है?`,
-          te: `ప్రశ్న: ${devoteeName}, ఈ చిన్నారి జాతకంలో కుటుంబ ఐశ్వర్యం మరియు విద్యా సంపద ఎలా ఉన్నాయి?`,
-          ta: `கேள்வி: ${devoteeName}, இந்தக் குழந்தையின் ஜாதகத்தில் குடும்ப வளமும் கல்விச் செல்வமும் எவ்வாறு அமைந்துள்ளன?`,
-          en: `Question: ${devoteeName}, how do natal wealth lords bless this child's educational foundation and parental prosperity?`
-        }, targetLang)
+        kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ಈ ಕಂದನ ಜಾತಕದಲ್ಲಿ ಕುಟುಂಬದ ಏಳಿಗೆ ಹಾಗೂ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸದ ಸಂಪತ್ತು ಹೇಗಿದೆ?`,
+        mr: `प्रश्न: ${devoteeName}, या बाळाच्या कुंडलीत कौटुंबिक समृद्धी व उच्च शिक्षणाचा आधार कसा आहे?`,
+        hi: `प्रश्न: ${devoteeName}, इस बालक की कुंडली में पारिवारिक समृद्धि एवं उच्च शिक्षा कोष की स्थिति कैसी है?`,
+        te: `ప్రశ్న: ${devoteeName}, ఈ చిన్నారి జాతకంలో కుటుంబ ఐశ్వర్యం మరియు విద్యా సంపద ఎలా ఉన్నాయి?`,
+        ta: `கேள்வி: ${devoteeName}, இந்தக் குழந்தையின் ஜாதகத்தில் குடும்ப வளமும் கல்விச் செல்வமும் எவ்வாறு அமைந்துள்ளன?`,
+        en: `Question: ${devoteeName}, how do natal wealth lords bless this child's educational foundation and parental prosperity?`
+      }, targetLang)
       : pick6({
-          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶಾಶ್ವತ ಧನ ಯೋಗ ಹೇಗಿದೆ ಹಾಗೂ ಕೈಯಲ್ಲಿ ಹಣ ಉಳಿಯದಿರಲು ಕಾರಣವೇನು?`,
-          mr: `प्रश्न: ${devoteeName}, आपल्या पत्रिकेत कायमस्वरूपी धनयोग कसा आहे व पैसा हातात का टिकत नाही?`,
-          hi: `प्रश्न: ${devoteeName}, आपकी कुंडली में स्थायी धन योग की स्थिति क्या है और धन संचय में क्या बाधाएं आती हैं?`,
-          te: `ప్రశ్న: ${devoteeName}, మీ జాతకంలో ధన యోగం ఎలా ఉంది మరియు పొదుపు ఎందుకు నిలవడం లేదు?`,
-          ta: `கேள்வி: ${devoteeName}, உங்கள் ஜாதகத்தில் நிரந்தர தன யோகம் எவ்வாறு உள்ளது? கையில் பணம் தங்காததற்கான காரணம் என்ன?`,
-          en: `Question: ${devoteeName}, what planetary dynamics govern your liquidity and long-term asset accumulation, and how do you plug leaks?`
-        }, targetLang),
+        kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶಾಶ್ವತ ಧನ ಯೋಗ ಹೇಗಿದೆ ಹಾಗೂ ಕೈಯಲ್ಲಿ ಹಣ ಉಳಿಯದಿರಲು ಕಾರಣವೇನು?`,
+        mr: `प्रश्न: ${devoteeName}, आपल्या पत्रिकेत कायमस्वरूपी धनयोग कसा आहे व पैसा हातात का टिकत नाही?`,
+        hi: `प्रश्न: ${devoteeName}, आपकी कुंडली में स्थायी धन योग की स्थिति क्या है और धन संचय में क्या बाधाएं आती हैं?`,
+        te: `ప్రశ్న: ${devoteeName}, మీ జాతకంలో ధన యోగం ఎలా ఉంది మరియు పొదుపు ఎందుకు నిలవడం లేదు?`,
+        ta: `கேள்வி: ${devoteeName}, உங்கள் ஜாதகத்தில் நிரந்தர தன யோகம் எவ்வாறு உள்ளது? கையில் பணம் தங்காததற்கான காரணம் என்ன?`,
+        en: `Question: ${devoteeName}, what planetary dynamics govern your liquidity and long-term asset accumulation, and how do you plug leaks?`
+      }, targetLang),
     paragraphs: [
       pick6({
         kn: isChildOrInfant
@@ -2347,39 +2383,39 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     sectionTitle: sec3,
     title: isMinor
       ? pick6({
-          kn: "ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯ, ಪೋಷಕರ ಪ್ರೀತಿ & ಸಹೋದರ ಬಾಂಧವ್ಯ",
-          mr: "कौटुंबिक सलोखा, पालकांचे प्रेम व भावंडांशी नाते",
-          hi: "पारिवारिक सौहार्द, मातृ-पितृ स्नेह एवं भ्रातृ संबंध",
-          te: "కుటుంబ సామరస్యం, తల్లిదండ్రుల ప్రేమ & బంధుత్వాలు",
-          ta: "குடும்ப ஒற்றுமை, பெற்றோர் பாசம் & உடன்பிறப்பு பிணைப்பு",
-          en: "Family Sanctuary, Parental Bonds & Sibling Harmony"
-        }, targetLang)
+        kn: "ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯ, ಪೋಷಕರ ಪ್ರೀತಿ & ಸಹೋದರ ಬಾಂಧವ್ಯ",
+        mr: "कौटुंबिक सलोखा, पालकांचे प्रेम व भावंडांशी नाते",
+        hi: "पारिवारिक सौहार्द, मातृ-पितृ स्नेह एवं भ्रातृ संबंध",
+        te: "కుటుంబ సామరస్యం, తల్లిదండ్రుల ప్రేమ & బంధుత్వాలు",
+        ta: "குடும்ப ஒற்றுமை, பெற்றோர் பாசம் & உடன்பிறப்பு பிணைப்பு",
+        en: "Family Sanctuary, Parental Bonds & Sibling Harmony"
+      }, targetLang)
       : pick6({
-          kn: "ದಾಂಪತ್ಯ ಸುಖ, ವಿವಾಹ ಯೋಗ, ಸಂಗಾತಿಯ ಸ್ವಭಾವ & ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯ",
-          mr: "वैवाहिक सुख, विवाह योग, जोडीदाराचा स्वभाव व कौटुंबिक सौख्य",
-          hi: "दांपत्य सुख, विवाह योग, जीवनसाथी का स्वभाव एवं पारिवारिक सामंजस्य",
-          te: "దాంపత్య సుఖం, వివాహ యోగం, భాగస్వామి స్వభావం & కుటుంబ శాంతి",
-          ta: "தாம்பத்திய சுகம், திருமண யோகம், துணையின் குணம் & குடும்ப ஒற்றுமை",
-          en: "Marital Harmony, Alliance Timing, Partner Temperament & Domestic Peace"
-        }, targetLang),
+        kn: "ದಾಂಪತ್ಯ ಸುಖ, ವಿವಾಹ ಯೋಗ, ಸಂಗಾತಿಯ ಸ್ವಭಾವ & ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯ",
+        mr: "वैवाहिक सुख, विवाह योग, जोडीदाराचा स्वभाव व कौटुंबिक सौख्य",
+        hi: "दांपत्य सुख, विवाह योग, जीवनसाथी का स्वभाव एवं पारिवारिक सामंजस्य",
+        te: "దాంపత్య సుఖం, వివాహ యోగం, భాగస్వామి స్వభావం & కుటుంబ శాంతి",
+        ta: "தாம்பத்திய சுகம், திருமண யோகம், துணையின் குணம் & குடும்ப ஒற்றுமை",
+        en: "Marital Harmony, Alliance Timing, Partner Temperament & Domestic Peace"
+      }, targetLang),
     icon: "💍",
     question: isMinor
       ? pick6({
-          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ಈ ಬಾಲಕನಿಗೆ ಪೋಷಕರ ಆಶೀರ್ವಾದ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ ಹೇಗೆ ಶ್ರೀರಕ್ಷೆಯಾಗಲಿದೆ?`,
-          mr: `प्रश्न: ${devoteeName}, या पाल्याला पालकांचे प्रेम व कौटुंबिक पाठबळ कसे लाभेल?`,
-          hi: `प्रश्न: ${devoteeName}, इस बालक को माता-पिता का स्नेह एवं पारिवारिक संरक्षण किस प्रकार प्राप्त होगा?`,
-          te: `ప్రశ్న: ${devoteeName}, ఈ పిల్లలకు తల్లిదండ్రుల ఆశీస్సులు మరియు కుటుంబ ప్రేమ ఎలా రక్షణగా ఉంటాయి?`,
-          ta: `கேள்வி: ${devoteeName}, இந்தக் குழந்தைக்கு பெற்றோரின் அன்பும் குடும்ப அரவணைப்பும் எவ்வாறு அமையும்?`,
-          en: `Question: ${devoteeName}, how do parental affection and familial harmony fortify this young life's destiny?`
-        }, targetLang)
+        kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ಈ ಬಾಲಕನಿಗೆ ಪೋಷಕರ ಆಶೀರ್ವಾದ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ ಹೇಗೆ ಶ್ರೀರಕ್ಷೆಯಾಗಲಿದೆ?`,
+        mr: `प्रश्न: ${devoteeName}, या पाल्याला पालकांचे प्रेम व कौटुंबिक पाठबळ कसे लाभेल?`,
+        hi: `प्रश्न: ${devoteeName}, इस बालक को माता-पिता का स्नेह एवं पारिवारिक संरक्षण किस प्रकार प्राप्त होगा?`,
+        te: `ప్రశ్న: ${devoteeName}, ఈ పిల్లలకు తల్లిదండ్రుల ఆశీస్సులు మరియు కుటుంబ ప్రేమ ఎలా రక్షణగా ఉంటాయి?`,
+        ta: `கேள்வி: ${devoteeName}, இந்தக் குழந்தைக்கு பெற்றோரின் அன்பும் குடும்ப அரவணைப்பும் எவ்வாறு அமையும்?`,
+        en: `Question: ${devoteeName}, how do parental affection and familial harmony fortify this young life's destiny?`
+      }, targetLang)
       : pick6({
-          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಾಮರಸ್ಯ ಹೇಗಿರಲಿದೆ ಹಾಗೂ ಸಂಗಾತಿಯೊಂದಿಗೆ ಉಂಟಾಗುವ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಹೇಗೆ ನಿವಾರಿಸಿಕೊಳ್ಳಬೇಕು?`,
-          mr: `प्रश्न: ${devoteeName}, आपल्या वैवाहिक जीवनात सुख कसे राहील व जोडीदाराशी मतभेद कसे दूर करावेत?`,
-          hi: `प्रश्न: ${devoteeName}, आपके दांपत्य जीवन में कैसा सामंजस्य रहेगा एवं जीवनसाथी के साथ वैचारिक मतभेदों का शमन कैसे करें?`,
-          te: `ప్రశ్న: ${devoteeName}, మీ దాంపత్య జీవితంలో శాంతి ఎలా ఉంటుంది మరియు భాగస్వామితో అభిప్రాయ భేదాలను ఎలా అధిగమించాలి?`,
-          ta: `கேள்வி: ${devoteeName}, உங்கள் தாம்பத்திய வாழ்க்கையில் ஒற்றுமை எவ்வாறு இருக்கும்? கருத்து வேறுபாடுகளை எவ்வாறு சரிசெய்வது?`,
-          en: `Question: ${devoteeName}, what planetary currents govern your marital harmony and partnership compatibility?`
-        }, targetLang),
+        kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಾಮರಸ್ಯ ಹೇಗಿರಲಿದೆ ಹಾಗೂ ಸಂಗಾತಿಯೊಂದಿಗೆ ಉಂಟಾಗುವ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಹೇಗೆ ನಿವಾರಿಸಿಕೊಳ್ಳಬೇಕು?`,
+        mr: `प्रश्न: ${devoteeName}, आपल्या वैवाहिक जीवनात सुख कसे राहील व जोडीदाराशी मतभेद कसे दूर करावेत?`,
+        hi: `प्रश्न: ${devoteeName}, आपके दांपत्य जीवन में कैसा सामंजस्य रहेगा एवं जीवनसाथी के साथ वैचारिक मतभेदों का शमन कैसे करें?`,
+        te: `ప్రశ్న: ${devoteeName}, మీ దాంపత్య జీవితంలో శాంతి ఎలా ఉంటుంది మరియు భాగస్వామితో అభిప్రాయ భేదాలను ఎలా అధిగమించాలి?`,
+        ta: `கேள்வி: ${devoteeName}, உங்கள் தாம்பத்திய வாழ்க்கையில் ஒற்றுமை எவ்வாறு இருக்கும்? கருத்து வேறுபாடுகளை எவ்வாறு சரிசெய்வது?`,
+        en: `Question: ${devoteeName}, what planetary currents govern your marital harmony and partnership compatibility?`
+      }, targetLang),
     paragraphs: [
       pick6({
         kn: isMinor
@@ -2472,39 +2508,39 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     sectionTitle: sec3,
     title: isMinor
       ? pick6({
-          kn: "ಜ್ಞಾನ ಸಂಪತ್ತು, ಸೃಜನಶೀಲತೆ & ಹಿರಿಯರ ಆಶೀರ್ವಾದದ ಬೆಳಕು",
-          mr: "ज्ञान संपत्ती, सर्जनशीलता व पूर्वजांचे आशीर्वाद",
-          hi: "ज्ञान संपदा, सृजनशीलता एवं पितृ कृपा का आलोक",
-          te: "జ్ఞాన సంపద, సృజనాత్మకత & పూర్వీకుల ఆశీర్వాదం",
-          ta: "ஞானச் செல்வம், படைப்பாற்றல் & முன்னோர்களின் ஆசி",
-          en: "Creative Intellect, Pure Wisdom & Ancestral Blessings"
-        }, targetLang)
+        kn: "ಜ್ಞಾನ ಸಂಪತ್ತು, ಸೃಜನಶೀಲತೆ & ಹಿರಿಯರ ಆಶೀರ್ವಾದದ ಬೆಳಕು",
+        mr: "ज्ञान संपत्ती, सर्जनशीलता व पूर्वजांचे आशीर्वाद",
+        hi: "ज्ञान संपदा, सृजनशीलता एवं पितृ कृपा का आलोक",
+        te: "జ్ఞాన సంపద, సృజనాత్మకత & పూర్వీకుల ఆశీర్వాదం",
+        ta: "ஞானச் செல்வம், படைப்பாற்றல் & முன்னோர்களின் ஆசி",
+        en: "Creative Intellect, Pure Wisdom & Ancestral Blessings"
+      }, targetLang)
       : pick6({
-          kn: "ಸಂತಾನ ಭಾಗ್ಯ, ಮಕ್ಕಳ ಭವಿಷ್ಯ, ಸೃಜನಶೀಲ ಬುದ್ಧಿ & ವಂಶ ವೃದ್ಧಿ",
-          mr: "संतती सुख, मुलांचे भविष्य, सृजनशीलता व वंशवृद्धी",
-          hi: "संतति सुख, संतानों का भविष्य, मेधा शक्ति एवं वंश वृद्धि",
-          te: "సంతాన భాగ్యం, పిల్లల భవిష్యత్తు, మేధోశక్తి & వంశాభివృద్ధి",
-          ta: "சந்தான பாக்கியம், குழந்தைகளின் எதிர்காலம், புத்திக்கூர்மை & வம்ச விருத்தி",
-          en: "Progeny Fortunes, Children's Trajectory, Creative Wisdom & Lineage Continuity"
-        }, targetLang),
+        kn: "ಸಂತಾನ ಭಾಗ್ಯ, ಮಕ್ಕಳ ಭವಿಷ್ಯ, ಸೃಜನಶೀಲ ಬುದ್ಧಿ & ವಂಶ ವೃದ್ಧಿ",
+        mr: "संतती सुख, मुलांचे भविष्य, सृजनशीलता व वंशवृद्धी",
+        hi: "संतति सुख, संतानों का भविष्य, मेधा शक्ति एवं वंश वृद्धि",
+        te: "సంతాన భాగ్యం, పిల్లల భవిష్యత్తు, మేధోశక్తి & వంశాభివృద్ధి",
+        ta: "சந்தான பாக்கியம், குழந்தைகளின் எதிர்காலம், புத்திக்கூர்மை & வம்ச விருத்தி",
+        en: "Progeny Fortunes, Children's Trajectory, Creative Wisdom & Lineage Continuity"
+      }, targetLang),
     icon: "🌱",
     question: isMinor
       ? pick6({
-          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ಈ ಕಂದನ ಸೃಜನಶೀಲ ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಜ್ಞಾನ ವಿಕಾಸಕ್ಕೆ ಯಾವ ಗ್ರಹಗಳು ಶಕ್ತಿ ತುಂಬುತ್ತಿವೆ?`,
-          mr: `प्रश्न: ${devoteeName}, या पाल्याच्या बुद्धिमत्ता व ज्ञानाला कोणते ग्रह बळ देत आहेत?`,
-          hi: `प्रश्न: ${devoteeName}, इस बालक की मेधा शक्ति एवं ज्ञान के विकास को कौन से ग्रह पोषित कर रहे हैं?`,
-          te: `ప్రశ్న: ${devoteeName}, ఈ చిన్నారి తెలివితేటలు, జ్ఞాన వికాసానికి ఏ గ్రహాలు బలాన్నిస్తున్నాయి?`,
-          ta: `கேள்வி: ${devoteeName}, இந்தக் குழந்தையின் படைப்பாற்றல் மற்றும் அறிவு வளர்ச்சிக்கு எந்த கிரகங்கள் துணை நிற்கின்றன?`,
-          en: `Question: ${devoteeName}, which celestial currents catalyze this young mind's creative intelligence and retention?`
-        }, targetLang)
+        kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ಈ ಕಂದನ ಸೃಜನಶೀಲ ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಜ್ಞಾನ ವಿಕಾಸಕ್ಕೆ ಯಾವ ಗ್ರಹಗಳು ಶಕ್ತಿ ತುಂಬುತ್ತಿವೆ?`,
+        mr: `प्रश्न: ${devoteeName}, या पाल्याच्या बुद्धिमत्ता व ज्ञानाला कोणते ग्रह बळ देत आहेत?`,
+        hi: `प्रश्न: ${devoteeName}, इस बालक की मेधा शक्ति एवं ज्ञान के विकास को कौन से ग्रह पोषित कर रहे हैं?`,
+        te: `ప్రశ్న: ${devoteeName}, ఈ చిన్నారి తెలివితేటలు, జ్ఞాన వికాసానికి ఏ గ్రహాలు బలాన్నిస్తున్నాయి?`,
+        ta: `கேள்வி: ${devoteeName}, இந்தக் குழந்தையின் படைப்பாற்றல் மற்றும் அறிவு வளர்ச்சிக்கு எந்த கிரகங்கள் துணை நிற்கின்றன?`,
+        en: `Question: ${devoteeName}, which celestial currents catalyze this young mind's creative intelligence and retention?`
+      }, targetLang)
       : pick6({
-          kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಂತಾನ ಭಾಗ್ಯ, ಮಕ್ಕಳ ಶ್ರೇಯಸ್ಸು ಹಾಗೂ ವಂಶದ ಕೀರ್ತಿಯ ಬೆಳವಣಿಗೆ ಹೇಗಿದೆ?`,
-          mr: `प्रश्न: ${devoteeName}, आपल्या पत्रिकेत संतती सुख, मुलांची प्रगती व कुलवृद्धी कशी दर्शवली आहे?`,
-          hi: `प्रश्न: ${devoteeName}, आपकी जन्म कुंडली में संतति सुख, बच्चों की उन्नति एवं कुल की प्रतिष्ठा के विषय में क्या योग हैं?`,
-          te: `ప్రశ్న: ${devoteeName}, మీ జాతకంలో సంతాన సౌఖ్యం, పిల్లల ఎదుగుదల మరియు వంశాభివృద్ధి ఎలా ఉంది?`,
-          ta: `கேள்வி: ${devoteeName}, உங்கள் ஜாதகத்தில் குழந்தை பாக்கியம், பிள்ளைகளின் வளர்ச்சி மற்றும் வம்ச பெருமை எவ்வாறு உள்ளது?`,
-          en: `Question: ${devoteeName}, what planetary indicators govern your progeny fortunes, children's upliftment, and intellectual lineage?`
-        }, targetLang),
+        kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಂತಾನ ಭಾಗ್ಯ, ಮಕ್ಕಳ ಶ್ರೇಯಸ್ಸು ಹಾಗೂ ವಂಶದ ಕೀರ್ತಿಯ ಬೆಳವಣಿಗೆ ಹೇಗಿದೆ?`,
+        mr: `प्रश्न: ${devoteeName}, आपल्या पत्रिकेत संतती सुख, मुलांची प्रगती व कुलवृद्धी कशी दर्शवली आहे?`,
+        hi: `प्रश्न: ${devoteeName}, आपकी जन्म कुंडली में संतति सुख, बच्चों की उन्नति एवं कुल की प्रतिष्ठा के विषय में क्या योग हैं?`,
+        te: `ప్రశ్న: ${devoteeName}, మీ జాతకంలో సంతాన సౌఖ్యం, పిల్లల ఎదుగుదల మరియు వంశాభివృద్ధి ఎలా ఉంది?`,
+        ta: `கேள்வி: ${devoteeName}, உங்கள் ஜாதகத்தில் குழந்தை பாக்கியம், பிள்ளைகளின் வளர்ச்சி மற்றும் வம்ச பெருமை எவ்வாறு உள்ளது?`,
+        en: `Question: ${devoteeName}, what planetary indicators govern your progeny fortunes, children's upliftment, and intellectual lineage?`
+      }, targetLang),
     paragraphs: [
       pick6({
         kn: `${devoteeName}, ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ೫ನೇ ಮನೆಯು (ಪೂರ್ವ ಪುಣ್ಯ ಸ್ಥಾನ) ಮನುಷ್ಯನ ಬುದ್ಧಿವಂತಿಕೆ, ಉನ್ನತ ಸೃಜನಶೀಲತೆ ಹಾಗೂ ಸಂತಾನ ಭಾಗ್ಯದ ದರ್ಪಣವಾಗಿದೆ. ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಪಂಚಮೇಶ ${house5Info.lordName} ಗ್ರಹವು ${n(house5Info.placedHouse)}ನೇ ಭಾವದಲ್ಲಿ (${house5Info.placedRashi}) ಸ್ಥಿತವಾಗಿರುವುದನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮಲ್ಲಿ ಆಳವಾದ ಕಲ್ಪನಾಶಕ್ತಿ ಹಾಗೂ ವಂಶದ ಗೌರವವನ್ನು ಕಾಪಾಡುವ ಉದಾತ್ತ ಚಿಂತನೆಗಳಿವೆ.`,
@@ -2650,28 +2686,28 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ಕಾಲಚಕ್ರದ ಅಲ್ಪಾವಧಿಯ ಗ್ರಹ ಸಂಚಾರವನ್ನು ಅವಲೋಕಿಸಿದಾಗ, ಮುಂಬರುವ ೧ ರಿಂದ ೩ ತಿಂಗಳುಗಳು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಒಂದು ಮಹತ್ವದ ಪುನರಾರಂಭದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಸೂರ್ಯ, ಬುಧ ಹಾಗೂ ಮಂಗಳನ ತ್ವರಿತ ಚಲನೆಯು ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನಕ್ಕೆ ಹೊಸ ಚೈತನ್ಯವನ್ನು ನೀಡಲಿದ್ದು, ಹಿಂದಿನ ತಿಂಗಳುಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತವಾಗಿ ಸ್ಥಗಿತಗೊಂಡಿದ್ದ ಕೆಲಸಗಳು, ಬಾಕಿ ಉಳಿದಿದ್ದ ನಿರ್ಣಯಗಳು ಮತ್ತು ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳಿಗೆ ಮರುಜೀವ ಸಿಗಲಿದೆ.`,
-        mr: `${devoteeName}, आगामी १ ते ३ महिन्यांत सूर्य, बुध व मंगळाच्या जलद हालचाली आपल्या ${lagnaRashiName} लग्नाला नवी ऊर्जा व स्पष्टता देतील. मागील काही महिन्यांत कारण नसताना रखडलेली कामे, अपूर्ण संभाषणे व आर्थिक नियोजन आता पुन्हा वेगाने मार्गी लागू लागेल.`,
-        hi: `${devoteeName}, आगामी १ से ३ महीनों का गोचर विश्लेषण स्पष्ट करता है कि सूर्य, बुध एवं मंगल का संचरण आपके ${lagnaRashiName} लग्न में नवचेतना एवं कार्य-क्षमता का संचार करेगा। पिछले कुछ समय से अवरुद्ध कार्य एवं लंबित निर्णय अब पुनः गति पकड़ेंगे।`,
-        te: `${devoteeName}, రాబోయే 1 నుండి 3 నెలల్లో సూర్య, బుధ మరియు కుజుల వేగవంతమైన సంచారం వల్ల మీ ${lagnaRashiName} లగ్నానికి నూతన ఉత్సాహం, స్పష్టత లభిస్తాయి. గత కొన్ని వారాలుగా కారణం లేకుండా ఆగిపోయిన పనులు, పెండింగ్‌లో ఉన్న చర్చలు మరియు ఆర్థిక ప్రణాళికలు మళ్లీ చక్కగా ముందుకు కదులుతాయి.`,
-        ta: `${devoteeName}, அடுத்த 1 முதல் 3 மாதங்களில் சூரியன், புதன் மற்றும் செவ்வாயின் வேகமான பெயர்ச்சிகள் உங்கள் ${lagnaRashiName} லக்னத்திற்கு புது உத்வேகத்தையும் தெளிவையும் தருகின்றன. கடந்த சில மாதங்களாகத் தடைபட்டு நின்ற காரியங்கள், முடிவுறாத பேச்சுவார்த்தைகள் அனைத்தும் இனி சுமுகமாக நகரத் தொடங்கும்.`,
-        en: `${devoteeName}, tracking rapid solar, mercurial, and martial transits across the incoming 90 days reveals a decisive momentum reboot for your ${lagnaRashiName} ascendant. Stalled discussions, delayed approvals, and administrative backlogs begin moving smoothly again.`
+        kn: `${devoteeName}, ಕಾಲಚಕ್ರದ ಅಲ್ಪಾವಧಿಯ ಗ್ರಹ ಸಂಚಾರವನ್ನು ಅವಲೋಕಿಸಿದಾಗ, ಮುಂಬರುವ ೧ ರಿಂದ ೩ ತಿಂಗಳುಗಳು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಒಂದು ಪುನರಾರಂಭದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಸೂರ್ಯ, ಬುಧ ಹಾಗೂ ಮಂಗಳನ ತ್ವರಿತ ಚಲನೆಯು ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನಕ್ಕೆ ಹೊಸ ಚೈತನ್ಯವನ್ನು ನೀಡಲಿದ್ದು, ಹಿಂದಿನ ತಿಂಗಳುಗಳಲ್ಲಿ ಸ್ಥಗಿತಗೊಂಡಿದ್ದ ಕೆಲಸಗಳಿಗೆ ಮರುಜೀವ ಸಿಗಲಿದೆ.`,
+        mr: `${devoteeName}, आगामी १ ते ३ महिन्यांत सूर्य, बुध व मंगळाच्या हालचाली आपल्या ${lagnaRashiName} लग्नाला नवी ऊर्जा देतील. पूर्वी रखडलेली कामे आता पुन्हा वेग घेतील.`,
+        hi: `${devoteeName}, आगामी १ से ३ महीनों का गोचर विश्लेषण स्पष्ट करता है कि सूर्य, बुध एवं मंगल का संचरण आपके ${lagnaRashiName} लग्न में नवचेतना का संचार करेगा। पिछले कुछ समय से अवरुद्ध कार्य अब पुनः गति पकड़ेंगे।`,
+        te: `${devoteeName}, రాబోయే 1 నుండి 3 నెలల్లో సూర్య, బుధ, కుజుల సంచారం వల్ల మీ ${lagnaRashiName} లగ్నానికి నూతన ఉత్సాహం లభిస్తుంది. ఆగిపోయిన పనులు మళ్లీ మొదలవుతాయి.`,
+        ta: `${devoteeName}, அடுத்த 1 முதல் 3 மாதங்களில் சூரியன், புதன், செவ்வாயின் பெயர்ச்சிகள் உங்கள் ${lagnaRashiName} லக்னத்திற்கு புது வேகத்தை தரும். தடைபட்ட காரியங்கள் இனி சுமுகமாக நடக்கும்.`,
+        en: `${devoteeName}, tracking short-cycle solar, mercurial, and martial transits, the incoming 90 days mark a decisive reboot for your ${lagnaRashiName} ascendant. Projects stalled by bureaucratic inertia or self-doubt will suddenly regain momentum.`
       }, targetLang),
       pick6({
-        kn: `ಈ ೯೦ ದಿನಗಳ ಸ್ಪಷ್ಟ ಕಾರ್ಯಸೂಚಿ: ಮೊದಲ ೩೦ ದಿನಗಳಲ್ಲಿ ಹಳೆಯ ತಪ್ಪು ತಿಳುವಳಿಕೆ ಹಾಗೂ ದಾಖಲೆಗಳ ಗೊಂದಲಗಳನ್ನು ಪರಿಹರಿಸಿಕೊಳ್ಳಿ; ಎರಡನೇ ತಿಂಗಳಲ್ಲಿ ಹೊಸ ಒಪ್ಪಂದ, ಆರ್ಥಿಕ ಯೋಜನೆ ಅಥವಾ ವೃತ್ತಿ ಸಂಬಂಧಿ ಮಹತ್ವದ ಮಾತುಕತೆಗಳಿಗೆ ಸಕಾಲವಾಗಿದೆ. ಮೂರನೇ ತಿಂಗಳಲ್ಲಿ ನಿಮ್ಮ ಪರಿಶ್ರಮದ ಪ್ರಥಮ ಫಲಿತಾಂಶವು ಕಣ್ಣಿಗೆ ಸ್ಪಷ್ಟವಾಗಿ ಕಾಣಿಸಲಿದ್ದು, ಅನಗತ್ಯ ವಾದಗಳಿಂದ ದೂರವಿರಿ.`,
-        mr: `या ९० दिवसांची स्पष्ट दिशा: पहिल्या ३० दिवसांत जुने गैरसमज व प्रलंबित कामे शांतपणे मिटवा; दुसऱ्या महिन्यात नवीन करार, बचत योजना किंवा कामातील महत्त्वाच्या संधींवर लक्ष केंद्रित करा; तिसऱ्या महिन्यात आपल्या कष्टाचे प्रत्यक्ष फळ दिसून येईल.`,
-        hi: `इस तिमाही की रणनीति: प्रथम ३० दिनों में लंबित विवादों एवं कागजी उलझनों का निस्तारण करें; द्वितीय मास में नवीन अनुबंध अथवा वित्तीय योजनाओं को गति दें; तृतीय मास में आपको अपने परिश्रम के प्रत्यक्ष शुभ परिणाम प्राप्त होंगे।`,
-        te: `ఈ 90 రోజుల స్పష్టమైన ప్రణాళిక: మొదటి 30 రోజుల్లో పాత అపార్థాలు మరియు పెండింగ్ సమస్యలను ప్రశాంతంగా పరిష్కరించుకోండి. రెండవ నెలలో కొత్త ఒప్పందాలు లేదా ముఖ్యమైన వృత్తి చర్చలు జరపడానికి మంచి సమయం. మూడవ నెలలో మీ కష్టానికి తగిన తొలి శుభ ఫలితం స్పష్టంగా కనిపిస్తుంది; అనవసర వాదనలకు దూరంగా ఉండండి.`,
-        ta: `இந்த 90 நாட்களுக்கான செயல் திட்டம்: முதல் 30 நாட்களில் பழைய மனக்கசப்புகளையும் நிலுவை ஆவணங்களையும் அமைதியாகச் சரி செய்யுங்கள்; 2-வது மாதத்தில் புதிய முயற்சிகள் மற்றும் முக்கிய ஆலோசனைகளைத் தொடங்குங்கள்; 3-வது மாதத்தில் உங்கள் உழைப்பிற்கான உறுதியான பலன் கண்முன்னே தெரியும்.`,
-        en: `Your 90-day cadence: Month 1 calls for clearing loose ends and administrative backlogs calmly. Month 2 opens the productive window for interviews, savings plans, or vital dialogues. Month 3 delivers concrete validation of your patient discipline without needless friction.`
+        kn: `ಈ ೯೦ ದಿನಗಳ ಪ್ರಮುಖ ಕಾರ್ಯಸೂಚಿ: ಮೊದಲ ೩೦ ದಿನಗಳಲ್ಲಿ ಅನಗತ್ಯ ಗೊಂದಲಗಳನ್ನು ಪರಿಹರಿಸಿಕೊಳ್ಳಿ; ಎರಡನೇ ತಿಂಗಳಲ್ಲಿ ಹೊಸ ಒಪ್ಪಂದ, ಆರ್ಥಿಕ ಯೋಜನೆ ಅಥವಾ ವೃತ್ತಿ ಸಂಬಂಧಿ ಪ್ರಮುಖ ಮಾತುಕತೆಗಳಿಗೆ ಸಕಾಲ. ಮೂರನೇ ತಿಂಗಳಲ್ಲಿ ನಿಮ್ಮ ಪರಿಶ್ರಮದ ಪ್ರಥಮ ಫಲಿತಾಂಶವು ಕಣ್ಣಿಗೆ ಕಾಣಿಸಲಿದೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಹಳೆಯ ಶತ್ರುಗಳೊಂದಿಗೆ ವಾದಕ್ಕೆ ಇಳಿಯಬೇಡಿ.`,
+        mr: `या ९० दिवसांची दिशा: पहिल्या महिन्यात जुने वाद मिटवा; दुसऱ्या महिन्यात नवीन करार किंवा नोकरीच्या संधींवर लक्ष केंद्रित करा; तिसऱ्या महिन्यात आपल्या कष्टाचे फळ दिसू लागेल.`,
+        hi: `इस तिमाही की रणनीति: प्रथम ३० दिनों में लंबित विवादों का निस्तारण करें; द्वितीय मास में नवीन अनुबंध अथवा वित्तीय योजनाओं को गति दें; तृतीय मास में आपको अपने श्रम के प्रत्यक्ष परिणाम दृष्टिगोचर होंगे। व्यर्थ के वाद-विवाद से दूर रहें।`,
+        te: `ఈ 90 రోజుల్లో: మొదటి నెలలో పాత సమస్యలను పరిష్కరించుకోండి. రెండవ నెలలో కొత్త ఒప్పందాలు చేసుకోండి. మూడవ నెలలో మీ శ్రమకు ఫలితం కనిపిస్తుంది.`,
+        ta: `இந்த 90 நாட்களின் திட்டம்: முதல் மாதத்தில் பழைய சிக்கல்களை பேசித் தீர்க்கவும்; 2-வது மாதத்தில் புதிய தொழில் முயற்சிகளைத் தொடங்கவும்; 3-வது மாதத்தில் உழைப்பிற்கான பலன் கிடைக்கும்.`,
+        en: `Quarterly strategic cadence: Month 1 demands tidying administrative backlogs and settling unresolved disputes. Month 2 unlocks the golden window for contract signing or financial allocations. Month 3 delivers tangible validation of your efforts.`
       }, targetLang),
       pick6({
-        kn: `ಈ ತ್ರೈಮಾಸಿಕದ ದೈವಿಕ ರಕ್ಷಣೆಗಾಗಿ: ಮಂಗಳವಾರ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಹನುಮಂತನಿಗೆ ಕುಂಕುಮಾರ್ಚನೆ ಹಾಗೂ ದೀಪಾರಾಧನೆ ಮಾಡಿಸಿ. ನಿಮ್ಮ ನಿತ್ಯ ಪೂಜೆಯಲ್ಲಿ 'ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ' ಸ್ಮರಣೆಯು ಯಾವುದೇ ಹಠಾತ್ ಅಡೆತಡೆಗಳು ಬಾರದಂತೆ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.`,
-        mr: `या काळासाठी दैवी उपाय: मंगळवारी मारुती किंवा गणपतीची पूजा व दीपारती करा आणि दररोज श्री गोकर्ण महाबळेश्वराचे स्मरण करा, जेणेकरून सर्व अडचणी शांत होतील.`,
-        hi: `इस तिमाही का सुरक्षा कवच: मंगलवार को हनुमान चालीसा का पाठ कर दीप प्रज्वलित करें एवं नित्य श्री गोकर्ण महाबलेश्वर का स्मरण करें ताकि समस्त विघ्न शांत रहें।`,
-        te: `ఈ మూడు నెలల దైవిక రక్షణ కొరకు: మంగళవారం నాడు భక్తితో హనుమాన్ చాలీసా పఠించి దీపారాధన చేయండి. నిత్యం శ్రీ గోకర్ణ మహాబలేశ్వరుని స్మరించడం వల్ల ఆకస్మిక ఆటంకాలు తొలగి ప్రశాంతత లభిస్తుంది.`,
-        ta: `இந்த காலாண்டின் தெய்வீகப் பாதுகாப்பு: செவ்வாய்க்கிழமைகளில் அனுமன் சாலிசா பாராயணம் செய்து தீபம் ஏற்றுங்கள். தினமும் ஸ்ரீ கோகர்ண மகாபலேஸ்வரரை மனதார நினைத்து செயல்பட திடீர் தடைகள் அனைத்தும் விலகும்.`,
-        en: `Protective 90-day shield: recite Sri Hanuman or Kartikeya prayers with a pure ghee lamp on Tuesdays, and keep Sri Kshetra Gokarna Mahabaleshwara in morning remembrance to dissolve sudden logistical obstacles.`
+        kn: `ಈ ತ್ರೈಮಾಸಿಕದ ದೈವಿಕ ರಕ್ಷಣೆಗಾಗಿ: ಮಂಗಳವಾರ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಹನುಮಂತನಿಗೆ ಕುಂಕುಮಾರ್ಚನೆ ಮಾಡಿಸಿ. ನಿಮ್ಮ ನಿತ್ಯ ಪೂಜೆಯಲ್ಲಿ 'ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ' ಸ್ಮರಣೆಯು ಯಾವುದೇ ಹಠಾತ್ ಅಡೆತಡೆಗಳು ಬಾರದಂತೆ ನೋಡಿಕೊಳ್ಳುತ್ತದೆ.`,
+        mr: `या काळासाठी उपाय: मंगळवारी मारुती किंवा गणपतीची पूजा करा. गोकर्ण महाबळेश्वराचे नित्य स्मरण सर्व अडथळे दूर करेल.`,
+        hi: `इस तिमाही का सुरक्षा कवच: मंगलवार को हनुमान चालीसा का पाठ करें एवं सिंदूर अर्पित करें। नित्य श्री गोकर्ण महाबलेश्वर का स्मरण समस्त विघ्नों का शमन करेगा।`,
+        te: `ఈ మూడు నెలల రక్షణ కొరకు: మంగళవారం హనుమాన్ చాలీసా పఠించండి. గోకర్ణ మహాబలేశ్వరుని స్మరించడం వల్ల ఆటంకాలు తొలగుతాయి.`,
+        ta: `இந்த காலாண்டிற்கான பரிகாரம்: செவ்வாய்க்கிழமைகளில் அனுமன் சாலிசா சொல்லவும். கோகர்ண மகாபலேஸ்வரரை வழிபட எந்தத் தடைகளும் அகலும்.`,
+        en: `To safeguard this 90-day trajectory: invoke Lord Hanuman or Kartikeya on Tuesdays, offering sindoor or red flowers. A daily invocation of Sri Kshetra Gokarna Mahabaleshwara dissolves unexpected logistical blockages.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ತ್ರೈಮಾಸಿಕ ದಿಕ್ಸೂಚಿ", mr: "त्रैमासिक दिशा", hi: "त्रैमासिक दिशा", te: "త్రైమాసిక ప్రణాళిక", ta: "காலாண்டு வழிகாட்டல்", en: "Quarterly Tactical Compass" }, targetLang),
@@ -2684,7 +2720,7 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
         : "पुढील ३ महिने कोणाच्याही कर्जासाठी जामीन राहू नका.",
       hi: isMinor
         ? "आगामी ९० दिनों तक विद्या एवं स्वास्थ्य के प्रति अनुशासित दिनचर्या अपनाएं।"
-        : "आगामी ३ मास तक किसी के भी ऋण हेतु ज़मानती (Guarantor) बनने से बचें।",
+        : "आगामी ३ मास तक किसी के भी ऋण हेतु ज़मानती बनने से बचें।",
       te: isMinor
         ? "రాబోయే 90 రోజులు చదువులో ఏకాగ్రత మరియు సమయపాలన పాటించండి."
         : "రాబోయే 3 నెలల పాటు ఎవరి అప్పులకూ జామీను (గ్యారెంటీ) ఇవ్వకండి.",
@@ -2721,28 +2757,28 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
     }, targetLang),
     paragraphs: [
       pick6({
-        kn: `${devoteeName}, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ರಹಸ್ಯ ಬೃಗು ಬಿಂದುವು (ರಾಹು ಮತ್ತು ಚಂದ್ರರ ಪರಮ ಪವಿತ್ರ ಮಧ್ಯಬಿಂದು) '${bhriguBinduRashiName}' ರಾಶಿಯಲ್ಲಿ ಸ್ಥಿತವಾಗಿದೆ. ಮುಂಬರುವ ೪ ರಿಂದ ೬ ತಿಂಗಳುಗಳ ಅವಧಿಯಲ್ಲಿ ಗೋಚಾರ ಗುರು ಅಥವಾ ಶುಭ ಗ್ರಹಗಳು ಈ ಬಿಂದುವಿನೊಂದಿಗೆ ಪವಿತ್ರ ತ್ರಿಕೋಣ ಅಥವಾ ಕೇಂದ್ರ ದೃಷ್ಟಿಯನ್ನು ಸಾಧಿಸಲಿದ್ದು, ಬಹುಕಾಲದಿಂದ ಕಾಯುತ್ತಿದ್ದ ಅದೃಷ್ಟದ ಬಾಗಿಲು ನಿಮ್ಮ ಪರವಾಗಿ ತೆರೆಯಲಿದೆ.`,
-        mr: `${devoteeName}, आपल्या कुंडलीतील पावन भृगु बिंदू (राहु व चंद्राचा मध्यबिंदू) '${bhriguBinduRashiName}' राशीत स्थित आहे. पुढील ४ ते ६ महिन्यांच्या कालावधीत शुभ ग्रहांचे गोचर या बिंदूशी त्रिकोण किंवा केंद्र संबंध जोडताच नशिबाचे अनेक दिवसांपासून रखडलेले दार अचानक उघडणार आहे.`,
-        hi: `${devoteeName}, आपकी जन्मकुंडली का रहस्यमयी भृगु बिंदु (राहु एवं चंद्र का शुद्ध मध्यबिंदू) '${bhriguBinduRashiName}' राशि में स्थित है। आगामी ४ से ६ मास के मध्य जब गोचर के शुभ ग्रह इस बिंदु से त्रिकोण अथवा केंद्र संबंध बनाएंगे, तब प्रतीक्षित सौभाग्य के द्वार खुलेंगे।`,
-        te: `${devoteeName}, మీ జన్మ కుండలిలోని అత్యంత శక్తివంతమైన భృగు బిందువు (రాహు-చంద్రుల మధ్యబిందువు) '${bhriguBinduRashiName}' రాశిలో స్థిరపడి ఉంది. రాబోయే 4 నుండి 6 నెలల మధ్యలో శుభ గ్రహాల గోచార దృష్టి ఈ బిందువుపై పడగానే, ఎప్పటి నుంచో ఎదురుచూస్తున్న అదృష్ట తలుపులు మీ కోసం తెరుచుకుంటాయి.`,
-        ta: `${devoteeName}, உங்கள் ஜாதகத்தின் சக்திவாய்ந்த பிருகு பிந்து (ராகு-சந்திரனின் மையப் புள்ளி) '${bhriguBinduRashiName}' ராசியில் அமைந்துள்ளது. அடுத்த 4 முதல் 6 மாதங்களில் சுப கிரகங்களின் கோசாரப் பார்வை இந்தப் புள்ளியின் மீது விழும்போது, நீண்ட நாட்களாகக் காத்திருந்த அதிர்ஷ்ட வாய்ப்புகள் தானாகத் திறக்கும்.`,
-        en: `${devoteeName}, your chart's sacred Bhrigu Bindu (exact midpoint between natal Rahu and Moon) resides in ${bhriguBinduRashiName}. As auspicious transits cast harmonious aspects across this sensitive coordinate over Months 4–6, a long-awaited karmic doorway opens.`
+        kn: `${devoteeName}, ನಿಮ್ಮ ಜಾತಕದ ಬೃಗು ಬಿಂದುವು (ರಾಹು ಮತ್ತು ಚಂದ್ರರ ಪರಮ ಪವಿತ್ರ ಮಧ್ಯಬಿಂದು) '${bhriguBinduRashiName}' ರಾಶಿಯಲ್ಲಿದೆ. ಮುಂಬರುವ ೪ ರಿಂದ ೬ ತಿಂಗಳುಗಳ ಅವಧಿಯಲ್ಲಿ ಗೋಚಾರ ಗುರು ಅಥವಾ ಇತರ ಶುಭ ಗ್ರಹಗಳು ಈ ಬಿಂದುವಿನೊಂದಿಗೆ ತ್ರಿಕೋಣ ಅಥವಾ ಕೇಂದ್ರ ದೃಷ್ಟಿಯನ್ನು ಸಾಧಿಸಲಿದ್ದು, ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಒಂದು ಅನಿರೀಕ್ಷಿತ ಅದೃಷ್ಟದ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ.`,
+        mr: `${devoteeName}, आपल्या कुंडलीतील भृगु बिंदू (राहु व चंद्राचा मध्यबिंदू) '${bhriguBinduRashiName}' राशीत आहे. पुढील ४ ते ६ महिन्यांत शुभ ग्रहांचे गोचर या बिंदूशी जुळून आल्याने नशिबाची अनपेक्षित दारे उघडतील.`,
+        hi: `${devoteeName}, आपकी कुंडली का गुप्त भृगु बिंदु (राहु एवं चंद्र का शुद्ध मध्यबिंदू) '${bhriguBinduRashiName}' राशि में स्थित है। आगामी ४ से ६ मास की अवधि में जब गोचर के शुभ ग्रह इस बिंदु से संबंध स्थापित करेंगे, तब अप्रत्याशित सौभाग्य के द्वार खुलेंगे।`,
+        te: `${devoteeName}, మీ భృగు బిందువు '${bhriguBinduRashiName}' రాశిలో ఉంది. రాబోయే 4 నుండి 6 నెలల్లో శుభ గ్రహాల కలయిక వల్ల అదృష్టం కలిసివస్తుంది.`,
+        ta: `${devoteeName}, உங்கள் ஜாதகத்தின் பிருகு பிந்து '${bhriguBinduRashiName}' ராசியில் அமைந்துள்ளது. அடுத்த 4 முதல் 6 மாதங்களில் சுப கிரகங்களின் பார்வை இந்த புள்ளியின் மீது விழுவதால் பெரும் அதிர்ஷ்டம் கிட்டும்.`,
+        en: `${devoteeName}, your chart's Bhrigu Bindu (the mathematical mid-point between natal Rahu and Moon) is anchored in ${bhriguBinduRashiName}. As benefic transits harmonize with this coordinate across Months 4 to 6, a dormant karmic doorway swings open.`
       }, targetLang),
       pick6({
-        kn: `ಈ ಅವಧಿಯ ಮುಖ್ಯ ಅನುಕೂಲಗಳು: ಉದ್ಯೋಗದಲ್ಲಿ ಬಹುದಿನಗಳಿಂದ ನಿರೀಕ್ಷಿಸುತ್ತಿದ್ದ ಬಡ್ತಿ ಹಾಗೂ ವೇತನ ಹೆಚ್ಚಳ, ವ್ಯಾಪಾರದಲ್ಲಿ ಲಾಭದಾಯಕ ಮೈತ್ರಿ, ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಬಹುದಿನಗಳ ಕನಸಾದ ಸ್ವಂತ ನಿವಾಸ/ವಾಹನ ಖರೀದಿ ಮಾತುಕತೆಗಳು ಫಲಿಸುವ ಸೂಚನೆಗಳಿವೆ. ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಎಲ್ಲರೂ ಮೆಚ್ಚಿ ಗೌರವಿಸುವ ಸಮಯವಿದು.`,
-        mr: `या काळातील मुख्य यश: नोकरीत बहुप्रतीक्षित पदोन्नती व सन्मान, व्यापारात विश्वासाची भागीदारी, किंवा कुटुंबातील घर व वाहन खरेदीचे स्वप्न पूर्ण होण्याचे स्पष्ट संकेत मिळत आहेत. आपल्या प्रामाणिक कामगिरीचे सर्वत्र कौतुक होईल.`,
-        hi: `इस अवधि के मुख्य शुभ फल: कार्यक्षेत्र में बहुप्रतीक्षित पदोन्नति, व्यापारिक साझेदारी का विस्तार अथवा गृह एवं वाहन क्रय से जुड़ी योजनाएं साकार होंगी। आपकी निष्ठा और योग्यता को समाज एवं परिवार में सम्मान प्राप्त होगा।`,
-        te: `ఈ కాలంలో లభించే ముఖ్య ప్రయోజనాలు: ఉద్యోగంలో చాలా కాలంగా ఆశించిన పదోన్నతి, వ్యాపారంలో నమ్మకమైన లాభదాయక భాగస్వామ్యం, లేదా కుటుంబంలో ఇల్లు మరియు వాహన కొనుగోలు వంటి శుభ ప్రయత్నాలు విజయవంతంగా ముందుకు సాగుతాయి. మీ నిజాయితీ మరియు సామర్థ్యానికి తగిన గౌరవం లభిస్తుంది.`,
-        ta: `இந்தக் காலகட்டத்தின் முக்கிய பலன்கள்: பணியில் எதிர்பார்த்த பதவி உயர்வு, வியாபாரத்தில் லாபகரமான புதிய கூட்டணி, அல்லது வீடு மற்றும் வாகனம் வாங்கும் முயற்சிகள் வெற்றிகரமாக நிறைவேறும். உங்கள் நேர்மைக்கும் திறமைக்கும் உரிய அங்கீகாரம் தேடி வரும்.`,
-        en: `Concrete manifestations across Months 4–6: stagnant promotion discussions turn favorable, trustworthy collaborations mature, and family deliberations around property, domestic sanctuary, or study milestones move cleanly toward agreement.`
+        kn: `ಈ ಅವಧಿಯ ಮುಖ್ಯ ಅನುಕೂಲಗಳು: ಉದ್ಯೋಗದಲ್ಲಿ ಬಹುದಿನಗಳಿಂದ ನಿರೀಕ್ಷಿಸುತ್ತಿದ್ದ ಬಡ್ತಿ, ವ್ಯಾಪಾರದಲ್ಲಿ ಲಾಭದಾಯಕ ಮೈತ್ರಿ, ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಬಹುದಿನಗಳ ಕನಸಾದ ಸ್ವಂತ ಮನೆ/ವಾಹನ ಖರೀದಿ ಪ್ರಕ್ರಿಯೆಗಳು ಮುಕ್ತಾಯದ ಹಂತಕ್ಕೆ ಬರಲಿವೆ. ನಿಮ್ಮ ಸಾಮರ್ಥ್ಯವನ್ನು ಜಗತ್ತು ಗುರುತಿಸುವ ಸಮಯವಿದು.`,
+        mr: `या काळातील फायदे: नोकरीत प्रमोशन, व्यापारात नवीन भागीदारी, अथवा घर/वाहन खरेदीचे स्वप्न पूर्ण होण्याच्या मार्गावर येईल. लोक आपल्या कामाचे कौतुक करतील.`,
+        hi: `इस अवधि के मुख्य लाभ: कार्यक्षेत्र में बहुप्रतीक्षित पदोन्नति, व्यापारिक साझेदारी का विस्तार अथवा गृह/वाहन क्रय की योजनाएं साकार होंगी। आपकी योग्यता को सामाजिक मान्यता प्राप्त होगी।`,
+        te: `ఈ కాలంలో ఉద్యోగంలో ప్రమోషన్, వ్యాపార విస్తరణ లేదా ఇల్లు, వాహనం కొనుగోలు చేసే అవకాశాలు లభిస్తాయి.`,
+        ta: `இந்த காலத்தில் பதவி உயர்வு, புதிய கூட்டுத் தொழில், அல்லது வீடு, வாகனம் வாங்கும் கனவு நனவாகும். உங்கள் திறமைக்கு தகுந்த அங்கீகாரம் கிடைக்கும்.`,
+        en: `Real-world manifestations during this window: delayed promotions crystallize, strategic partnerships solidify, and discussions surrounding property or vehicle acquisitions reach fruition with familial consensus.`
       }, targetLang),
       pick6({
-        kn: `ಈ ಸುವರ್ಣ ತಿರುವನ್ನು ಶಾಶ್ವತಗೊಳಿಸಲು: ನಿಮ್ಮ ಇಷ್ಟದೇವತೆಗೆ ಶುದ್ಧ ಪಾಯಸ ನೈವೇದ್ಯ ಅರ್ಪಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಮಹಾಪೂಜೆ ಸಂಕಲ್ಪ ಮಾಡಿಸುವುದರಿಂದ, ಬೃಗು ಬಿಂದುವಿನ ಶಕ್ತಿಯು ಪೂರ್ಣ ಫಲ ನೀಡಿ ಕುಟುಂಬಕ್ಕೆ ನೆಮ್ಮದಿ ಕರುಣಿಸುತ್ತದೆ.`,
-        mr: `या यशासाठी उपाय: आपल्या कुलदेवतेला खिरीचा नैवेद्य अर्पण करा आणि श्री गोकर्ण महाबळेश्वर क्षेत्रात विशेष पूजेचा संकल्प केल्याने भृगु बिंदूचे पूर्ण शुभ फळ कुटुंबात स्थिर राहील.`,
-        hi: `इस शुभ मोड़ को चिरस्थायी बनाने हेतु: इष्टदेव को खीर अथवा मिष्ठान्न का भोग लगाएं तथा श्री गोकर्ण धाम में विशेष पूजा का संकल्प लें ताकि परिवार में सुख-शांति एवं समृद्धि बनी रहे।`,
-        te: `ఈ అద్భుత మలుపును స్థిరపరచుకోవడానికి: మీ ఇష్టదైవానికి భక్తితో పాయసం నైవేద్యం సమర్పించండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని సన్నిధానంలో పూజా సంకల్పం చేయించడం వల్ల భృగు బిందువు యొక్క సంపూర్ణ శుభ శక్తి కుటుంబానికి శాశ్వత శాంతిని ప్రసాదిస్తుంది.`,
-        ta: `இந்த நற்பலனை நிலைநிறுத்த: உங்கள் இஷ்ட தெய்வத்திற்கு பாயாசம் படைத்து வழிபடுங்கள். ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியில் சிறப்பு அர்ச்சனை சங்கல்பம் செய்வது பிருகு பிந்துவின் முழுமையான அருளைக் குடும்பத்தில் நிலைபெறச் செய்யும்.`,
-        en: `To consecrate this fortunate pivot: offer sweet milk-rice (Payasa) at your home shrine, and sponsor a devout Archana at Sri Kshetra Gokarna so Bhrigu Bindu's uplifting wave stabilizes lasting family serenity.`
+        kn: `ಈ ಸುವರ್ಣ ತಿರುವನ್ನು ಭದ್ರಪಡಿಸಿಕೊಳ್ಳಲು: ನಿಮ್ಮ ಇಷ್ಟದೇವತೆಗೆ ಪಾಯಸ ನೈವೇದ್ಯ ಅರ್ಪಿಸಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಮಹಾಪೂಜೆ ಮಾಡಿಸುವುದರಿಂದ, ಬೃಗು ಬಿಂದುವಿನ ಶಕ್ತಿಯು ಪೂರ್ಣ ಪ್ರಮಾಣದಲ್ಲಿ ಫಲ ನೀಡಿ ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಶಾಶ್ವತ ನೆಮ್ಮದಿಯನ್ನು ನೀಡುತ್ತದೆ.`,
+        mr: `या यशासाठी: कुलदेवतेला खिरीचा नैवेद्य दाखवा व गोकर्ण महाबळेश्वर क्षेत्रात पूजा करा. यामुळे घरात सुख-समृद्धी नांदेल.`,
+        hi: `इस शुभ फल को चिरस्थायी बनाने हेतु: इष्टदेव को मिष्ठान्न का भोग लगाएं एवं श्री गोकर्ण धाम में विशेष पूजा का संकल्प लें। इससे घर-परिवार में सुख-समृद्धि का वास होगा।`,
+        te: `ఈ శుభ యోగాన్ని సద్వినియోగం చేసుకోవడానికి ఇష్టదైవానికి పాయసం నైవేద్యం పెట్టండి. గోకర్ణంలో పూజ చేయించడం వల్ల శాశ్వత శాంతి లభిస్తుంది.`,
+        ta: `இந்த நல்ல நேரத்தை பயன்படுத்திக் கொள்ள: இஷ்ட தெய்வத்திற்கு பாயாசம் படைத்து வழிபடவும். கோகர்ணத்தில் வழிபாடு செய்ய குடும்பத்தில் சுபகாரியங்கள் தடையின்றி நடக்கும்.`,
+        en: `To anchor this turning point: offer sweet milk-rice (Payasa) at your home altar, and sponsor a dedicated Archana at Sri Kshetra Gokarna to magnetize and stabilize the auspicious Bhrigu Bindu wave.`
       }, targetLang)
     ],
     guidanceBadge: pick6({ kn: "ಬೃಗು ಬಿಂದು ದರ್ಶನ", mr: "भृगु बिंदू दर्शन", hi: "भृगु बिंदु दर्शन", te: "భృగు బిందు దర్శనం", ta: "பிருகு பிந்து தரிசனம்", en: "Bhrigu Turning Point" }, targetLang),
@@ -3108,19 +3144,19 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
         en: `${devoteeName}, your Janma Nakshatra ${nakshatraName} carries a distinct resonant frequency inside the Vedic sound matrix. Revering your birth star's presiding deity calms ambient planetary turbulence while clearing mental fog and emotional exhaustion.`
       }, targetLang),
       pick6({
-        kn: `ನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ೧೦-ನಿಮಿಷಗಳ ದೈನಂದಿನ ಜಪ ಪ್ರೋಟೋಕಾಲ್: ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಸ್ನಾನದ ನಂತರ ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕಿಗೆ ಮುಖ ಮಾಡಿ ಕುಳಿತುಕೊಳ್ಳಿ. ಕಣ್ಣುಗಳನ್ನು ಮುಚ್ಚಿ ೩ ಬಾರಿ ಪ್ರಣವ ನಾದ 'ಓಂ' ಉಚ್ಚರಿಸಿ. ನಂತರ 'ಶ್ರೀ ಶಿವ ಪಂಚಾಕ್ಷರೀ ಮಂತ್ರ'ವನ್ನು (ಓಂ ನಮಃ ಶಿವಾಯ) ೧೦೮ ಬಾರಿ ಶಾಂತಚಿತ್ತದಿಂದ ಜಪಿಸಿ; ಇದು ನಿಮ್ಮ ಸುತ್ತಲೂ ದಿವ್ಯ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.`,
-        mr: `आपल्यासाठी १० मिनिटांचा नित्य जप: दररोज सकाळी स्नानानंतर पूर्व किंवा उत्तर दिशेला तोंड करून शांत बसा. ३ वेळा 'ॐ' उच्चार करून नंतर १०८ वेळा 'ॐ नमः शिवाय' चा जप करा. हा नियमित नियम आपल्या भोवती एक सकारात्मक संरक्षक कवच तयार करतो.`,
-        hi: `आपके लिए १०-मिनट का नित्य जप विधान: प्रतिदिन प्रातः स्नानोपरांत पूर्व अथवा उत्तर दिशा की ओर मुख करके बैठें। ३ बार ओंकार ध्वनि का उच्चारण कर १०८ बार 'ॐ नमः शिवाय' का शांत मन से जप करें; यह साधना अभेद्य सुरक्षा चक्र बनाती है।`,
-        te: `మీ కోసం ప్రత్యేకంగా 10 నిమిషాల నిత్య జప విధానం: ప్రతిరోజూ ఉదయాన్నే స్నానం చేసిన తర్వాత తూర్పు లేదా ఉత్తర ముఖంగా కూర్చుని, కళ్ళు మూసుకుని 3 సార్లు 'ఓం' అని పలకండి. ఆపై 108 సార్లు 'ఓం నమః శివాయ' మంత్రాన్ని ప్రశాంతమైన మనసుతో జపించండి; ఇది మీ చుట్టూ ఒక దైవిక రక్షా కవచాన్ని నిర్మిస్తుంది.`,
-        ta: `உங்களுக்கான தினசரி 10 நிமிட ஜப முறை: தினமும் காலையில் நீராடிய பின் கிழக்கு அல்லது வடக்கு திசை நோக்கி அமர்ந்து 3 முறை 'ஓம்' என அமைதியாக உச்சரிக்கவும். தொடர்ந்து 108 முறை 'ஓம் நம சிவாய' மந்திரத்தை ஒருமுகப்பட்ட மனதுடன் ஜபிக்க, அது உங்களைச் சுற்றி தெய்வீக பாதுகாப்பு கவசத்தை உருவாக்கும்.`,
-        en: `Your dedicated 10-Minute Daily Japa Protocol: sit facing East or North after morning ablutions, intone 'Om' three times to steady your breath, and repeat the sacred Panchakshari ('Om Namah Shivaya') 108 times calmly to establish a tranquil protective aura.`
+        kn: `ನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ೧೦-ನಿಮಿಷಗಳ ದೈನಂದಿನ ಜಪ ಪ್ರೋಟೋಕಾಲ್: ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಸ್ನಾನದ ನಂತರ ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕಿಗೆ ಮುಖ ಮಾಡಿ ಕುಳಿತುಕೊಳ್ಳಿ. ಕಣ್ಣುಗಳನ್ನು ಮುಚ್ಚಿ ೩ ಬಾರಿ ಪ್ರಣವ ನಾದ 'ಓಂ' ಉಚ್ಚರಿಸಿ. ನಂತರ ನಿಮ್ಮ ಇಷ್ಟದೇವತೆಯ ಮೂಲ ಬೀಜಮಂತ್ರ ಅಥವಾ 'ಶ್ರೀ ಶಿವ ಪಂಚಾಕ್ಷರೀ ಮಂತ್ರ'ವನ್ನು (ಓಂ ನಮಃ ಶಿವಾಯ) ೧೦೮ ಬಾರಿ ಶಾಂತಚಿತ್ತದಿಂದ ಜಪಿಸಿ. ಈ ಸರಳ ಆಚರಣೆಯು ನಿಮ್ಮ ಸುತ್ತಲೂ ಒಂದು ಅದೃಶ್ಯ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.`,
+        mr: `आपल्यासाठी १० मिनिटांचा नित्य जप: रोज सकाळी आंघोळीनंतर पूर्व किंवा उत्तर दिशेकडे तोंड करून बसा. ३ वेळा 'ॐ' चा उच्चार करा व त्यानंतर १०८ वेळा 'ॐ नमः शिवाय' जप करा. हे साधे आचरण आपल्याभोवती एक सुरक्षा कवच निर्माण करेल.`,
+        hi: `आपके लिए १०-मिनट का नित्य जप विधान: प्रतिदिन प्रातः स्नानोपरांत पूर्व अथवा उत्तर दिशा की ओर मुख करके बैठें। ३ बार ओंकार ध्वनि का उच्चारण करें, तदुपरांत १०८ बार 'ॐ नमः शिवाय' अथवा इष्ट मंत्र का शांत मन से जप करें। यह सरल अनुष्ठान आपके चारों ओर एक अभेद्य सुरक्षा चक्र स्थापित करेगा।`,
+        te: `రోజూ 10 నిమిషాల జపం: ఉదయాన్నే తూర్పు ముఖంగా కూర్చుని 3 సార్లు 'ఓం' పలికి, 108 సార్లు 'ఓం నమః శివాయ' జపించండి. ఇది మీకు అద్భుతమైన రక్షణను ఇస్తుంది.`,
+        ta: `தினசரி 10 நிமிட ஜப முறை: காலையில் கிழக்கு நோக்கி அமர்ந்து 3 முறை 'ஓம்' கூறி, 108 முறை 'ஓம் நம சிவாய' சொல்லுங்கள். இது உங்களைச் சுற்றி ஒரு தெய்வீக கவசத்தை உருவாக்கும்.`,
+        en: `Your dedicated 10-Minute Daily Japa Protocol: sit facing East or North following your morning ablutions. Intone 'Om' three times to center your breath, followed by 108 recitations of the sacred Shiva Panchakshari ('Om Namah Shivaya') or your Nakshatra Ishta mantra, anchoring an aura of calm resilience.`
       }, targetLang),
       pick6({
         kn: `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಮಹಾ ಮಂತ್ರ ಸಂಪರ್ಕ: ಶ್ರೀ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಆತ್ಮಲಿಂಗವು ರಾವಣನಿಂದ ಪ್ರತಿಷ್ಠಾಪಿಸಲ್ಪಟ್ಟ ಪರಮ ಶಿವಲಿಂಗವಾಗಿದ್ದು, ಸಮಸ್ತ ಇಷ್ಟಾರ್ಥಗಳನ್ನು ಸಿದ್ಧಿಸುವ ಕಾಮಧೇನುವಾಗಿದೆ. ನಿಮ್ಮ ಮನೆಯ ಪೂಜಾ ಕೋಣೆಯಲ್ಲಿ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಭಸ್ಮ ಅಥವಾ ಪ್ರಸಾದವನ್ನು ಇಟ್ಟು ನಮಸ್ಕರಿಸುವುದು ನಿಮ್ಮ ಮಂತ್ರ ಸಿದ್ಧಿಯನ್ನು ನೂರ್ಮಡಿಗೊಳಿಸುತ್ತದೆ.`,
-        mr: `गोकर्ण महाबळेश्वर महामंत्र संपर्क: गोकर्ण क्षेत्रीचे पवित्र आत्मलिंग हे सर्व मनोकामना पूर्ण करणारे साक्षात शिवस्वरूप आहे. घरातील देव्हाऱ्यात गोकर्णाचा पवित्र भस्म किंवा प्रसाद ठेवून नमन केल्याने साधनेचे फळ शतपटीने वाढते.`,
-        hi: `श्री गोकर्ण महाबलेश्वर सन्निधि का पावन संपर्क: गोकर्ण का आत्मलिंग साक्षात सदाशिव का जाग्रत विग्रह है। घर के पूजा स्थल पर गोकर्ण का पवित्र भस्म अथवा प्रसाद स्थापित कर नमन करने से आपकी मंत्र साधना शीघ्र सिद्ध होती है।`,
-        te: `శ్రీ గోకర్ణ మహాబలేశ్వర ఆత్మలింగంతో దైవ సంబంధం: గోకర్ణ క్షేత్రంలోని ఆత్మలింగం సాక్షాత్తూ పరమశివుని స్వరూపంగా సర్వ శుభాలను ప్రసాదిస్తుంది. మీ పూజా గదిలో గోకర్ణ విభూతి లేదా ప్రసాదాన్ని భక్తితో ఉంచి నమస్కరించడం వల్ల మీ నిత్య జపం త్వరగా ఫలిస్తుంది.`,
-        ta: `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் அருள் தொடர்பு: கோகர்ண ஆத்மலிங்கம் சகல நன்மைகளையும் அருளும் புனித சக்தி பீடமாகும். உங்கள் வீட்டுப் பூஜை அறையில் கோகர்ண திருநீறு அல்லது பிரசாதத்தை வைத்து வழிபட்டு நெற்றியில் அணிவதால் மன அமைதியும் மந்திர சித்தியும் எளிதில் கைகூடும்.`,
+        mr: `गोकर्ण महाबळेश्वर महामंत्र: गोकर्णचे आत्मलिंग हे सर्व इच्छा पूर्ण करणारे महास्थान आहे. गोकर्णचा पवित्र भस्म कपाळावर लावल्याने मंत्र सिद्धी लवकर होते.`,
+        hi: `श्री गोकर्ण महाबलेश्वर सन्निधि का पावन संपर्क: गोकर्ण का आत्मलिंग साक्षात सदाशिव का साक्षात विग्रह है। घर के पूजा स्थल पर गोकर्ण का पवित्र भस्म अथवा प्रसाद स्थापित कर नमन करने से आपकी मंत्र साधना शीघ्र सिद्ध होती है।`,
+        te: `గోకర్ణ ఆత్మలింగం ఎంతో మహిమాన్వితమైనది. పూజా గదిలో గోకర్ణ ప్రసాదాన్ని ఉంచి పూజించడం వల్ల జప సిద్ధి కలుగుతుంది.`,
+        ta: `கோகர்ண மகாபலேஸ்வரர் அருள் தொடர்பு: கோகர்ண ஆத்மலிங்கம் சகல விருப்பங்களையும் நிறைவேற்றும் திருத்தலமாகும். கோகர்ண விபூதியை நெற்றியில் தரிக்க மந்திர சித்தி எளிதில் கிட்டும்.`,
         en: `Connection with the primordial Gokarna Atma Linga: Sri Kshetra Gokarna preserves Lord Shiva's ancient Atma Linga. Keeping consecrated Gokarna Vibhuti at your altar and applying it quietly before daily Japa accelerates clarity and inner peace.`
       }, targetLang)
     ],
@@ -3231,15 +3267,25 @@ function buildAll25Chapters(ctx: SynthesisContext): Master25Chapter[] {
       isSenior,
       ext: extendedPrecision
     });
-    const expandedParagraphs = [...ch.paragraphs, enrichment.extraParagraph].map((p) => {
+    const expandedParagraphs = [...ch.paragraphs, ...enrichment.extraParagraphs].map((p) => {
       let cleaned = cleanDegreesFromText(cleanPunctuationArtifacts(p));
       if (targetLang !== "en") {
-        cleaned = cleanEnglishFromRegionalText(cleaned, targetLang);
+        cleaned = cleanRegionalPreserveBullets(cleaned, targetLang);
       }
       return cleaned;
     });
+    const cleanField = (v?: string) => {
+      if (!v) return v;
+      const base = cleanPunctuationArtifacts(v);
+      return targetLang === "en" ? base : cleanRegionalPreserveBullets(base, targetLang);
+    };
     return {
       ...ch,
+      sectionTitle: cleanField(ch.sectionTitle) || ch.sectionTitle,
+      title: cleanField(ch.title) || ch.title,
+      question: cleanField(ch.question) || ch.question,
+      guidanceBadge: cleanField(ch.guidanceBadge),
+      practicalGuidance: cleanField(ch.practicalGuidance),
       paragraphs: expandedParagraphs,
       precisionAnchors: enrichment.precisionAnchors
     };
@@ -3257,11 +3303,11 @@ export const SAMPOORNA25_A4_LAYOUT = {
   INNER_BORDER_INSET_MM: 7.8,
   IMAGE_X_MM: 9.5,
   IMAGE_W_MM: 191, // 9.5 + 191 = 200.5mm (strictly inside 202.2mm inner border)
-  PAGE1_TOP_Y_MM: 10.2,
-  CONT_TOP_Y_MM: 18.6, // Starts cleanly below Pages 2+ running header strip
-  CONTENT_BOTTOM_MAX_MM: 277.0, // Strict safety clearance above footer hairline (281.0mm)
-  RUNNING_HEADER_Y_MM: 9.2,
-  RUNNING_HEADER_MAX_H_MM: 7.8,
+  PAGE1_TOP_Y_MM: 9.6,
+  CONT_TOP_Y_MM: 18.0, // Starts cleanly below Pages 2+ running header hairline (17.4mm)
+  CONTENT_BOTTOM_MAX_MM: 278.5, // Strict safety clearance above footer hairline (281.0mm)
+  RUNNING_HEADER_Y_MM: 9.0,
+  RUNNING_HEADER_MAX_H_MM: 7.4,
   FOOTER_LINE_Y_MM: 281.0,
   FOOTER_TEXT_Y_MM: 285.5, // Strictly inside inner border bottom (289.2mm)
 } as const;
@@ -3540,6 +3586,25 @@ export async function captureSampoornaMaster25Pdf(
       }
     }
 
+    // Optional native-script running footer strip (placed outside .pdf-section)
+    let runningFooterChunk: { imgData: string; widthMm: number; heightMm: number } | null = null;
+    const runningFooterEl = containerEl.querySelector("#sampoorna-master-25-running-footer") as HTMLElement | null;
+    if (runningFooterEl) {
+      const fCanvas = await captureDomElementToCanvas(runningFooterEl, 24);
+      if (fCanvas && fCanvas.width > 0 && fCanvas.height > 0) {
+        const naturalFH = (fCanvas.height * layout.IMAGE_W_MM) / fCanvas.width;
+        const cappedFH = Math.min(naturalFH, 6.0);
+        const fRatio = cappedFH / naturalFH;
+        runningFooterChunk = {
+          imgData: fCanvas.toDataURL("image/jpeg", 0.95),
+          widthMm: Number((layout.IMAGE_W_MM * fRatio).toFixed(3)),
+          heightMm: Number(cappedFH.toFixed(3)),
+        };
+        fCanvas.width = 0;
+        fCanvas.height = 0;
+      }
+    }
+
     const rawSections = Array.from(containerEl.querySelectorAll(".pdf-section")) as HTMLElement[];
     const sections = rawSections.filter(s => {
       const rect = s.getBoundingClientRect();
@@ -3669,7 +3734,7 @@ export async function captureSampoornaMaster25Pdf(
             undefined,
             "FAST"
           );
-        } else {
+        } else if (lang === "en") {
           pdf.setFont("helvetica", "bold");
           pdf.setFontSize(7.5);
           pdf.setTextColor(146, 64, 14);
@@ -3683,12 +3748,6 @@ export async function captureSampoornaMaster25Pdf(
       // 3. Section Images (Strictly bounded inside [IMAGE_X_MM, IMAGE_X_MM + IMAGE_W_MM] & <= CONTENT_BOTTOM_MAX_MM)
       const topY: number = pIdx === 0 ? layout.PAGE1_TOP_Y_MM : layout.CONT_TOP_Y_MM;
       let currentY: number = topY;
-      if (page.sections.length === 1 && page.totalHeightMm < page.maxUsableHeightMm - 24) {
-        currentY = Math.min(
-          layout.CONTENT_BOTTOM_MAX_MM - page.totalHeightMm,
-          topY + Math.floor((page.maxUsableHeightMm - page.totalHeightMm) / 2)
-        );
-      }
 
       for (const sec of page.sections) {
         pdf.addImage(sec.imgData, "JPEG", sec.renderXMm, currentY, sec.renderWidthMm, sec.renderHeightMm, undefined, "FAST");
@@ -3700,13 +3759,28 @@ export async function captureSampoornaMaster25Pdf(
       pdf.setLineWidth(0.25);
       pdf.line(11, layout.FOOTER_LINE_Y_MM, layout.A4_WIDTH_MM - 11, layout.FOOTER_LINE_Y_MM);
 
-      pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(7.5);
-      pdf.setTextColor(146, 64, 14);
-      pdf.text("BAGGONA PANCHANGA  *  SRI KSHETRA GOKARNA", 12, layout.FOOTER_TEXT_Y_MM);
+      if (runningFooterChunk) {
+        const fx = layout.IMAGE_X_MM + (layout.IMAGE_W_MM - runningFooterChunk.widthMm) / 2;
+        pdf.addImage(
+          runningFooterChunk.imgData,
+          "JPEG",
+          fx,
+          282.1,
+          runningFooterChunk.widthMm,
+          runningFooterChunk.heightMm,
+          undefined,
+          "FAST"
+        );
+      } else if (lang === "en") {
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(146, 64, 14);
+        pdf.text("BAGGONA PANCHANGA  *  SRI KSHETRA GOKARNA", 12, layout.FOOTER_TEXT_Y_MM);
+      }
 
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(7.5);
+      pdf.setTextColor(146, 64, 14);
       pdf.text(`${pIdx + 1} / ${totalPages}`, layout.A4_WIDTH_MM - 12, layout.FOOTER_TEXT_Y_MM, { align: "right" });
 
       // 5. Draw Double Gold Decorative Borders LAST on top so JPEG edges can NEVER overwrite them!
