@@ -20,7 +20,7 @@ import {
   type Master25Chapter,
 } from "../../services/sampoornaMaster25Service";
 import { formatPageTag6L } from "../../services/sampoornaMaster25BookletEngine";
-import { SampoornaChapterVisual } from "./SampoornaChapterVisuals";
+import { CosmicDashaAuraVisual } from "../RamanBhavishya/CosmicDashaAuraVisual";
 import { type SixLang, pick6 } from "../../features/fiveYearPrediction/fiveYearLocale";
 
 interface Props {
@@ -48,7 +48,41 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
   };
 
   const activeFontFamily = getFontFamily(lang);
-  const sectionClass = "pdf-section px-5 py-2 relative";
+  const sectionClass = "pdf-section px-14 py-8 relative";
+
+  const chapterWord = pick6(
+    {
+      kn: "ಅಧ್ಯಾಯ",
+      mr: "अध्याय",
+      hi: "अध्याय",
+      te: "అధ్యాయం",
+      ta: "அத்தியாயம்",
+      en: "Chapter",
+    },
+    lang
+  );
+  const questionLabel = pick6(
+    {
+      kn: "ಪ್ರಶ್ನೆ:",
+      mr: "प्रश्न:",
+      hi: "प्रश्न:",
+      te: "ప్రశ్న:",
+      ta: "கேள்வி:",
+      en: "Question:",
+    },
+    lang
+  );
+  const questionEyebrow = pick6(
+    {
+      kn: "ದೈವಜ್ಞ ಜನ್ಮ ಕುಂಡಲಿ ವಿಚಾರ & ತತ್ತ್ವ ಚಿಂತನೆ",
+      mr: "दैवज्ञ जन्मकुंडली विचार व तत्त्वचिंतन",
+      hi: "दैवज्ञ जन्मकुंडली विचार एवं तत्त्व चिंतन",
+      te: "దైవజ్ఞ జన్మ కుండలి విచారణ & తత్వ చింతన",
+      ta: "தெய்வீக ஜென்ம குண்டலி சிந்தனை & தத்துவம்",
+      en: "Vedic Natal Inquiry & Dharma Reflection",
+    },
+    lang
+  );
 
   const sacredInvocation = pick6(
     {
@@ -1204,6 +1238,15 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               </span>
               {data.detectedDoshasSummary} • {n(data.janmaDashaBalance)}
             </div>
+            {data.heroSummary && (
+              <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px dashed rgba(217, 119, 6, 0.4)" }}>
+                <span style={{ color: "#92400e" }}>
+                  {pick6({ kn: "ಕುಂಡಲಿಯ ಪ್ರಧಾನ ಗ್ರಹ ನಾಯಕ & ಆಪ್ತ ಸಹೋದ್ಯೋಗಿ: ", mr: "कुंडलीचा मुख्य नायक ग्रह व जवळील सहकारी: ", hi: "कुंडली का मुख्य नायक ग्रह एवं निकटतम सहयोगी: ", te: "కుండలి ప్రధాన నాయకుడు & సమీప సహచర గ్రహం: ", ta: "ஜாதகத்தின் முதன்மை நாயகன் & நெருங்கிய துணை கிரகம்: ", en: "Strongest Kundli Hero & Nearest Colleague: " }, lang)}
+                </span>
+                {data.heroSummary.heroPlanetName} ({data.heroSummary.heroPlanetRashi}) •{" "}
+                {data.heroSummary.nearestColleagueName} ({data.heroSummary.nearestColleagueRashi})
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1343,6 +1386,28 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             </div>
           )}
 
+          {chapter.chapterNumber === 7 && (
+            <div className={sectionClass} data-section="cosmic-aura">
+              <CosmicDashaAuraVisual
+                lagnaName={data.lagnaName}
+                lagnaIndex={data.lagnaRashiIdx ?? 0}
+                lagnaLordName={data.lagnaLord}
+                moonName={data.moonRashi}
+                moonIndex={data.moonRashiIdx ?? 0}
+                nakshatraName={data.nakshatraName}
+                pada={n(data.nakshatraPada)}
+                mahaLord={data.currentMahadasha}
+                bhuktiLord={data.currentBhukti}
+                mahaLordKey={data.rawMahadashaPlanet}
+                bhuktiLordKey={data.rawBhuktiPlanet}
+                elementName={data.dominantElement}
+                lang={lang === "mr" ? "hi" : lang}
+                jupiterTransitHouse={data.chartVisualMetrics?.guruHouseFromMoon}
+                saturnTransitHouse={data.chartVisualMetrics?.shaniHouseFromMoon}
+              />
+            </div>
+          )}
+
           <div
             className={sectionClass}
             data-section={`chapter-${chapter.chapterNumber}`}
@@ -1352,91 +1417,443 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "flex-start",
-                padding: "12px 20px",
                 boxSizing: "border-box",
                 letterSpacing: "normal",
               }}
             >
-              {renderChapterBanner(chapter)}
-
-              <div
+              {/* Premium PDF V1 Clean Bold Chapter Heading */}
+              <h2
                 style={{
-                  borderLeft: "4px solid #b45309",
-                  backgroundColor: "rgba(254, 243, 199, 0.55)",
-                  borderRadius: "0 8px 8px 0",
-                  padding: "6px 13px",
-                  marginBottom: "9px",
-                  fontSize: "17.5px",
+                  margin: "0 0 20px 0",
+                  paddingBottom: "12px",
+                  borderBottom: "2px solid rgba(180, 83, 9, 0.3)",
+                  fontSize: "30px",
                   fontWeight: 800,
-                  lineHeight: 1.44,
-                  color: "#78350f",
+                  lineHeight: 1.35,
+                  color: "#451a03",
+                  letterSpacing: "normal",
                   wordBreak: "break-word",
                 }}
               >
-                {chapter.question}
-              </div>
+                {chapterWord} {n(chapter.chapterNumber)}: {chapter.title}
+              </h2>
 
-              {chapter.storyHook && (
-                <div
-                  style={{
-                    background: "linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%)",
-                    border: "1px solid #e6c280",
-                    borderLeft: "4px solid #d97706",
-                    borderRadius: "8px",
-                    padding: "9px 14px",
-                    marginBottom: "4px",
-                    fontSize: "16.5px",
-                    fontWeight: 700,
-                    lineHeight: 1.5,
-                    color: "#451a03",
-                    wordBreak: "break-word",
-                  }}
-                >
-                  <span style={{ color: "#b45309", marginRight: "6px" }}>❖</span>
-                  {chapter.storyHook}
-                </div>
-              )}
-
-              <SampoornaChapterVisual
-                chapterNumber={chapter.chapterNumber}
-                visualType={chapter.visualType}
-                metrics={data.chartVisualMetrics}
-                visualSummary={chapter.visualSummary}
-                lang={lang}
-                activeDoshaProfiles={data.activeDoshaProfiles}
-                bhuktiEndDate={data.bhuktiEndDate}
-              />
-
+              {/* Premium PDF V1 Warm Amber Gradient Top Inquiry Box */}
               <div
                 style={{
-                  marginTop: "10px",
-                  backgroundColor: "#fffaf0",
-                  border: "1px solid #f0d7a7",
-                  borderRadius: "10px",
-                  padding: "12px 16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
+                  borderRadius: "12px",
+                  border: "2px solid rgba(180, 83, 9, 0.3)",
+                  background:
+                    "linear-gradient(90deg, rgba(254, 243, 199, 0.92) 0%, rgba(255, 247, 237, 0.85) 50%, rgba(254, 243, 199, 0.92) 100%)",
+                  padding: "18px 22px",
+                  marginBottom: "22px",
+                  boxShadow: "0 1px 3px rgba(120, 53, 15, 0.08)",
                 }}
               >
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "#92400e",
+                    marginBottom: "6px",
+                    letterSpacing: "normal",
+                  }}
+                >
+                  ✨ {questionEyebrow}
+                </div>
+                <div
+                  style={{
+                    fontSize: "19px",
+                    fontWeight: 800,
+                    lineHeight: 1.48,
+                    color: "#451a03",
+                    wordBreak: "break-word",
+                    letterSpacing: "normal",
+                  }}
+                >
+                  <span style={{ color: "#b45309", marginRight: "8px" }}>❖</span>
+                  <span style={{ marginRight: "6px" }}>{questionLabel}</span>
+                  {chapter.question}
+                </div>
+              </div>
+
+              {/* Premium PDF V1 Royal Parchment Story Card with 4-Corner Floret Marks */}
+              <div
+                style={{
+                  position: "relative",
+                  overflow: "hidden",
+                  borderRadius: "16px",
+                  border: "2px solid rgba(180, 83, 9, 0.3)",
+                  backgroundColor: "rgba(255, 251, 235, 0.85)",
+                  padding: "32px 34px",
+                  boxShadow: "0 1px 4px rgba(120, 53, 15, 0.07)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "22px",
+                }}
+              >
+                {/* 4 Subtle Corner Ornament Marks matching Premium PDF V1 */}
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "12px",
+                    left: "16px",
+                    fontSize: "12px",
+                    color: "rgba(217, 119, 6, 0.38)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  ❖
+                </span>
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "12px",
+                    right: "16px",
+                    fontSize: "12px",
+                    color: "rgba(217, 119, 6, 0.38)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  ❖
+                </span>
+                <span
+                  style={{
+                    position: "absolute",
+                    bottom: "12px",
+                    left: "16px",
+                    fontSize: "12px",
+                    color: "rgba(217, 119, 6, 0.38)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  ❖
+                </span>
+                <span
+                  style={{
+                    position: "absolute",
+                    bottom: "12px",
+                    right: "16px",
+                    fontSize: "12px",
+                    color: "rgba(217, 119, 6, 0.38)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  ❖
+                </span>
+
                 {chapter.paragraphs.map((para, pIdx) => (
                   <p
                     key={pIdx}
                     style={{
                       margin: 0,
-                      fontSize: "16.5px",
-                      lineHeight: 1.55,
+                      fontSize: "20px",
+                      lineHeight: 1.72,
                       color: "#1f1206",
+                      fontWeight: 500,
                       letterSpacing: "normal",
                       wordBreak: "break-word",
+                      textAlign: "left",
                     }}
                   >
                     {para}
                   </p>
                 ))}
-              </div>
 
-              {renderContemplationRibbon(chapter.guidanceBadge, chapter.practicalGuidance)}
+                {/* Chapter 5: Premium PDF V1 4-Elemental Balance Scorecard */}
+                {chapter.chapterNumber === 5 && data.chartVisualMetrics && (
+                  <div
+                    data-v1-visual="elemental-balance"
+                    style={{
+                      marginTop: "6px",
+                      padding: "16px 18px",
+                      borderRadius: "12px",
+                      backgroundColor: "#fffdf7",
+                      border: "1px solid rgba(180, 83, 9, 0.25)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "15px",
+                        fontWeight: 800,
+                        color: "#78350f",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      ❖{" "}
+                      {pick6(
+                        {
+                          kn: "ಪಂಚಭೂತ ತತ್ತ್ವ ಸಂತುಲನ ಪಟ್ಟಿ",
+                          mr: "पंचमहाभूत तत्त्व संतुलन",
+                          hi: "पंचमहाभूत तत्त्व संतुलन",
+                          te: "పంచభూత తత్వ సమతుల్యత",
+                          ta: "பஞ்சபூத தத்துவ சமநிலை",
+                          en: "Elemental Balance Matrix",
+                        },
+                        lang
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                        gap: "10px",
+                      }}
+                    >
+                      {[
+                        {
+                          key: "fire",
+                          label: pick6(
+                            { kn: "ಅಗ್ನಿ", mr: "अग्नि", hi: "अग्नि", te: "అగ్ని", ta: "நெருப்பு", en: "Fire" },
+                            lang
+                          ),
+                          pct: data.chartVisualMetrics.elemPercentages.fire,
+                          barColor: "#d97706",
+                        },
+                        {
+                          key: "earth",
+                          label: pick6(
+                            { kn: "ಪೃಥ್ವಿ", mr: "पृथ्वी", hi: "पृथ्वी", te: "భూమి", ta: "நிலம்", en: "Earth" },
+                            lang
+                          ),
+                          pct: data.chartVisualMetrics.elemPercentages.earth,
+                          barColor: "#92400e",
+                        },
+                        {
+                          key: "air",
+                          label: pick6(
+                            { kn: "ವಾಯು", mr: "वायु", hi: "वायु", te: "వాయువు", ta: "காற்று", en: "Air" },
+                            lang
+                          ),
+                          pct: data.chartVisualMetrics.elemPercentages.air,
+                          barColor: "#0284c7",
+                        },
+                        {
+                          key: "water",
+                          label: pick6(
+                            { kn: "ಜಲ", mr: "जल", hi: "जल", te: "జలం", ta: "நீர்", en: "Water" },
+                            lang
+                          ),
+                          pct: data.chartVisualMetrics.elemPercentages.water,
+                          barColor: "#0d9488",
+                        },
+                      ].map((el) => (
+                        <div
+                          key={el.key}
+                          style={{
+                            backgroundColor: "#fffbeb",
+                            border: "1px solid #fde68a",
+                            borderRadius: "8px",
+                            padding: "10px 12px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              fontSize: "14px",
+                              fontWeight: 800,
+                              color: "#451a03",
+                              marginBottom: "6px",
+                            }}
+                          >
+                            <span>{el.label}</span>
+                            <span>{n(el.pct)}%</span>
+                          </div>
+                          <div
+                            style={{
+                              height: "6px",
+                              borderRadius: "999px",
+                              backgroundColor: "#fef3c7",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                height: "100%",
+                                width: `${Math.max(6, Math.min(100, el.pct))}%`,
+                                backgroundColor: el.barColor,
+                                borderRadius: "999px",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Chapter 8: Premium PDF V1 Shani & Guru Gochara Transit Badges */}
+                {chapter.chapterNumber === 8 && data.chartVisualMetrics && (
+                  <div
+                    data-v1-visual="gochara-transits"
+                    style={{
+                      marginTop: "6px",
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        backgroundColor: "#fffdf7",
+                        border: "1px solid rgba(180, 83, 9, 0.3)",
+                        borderRadius: "10px",
+                        padding: "14px 16px",
+                      }}
+                    >
+                      <div style={{ fontSize: "14px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
+                        {pick6(
+                          { kn: "ಶನಿ ಗೋಚಾರ ಸ್ಥಿತಿ", mr: "शनी गोचर स्थिती", hi: "शनि गोचर स्थिति", te: "శని గోచార స్థితి", ta: "சனி கோசார நிலை", en: "Saturn Transit Position" },
+                          lang
+                        )}
+                      </div>
+                      <div style={{ fontSize: "17px", fontWeight: 800, color: "#451a03" }}>
+                        {data.shaniTransitRashi} •{" "}
+                        {lang === "en"
+                          ? `House ${n(data.chartVisualMetrics.shaniHouseFromMoon)}`
+                          : `${n(data.chartVisualMetrics.shaniHouseFromMoon)} ${pick6(
+                              { kn: "ನೇ ಭಾವ", mr: "वे स्थान", hi: "वाँ भाव", te: "వ స్థానం", ta: "ஆம் வீடு", en: "House" },
+                              lang
+                            )}`}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        backgroundColor: "#fffdf7",
+                        border: "1px solid rgba(180, 83, 9, 0.3)",
+                        borderRadius: "10px",
+                        padding: "14px 16px",
+                      }}
+                    >
+                      <div style={{ fontSize: "14px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
+                        {pick6(
+                          { kn: "ಗುರು ಗೋಚಾರ ಸ್ಥಿತಿ", mr: "गुरू गोचर स्थिती", hi: "गुरु गोचर स्थिति", te: "గురు గోచార స్థితి", ta: "குரு கோசார நிலை", en: "Jupiter Transit Position" },
+                          lang
+                        )}
+                      </div>
+                      <div style={{ fontSize: "17px", fontWeight: 800, color: "#451a03" }}>
+                        {data.guruTransitRashi} •{" "}
+                        {lang === "en"
+                          ? `House ${n(data.chartVisualMetrics.guruHouseFromMoon)}`
+                          : `${n(data.chartVisualMetrics.guruHouseFromMoon)} ${pick6(
+                              { kn: "ನೇ ಭಾವ", mr: "वे स्थान", hi: "वाँ भाव", te: "వ స్థానం", ta: "ஆம் வீடு", en: "House" },
+                              lang
+                            )}`}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Chapter 11: Premium PDF V1 Royal Yoga Highlight Card */}
+                {chapter.chapterNumber === 11 && (
+                  <div
+                    data-v1-visual="yoga-highlight"
+                    style={{
+                      marginTop: "6px",
+                      borderRadius: "12px",
+                      border: "1.5px solid #d97706",
+                      background: "linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%)",
+                      padding: "16px 20px",
+                    }}
+                  >
+                    <div style={{ fontSize: "15px", fontWeight: 800, color: "#92400e", marginBottom: "6px" }}>
+                      👑{" "}
+                      {pick6(
+                        { kn: "ಜಾತಕದ ಪ್ರಧಾನ ರಾಜಯೋಗ & ಶುಭ ಯೋಗಗಳು", mr: "कुंडलीतील प्रमुख राजयोग व शुभ योग", hi: "कुंडली के प्रमुख राजयोग एवं शुभ योग", te: "జాతకంలోని ప్రధాన రాజయోగాలు", ta: "ஜாதகத்தின் முக்கிய ராஜயோகங்கள்", en: "Detected Natal Yogas & Blessings" },
+                        lang
+                      )}
+                    </div>
+                    <div style={{ fontSize: "18px", fontWeight: 700, color: "#451a03", lineHeight: 1.55 }}>
+                      {data.detectedYogasSummary}
+                    </div>
+                  </div>
+                )}
+
+                {/* Chapter 23: Premium PDF V1 Rose-Gold Active Dosha & Remedy Cards */}
+                {chapter.chapterNumber === 23 && data.activeDoshaProfiles && data.activeDoshaProfiles.length > 0 && (
+                  <div
+                    data-v1-visual="dosha-remedy-cards"
+                    style={{
+                      marginTop: "6px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "14px",
+                    }}
+                  >
+                    {data.activeDoshaProfiles.map((profile) => (
+                      <div
+                        key={profile.id}
+                        style={{
+                          backgroundColor: "#fff1f2",
+                          border: "1.5px solid #fda4af",
+                          borderRadius: "14px",
+                          padding: "18px 22px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            borderBottom: "1px solid #fecdd3",
+                            paddingBottom: "8px",
+                          }}
+                        >
+                          <span style={{ fontSize: "18px", fontWeight: 800, color: "#881337" }}>
+                            ❖ {profile.title}
+                          </span>
+                          <span style={{ fontSize: "14px", fontWeight: 800, color: "#9f1239" }}>
+                            {profile.severityLabel}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: "16.5px", lineHeight: 1.6, color: "#4c0519", fontWeight: 600 }}>
+                          {profile.doingNow}
+                        </div>
+                        <div style={{ fontSize: "16px", lineHeight: 1.55, color: "#881337", fontWeight: 600 }}>
+                          {profile.affectingArea}
+                        </div>
+                        <div
+                          style={{
+                            backgroundColor: "#fffbeb",
+                            border: "1px solid #f59e0b",
+                            borderRadius: "10px",
+                            padding: "12px 16px",
+                            fontSize: "16.5px",
+                            lineHeight: 1.58,
+                            color: "#78350f",
+                            fontWeight: 700,
+                          }}
+                        >
+                          ✨ {profile.exactAction}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Subtle Single-Line Royal Wisdom Note (replacing pill clutter) */}
+                {chapter.practicalGuidance && (
+                  <div
+                    style={{
+                      marginTop: "4px",
+                      paddingTop: "14px",
+                      borderTop: "1px solid rgba(180, 83, 9, 0.25)",
+                      fontSize: "16.5px",
+                      lineHeight: 1.55,
+                      color: "#78350f",
+                      fontWeight: 700,
+                    }}
+                  >
+                    <span style={{ color: "#b45309", marginRight: "6px" }}>❖</span>
+                    {chapter.guidanceBadge ? `${chapter.guidanceBadge} — ` : ""}
+                    {chapter.practicalGuidance}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </React.Fragment>

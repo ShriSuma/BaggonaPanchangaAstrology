@@ -151,6 +151,15 @@ export interface StoryEngineInput {
   house5Info: HouseLordPlacementInfo;
   house6Info: HouseLordPlacementInfo;
 
+  // Dynamic First-Person Chart Hero & Closest Neighboring Colleague
+  heroPlanetName: string;
+  heroPlanetHouse: number;
+  heroPlanetRashi: string;
+  nearestColleagueName: string;
+  nearestColleagueHouse: number;
+  nearestColleagueRashi: string;
+  lagnaLordName: string;
+
   extendedPrecision: ExtendedPrecisionMetrics;
   nowYear: number;
 }
@@ -788,6 +797,13 @@ function buildChapterThemeAndNarrativeLayer(args: {
     dominantElement,
     detectedYogasSummary,
     house6Info,
+    heroPlanetName,
+    heroPlanetHouse,
+    heroPlanetRashi,
+    nearestColleagueName,
+    nearestColleagueHouse,
+    nearestColleagueRashi,
+    lagnaLordName,
     nowYear,
   } = ctx;
 
@@ -796,26 +812,26 @@ function buildChapterThemeAndNarrativeLayer(args: {
 
   const themeBadge =
     themeKey === "cinema"
-      ? pick6({ kn: "🎬 ಜೀವನ ಸಿನಿಮಾ ದೃಶ್ಯ", mr: "🎬 जीवन सिनेमा दृश्य", hi: "🎬 जीवन सिनेमा दृश्य", te: "🎬 జీవన సినిమా దృశ్యం", ta: "🎬 வாழ்க்கை சினிமா காட்சி", en: "🎬 Life Cinema Lens" }, lang)
+      ? pick6({ kn: `👑 ನಾನು ನಿನ್ನ '${heroPlanetName}' ನಾಯಕ`, mr: `👑 मी तुझा '${heroPlanetName}' नायक`, hi: `👑 मैं तुम्हारा '${heroPlanetName}' नायक`, te: `👑 నేను నీ '${heroPlanetName}' నాయకుడు`, ta: `👑 நான் உன் '${heroPlanetName}' நாயகன்`, en: `👑 I Am Your Hero: ${heroPlanetName}` }, lang)
       : themeKey === "nakshatra"
-      ? pick6({ kn: `⭐ ನಾನು ನಿನ್ನ ${nakshatraName}`, mr: `⭐ मी तुझे ${nakshatraName}`, hi: `⭐ मैं तुम्हारा ${nakshatraName}`, te: `⭐ నేను నీ ${nakshatraName}`, ta: `⭐ நான் உன் ${nakshatraName}`, en: `⭐ Voice of ${nakshatraName}` }, lang)
+      ? pick6({ kn: `⭐ ನಾನು ನಿನ್ನ ${nakshatraName}`, mr: `⭐ मी तुझे ${nakshatraName}`, hi: `⭐ मैं तुम्हारा ${nakshatraName}`, te: `⭐ నేను నీ ${nakshatraName}`, ta: `⭐ நான் உன் ${nakshatraName}`, en: `⭐ I Am ${nakshatraName} Star` }, lang)
       : themeKey === "yoga_karana"
-      ? pick6({ kn: `⚡ ${yogaName} • ${karanaName}`, mr: `⚡ ${yogaName} • ${karanaName}`, hi: `⚡ ${yogaName} • ${karanaName}`, te: `⚡ ${yogaName} • ${karanaName}`, ta: `⚡ ${yogaName} • ${karanaName}`, en: `⚡ ${yogaName} & ${karanaName}` }, lang)
+      ? pick6({ kn: `⚡ ನಾನು ನಿನ್ನ '${yogaName}' • '${karanaName}'`, mr: `⚡ मी तुझा '${yogaName}' • '${karanaName}'`, hi: `⚡ मैं तुम्हारा '${yogaName}' • '${karanaName}'`, te: `⚡ నేను నీ '${yogaName}' • '${karanaName}'`, ta: `⚡ நான் உன் '${yogaName}' • '${karanaName}'`, en: `⚡ I Am ${yogaName} & ${karanaName}` }, lang)
       : themeKey === "near_far"
-      ? pick6({ kn: "🧭 ಹತ್ತಿರ ಮತ್ತು ದೂರ", mr: "🧭 जवळ आणि दूर", hi: "🧭 निकट बनाम दूर", te: "🧭 దగ్గర & దూరం", ta: "🧭 அருகில் & தொலைவில்", en: "🧭 Near vs Far Mirror" }, lang)
-      : pick6({ kn: "⛵ ಜೀವನ ಕಥಾ ನಿದರ್ಶನ", mr: "⛵ जीवन कथा उदाहरण", hi: "⛵ प्रेरक जीवन-प्रसंग", te: "⛵ జీవిత కథా ఉదాహరణ", ta: "⛵ வாழ்க்கை உதாரணக் கதை", en: "⛵ Real-Life Parable" }, lang);
+      ? pick6({ kn: `🧭 ನಾನು ನಿನ್ನ '${lagnaRashiName}' ಲಗ್ನ`, mr: `🧭 मी तुझे '${lagnaRashiName}' लग्न`, hi: `🧭 मैं तुम्हारा '${lagnaRashiName}' लग्न`, te: `🧭 నేను నీ '${lagnaRashiName}' లగ్నం`, ta: `🧭 நான் உன் '${lagnaRashiName}' லக்னம்`, en: `🧭 I Am ${lagnaRashiName} Ascendant` }, lang)
+      : pick6({ kn: `⛵ ನಾನು ನಿನ್ನ ಯೋಗಿ '${yogiPlanetName}'`, mr: `⛵ मी तुझा योगी '${yogiPlanetName}'`, hi: `⛵ मैं तुम्हारा योगी '${yogiPlanetName}'`, te: `⛵ నేను నీ యోగి '${yogiPlanetName}'`, ta: `⛵ நான் உன் யோகி '${yogiPlanetName}'`, en: `⛵ I Am Your Yogi ${yogiPlanetName}` }, lang);
 
-  // Build authentic 2-3 sentence captivating hook matching the shuffled theme + chapter bucket + child safety
+  // Authentic First-Person Hero Voice introducing real neighboring colleagues inside THIS devotee's Kundali
   const rawHook = (): string => {
     if (isChildOrInfant && (chNum === 12 || chNum === 13 || chNum === 14)) {
-      if (themeKey === "cinema") {
+      if (themeKey === "cinema" || themeKey === "yoga_karana") {
         return pick6({
-          kn: `ನಿಮ್ಮ ಕುಟುಂಬದ ಪುಟ್ಟ ಸಿನಿಮಾವನ್ನು ಊಹಿಸಿ: ಈ ಪುಟ್ಟ ಕಂದಮ್ಮ ${nakshatraName} ಬೆಳಕಿನಲ್ಲಿ ಅರಳುತ್ತಾ ಮನೆಗೆ ನಗು ತರುತ್ತಿದೆ! ಸುತ್ತಲಿನವರು ಬರೀ ಆಟವನ್ನೇ ಕಾಣುತ್ತಿದ್ದರೆ, ಈ ಮಗುವಿನ ಪ್ರತಿಯೊಂದು ಕುತೂಹಲವೂ ದೊಡ್ಡ ಭವಿಷ್ಯದ ಬೀಜವಾಗುತ್ತಿದೆ.`,
-          mr: `तुमच्या कुटुंबाच्या सुंदर सिनेमाचे हे पहिले दृश्य समजा: हे बाळ ${nakshatraName} तेजासह घरात आनंदाची लाट घेऊन आले आहे! प्रत्येक छोटा खेळ आणि हास्य उद्याच्या मोठ्या प्रतिभेची चाहूल देत आहे.`,
-          hi: `अपने घर की सबसे प्यारी फिल्म का दृश्य सोचें: यह बालक ${nakshatraName} की चमक लेकर परिवार में नई मुस्कान भर रहा है! इसकी हर छोटी जिज्ञासा आने वाले बड़े भविष्य की आधारशिला रख रही है।`,
-          te: `మీ ఇంటి అందమైన సినిమాలో ఇదే మొదటి సన్నివేశం: ${nakshatraName} వెలుగులో ఈ చిన్నారి మీ ఇంట ఆనందం నింపుతోంది! దీని ప్రతి చిన్న ప్రశ్న రేపటి గొప్ప ప్రతిభకు పునాది వేస్తోంది.`,
-          ta: `உங்கள் குடும்பத்தின் இனிய சினிமா காட்சியைப் பாருங்கள்: ${nakshatraName} ஒளியில் இந்தக் குழந்தை இல்லத்திற்கு மகிழ்ச்சி கொண்டுவந்துள்ளது! இதன் ஒவ்வொரு ஆர்வமும் நாளைய சாதனையின் விதையாகும்.`,
-          en: `Picture this opening scene in your family story: bathed in ${nakshatraName} starlight, this young child quietly awakens fresh warmth inside the home! Every curious glance and joyful question today is planting tomorrow's remarkable confidence.`,
+          kn: `ನಮಸ್ಕಾರ, ನಾನು ಈ ಪುಟ್ಟ ಕಂದಮ್ಮನ ಕುಂಡಲಿಯ ನಾಯಕ '${heroPlanetName}' (${n(heroPlanetHouse)}ನೇ ಮನೆ) ಹಾಗೂ ಜನ್ಮ ಯೋಗ '${yogaName}' ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ನನ್ನ ಪಕ್ಕದಲ್ಲೇ ಸಹೋದ್ಯೋಗಿ '${nearestColleagueName}' ನಿಂತಿದ್ದು, ಮಗುವಿನ ನೈಸರ್ಗಿಕ ಕುತೂಹಲ ಮತ್ತು ಸುರಕ್ಷತೆಯನ್ನು ನಾವು ಇಬ್ಬರೂ ಕಾಯುತ್ತಿದ್ದೇವೆ.`,
+          mr: `नमस्कार, मी या चिमुकल्याच्या पत्रिकेतील प्रमुख नायक '${heroPlanetName}' (स्थान ${n(heroPlanetHouse)}) आणि जन्म योग '${yogaName}' बोलत आहे! माझ्या अगदी शेजारी '${nearestColleagueName}' उभा असून आम्ही दोघे या बाळाच्या आनंदाचे रक्षण करत आहोत.`,
+          hi: `नमस्ते, मैं इस बालक की कुंडली का प्रमुख नायक '${heroPlanetName}' (भाव ${n(heroPlanetHouse)}) तथा जन्म योग '${yogaName}' बोल रहा हूं! मेरे ठीक पास सहकर्मी '${nearestColleagueName}' स्थित है और हम दोनों इस बच्चे की मुस्कान की रक्षा कर रहे हैं।`,
+          te: `నమస్కారం, నేను ఈ చిన్నారి జాతకంలో ప్రధాన నాయకుడైన '${heroPlanetName}' (${n(heroPlanetHouse)}వ స్థానం) మరియు '${yogaName}' మాట్లాడుతున్నాను! నా పక్కనే ఉన్న '${nearestColleagueName}' తో కలిసి మేము ఈ చిన్నారి ఆనందాన్ని కాపాడుతున్నాము.`,
+          ta: `வணக்கம், நான் இந்தக் குழந்தையின் ஜாதக நாயகன் '${heroPlanetName}' (${n(heroPlanetHouse)}-ம் வீடு) மற்றும் '${yogaName}' பேசுகிறேன்! என் அருகில் நிற்கும் '${nearestColleagueName}' உடன் சேர்ந்து இந்தக் குழந்தையின் மகிழ்ச்சியைக் காத்து வருகிறோம்.`,
+          en: `Hello parents—I am ${heroPlanetName} in House ${heroPlanetHouse}, paired with ${yogaName} Yoga as the protecting hero of this child's chart! Standing right beside me is ${nearestColleagueName}, and together we nurture this child's bright curiosity in safety.`,
         }, lang);
       }
       if (themeKey === "nakshatra") {
@@ -829,87 +845,87 @@ function buildChapterThemeAndNarrativeLayer(args: {
         }, lang);
       }
       return pick6({
-        kn: `ನೋಡಿ ಹತ್ತಿರ ಮತ್ತು ದೂರದ ಚಿತ್ರ: ಈ ಕಂದನಿಗೆ ಕುತೂಹಲ ಮತ್ತು ಮನೆಯ ಪ್ರೀತಿ ಕೈಗೆಟುಕುವಷ್ಟು ಹತ್ತಿರದಲ್ಲಿವೆ; ಆದರೆ ಭಯ ಮತ್ತು ಬಾಲಾರಿಷ್ಟ ಆತಂಕಗಳು ಇದರಿಂದ ಬಹುದೂರ ಸರಿದಿವೆ.`,
-        mr: `जवळ आणि दूरचे सुंदर सत्य पहा: या बाळाच्या हाताशी अद्भुत कुतूहल व घरचे प्रेम आहे, तर कोणत्याही भीतीचे सावट यापासून खूप दूर सरले आहे.`,
-        hi: `पास और दूर का स्पष्ट चित्र देखें: इस बच्चे के बिल्कुल पास अद्भुत जिज्ञासा और पारिवारिक सुरक्षा है, जबकि अनावश्यक चिंता की छाया इससे कोसों दूर हट चुकी है।`,
-        te: `దగ్గర మరియు దూరం చిత్రం చూడండి: ఈ చిన్నారికి ఆనందం, ఇంటి రక్షణ చాలా దగ్గరలో ఉన్నాయి—అనవసర భయాలన్నీ దూరంగా తొలగిపోయాయి.`,
-        ta: `அருகிலும் தொலைவிலும் உள்ள உண்மை: இக்குழந்தையின் அருகே ஆர்வமும் பாதுகாப்பும் நிறைந்துள்ளன; தேவையற்ற அச்சங்கள் வெகு தொலைவில் விலகிவிட்டன.`,
-        en: `Look cleanly at near versus far: joyful curiosity, warmth, and playful confidence stand right at this child's fingertips today, while early worries drift quietly far behind.`,
+        kn: `ನಾನು ಜನ್ಮ ಲಗ್ನ '${lagnaRashiName}' ನಾಯಕ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ: ಈ ಕಂದನಿಗೆ ಕುತೂಹಲ ಮತ್ತು ಮನೆಯ ಪ್ರೀತಿ ಕೈಗೆಟುಕುವಷ್ಟು ಹತ್ತಿರದಲ್ಲಿವೆ; ಆದರೆ ಭಯ ಮತ್ತು ಬಾಲಾರಿಷ್ಟ ಆತಂಕಗಳು ಇದರಿಂದ ಬಹುದೂರ ಸರಿದಿವೆ.`,
+        mr: `मी जन्म लग्न '${lagnaRashiName}' नायक बोलत आहे: या बाळाच्या हाताशी अद्भुत कुतूहल व घरचे प्रेम आहे, तर कोणत्याही भीतीचे सावट यापासून खूप दूर सरले आहे.`,
+        hi: `मैं जन्म लग्न '${lagnaRashiName}' नायक बोल रहा हूं: इस बच्चे के बिल्कुल पास अद्भुत जिज्ञासा और पारिवारिक सुरक्षा है, जबकि अनावश्यक चिंता इससे कोसों दूर हट चुकी है।`,
+        te: `నేను జన్మ లగ్నం '${lagnaRashiName}' నాయకుడిగా మాట్లాడుతున్నాను: ఈ చిన్నారికి ఆనందం, ఇంటి రక్షణ చాలా దగ్గరలో ఉన్నాయి—అనవసర భయాలన్నీ దూరంగా తొలగిపోయాయి.`,
+        ta: `நான் ஜென்ம லக்னம் '${lagnaRashiName}' நாயகனாகப் பேசுகிறேன்: இக்குழந்தையின் அருகே ஆர்வமும் பாதுகாப்பும் நிறைந்துள்ளன; தேவையற்ற அச்சங்கள் வெகு தொலைவில் விலகிவிட்டன.`,
+        en: `I am ${lagnaRashiName}, guardian captain of this child's chart: joyful curiosity and family warmth stand inches near today, while early worries drift far behind.`,
       }, lang);
     }
 
     if (themeKey === "cinema") {
       if (bucket === "mirror") {
         return pick6({
-          kn: `${devoteeName}, ನಿಮ್ಮ ಬದುಕನ್ನು ಒಂದು ಸೂಪರ್‌ಹಿಟ್ ಸಿನಿಮಾದಂತೆ ನೋಡಿದರೆ ಈಗ 'ಮಧ್ಯಂತರದ ಹಿಂದಿನ ನಿಗೂಢ ದೃಶ್ಯ' ನಡೆಯುತ್ತಿದೆ! ಪ್ರೇಕ್ಷಕರಿಗೆ ನಾಯಕ ಸುಮ್ಮನೆ ಕೂತಂತೆ ಕಂಡರೂ, ತೆರೆಯ ಹಿಂದೆ ನಿಮ್ಮ ಮನಸ್ಸು ಭವಿಷ್ಯದ ದೊಡ್ಡ ಯೋಜನೆಯನ್ನು ಹೆಣೆಯುತ್ತಿದೆ.`,
-          mr: `${devoteeName}, तुमचे आयुष्य एखाद्या दमदार सिनेमासारखे पाहिले तर सध्या 'मध्यंतरापूर्वीचा शांत पण महत्त्वाचा सीन' चालू आहे! बाहेरून सगळे शांत दिसले तरी मनात मोठ्या परिवर्तनाची पटकथा आकार घेत आहे.`,
-          hi: `${devoteeName}, यदि आपके जीवन को एक शानदार सिनेमा मानें, तो अभी 'इंटरवल से ठीक पहले वाला निर्णायक सीन' चल रहा है! बाहर सब सामान्य दिखते हुए भी भीतर बड़े बदलाव की पटकथा लिखी जा चुकी है।`,
-          te: `${devoteeName}, మీ జీవితాన్ని ఒక గొప్ప సినిమాగా ఊహించుకుంటే ఇప్పుడు 'ఇంటర్వెల్ ముందటి కీలక సన్నివేశం' నడుస్తోంది! బయటకు మౌనంగా ఉన్నా, మీ మనసు లోపల పెద్ద మలుపుకు స్క్రిప్ట్ సిద్ధమవుతోంది.`,
-          ta: `${devoteeName}, உங்கள் வாழ்க்கையை ஒரு திரைப்படமாகப் பார்த்தால் இப்போது 'இடைவேளைக்கு முந்தைய திருப்புமுனைக் காட்சி' ஓடுகிறது! வெளியே அமைதியாகத் தெரிந்தாலும் உள்ளே பெரிய மாற்றம் உருவாகிக்கொண்டிருக்கிறது.`,
-          en: `${devoteeName}, imagine your life right now on a cinema screen: we are right in the gripping scene before intermission! While everyone thinks you are waiting quietly on the sidelines, the director has already placed your next breakthrough right in the frame.`,
+          kn: `ನಮಸ್ಕಾರ ${devoteeName}, ನಾನು ನಿಮ್ಮ ಕುಂಡಲಿಯ ${n(heroPlanetHouse)}ನೇ ಮನೆಯ (${heroPlanetRashi}) ಪ್ರಬಲ ನಾಯಕ '${heroPlanetName}' ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ನನ್ನ ಪಕ್ಕದಲ್ಲೇ ನನ್ನ ಸಹೋದ್ಯೋಗಿ '${nearestColleagueName}' (${n(nearestColleagueHouse)}ನೇ ಮನೆ) ನಿಂತಿರುವುದನ್ನು ನಾನು ನೋಡುತ್ತಿದ್ದೇನೆ. ನಿಮ್ಮ ಬದುಕನ್ನು ಸಿನಿಮಾದಂತೆ ನೋಡಿದರೆ ಈಗ 'ಮಧ್ಯಂತರದ ಹಿಂದಿನ ನಿಗೂಢ ದೃಶ್ಯ' ನಡೆಯುತ್ತಿದೆ — ನಾವೆಲ್ಲರೂ ಒಳಗೊಳಗೇ ನಿಮ್ಮ ಮುಂದಿನ ದೊಡ್ಡ ಗೆಲುವಿಗೆ ವೇದಿಕೆ ಸಜ್ಜುಗೊಳಿಸುತ್ತಿದ್ದೇವೆ.`,
+          mr: `नमस्कार ${devoteeName}, मी तुमच्या पत्रिकेतील ${n(heroPlanetHouse)}व्या भावाचा (${heroPlanetRashi}) सर्वात बलवान नायक '${heroPlanetName}' बोलत आहे! माझ्या अगदी शेजारी माझा सहकारी '${nearestColleagueName}' (${n(nearestColleagueHouse)}वे स्थान) कसा काम करतोय ते पहा — तुमच्या आयुष्याचा हा सिनेमा आता मोठ्या वळणावर आला आहे आणि आम्ही पडद्यामागे तुमच्या विजयाची स्क्रिप्ट पक्की करत आहोत.`,
+          hi: `नमस्ते ${devoteeName}, मैं आपकी कुंडली के ${n(heroPlanetHouse)}वें भाव (${heroPlanetRashi}) का सबसे सशक्त नायक '${heroPlanetName}' बोल रहा हूं! मेरे ठीक बगल में मेरा सहकर्मी '${nearestColleagueName}' (${n(nearestColleagueHouse)}वां भाव) खड़ा है। यदि आपका जीवन एक फिल्म हो, तो अभी इंटरवल से ठीक पहले का रोमांचक दृश्य चल रहा है—भीतर ही भीतर आपकी अगली बड़ी जीत की पटकथा तैयार हो चुकी है।`,
+          te: `నమస్కారం ${devoteeName}, నేను మీ జాతకంలోని ${n(heroPlanetHouse)}వ స్థాన (${heroPlanetRashi}) ప్రధాన నాయకుడు '${heroPlanetName}' మాట్లాడుతున్నాను! నా పక్కనే ఉన్న నా సహోద్యోగి '${nearestColleagueName}' (${n(nearestColleagueHouse)}వ స్థానం) ఎలా పనిచేస్తున్నాడో చూడండి. మీ జీవితాన్ని సినిమాగా చూస్తే ఇప్పుడు ఇంటర్వెల్ ముందు కీలక సన్నివేశం నడుస్తోంది—మీ తర్వాతి విజయం కోసం తెరవెనుక మేమంతా సిద్ధమవుతున్నాము.`,
+          ta: `வணக்கம் ${devoteeName}, நான் உங்கள் ஜாதகத்தில் ${n(heroPlanetHouse)}-ம் வீட்டில் (${heroPlanetRashi}) அமர்ந்திருக்கும் வலிமையான நாயகன் '${heroPlanetName}' பேசுகிறேன்! என் அருகிலிருக்கும் சகா '${nearestColleagueName}' (${n(nearestColleagueHouse)}-ம் வீடு) எவ்வாறு செயல்படுகிறார் பாருங்கள். உங்கள் வாழ்க்கை ஒரு திரைப்படமென்றால், இப்போது இடைவேளைக்கு முந்தைய முக்கிய காட்சி ஓடுகிறது.`,
+          en: `Listen directly to me, ${devoteeName}: I am ${heroPlanetName}, seated powerfully in House ${heroPlanetHouse} (${heroPlanetRashi}) as the strongest hero of your Kundali! Standing nearest beside me in House ${nearestColleagueHouse} (${nearestColleagueRashi}) is my colleague ${nearestColleagueName}. Watch how we are directing this pre-interval film scene behind the curtain to swing the next act toward you.`,
         }, lang);
       }
       if (bucket === "pivot" || bucket === "transit") {
         return pick6({
-          kn: `ಒಂದು ಸಿನಿಮಾದ ದೃಶ್ಯವನ್ನು ಊಹಿಸಿ: ಹೀರೋ ಇನ್ನೇನು ಗುರಿ ತಲುಪಬೇಕು ಎನ್ನುವಾಗಲೇ ಕಟ್ಟಕಡೆಯ ಬಾಗಿಲು ಮುಚ್ಚುತ್ತದೆ — ನೋಡುವವರಿಗೆ ನಿರಾಸೆ ಅನಿಸಿದರೂ, ಮುಂದಿನ ದೃಶ್ಯದಲ್ಲಿ ಆ ಬಾಗಿಲಿನ ಹಿಂದೆ ಅಪಾಯವಿತ್ತೆಂದು ಗೊತ್ತಾಗುತ್ತದೆ! ನಿಮ್ಮ ${shaniTransitRashi} – ${maandiHouse}ನೇ ಮನೆಯ ತಡೆಯೂ ಅಂತಹದ್ದೇ ರಕ್ಷಣೆ.`,
-          mr: `एका थरारक सिनेमाचा सीन आठवा: नायक अगदी शेवटच्या पायरीवर पोहोचताच दार बंद होते — पण नंतर कळते की त्यामागे मोठा धोका लपला होता! तुमच्या ${n(maandiHouse)}व्या भावातील विलंब आणि ${shaniTransitRashi} परीक्षा तुम्हाला अशाच मोठ्या संकटातून वाचवत आहे.`,
-          hi: `एक दिलचस्प फिल्मी दृश्य सोचें: नायक मंज़िल से बस एक कदम दूर होता है कि अचानक आखिरी दरवाज़ा अटक जाता है—पर अगले ही सीन में पता चलता है कि वह रुकावट किसी बड़े जाल से बचाने आई थी! आपका वर्तमान दौर ठीक यही कर रहा है।`,
-          te: `ఒక అద్భుతమైన సినిమా దృశ్యం ఊహించండి: హీరో గెలిచే చివరి క్షణంలో తలుపు ఆగిపోతుంది—కానీ తర్వాతి సీన్‌లోనే ఆ ఆలస్యం వల్లే పెద్ద ప్రమాదం తప్పిందని బయటపడుతుంది! మీ ${n(maandiHouse)}వ స్థాన అనుభవం కూడా అలాంటి రక్షణే.`,
-          ta: `ஒரு சினிமா காட்சியை நினைத்துப் பாருங்கள்: நாயகன் வெல்லும் கடைசி நொடியில் கதவு பூட்டப்படுகிறது—ஆனால் அடுத்த காட்சியில்தான் அந்தத் தாமதமே பெரிய ஆபத்தைத் தடுத்தது என்பது புரியும்! உங்கள் நிலையும் அதுதான்.`,
-          en: `Think of that unforgettable cinema twist: the hero reaches the final door at 99%, only for it to jam—until the very next scene reveals a hidden trap behind that lock! Look closely at your timeline: that pause saved you before accelerating Act 2.`,
+          kn: `ನಾನು ನಿಮ್ಮ ಜಾತಕದ ನಾಯಕ '${heroPlanetName}' ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ${devoteeName}! ನನ್ನ ಸಹೋದ್ಯೋಗಿ '${nearestColleagueName}' (${n(nearestColleagueHouse)}ನೇ ಮನೆ) ಹಾಗೂ ${shaniTransitRashi}ನ ಶನಿ ಒಟ್ಟಾಗಿ ಆಡುತ್ತಿರುವ ರೋಚಕ ದೃಶ್ಯವಿದು: ಹೀರೋ ೯೯% ಹಂತದಲ್ಲಿ ನಿಂತಾಗ ಬಾಗಿಲು ತಡೆದದ್ದು ನಿಮಗೆ ಶಿಕ್ಷೆಯಲ್ಲ — ಆ ಬಾಗಿಲ ಹಿಂದಿದ್ದ ದೊಡ್ಡ ನಷ್ಟದಿಂದ ನಿಮ್ಮನ್ನು ತಪ್ಪಿಸಲು ನಾವು ಹಾಕಿದ ಸಿನಿಮಾ ಬ್ರೇಕ್ ಅಷ್ಟೇ!`,
+          mr: `मी तुमच्या कुंडलीचा नायक '${heroPlanetName}' बोलत आहे ${devoteeName}! माझा सहकारी '${nearestColleagueName}' आणि ${shaniTransitRashi} मधील शनी एकत्र काम करून तुमचे रक्षण करत आहेत — ९९% वर आलेले काम कधी अडले असेल तर ते अपयश नव्हते, तर मोठ्या धोक्यातून तुम्हाला वाचवणारे आमचे रक्षण होते!`,
+          hi: `मैं आपकी कुंडली का नायक '${heroPlanetName}' बोल रहा हूं ${devoteeName}! मेरे साथ खड़ा सहकर्मी '${nearestColleagueName}' और ${shaniTransitRashi} के शनि मिलकर आपकी रक्षा कर रहे हैं—जब काम ९९% पर अटका तो वह हार नहीं थी, बल्कि आगे छिपे बड़े नुकसान से बचाने के लिए हमने लगाया हुआ सुरक्षा-ब्रेक था!`,
+          te: `నేను మీ జాతక నాయకుడు '${heroPlanetName}' మాట్లాడుతున్నాను ${devoteeName}! నా పక్కనున్న '${nearestColleagueName}' మరియు ${shaniTransitRashi} శని కలిసి మిమ్మల్ని కాపాడుతున్నారు—99% వద్ద ఆగిన ప్రతి అడ్డంకి ఓటమి కాదు, పెద్ద ప్రమాదం నుండి తప్పించిన మా రక్షణ కవచం!`,
+          ta: `நான் உங்கள் ஜாதக நாயகன் '${heroPlanetName}' பேசுகிறேன் ${devoteeName}! என் அருகிலுள்ள '${nearestColleagueName}' மற்றும் ${shaniTransitRashi} சனி இணைந்து உங்களைப் பாதுகாக்கிறார்கள்—99%-ல் நின்ற தாமதம் தோல்வியல்ல, பெரிய இழப்பிலிருந்து உங்களைக் காத்த கவசம்!`,
+          en: `I am your chart hero ${heroPlanetName} speaking directly to you, ${devoteeName}! Together with my close colleague ${nearestColleagueName} in House ${nearestColleagueHouse} and Saturn tracking ${shaniTransitRashi}, whenever a deal froze at 99% on your screen, it was our deliberate safety brake saving you from an unseen trap ahead.`,
         }, lang);
       }
       return pick6({
-        kn: `ಸಿನಿಮಾದ ಕ್ಲೈಮ್ಯಾಕ್ಸ್ ಹತ್ತಿರ ಬರುತ್ತಿದೆ ${devoteeName}! ಮೊದಲಾರ್ಧದ ಕಠಿಣ ದೃಶ್ಯಗಳು ನಿಮ್ಮನ್ನು ಅಳಿಸಲು ಬಂದಿರಲಿಲ್ಲ — ಪ್ರೇಕ್ಷಕರು ಎದ್ದು ನಿಂತು ಚಪ್ಪಾಳೆ ತಟ್ಟುವ '${n(nowYear + 2)}–${n(nowYear + 4)}'ರ ಗೆಲುವಿನ ದೃಶ್ಯಕ್ಕೆ ತೂಕ ತುಂಬಲು ಬಂದಿದ್ದವು.`,
-        mr: `आता तुमच्या जीवन-सिनेमाचा विजयी क्लायमॅक्स जवळ येत आहे ${devoteeName}! पहिल्या भागातील संघर्ष तुम्हाला हरवण्यासाठी नाही, तर '${n(nowYear + 2)}–${n(nowYear + 4)}' मधील टाळ्यांच्या कडकडाटाची पार्श्वभूमी तयार करण्यासाठी होता.`,
-        hi: `अब आपकी कहानी का शानदार क्लाइमैक्स करीब आ रहा है ${devoteeName}! पहले हिस्से के कठिन दृश्य आपको हराने नहीं, बल्कि '${n(nowYear + 2)}–${n(nowYear + 4)}' में मिलने वाली गूंजती तालियों को यादगार बनाने आए थे।`,
-        te: `మీ జీవిత సినిమాకు అసలైన క్లైమాక్స్ దగ్గరవుతోంది ${devoteeName}! మొదటి భాగంలోని కష్టాలన్నీ మిమ్మల్ని ఓడించడానికి కాదు—'${n(nowYear + 2)}–${n(nowYear + 4)}' మధ్య రాబోయే గొప్ప విజయానికి బలమైన ఎత్తుగడ కోసమే.`,
-        ta: `உங்கள் வாழ்க்கைத் திரைப்படத்தின் வெற்றி கிளைமாக்ஸ் நெருங்குகிறது ${devoteeName}! முதல் பாதியின் சோதனைகள் உங்களைத் தடுக்கவில்லை—'${n(nowYear + 2)}–${n(nowYear + 4)}' பொற்கால வெற்றியைப் பிரம்மாண்டமாக்கவே வந்தன.`,
-        en: `Act 2 of your film is shifting gears fast, ${devoteeName}! Every tense opening scene was never wasted screen time—it built the exact resilience that makes your upcoming ${nowYear + 2}–${nowYear + 4} breakthrough unforgettable.`,
+        kn: `ನಾನು ನಿಮ್ಮ ಕುಂಡಲಿಯ ಶಕ್ತಿಶಾಲಿ ನಾಯಕ '${heroPlanetName}' (${heroPlanetRashi}) ಹೇಳುತ್ತಿದ್ದೇನೆ ${devoteeName}: ನನ್ನ ಸಹೋದ್ಯೋಗಿ '${nearestColleagueName}' ಹಾಗೂ '${yogiPlanetName}' ಈಗ ಒಂದೇ ದಿಕ್ಕಿನಲ್ಲಿ ತಿರುಗುತ್ತಿದ್ದಾರೆ! ಸಿನಿಮಾದ ಕ್ಲೈಮ್ಯಾಕ್ಸ್ ಹತ್ತಿರ ಬರುತ್ತಿದೆ — '${n(nowYear + 2)}–${n(nowYear + 4)}'ರ ಗೆಲುವಿನ ದೃಶ್ಯದಲ್ಲಿ ಪ್ರೇಕ್ಷಕರೇ ಎದ್ದು ಚಪ್ಪಾಳೆ ತಟ್ಟಲಿದ್ದಾರೆ.`,
+        mr: `मी तुमच्या कुंडलीचा मुख्य नायक '${heroPlanetName}' (${heroPlanetRashi}) सांगत आहे ${devoteeName}: माझा सहकारी '${nearestColleagueName}' व '${yogiPlanetName}' आता एकाच दिशेने तुमची साथ देत आहेत! '${n(nowYear + 2)}–${n(nowYear + 4)}' चा विजयी टप्पा तुमच्या आयुष्याची सर्वोत्तम कामगिरी ठरणार आहे.`,
+        hi: `मैं आपकी कुंडली का प्रमुख नायक '${heroPlanetName}' (${heroPlanetRashi}) कह रहा हूं ${devoteeName}: मेरा सहकर्मी '${nearestColleagueName}' और '${yogiPlanetName}' अब एक ही दिशा में आपके पक्ष में आ गए हैं! '${n(nowYear + 2)}–${n(nowYear + 4)}' का स्वर्णिम चरण आपके जीवन का सबसे शानदार अध्याय बनेगा।`,
+        te: `నేను మీ జాతక ప్రధాన నాయకుడు '${heroPlanetName}' (${heroPlanetRashi}) చెబుతున్నాను ${devoteeName}: నా పక్కనున్న '${nearestColleagueName}' మరియు '${yogiPlanetName}' ఇప్పుడు మీకు అనుకూలంగా కదులుతున్నారు! '${n(nowYear + 2)}–${n(nowYear + 4)}' మధ్య రాబోయే స్వర్ణయుగం మిమ్మల్ని ఉన్నత స్థానంలో నిలబెడుతుంది.`,
+        ta: `நான் உங்கள் ஜாதக நாயகன் '${heroPlanetName}' (${heroPlanetRashi}) சொல்கிறேன் ${devoteeName}: என் சகா '${nearestColleagueName}' மற்றும் '${yogiPlanetName}' இப்போது உங்கள் வெற்றிக்காக ஒருங்கிணைந்துள்ளனர்! '${n(nowYear + 2)}–${n(nowYear + 4)}' காலம் உங்களுக்கு மாபெரும் திருப்பமாகும்.`,
+        en: `I am your chart champion ${heroPlanetName} in ${heroPlanetRashi}, speaking with my colleague ${nearestColleagueName} right beside me: Act 2 is accelerating fast, ${devoteeName}, and every scene ahead locks into the rising peak of ${nowYear + 2}–${nowYear + 4}!`,
       }, lang);
     }
 
     if (themeKey === "nakshatra") {
       return pick6({
-        kn: `ನಾನು ನಿನ್ನ ಜನ್ಮ ನಕ್ಷತ್ರ ${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ${devoteeName}! ${weekdayName}ದ ಮೊದಲ ಉಸಿರಿನಿಂದ ನಿನ್ನ ಪಕ್ಕದಲ್ಲೇ ನಿಂತು ಎಲ್ಲವನ್ನೂ ನೋಡುತ್ತಿದ್ದೇನೆ. ಹೊರಗೆ ಯಾರೂ ನಿನ್ನ ಮೌನವನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳದಿದ್ದರೂ, ನಿನ್ನ ಹೃದಯದಲ್ಲಿ ಏನು ಓಡುತ್ತಿದೆ ಎಂದು ನನಗೆ ಚೆನ್ನಾಗಿ ಗೊತ್ತು.`,
-        mr: `मी तुझे जन्म नक्षत्र ${nakshatraName} (चरण ${n(nakshatraPada)}) बोलत आहे ${devoteeName}! तुझ्या जन्माच्या ${weekdayName} पासून मी तुझ्या प्रत्येक श्वासासोबत उभा आहे. जगाने तुझे मौन पाहिले, पण त्यामागे लपलेला तुझा प्रामाणिक संघर्ष फक्त मी जवळून पाहिला आहे.`,
-        hi: `मैं तुम्हारा जन्म नक्षत्र ${nakshatraName} (पाद ${n(nakshatraPada)}) बोल रहा हूं ${devoteeName}! जन्म के ${weekdayName} से आज तक मैंने तुम्हारे हर सुख-दुख को देखा है। दुनिया केवल तुम्हारी मुस्कान देखती है, पर भीतर चल रही सच्चाई मैं जानता हूं।`,
-        te: `నేను నీ జన్మ నక్షత్రం ${nakshatraName} (పాదం ${n(nakshatraPada)}) మాట్లాడుతున్నాను ${devoteeName}! పుట్టిన ${weekdayName} నుండి నీ పక్కనే ఉండి అన్నీ గమనిస్తున్నాను. బయటి వారు నీ మౌనాన్ని వేరేలా అర్థం చేసుకున్నా, నీ లోపలి నిజం నాకు బాగా తెలుసు.`,
-        ta: `நான் உன் ஜென்ம நட்சத்திரம் ${nakshatraName} (பாதம் ${n(nakshatraPada)}) பேசுகிறேன் ${devoteeName}! பிறந்த ${weekdayName} முதல் உன் மன ஓட்டத்தை நான் அருகிலிருந்து பார்த்துக் கொண்டிருக்கிறேன். உலகம் உன் அமைதியைப் புரியாமல் போனாலும், உன் உள்ளத்தின் வலி எனக்குத் தெரியும்.`,
-        en: `Listen closely: I am your birth star, ${nakshatraName} (Pada ${nakshatraPada}), speaking to you directly, ${devoteeName}. Since your very first breath on ${weekdayName}, I have stood inside every quiet decision—and I see exactly why your spirit refused to settle for cheap noise.`,
+        kn: `ನಾನು ನಿನ್ನ ಜನ್ಮ ನಕ್ಷತ್ರ '${nakshatraName}' (${n(nakshatraPada)}ನೇ ಪಾದ) ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ${devoteeName}! ಹುಟ್ಟಿದ ${weekdayName}ದಿಂದ ನಿನ್ನ ಹೃದಯದ ಬಡಿತವನ್ನು ಕೇಳುತ್ತಿದ್ದೇನೆ; ನನ್ನ ಮಿತ್ರ '${yogiPlanetName}' ಹಾಗೂ ನಾಯಕ '${heroPlanetName}' ನಿನ್ನ ಬೆನ್ನಿಗೆ ನಿಂತಿರುವಾಗ ಸುತ್ತಲಿನವರ ಅನ್ಯಾಯದ ಮಾತುಗಳಿಗೆ ನೀನೇಕೆ ಹೆದರಬೇಕು?`,
+        mr: `मी तुझे जन्म नक्षत्र '${nakshatraName}' (चरण ${n(nakshatraPada)}) बोलत आहे ${devoteeName}! जन्माच्या ${weekdayName} पासून तुझ्यासोबत राहून मी तुझा मूक संघर्ष पाहिला आहे; तुझा मित्र '${yogiPlanetName}' आणि नायक '${heroPlanetName}' तुझ्या पाठीशी ठाम आहेत.`,
+        hi: `मैं तुम्हारा जन्म नक्षत्र '${nakshatraName}' (पाद ${n(nakshatraPada)}) बोल रहा हूं ${devoteeName}! जन्म के ${weekdayName} से आज तक मैंने तुम्हारे भीतर के हर तूफ़ान को देखा है; तुम्हारा रक्षक '${yogiPlanetName}' और नायक '${heroPlanetName}' तुम्हारे साथ हैं।`,
+        te: `నేను నీ జన్మ నక్షత్రం '${nakshatraName}' (పాదం ${n(nakshatraPada)}) మాట్లాడుతున్నాను ${devoteeName}! నీ పుట్టిన ${weekdayName} నుండి అన్నీ గమనిస్తున్నాను; నీ మిత్రుడు '${yogiPlanetName}' మరియు నాయకుడు '${heroPlanetName}' నీ వెన్నంటే ఉన్నారు.`,
+        ta: `நான் உன் ஜென்ம நட்சத்திரம் '${nakshatraName}' (பாதம் ${n(nakshatraPada)}) பேசுகிறேன் ${devoteeName}! பிறந்த ${weekdayName} முதல் உன்னுடன் இருக்கிறேன்; உன் நண்பன் '${yogiPlanetName}' மற்றும் நாயகன் '${heroPlanetName}' எப்போதும் துணை நிற்கிறார்கள்.`,
+        en: `Listen closely, ${devoteeName}: I am your birth star ${nakshatraName} (Pada ${nakshatraPada}), watching beside you since ${weekdayName}! Joined by your ally ${yogiPlanetName} and chart hero ${heroPlanetName}, I guard the silent conviction others keep underestimating.`,
       }, lang);
     }
 
     if (themeKey === "yoga_karana") {
       return pick6({
-        kn: `ನಾನು ನಿನ್ನ ಜನ್ಮ ಯೋಗ '${yogaName}' ಹಾಗೂ ಕರಣ '${karanaName}' ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ನಿನ್ನ ಕೆಲಸದ ಗಡಿಯಾರವನ್ನು ನಡೆಸುವ ರಹಸ್ಯ ಎಂಜಿನ್ ನಾನೇ. ಕೆಲವೊಮ್ಮೆ ಯಾಕೆ ನಿನ್ನ ಪ್ರಯತ್ನಕ್ಕೆ ತಕ್ಷಣವೇ ಬ್ರೇಕ್ ಬೀಳುತ್ತದೆ ಮತ್ತು ಇನ್ನೊಂದು ದಿನ ರಾಕೆಟ್‌ನಂತೆ ಹಾರುತ್ತದೆ ಎಂಬ ಗುಟ್ಟು ನನ್ನಲ್ಲೇ ಇದೆ!`,
-        mr: `मी तुझा जन्म योग '${yogaName}' आणि करण '${karanaName}' बोलत आहे! तुझ्या कामाची गती आणि संधींचे टायमिंग ठरवणारे गुप्त इंजिन मीच आहे. कधी अचानक वेग का थांबतो आणि कधी काम क्षणात का फत्ते होते, याचे गुपित आज उघड करत आहे!`,
-        hi: `मैं तुम्हारा जन्म योग '${yogaName}' और करण '${karanaName}' बोल रहा हूं! तुम्हारे कर्म और भाग्य की घड़ी को चलाने वाला गुप्त तंत्र मैं ही हूं। कभी काम ९९% पर क्यों अटकता है और कभी एक ही दिन में क्यों बन जाता है—आज वही रहस्य समझो!`,
-        te: `నేను నీ జన్మ యోగం '${yogaName}' మరియు కరణం '${karanaName}' మాట్లాడుతున్నాను! నీ పనుల వేగాన్ని నడిపించే అసలైన గడియారం నేనే. కొన్నిసార్లు పనులు చివరి నిమిషంలో ఎందుకు ఆగుతాయో, మరికొన్నిసార్లు వేగంగా ఎందుకు పూర్తి అవుతాయో ఇప్పుడు చూడు!`,
-        ta: `நான் உன் பிறப்பு யோகம் '${yogaName}' மற்றும் கரணம் '${karanaName}' பேசுகிறேன்! உன் முயற்சிகளின் வேகத்தை இயக்கும் ரகசிய எந்திரம் நானே. சில நேரங்களில் ஏன் தடை வருகிறது, சில நாட்களில் ஏன் அபார வெற்றி கிடைக்கிறது என்ற உண்மையை இப்போது சொல்கிறேன்!`,
-        en: `I am your birth engine—${yogaName} Yoga paired with ${karanaName} Karana! While everyone looks outward for luck, I quietly control your timing valve: locking flawed doors right before disaster, then accelerating the exact open lane on ${localizedYogiDay}.`,
+        kn: `ನಾನು ನಿನ್ನ ಜನ್ಮ ಯೋಗ '${yogaName}' ಹಾಗೂ ಕರಣ '${karanaName}' — ನಿನ್ನ ಕುಂಡಲಿಯ ಅಸಲಿ ನಾಯಕ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ನನ್ನ ಪಕ್ಕದಲ್ಲೇ ಸಹೋದ್ಯೋಗಿಗಳಾದ '${heroPlanetName}' ಮತ್ತು '${nearestColleagueName}' ಹೇಗೆ ವರ್ತಿಸುತ್ತಿದ್ದಾರೆ ಗೊತ್ತೇ? ನಿನ್ನ ಕೆಲಸದ ವೇಗವನ್ನು ನಿಯಂತ್ರಿಸಿ ಸರಿಯಾದ ಸಮಯಕ್ಕೆ ಬೀಗ ತೆರೆಯುವ ಕೀಲಿ ನನ್ನ ಕೈಯಲ್ಲಿದೆ!`,
+        mr: `मी तुझा जन्म योग '${yogaName}' आणि करण '${karanaName}' — तुझ्या कुंडलीचा खरा नायक बोलत आहे! माझे सहकारी '${heroPlanetName}' आणि '${nearestColleagueName}' पत्रिकेत कशी हालचाल करत आहेत ते पहा — योग्य क्षणी यशाचे कुलूप उघडणारी गुप्त किल्ली माझ्याकडेच आहे!`,
+        hi: `मैं तुम्हारा जन्म योग '${yogaName}' और करण '${karanaName}' — तुम्हारी कुंडली का असली नायक बोल रहा हूं! मेरे साथ काम करने वाले सहकर्मी '${heroPlanetName}' और '${nearestColleagueName}' तुम्हारे भाग्य की घड़ी चला रहे हैं—जब समय पक्का होता है, बंद ताले मैं ही खोलता हूं!`,
+        te: `నేను నీ జన్మ యోగం '${yogaName}' మరియు కరణం '${karanaName}' — నీ కుండలిలోని శక్తివంతమైన నాయకుడిని! నా సహోద్యోగులైన '${heroPlanetName}' మరియు '${nearestColleagueName}' ఇప్పుడు నీ కోసం ఎలా పనిచేస్తున్నారో చూడు—సరైన సమయానికి తలుపు తెరిచే తాళం నా చేతిలోనే ఉంది!`,
+        ta: `நான் உன் பிறப்பு யோகம் '${yogaName}' மற்றும் கரணம் '${karanaName}' — உன் ஜாதகத்தின் வலிமையான நாயகன் பேசுகிறேன்! என் சகாக்களான '${heroPlanetName}' மற்றும் '${nearestColleagueName}' உனக்காக எப்படிச் செயல்படுகிறார்கள் பார்—சரியான நேரத்தில் பூட்டைத் திறப்பவன் நானே!`,
+        en: `I am ${yogaName} Yoga fused with ${karanaName} Karana—the hidden commander of your Kundali, ${devoteeName}! Watch how my colleagues ${heroPlanetName} (House ${heroPlanetHouse}) and ${nearestColleagueName} (House ${nearestColleagueHouse}) behave together to turn your timing valve right now.`,
       }, lang);
     }
 
     if (themeKey === "near_far") {
       return pick6({
-        kn: `${devoteeName}, ಒಂದು ಕ್ಷಣ ನಿಂತು ಹತ್ತಿರ-ದೂರ ಗಮನಿಸು! ನಿನ್ನ ಕಷ್ಟವೆಲ್ಲಾ ಇನ್ನೂ ಬಹುದೂರದಲ್ಲಿ ಉಳಿದಿದೆ ಎಂದು ಭಯಪಡುತ್ತಿದ್ದೀಯಾ? ನಿಜವೆಂದರೆ: '${yogiPlanetName}' ಬಲದಿಂದ ಹೊಸ ದಾರಿ ನಿನ್ನ ಕೈಗೆಟುಕುವಷ್ಟು ಹತ್ತಿರ ಬಂದಿದೆ, ಮತ್ತು ಹಿಂದಿನ ಬಿರುಗಾಳಿ ಈಗಾಗಲೇ ದೂರ ಸರಿದಿದೆ!`,
-        mr: `${devoteeName}, एक क्षण थांब आणि जवळ-दूर नीट पहा! तुला वाटते यश अजून खूप लांब आहे, पण वास्तव वेगळे आहे: '${yogiPlanetName}' च्या साथीने मोठा बदल हाताच्या अंतरावर आला आहे आणि जुने वादळ कधीच दूर सरले आहे!`,
-        hi: `${devoteeName}, एक पल रुककर 'पास और दूर' का अंतर समझो! जिसे तुम बहुत दूर मान रहे हो, वह '${yogiPlanetName}' के प्रभाव से बिल्कुल तुम्हारे कदमों के पास खड़ा है—और जिस चिंता ने तुम्हें थकाया, वह अब दूर जा चुकी है!`,
-        te: `${devoteeName}, ఒక్క నిమిషం ఆగి దగ్గర-దూరం లెక్క చూడు! విజయం ఇంకా చాలా దూరంలో ఉందని నీవు అనుకుంటున్నావు కానీ నిజం వేరు: '${yogiPlanetName}' అండతో శుభ మార్పు నీ చేతికందేంత దగ్గరకు వచ్చింది!`,
-        ta: `${devoteeName}, ஒரு நொடி நின்று அருகையும் தொலைவையும் பார்! வெற்றி இன்னும் தொலைவில் உள்ளதாக நினைக்கிறாய்—ஆனால் உண்மையில் '${yogiPlanetName}' பலத்தால் மாற்றம் உன் கைக்கெட்டும் தூரத்திற்கு வந்துவிட்டது, பழைய சுமை விலகிப் போய்விட்டது!`,
-        en: `Pause and measure true distance right now, ${devoteeName}: what you fear is slipping away has actually arrived inches near you under ${yogiPlanetName} momentum—meanwhile the old doubts that kept you awake are already fading far into your rearview mirror.`,
+        kn: `${devoteeName}, ನಾನು ನಿನ್ನ ಜನ್ಮ ಲಗ್ನ '${lagnaRashiName}' (ಅಧಿಪತಿ '${lagnaLordName}') — ನಿನ್ನ ಜೀವನ ರಥದ ಸಾರಥಿ! ನನ್ನ ಸಮೀಪದಲ್ಲೇ ನಿಂತಿರುವ '${nearestColleagueName}' ಹಾಗೂ '${yogiPlanetName}' ಹತ್ತಿರದ ಅವಕಾಶವನ್ನು ತರುತ್ತಿದ್ದರೆ, ಹಳೆಯ ಚಿಂತೆಗಳು ನನ್ನ ದೃಷ್ಟಿಯಿಂದ ಬಹುದೂರ ಸರಿದಿವೆ.`,
+        mr: `${devoteeName}, मी तुझे जन्म लग्न '${lagnaRashiName}' (स्वामी '${lagnaLordName}') — तुझ्या आयुष्याचा सारथी बोलत आहे! माझ्या जवळ उभे असलेले '${nearestColleagueName}' आणि '${yogiPlanetName}' संधी जवळ आणत आहेत, तर जुना तणाव दूर सरला आहे.`,
+        hi: `${devoteeName}, मैं तुम्हारा जन्म लग्न '${lagnaRashiName}' (स्वामी '${lagnaLordName}') — तुम्हारे जीवन रथ का सारथी बोल रहा हूं! मेरे करीब स्थित '${nearestColleagueName}' और '${yogiPlanetName}' नया अवसर पास ला रहे हैं, जबकि पुरानी उलझनें दूर हो रही हैं।`,
+        te: `${devoteeName}, నేను నీ జన్మ లగ్నం '${lagnaRashiName}' (అధిపతి '${lagnaLordName}') మాట్లాడుతున్నాను! నా దగ్గర ఉన్న '${nearestColleagueName}' మరియు '${yogiPlanetName}' విజయాన్ని నీ చేతికందేలా చేస్తుండగా, పాత కష్టాలు దూరంగా వెళ్ళిపోతున్నాయి.`,
+        ta: `${devoteeName}, நான் உன் ஜென்ம லக்னம் '${lagnaRashiName}' (அதிபதி '${lagnaLordName}') பேசுகிறேன்! என் அருகிலுள்ள '${nearestColleagueName}' மற்றும் '${yogiPlanetName}' வெற்றியை அருகே கொண்டு வர, பழைய கவலைகள் தூர விலகுகின்றன.`,
+        en: `I am your ascendant chariot—${lagnaRashiName}, steered by ${lagnaLordName}—speaking right to you, ${devoteeName}! With ${nearestColleagueName} nearby and ${yogiPlanetName} lighting the lane ahead, your next milestone sits closer than fear claims.`,
       }, lang);
     }
 
-    // parable
+    // parable / Yogi voice
     return pick6({
-      kn: `ಒಂದು ನೈಜ ಉದಾಹರಣೆ ಕೇಳು ${devoteeName}: ಶಿಲ್ಪಿಯು ಕಲ್ಲಿಗೆ ೯೯ ಏಟು ಹೊಡೆದರೂ ಅದು ಒಡೆಯುವುದಿಲ್ಲ — ಆದರೆ ೧೦೦ನೇ ಮೃದು ಏಟಿಗೆ ಅದು ಮಹಾ ಮೂರ್ತಿಯಾಗುತ್ತದೆ! ನಿನ್ನ ಹಿಂದಿನ ೯೯ ಪ್ರಯತ್ನಗಳು ವ್ಯರ್ಥವಾಗಿಲ್ಲ; ಈ ಅಧ್ಯಾಯವೇ ಆ ೧೦೦ನೇ ನಿರ್ಣಾಯಕ ಏಟಿನ ರಹಸ್ಯ ಹೇಳುತ್ತಿದೆ.`,
-      mr: `एक सुंदर उदाहरण पहा ${devoteeName}: शिल्पकार दगडावर ९९ वेळा हातोडा मारतो तेव्हा काहीच घडल्यासारखे वाटत नाही — पण १०० व्या एका टप्प्याने दगडातून देवमूर्ती घडते! तुझे आत्तापर्यंतचे कष्ट वाया गेले नसून तू त्या १०० व्या क्षणाजवळ पोहोचला आहेस.`,
-      hi: `एक सुंदर उदाहरण देखो ${devoteeName}: मूर्तिकार पत्थर पर ९९ वार करता है तो कुछ टूटता नहीं दिखता—पर १००वां हल्का स्पर्श अद्भुत मूर्ति प्रकट कर देता है! तुम्हारा हर पिछला परिश्रम उसी ९९वें कदम का हिस्सा था, और तुम निर्णायक घड़ी के करीब हो।`,
-      te: `ఒక అద్భుత ఉదాహరణ చూడు ${devoteeName}: శిల్పి బండరాయిపై 99 దెబ్బలు వేసినప్పుడు ఏ మార్పూ కనిపించదు—కానీ 100వ దెబ్బకే అద్భుత శిల్పం బయటపడుతుంది! నీ పాత శ్రమ వృధా కాలేదు, నువ్వు ఆ 100వ విజయం అంచున ఉన్నావు.`,
-      ta: `ஒரு அழகான உதாரணம் கேள் ${devoteeName}: சிற்பி பாறையில் 99 முறை உளியால் அடிக்கும்போது எந்த மாற்றமும் தெரியாது—ஆனால் 100-வது அடியில்தான் சிலை உயிர் பெறும்! உன் பழைய உழைப்பு வீணாகவில்லை; அந்த 100-வது திருப்புமுனை வாசலில் நிற்கிறாய்.`,
-      en: `Think of the stone-carver's timeless story, ${devoteeName}: ninety-nine steady strikes barely leave a crack, until the hundredth quiet tap reveals the masterpiece waiting inside! None of your earlier grind went unseen—you are standing right beside that defining tap.`,
+      kn: `ನಾನು ನಿನ್ನ ಯೋಗಿ '${yogiPlanetName}' ಒಂದು ಸಣ್ಣ ನಿದರ್ಶನದೊಂದಿಗೆ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ${devoteeName}: ಶಿಲ್ಪಿಯು ಕಲ್ಲಿಗೆ ೯೯ ಏಟು ಹೊಡೆದರೂ ಅದು ಒಡೆಯುವುದಿಲ್ಲ — ಆದರೆ ೧೦೦ನೇ ಮೃದು ಏಟಿಗೆ ಮಹಾ ಮೂರ್ತಿ ಹೊರಬರುತ್ತದೆ! ನನ್ನ ಮಿತ್ರ '${heroPlanetName}' ಹಾಗೂ '${nearestColleagueName}' ಆ ೧೦೦ನೇ ಏಟಿನ ಘಳಿಗೆಯನ್ನೇ ನಿಮಗಾಗಿ ತಂದಿದ್ದಾರೆ.`,
+      mr: `मी तुझा योगी '${yogiPlanetName}' एक छान गोष्ट सांगतो ${devoteeName}: शिल्पकार ९९ घाव घालतो तेव्हा दगड हलत नाही — पण १०० व्या एका स्पर्शाने मूर्ती साकार होते! माझे सहकारी '${heroPlanetName}' आणि '${nearestColleagueName}' तोच १०० वा सुवर्ण क्षण घेऊन येत आहेत.`,
+      hi: `मैं तुम्हारा योगी '${yogiPlanetName}' एक सच्चे उदाहरण से बात शुरू करता हूं ${devoteeName}: मूर्तिकार ९९ बार पत्थर तराशता है पर वह मौन रहता है—और १००वें हल्के स्पर्श से अद्भुत मूर्ति प्रकट होती है! मेरे सहयोगी '${heroPlanetName}' और '${nearestColleagueName}' तुम्हारे लिए वही निर्णायक घड़ी लाए हैं।`,
+      te: `నేను నీ యోగి '${yogiPlanetName}' ఒక చిన్న ఉదాహరణతో చెబుతున్నాను ${devoteeName}: శిల్పి 99 సార్లు కొట్టినప్పుడు ఏ మార్పూ కనిపించదు—కానీ 100వ దెబ్బకు అద్భుత శిల్పం బయటపడుతుంది! నా మిత్రుడు '${heroPlanetName}' మరియు '${nearestColleagueName}' ఆ 100వ విజయం కోసమే పనిచేస్తున్నారు.`,
+      ta: `நான் உன் யோகி '${yogiPlanetName}' ஒரு அழகான உதாரணத்துடன் பேசுகிறேன் ${devoteeName}: சிற்பி 99 முறை அடிக்கும்போது சிலை தெரியாது—100-வது அடியில் அதிசயம் பிறக்கும்! என் நண்பர்கள் '${heroPlanetName}' மற்றும் '${nearestColleagueName}' அந்த 100-வது வெற்றியைத் தர உள்ளனர்.`,
+      en: `I am your Yogi planet ${yogiPlanetName}, opening with a quiet story for you, ${devoteeName}: ninety-nine taps of the chisel barely crack rough stone, until the hundredth quiet strike unveils the statue inside! My colleagues ${heroPlanetName} and ${nearestColleagueName} stand right beside your hundredth strike.`,
     }, lang);
   };
 
@@ -1625,12 +1641,12 @@ export function buildDynamicStoryChapters(
         en: `Question: ${devoteeName}, what hidden story is your active ${currentMahadasha}–${currentBhuktiLord} cycle writing through ${bhuktiEndDate}?`,
       },
       p1: {
-        kn: `ಜೀವನದ ಪ್ರತಿಯೊಂದು ಕಾಲಘಟ್ಟಕ್ಕೂ ತನ್ನದೇ ಆದ ವೇಗ ಇರುತ್ತದೆ. ಸದ್ಯಕ್ಕೆ ${currentMahadasha} ಮತ್ತು ${currentBhuktiLord} ಶಕ್ತಿಗಳು ಜೊತೆಯಾಗಿ ನಿಮ್ಮನ್ನು 'ಬರೀ ಕನಸು ಕಾಣುವ ಹಂತ'ದಿಂದ 'ನಿಜವಾದ ಕಟ್ಟಡ ಕಟ್ಟುವ ಹಂತ'ಕ್ಕೆ ತಳ್ಳುತ್ತಿವೆ.${isDashaSandhi ? " ವಿಶೇಷವಾಗಿ ನೀವೀಗ ಒಂದು ದಶಾ ಸಂಧಿ (ತಿರುವಿನ ಗಡಿ)ಯಲ್ಲಿರುವುದರಿಂದ ಹಳೆಯ ಅಭ್ಯಾಸಗಳು ಕಳಚಿಹೋಗುತ್ತಿವೆ." : ""}`,
-        mr: `आयुष्याच्या प्रत्येक टप्प्याला स्वतःचा एक वेग असतो. सध्या ${currentMahadasha} व ${currentBhuktiLord} चा प्रभाव तुम्हाला स्वप्नाळूपणातून प्रत्यक्ष ठोस कृतीकडे नेत आहे.${isDashaSandhi ? " सध्या तुम्ही दशा-संधीच्या (बदलाच्या उंबरठ्यावर) असल्याने जुन्या सवयी गळून पडत आहेत." : ""}`,
-        hi: `जीवन के हर चरण की अपनी गति होती है। वर्तमान ${currentMahadasha} एवं ${currentBhuktiLord} का दौर आपको केवल सोचने की अवस्था से निकालकर ठोस निर्माण की ओर मोड़ रहा है।${isDashaSandhi ? " चूंकि आप दशा-संधि की दहलीज पर हैं, इसलिए पुराने ढर्रे अब अपने आप छूट रहे हैं।" : ""}`,
-        te: `ప్రతి కాలానికి తనదైన వేగం ఉంటుంది. ప్రస్తుతం ${currentMahadasha} మరియు ${currentBhuktiLord} కాలం మిమ్మల్ని కేవలం ఆలోచనల నుండి ఆచరణాత్మక నిర్మాణం వైపు నడిపిస్తోంది.${isDashaSandhi ? " ప్రస్తుతం మీరు దశా-సంధి మలుపులో ఉండటం వల్ల పాత పరిస్థితులు పూర్తిగా మారుతున్నాయి." : ""}`,
-        ta: `ஒவ்வொரு காலகட்டத்திற்கும் தனி வேகம் உண்டு. தற்போது ${currentMahadasha} மற்றும் ${currentBhuktiLord} ஆற்றல் உங்களை வெறும் சிந்தனையிலிருந்து உறுதியான செயல்பாட்டுக்குத் தள்ளுகிறது.${isDashaSandhi ? " இப்போது நீங்கள் தசா-சந்தி வாசலில் இருப்பதால் பழைய நடைமுறைகள் மெல்ல விலகுகின்றன." : ""}`,
-        en: `Every phase of life carries its own soundtrack. Right now ${currentMahadasha} teamed with ${currentBhuktiLord} is moving you out of wishful planning into tangible building.${isDashaSandhi ? " Notice that you are standing right on a chapter transition line—that explains why old routines feel suddenly outgrown." : ""}`,
+        kn: `ಮೊದಲು ಮಹಾದಶೆ ಮತ್ತು ಭುಕ್ತಿ ಎಂದರೆ ಏನು ಎಂದು ಸರಳವಾಗಿ ನೋಡೋಣ: ನಿಮ್ಮ ಜೀವನವನ್ನು ಒಂದು ದೊಡ್ಡ ಸಿನಿಮಾ ಅಥವಾ ದೀರ್ಘ ಪಯಣ ಎಂದುಕೊಂಡರೆ, 'ಮಹಾದಶೆ' ಎಂದರೆ ಹಲವು ವರ್ಷಗಳ ಕಾಲ ನಡೆಯುವ ಮುಖ್ಯ ಋತು (Season) ಹಾಗೂ 'ಭುಕ್ತಿ (ಅಂತರ್ದಶೆ)' ಎಂದರೆ ಆ ಋತುವಿನೊಳಗೆ ಈ ಕ್ಷಣ ಕ್ಯಾಮೆರಾ ಹಿಡಿದಿರುವ ನಿರ್ದೇಶಕ! ಸದ್ಯಕ್ಕೆ ನಿಮಗೆ '${currentMahadasha}' ಮಹಾದಶೆ ಹಾಗೂ '${currentBhuktiLord}' ಭುಕ್ತಿ ನಡೆಯುತ್ತಿದ್ದು, ಇಬ್ಬರೂ ಸೇರಿ ನಿಮ್ಮನ್ನು ಕೇವಲ ಕನಸು ಕಾಣುವ ಹಂತದಿಂದ ನಿಜವಾದ ಕಟ್ಟಡ ಕಟ್ಟುವ ಹಂತಕ್ಕೆ ಕರೆದೊಯ್ಯುತ್ತಿದ್ದಾರೆ.${isDashaSandhi ? " ವಿಶೇಷವಾಗಿ ನೀವೀಗ ಒಂದು ದಶಾ ಸಂಧಿ (ತಿರುವಿನ ಗಡಿ)ಯಲ್ಲಿರುವುದರಿಂದ ಹಳೆಯ ಅಭ್ಯಾಸಗಳು ಕಳಚಿಹೋಗುತ್ತಿವೆ." : ""}`,
+        mr: `सर्वप्रथम महादशा व भुक्ती म्हणजे काय हे सोप्या शब्दांत पहा: आयुष्य हा एक मोठा प्रवास मानला तर 'महादशा' म्हणजे अनेक वर्षे चालणारा मुख्य काळ (Season) आणि 'भुक्ती' म्हणजे त्या काळातील सध्याचा सक्रिय मार्गदर्शक! सध्या तुमची '${currentMahadasha}' महादशा व '${currentBhuktiLord}' भुक्ती सुरू असून ती तुम्हाला केवळ विचारांतून ठोस प्रत्यक्ष कृतीकडे नेत आहे.${isDashaSandhi ? " सध्या तुम्ही दशा-संधीच्या उंबरठ्यावर असल्याने जुन्या सवयी गळून पडत आहेत." : ""}`,
+        hi: `सबसे पहले सरल शब्दों में समझें कि महादशा और भुक्ति क्या हैं: यदि जीवन एक लंबी यात्रा है, तो 'महादशा' वर्षों तक चलने वाला मुख्य मौसम है और 'भुक्ति (अंतर्दशा)' उस मौसम के भीतर अभी निर्णय लेने वाला मुख्य निर्देशक! वर्तमान में आपकी '${currentMahadasha}' महादशा एवं '${currentBhuktiLord}' भुक्ति चल रही है, जो आपको कल्पना से निकालकर ठोस निर्माण की ओर ले जा रही है।${isDashaSandhi ? " चूंकि आप दशा-संधि की दहलीज पर हैं, इसलिए पुराने ढर्रे अब अपने आप छूट रहे हैं।" : ""}`,
+        te: `ముందుగా మహర్దశ మరియు భుక్తి అంటే ఏమిటో సులభంగా చూద్దాం: జీవితాన్ని ఒక సుదీర్ఘ ప్రయాణంగా చూస్తే, 'మహర్దశ' అంటే కొన్నేళ్లపాటు నడిచే ప్రధాన కాలం, 'భుక్తి (అంతర్దశ)' అంటే అందులో ఇప్పుడు ఫలితాలనిచ్చే సబ్-కెప్టెన్! ప్రస్తుతం మీకు '${currentMahadasha}' మహర్దశ & '${currentBhuktiLord}' భుక్తి నడుస్తూ మిమ్మల్ని ఆలోచనల నుండి ఆచరణాత్మక నిర్మాణం వైపు నడిపిస్తోంది.${isDashaSandhi ? " మీరు దశా-సంధి మలుపులో ఉండటం వల్ల పాత పరిస్థితులు పూర్తిగా మారుతున్నాయి." : ""}`,
+        ta: `முதலில் மகாதசை மற்றும் புக்தி என்றால் என்ன என்று எளிமையாகப் பார்ப்போம்: வாழ்க்கை ஒரு நீண்ட பயணம் என்றால், 'மகாதசை' என்பது பல ஆண்டுகள் நீடிக்கும் முக்கிய பருவம்; 'புக்தி' என்பது அதற்குள் இப்போது செயல்படும் துணை இயக்குநர்! தற்போது உங்களுக்கு '${currentMahadasha}' மகாதசை & '${currentBhuktiLord}' புக்தி நடப்பதால் வெறும் சிந்தனையிலிருந்து உறுதியான செயல்பாட்டுக்கு நகர்கிறீர்கள்.${isDashaSandhi ? " இப்போது தசா-சந்தி வாசலில் இருப்பதால் பழைய நடைமுறைகள் மெல்ல விலகுகின்றன." : ""}`,
+        en: `First, what are Mahadasha and Bhukti in plain life terms? Think of Mahadasha as the multi-year main season of your story, while Bhukti (Antardasha) is the co-director guiding everyday scenes inside that season! Right now your chart runs ${currentMahadasha} Mahadasha paired with ${currentBhuktiLord} Bhukti through ${bhuktiEndDate}, shifting you out of wishful planning into tangible creation.${isDashaSandhi ? " Because you stand right near a chapter transition seam, old routines feel noticeably outgrown." : ""}`,
       },
       p2: {
         kn: `ಈ ಅಧ್ಯಾಯದ ಅಚ್ಚರಿ ಏನೆಂದರೆ: ${n(bhuktiEndDate)}ರವರೆಗಿನ ಸಮಯದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತವಾಗಿ ಹಳೆಯ ಪರಿಚಯಸ್ಥರು, ಬಾಕಿ ಉಳಿದಿದ್ದ ಅವಕಾಶಗಳು ಅಥವಾ ಅರ್ಧಕ್ಕೆ ಬಿಟ್ಟಿದ್ದ ವಿದ್ಯೆ/ಯೋಜನೆಗಳು ಹೊಸ ರೂಪದಲ್ಲಿ ಮರಳಿ ಬರುತ್ತವೆ! ಯಾವುದನ್ನು ನೀವು 'ಮುಗಿದ ಅಧ್ಯಾಯ' ಅಂದುಕೊಂಡಿದ್ದಿರೋ ಅಲ್ಲಿಂದಲೇ ಹೊಸ ಲಾಭ ಶುರುವಾಗಲಿದೆ.`,
@@ -2550,9 +2566,14 @@ export function buildDynamicStoryChapters(
       const baseP1 = cleanRegional(pick6(item.p1, lang), lang);
       const baseP2 = cleanRegional(pick6(item.p2, lang), lang);
       const baseP3 = cleanRegional(pick6(item.p3, lang), lang);
-      const minTargetLen = lang === "en" ? 390 : 280;
+      const minTargetLen = lang === "en" ? 380 : 270;
       const expandTo5Lines = (base: string, ext: string) =>
         ext && base.length < minTargetLen ? cleanRegional(`${base} ${ext}`, lang) : base;
+
+      // Blend the first-person Hero Voice cleanly into Paragraph 1 (matching Premium PDF V1 card flow)
+      const heroParagraph1 = layer.storyHook
+        ? cleanRegional(`${layer.storyHook} ${baseP1}`, lang)
+        : expandTo5Lines(baseP1, layer.extP1);
 
       return {
         chapterNumber: item.n,
@@ -2563,7 +2584,7 @@ export function buildDynamicStoryChapters(
         question: cleanRegional(pick6(item.question, lang), lang),
         storyHook: layer.storyHook,
         paragraphs: [
-          expandTo5Lines(baseP1, layer.extP1),
+          heroParagraph1,
           expandTo5Lines(baseP2, layer.extP2),
           expandTo5Lines(baseP3, layer.extP3),
         ],

@@ -57,7 +57,7 @@ const GRAHA_AURA_THEMES: Record<string, GrahaAuraTheme> = {
     beejaMantraKn: "॥ ಓಂ ಬೃಹಸ್ಪತಯೇ ನಮಃ ॥",
     beejaMantraHi: "॥ ॐ बृहस्पतये नमः ॥",
     beejaMantraTe: "॥ ఓం బృహస్పతయే నమః ॥",
-    beejaMantraTa: "॥ ஓம் பிரஹஸ்பதயே நமஹ ॥",
+    beejaMantraTa: "✦ ஓம் பிரஹஸ்பதயே நமஹ ✦",
     beejaMantraEn: "॥ Om Brihaspataye Namaha ॥",
     symbol: "♃",
     shortNameKn: "ಗುರು",
@@ -85,7 +85,7 @@ const GRAHA_AURA_THEMES: Record<string, GrahaAuraTheme> = {
     beejaMantraKn: "॥ ಓಂ ಶಂ ಶನೈಶ್ಚರಾಯ ನಮಃ ॥",
     beejaMantraHi: "॥ ॐ शं शनैश्चराय नमः ॥",
     beejaMantraTe: "॥ ఓం శం శనైశ్చరాయ నమః ॥",
-    beejaMantraTa: "॥ ஓம் சனீஸ்வராய நமஹ ॥",
+    beejaMantraTa: "✦ ஓம் சனீஸ்வராய நமஹ ✦",
     beejaMantraEn: "॥ Om Sham Shanaishcharaya Namaha ॥",
     symbol: "♄",
     shortNameKn: "ಶನಿ",
@@ -113,7 +113,7 @@ const GRAHA_AURA_THEMES: Record<string, GrahaAuraTheme> = {
     beejaMantraKn: "॥ ಓಂ ಬುಂ ಬುಧಾಯ ನಮಃ ॥",
     beejaMantraHi: "॥ ॐ बुं बुधाय नमः ॥",
     beejaMantraTe: "॥ ఓం బుం బుధాయ నమః ॥",
-    beejaMantraTa: "॥ ஓம் புதாய நமஹ ॥",
+    beejaMantraTa: "✦ ஓம் புதாய நமஹ ✦",
     beejaMantraEn: "॥ Om Bum Budhaya Namaha ॥",
     symbol: "☿",
     shortNameKn: "ಬುಧ",
@@ -141,7 +141,7 @@ const GRAHA_AURA_THEMES: Record<string, GrahaAuraTheme> = {
     beejaMantraKn: "॥ ಓಂ ಶುಂ ಶುಕ್ರಾಯ ನಮಃ ॥",
     beejaMantraHi: "॥ ॐ शुं शुक्राय नमः ॥",
     beejaMantraTe: "॥ ఓం శుం శుక్రాయ నమః ॥",
-    beejaMantraTa: "॥ ஓம் சுக்ராய நமஹ ॥",
+    beejaMantraTa: "✦ ஓம் சுக்ராய நமஹ ✦",
     beejaMantraEn: "॥ Om Shum Shukraya Namaha ॥",
     symbol: "♀",
     shortNameKn: "ಶುಕ್ರ",
@@ -169,7 +169,7 @@ const GRAHA_AURA_THEMES: Record<string, GrahaAuraTheme> = {
     beejaMantraKn: "॥ ಓಂ ಸೂರ್ಯಾಯ ನಮಃ ॥",
     beejaMantraHi: "॥ ॐ सूर्याय नमः ॥",
     beejaMantraTe: "॥ ఓం సూర్యాయ నమః ॥",
-    beejaMantraTa: "॥ ஓம் சூர்யாய நமஹ ॥",
+    beejaMantraTa: "✦ ஓம் சூர்யாய நமஹ ✦",
     beejaMantraEn: "॥ Om Suryaya Namaha ॥",
     symbol: "☀️",
     shortNameKn: "ರವಿ",
@@ -197,7 +197,7 @@ const GRAHA_AURA_THEMES: Record<string, GrahaAuraTheme> = {
     beejaMantraKn: "॥ ಓಂ ಸೋಮಾಯ ನಮಃ ॥",
     beejaMantraHi: "॥ ॐ सोमाय नमः ॥",
     beejaMantraTe: "॥ ఓం సోమాయ నమః ॥",
-    beejaMantraTa: "॥ ஓம் சந்திராய நமஹ ॥",
+    beejaMantraTa: "✦ ஓம் சந்திராய நமஹ ✦",
     beejaMantraEn: "॥ Om Somaya Namaha ॥",
     symbol: "🌙",
     shortNameKn: "ಚಂದ್ರ",
@@ -225,7 +225,7 @@ const GRAHA_AURA_THEMES: Record<string, GrahaAuraTheme> = {
     beejaMantraKn: "॥ ಓಂ ಭೌಮಾಯ ನಮಃ ॥",
     beejaMantraHi: "॥ ॐ भौमाय नमः ॥",
     beejaMantraTe: "॥ ఓం భౌమాయ నమః ॥",
-    beejaMantraTa: "॥ ஓம் செவ்வாயே நமஹ ॥",
+    beejaMantraTa: "✦ ஓம் செவ்வாயே நமஹ ✦",
     beejaMantraEn: "॥ Om Bhaumaya Namaha ॥",
     symbol: "♂",
     shortNameKn: "ಕುಜ",
@@ -253,7 +253,7 @@ const GRAHA_AURA_THEMES: Record<string, GrahaAuraTheme> = {
     beejaMantraKn: "॥ ಓಂ ರಾಹವೇ ನಮಃ ॥",
     beejaMantraHi: "॥ ॐ राहवे नमः ॥",
     beejaMantraTe: "॥ ఓం రాహవే నమః ॥",
-    beejaMantraTa: "॥ ஓம் ராகவே நமஹ ॥",
+    beejaMantraTa: "✦ ஓம் ராகவே நமஹ ✦",
     beejaMantraEn: "॥ Om Rahave Namaha ॥",
     symbol: "☊",
     shortNameKn: "ರಾಹು",
@@ -281,7 +281,7 @@ const GRAHA_AURA_THEMES: Record<string, GrahaAuraTheme> = {
     beejaMantraKn: "॥ ಓಂ ಕೇತವೇ ನಮಃ ॥",
     beejaMantraHi: "॥ ॐ केतवे नमः ॥",
     beejaMantraTe: "॥ ఓం కేతవే నమః ॥",
-    beejaMantraTa: "॥ ஓம் கேதுவே நமஹ ॥",
+    beejaMantraTa: "✦ ஓம் கேதுவே நமஹ ✦",
     beejaMantraEn: "॥ Om Ketave Namaha ॥",
     symbol: "☋",
     shortNameKn: "ಕೇತು",
@@ -1517,7 +1517,7 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             : baseLang === "te"
             ? "॥ శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర మరియు ముఖ్యప్రాణ దేవుని కృపాకటాక్షం మీ జన్మ కుండలిలోని సమస్త దోషాలను తొలగించి, సర్వ శుభాలను ప్రసాదించుగాక ॥"
             : baseLang === "ta"
-            ? "॥ ஸ்ரீ க்ஷேத்திர கோகர்ண மஹாபலேஸ்வரர் மற்றும் முக்கியப்ராண தேவரின் தெய்வீக அருள் உங்கள் ஜாதக தோஷங்களை நீக்கி, இந்த தசா காலத்தில் சகல மங்களங்களையும் தந்தருளட்டும் ॥"
+            ? "✦ ஸ்ரீ க்ஷேத்திர கோகர்ண மஹாபலேஸ்வரர் மற்றும் முக்கியப்ராண தேவரின் தெய்வீக அருள் உங்கள் ஜாதக தோஷங்களை நீக்கி, இந்த தசா காலத்தில் சகல மங்களங்களையும் தந்தருளட்டும் ✦"
             : "May the divine grace of Lord Mahabaleshwara and Mukhyaprana of Sri Kshetra Gokarna pacify all planetary afflictions and illuminate your path with triumph and peace."}
         </p>
       </div>

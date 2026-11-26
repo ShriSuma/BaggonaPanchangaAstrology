@@ -563,12 +563,24 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     const detailsEl = container.querySelector('[data-section="user-details"]')!;
     const ch1El = container.querySelector('[data-section="chapter-1"]')!;
 
+    const cosmicAuraEl = container.querySelector('[data-section="cosmic-aura"]');
+    const elBalance = container.querySelector('[data-v1-visual="elemental-balance"]');
+    const transitBadges = container.querySelector('[data-v1-visual="gochara-transits"]');
+    const yogaHighlight = container.querySelector('[data-v1-visual="yoga-highlight"]');
+    const doshaCards = container.querySelector('[data-v1-visual="dosha-remedy-cards"]');
+
     expect(coverEl).not.toBeNull();
     expect(indexEl).not.toBeNull();
     expect(detailsEl).not.toBeNull();
     expect(ch1El).not.toBeNull();
-    // Chapters render interactive SVG infographics to fill lower A4 space creatively
-    expect(container.querySelectorAll("svg").length).toBeGreaterThanOrEqual(24);
+    expect(cosmicAuraEl).not.toBeNull();
+    expect(elBalance).not.toBeNull();
+    expect(transitBadges).not.toBeNull();
+    expect(yogaHighlight).not.toBeNull();
+    expect(doshaCards).not.toBeNull();
+    // Reuses Premium PDF V1's CosmicDashaAuraVisual SVG rather than per-chapter custom chart clutter
+    expect(container.querySelectorAll("svg").length).toBeGreaterThanOrEqual(1);
+    expect(payloadKn.chapters[0].paragraphs[0].length).toBeGreaterThanOrEqual(250);
 
     // Order check: cover -> executive-index -> user-details -> chapter-1
     expect(coverEl.compareDocumentPosition(indexEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -737,5 +749,15 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(ch23El).not.toBeNull();
     expect(ch23El?.textContent).toContain(firstDosha.doingNow);
     expect(ch23El?.textContent).toContain(firstDosha.exactAction);
+
+    // First-person Hero Kundali voice + nearest colleague + Ch 7 Dasha/Bhukti explanation
+    expect(pAEn.heroSummary).toBeDefined();
+    expect(pBEn.heroSummary).toBeDefined();
+    expect(pAEn.heroSummary!.heroPlanetName.length).toBeGreaterThan(2);
+    expect(pAEn.heroSummary!.nearestColleagueName.length).toBeGreaterThan(2);
+    expect(pAEn.chapters[0].paragraphs[0]).toContain(pAEn.heroSummary!.heroPlanetName);
+    expect(pAEn.chapters[6].paragraphs[0]).toMatch(/Mahadasha/i);
+    expect(pAEn.chapters[6].paragraphs[0]).toMatch(/Bhukti/i);
+    expect(pAKn.chapters[0].paragraphs[0]).toContain(pAKn.heroSummary!.heroPlanetName);
   });
 });

@@ -184,6 +184,18 @@ export interface SampoornaMaster25Payload {
   precisionProfile: ExtendedPrecisionMetrics["precisionProfileSummary"];
   activeDoshaProfiles?: ActiveDoshaProfile[];
   chartVisualMetrics?: ChartVisualMetrics;
+  lagnaRashiIdx?: number;
+  moonRashiIdx?: number;
+  rawMahadashaPlanet?: string;
+  rawBhuktiPlanet?: string;
+  heroSummary?: {
+    heroPlanetName: string;
+    heroPlanetHouse: number;
+    heroPlanetRashi: string;
+    nearestColleagueName: string;
+    nearestColleagueHouse: number;
+    nearestColleagueRashi: string;
+  };
   initialChapterPages: Record<number, number>;
   initialCalendarQrPage: number;
   initialFinalBlessingPage: number;
@@ -799,6 +811,45 @@ export async function prepareSampoornaMaster25Data(
   const lagnaNameLocalized = RASHI_6L[lagnaRashiIdx]?.[targetLang] || "Aries";
   const moonRashiLocalized = RASHI_6L[moonRashiIdx]?.[targetLang] || "Taurus";
 
+  // Compute Authentic Strongest Hero Planet & Physically Closest Colleague inside THIS Birth Chart
+  const EXALTED_RASHIS: Record<string, number> = { Sun: 0, Moon: 1, Mars: 9, Mercury: 5, Jupiter: 3, Venus: 11, Saturn: 6 };
+  const OWN_RASHIS: Record<string, number[]> = { Sun: [4], Moon: [3], Mars: [0, 7], Mercury: [2, 5], Jupiter: [8, 11], Venus: [1, 6], Saturn: [9, 10] };
+  const heroScored = precisionPlanets
+    .filter((pp) => ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"].includes(pp.planet))
+    .map((pp) => {
+      let score = 1;
+      if (EXALTED_RASHIS[pp.planet] === pp.rashi) score += 10;
+      else if (OWN_RASHIS[pp.planet]?.includes(pp.rashi)) score += 7;
+      if (lagnaPlanetNature[pp.planet] === "YOGAKARAKA") score += 6;
+      else if (lagnaPlanetNature[pp.planet] === "BENEFIC") score += 3;
+      if (pp.planet === lagnaLordGraha) score += 4;
+      if (pp.planet === rawYogi) score += 3;
+      if ([1, 4, 5, 7, 9, 10, 11].includes(pp.rashiHouse)) score += 2;
+      return { pp, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const heroEntry = heroScored[0]?.pp || precisionPlanets[0];
+  const heroRawName = String(heroEntry?.planet || rawYogi || "Jupiter");
+  const heroPlanetHouse = heroEntry?.rashiHouse || 1;
+  const heroPlanetRashiIdx = heroEntry?.rashi ?? lagnaRashiIdx;
+  const heroPlanetName = GRAHA_6L[heroRawName]?.[targetLang] || heroRawName;
+  const heroPlanetRashi = RASHI_6L[heroPlanetRashiIdx]?.[targetLang] || lagnaNameLocalized;
+
+  const colleagueSorted = precisionPlanets
+    .filter((pp) => pp.planet !== heroRawName)
+    .map((pp) => {
+      const diff = Math.abs((heroEntry?.longitude ?? 0) - pp.longitude) % 360;
+      return { pp, dist: Math.min(diff, 360 - diff) };
+    })
+    .sort((a, b) => a.dist - b.dist);
+
+  const nearestEntry = colleagueSorted[0]?.pp || precisionPlanets[1] || heroEntry;
+  const nearestRawName = String(nearestEntry?.planet || "Rahu");
+  const nearestColleagueName = GRAHA_6L[nearestRawName]?.[targetLang] || nearestRawName;
+  const nearestColleagueHouse = nearestEntry?.rashiHouse || heroPlanetHouse;
+  const nearestColleagueRashi = RASHI_6L[nearestEntry?.rashi ?? moonRashiIdx]?.[targetLang] || moonRashiLocalized;
+
   const storyCtx: StoryEngineInput = {
     targetLang,
     devoteeName: localizedDevoteeName,
@@ -870,6 +921,13 @@ export async function prepareSampoornaMaster25Data(
     house7Info: getHouseLordPlacement(7),
     house5Info: getHouseLordPlacement(5),
     house6Info: getHouseLordPlacement(6),
+    heroPlanetName,
+    heroPlanetHouse,
+    heroPlanetRashi,
+    nearestColleagueName,
+    nearestColleagueHouse,
+    nearestColleagueRashi,
+    lagnaLordName: lagnaLord,
     extendedPrecision,
     nowYear: now.getFullYear(),
   };
@@ -1225,6 +1283,18 @@ export async function prepareSampoornaMaster25Data(
     precisionProfile: extendedPrecision.precisionProfileSummary,
     activeDoshaProfiles,
     chartVisualMetrics,
+    lagnaRashiIdx,
+    moonRashiIdx,
+    rawMahadashaPlanet: rawMaha,
+    rawBhuktiPlanet: rawBhukti,
+    heroSummary: {
+      heroPlanetName,
+      heroPlanetHouse,
+      heroPlanetRashi,
+      nearestColleagueName,
+      nearestColleagueHouse,
+      nearestColleagueRashi,
+    },
     initialChapterPages,
     initialCalendarQrPage: 28,
     initialFinalBlessingPage: 30,
@@ -1555,8 +1625,15 @@ export async function captureSampoornaMaster25Pdf(
   const lang = options?.lang || "kn";
   const parentEl = containerEl.parentElement;
   const originalStyle = parentEl?.getAttribute("style") || "";
+  const originalContainerStyle = containerEl.getAttribute("style") || "";
   const originalIndexPageTexts: Array<{ el: HTMLElement; text: string }> = [];
-  const layout = SAMPOORNA25_A4_LAYOUT;
+
+  // Exact Premium PDF V1 Continuous Royal Parchment Scroll Geometry
+  const pdfWidthMm = 210;
+  const borderClearanceMm = 10;
+  const contentXMm = 8;
+  const contentWidthMm = 194; // Leaves 2mm crisp gutter inside the 6mm inner border & 4mm outer border
+  const MAX_SAFE_PAGE_CONTENT_MM = 4800 - borderClearanceMm * 2;
 
   try {
     if (parentEl) {
@@ -1565,50 +1642,18 @@ export async function captureSampoornaMaster25Pdf(
         "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFF7ED;"
       );
     }
+    containerEl.setAttribute(
+      "style",
+      `${originalContainerStyle ? originalContainerStyle + ";" : ""} width: 900px; background-color: #FFF7ED;`
+    );
 
-    await document.fonts.ready;
-    await new Promise(resolve => setTimeout(resolve, 450));
-
-    // Optional native-script running header strip for Pages 2+ (placed outside .pdf-section)
-    let runningHeaderChunk: { imgData: string; widthMm: number; heightMm: number } | null = null;
-    const runningHeaderEl = containerEl.querySelector("#sampoorna-master-25-running-header") as HTMLElement | null;
-    if (runningHeaderEl) {
-      const hCanvas = await captureDomElementToCanvas(runningHeaderEl, 24);
-      if (hCanvas && hCanvas.width > 0 && hCanvas.height > 0) {
-        const naturalH = (hCanvas.height * layout.IMAGE_W_MM) / hCanvas.width;
-        const cappedH = Math.min(naturalH, layout.RUNNING_HEADER_MAX_H_MM);
-        const ratio = cappedH / naturalH;
-        runningHeaderChunk = {
-          imgData: hCanvas.toDataURL("image/jpeg", 0.95),
-          widthMm: Number((layout.IMAGE_W_MM * ratio).toFixed(3)),
-          heightMm: Number(cappedH.toFixed(3)),
-        };
-        hCanvas.width = 0;
-        hCanvas.height = 0;
-      }
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
     }
-
-    // Optional native-script running footer strip (placed outside .pdf-section)
-    let runningFooterChunk: { imgData: string; widthMm: number; heightMm: number } | null = null;
-    const runningFooterEl = containerEl.querySelector("#sampoorna-master-25-running-footer") as HTMLElement | null;
-    if (runningFooterEl) {
-      const fCanvas = await captureDomElementToCanvas(runningFooterEl, 24);
-      if (fCanvas && fCanvas.width > 0 && fCanvas.height > 0) {
-        const naturalFH = (fCanvas.height * layout.IMAGE_W_MM) / fCanvas.width;
-        const cappedFH = Math.min(naturalFH, 6.0);
-        const fRatio = cappedFH / naturalFH;
-        runningFooterChunk = {
-          imgData: fCanvas.toDataURL("image/jpeg", 0.95),
-          widthMm: Number((layout.IMAGE_W_MM * fRatio).toFixed(3)),
-          heightMm: Number(cappedFH.toFixed(3)),
-        };
-        fCanvas.width = 0;
-        fCanvas.height = 0;
-      }
-    }
+    await new Promise((resolve) => setTimeout(resolve, 450));
 
     const rawSections = Array.from(containerEl.querySelectorAll(".pdf-section")) as HTMLElement[];
-    const sections = rawSections.filter(s => {
+    const sections = rawSections.filter((s) => {
       const rect = s.getBoundingClientRect();
       return rect.height > 0 && s.style.display !== "none" && s.style.visibility !== "hidden";
     });
@@ -1617,9 +1662,12 @@ export async function captureSampoornaMaster25Pdf(
       throw new Error(`Insufficient sections detected for 25-Chapter PDF (${sections.length} found). Rendering aborted.`);
     }
 
-    const page1UsableH = layout.CONTENT_BOTTOM_MAX_MM - layout.PAGE1_TOP_Y_MM;
-    const contUsableH = layout.CONTENT_BOTTOM_MAX_MM - layout.CONT_TOP_Y_MM;
-    const renderedSections: RenderedSectionChunkInput[] = [];
+    interface ScrollSection {
+      name: string;
+      imgData: string;
+      heightMm: number;
+    }
+    const renderedSections: ScrollSection[] = [];
     let executiveIndexEl: HTMLElement | null = null;
 
     for (let i = 0; i < sections.length; i++) {
@@ -1638,7 +1686,7 @@ export async function captureSampoornaMaster25Pdf(
           hi: `पृष्ठ निर्माण (${i + 1}/${sections.length}): ${sectionName}...`,
           te: `పేజీ నిర్మాణం (${i + 1}/${sections.length}): ${sectionName}...`,
           ta: `பக்க உருவாக்கம் (${i + 1}/${sections.length}): ${sectionName}...`,
-          en: `Rendering Section (${i + 1}/${sections.length})...`
+          en: `Rendering Section (${i + 1}/${sections.length})...`,
         }, lang)
       );
 
@@ -1647,9 +1695,12 @@ export async function captureSampoornaMaster25Pdf(
         continue;
       }
 
-      const targetMaxH = sectionName === "cover" ? page1UsableH : contUsableH;
-      const chunks = sliceCanvasToA4Chunks(canvas, sectionName, targetMaxH, layout.IMAGE_W_MM);
-      renderedSections.push(...chunks);
+      const heightMm = (canvas.height * contentWidthMm) / canvas.width;
+      renderedSections.push({
+        name: sectionName,
+        imgData: canvas.toDataURL("image/jpeg", 0.95),
+        heightMm,
+      });
       canvas.width = 0;
       canvas.height = 0;
     }
@@ -1659,10 +1710,39 @@ export async function captureSampoornaMaster25Pdf(
       throw new Error("Calculated PDF height is zero. Cannot generate empty PDF.");
     }
 
-    let pages = planSampoorna25A4Pages(renderedSections, layout);
+    // Group sections cleanly across continuous scroll pages (max ~4800mm per page to stay safely inside jsPDF limits)
+    const buildScrollPages = (items: ScrollSection[]) => {
+      const out: Array<{ pageNumber: number; sections: ScrollSection[]; contentHeightMm: number }> = [];
+      let curSecs: ScrollSection[] = [];
+      let curH = 0;
+      for (const sec of items) {
+        if (curSecs.length > 0 && curH + sec.heightMm > MAX_SAFE_PAGE_CONTENT_MM) {
+          out.push({ pageNumber: out.length + 1, sections: curSecs, contentHeightMm: curH });
+          curSecs = [sec];
+          curH = sec.heightMm;
+        } else {
+          curSecs.push(sec);
+          curH += sec.heightMm;
+        }
+      }
+      if (curSecs.length > 0) {
+        out.push({ pageNumber: out.length + 1, sections: curSecs, contentHeightMm: curH });
+      }
+      return out;
+    };
 
-    // Pass 2: Synchronize dynamic chapter & section page numbers in the Booklet Index
-    let exactSectionPageMap: Record<string, number> = {};
+    let scrollPages = buildScrollPages(renderedSections);
+
+    // Synchronize Index section page numbers + record hyperlink bounds cleanly
+    const exactSectionPageMap: Record<string, number> = {};
+    for (const p of scrollPages) {
+      for (const s of p.sections) {
+        if (!(s.name in exactSectionPageMap)) {
+          exactSectionPageMap[s.name] = p.pageNumber;
+        }
+      }
+    }
+
     const indexLinkItems: Array<{
       targetKey: string;
       leftRatio: number;
@@ -1672,20 +1752,6 @@ export async function captureSampoornaMaster25Pdf(
     }> = [];
 
     if (executiveIndexEl) {
-      const computeSectionPageMap = (planned: PlannedA4Page[]) => {
-        const map: Record<string, number> = {};
-        for (const p of planned) {
-          for (const s of p.sections) {
-            if (!(s.name in map)) {
-              map[s.name] = p.pageNumber;
-            }
-          }
-        }
-        return map;
-      };
-
-      exactSectionPageMap = computeSectionPageMap(pages);
-
       const badgeEls = Array.from(executiveIndexEl.querySelectorAll("[data-index-page-for]")) as HTMLElement[];
       let indexUpdated = false;
       for (const badgeEl of badgeEls) {
@@ -1704,21 +1770,20 @@ export async function captureSampoornaMaster25Pdf(
       if (indexUpdated) {
         const idxCanvas = await captureDomElementToCanvas(executiveIndexEl, 40);
         if (idxCanvas && idxCanvas.width > 0 && idxCanvas.height > 0) {
-          const updatedIdxChunks = sliceCanvasToA4Chunks(idxCanvas, "executive-index", contUsableH, layout.IMAGE_W_MM);
+          const idxPos = renderedSections.findIndex((s) => s.name === "executive-index");
+          if (idxPos >= 0) {
+            renderedSections[idxPos] = {
+              name: "executive-index",
+              imgData: idxCanvas.toDataURL("image/jpeg", 0.95),
+              heightMm: (idxCanvas.height * contentWidthMm) / idxCanvas.width,
+            };
+            scrollPages = buildScrollPages(renderedSections);
+          }
           idxCanvas.width = 0;
           idxCanvas.height = 0;
-          const firstIdxPos = renderedSections.findIndex((s) => s.name === "executive-index");
-          if (firstIdxPos >= 0) {
-            const withoutOldIndex = renderedSections.filter((s) => s.name !== "executive-index");
-            withoutOldIndex.splice(firstIdxPos, 0, ...updatedIdxChunks);
-            renderedSections.splice(0, renderedSections.length, ...withoutOldIndex);
-            pages = planSampoorna25A4Pages(renderedSections, layout);
-            exactSectionPageMap = computeSectionPageMap(pages);
-          }
         }
       }
 
-      // Record normalized coordinates for every clickable Index row so we can bind PDF internal hyperlinks
       const idxRect = executiveIndexEl.getBoundingClientRect();
       const idxW = Math.max(1, idxRect.width || 900);
       const idxH = Math.max(1, idxRect.height || executiveIndexEl.scrollHeight);
@@ -1737,146 +1802,70 @@ export async function captureSampoornaMaster25Pdf(
         }
       }
     }
+
+    const firstPageTotalHeightMm = scrollPages[0].contentHeightMm + borderClearanceMm * 2;
     const pdf = new jsPDF({
       orientation: "p",
       unit: "mm",
-      format: [layout.A4_WIDTH_MM, layout.A4_HEIGHT_MM],
-      compress: true
+      format: [pdfWidthMm, firstPageTotalHeightMm],
+      compress: true,
     });
 
-    const totalPages = pages.length;
-    const indexPlacements: Array<{
-      pdfPage: number;
-      x: number;
-      y: number;
-      w: number;
-      h: number;
-      sourceTopRatio: number;
-      sourceBottomRatio: number;
-    }> = [];
+    const totalPages = scrollPages.length;
+    const indexPlacements: Array<{ pdfPage: number; x: number; y: number; w: number; h: number }> = [];
+    const exactSectionTargetCoords: Record<string, { pageNumber: number; yMm: number }> = {};
 
-    for (let pIdx = 0; pIdx < pages.length; pIdx++) {
-      const page = pages[pIdx];
+    for (let pIdx = 0; pIdx < scrollPages.length; pIdx++) {
+      const page = scrollPages[pIdx];
+      const pageHeightMm = page.contentHeightMm + borderClearanceMm * 2;
       if (pIdx > 0) {
-        pdf.addPage([layout.A4_WIDTH_MM, layout.A4_HEIGHT_MM], "p");
+        pdf.addPage([pdfWidthMm, pageHeightMm], "p");
       }
 
-      // 1. Royal Warm Ivory Background (#FFF7ED)
+      // 1. Royal Warm Ivory Background (#FFF7ED) matching Premium PDF V1
       pdf.setFillColor(255, 247, 237);
-      pdf.rect(0, 0, layout.A4_WIDTH_MM, layout.A4_HEIGHT_MM, "F");
+      pdf.rect(0, 0, pdfWidthMm, pageHeightMm, "F");
 
-      // 2. Running Header Strip on Pages 2+ (positioned cleanly below inner top border)
-      if (pIdx > 0) {
-        if (runningHeaderChunk) {
-          const hx = layout.IMAGE_X_MM + (layout.IMAGE_W_MM - runningHeaderChunk.widthMm) / 2;
-          pdf.addImage(
-            runningHeaderChunk.imgData,
-            "JPEG",
-            hx,
-            layout.RUNNING_HEADER_Y_MM,
-            runningHeaderChunk.widthMm,
-            runningHeaderChunk.heightMm,
-            undefined,
-            "FAST"
-          );
-        } else if (lang === "en") {
-          pdf.setFont("helvetica", "bold");
-          pdf.setFontSize(7.5);
-          pdf.setTextColor(146, 64, 14);
-          pdf.text("BAGGONA PANCHANGA  *  SAMPOORNA 25-CHAPTER FOLIO", layout.A4_WIDTH_MM / 2, 13.5, { align: "center" });
-        }
-        pdf.setDrawColor(217, 119, 6);
-        pdf.setLineWidth(0.22);
-        pdf.line(layout.IMAGE_X_MM, 17.4, layout.IMAGE_X_MM + layout.IMAGE_W_MM, 17.4);
-      }
-
-      // 3. Section Images (Strictly bounded inside [IMAGE_X_MM, IMAGE_X_MM + IMAGE_W_MM] & <= CONTENT_BOTTOM_MAX_MM)
-      const topY: number = pIdx === 0 ? layout.PAGE1_TOP_Y_MM : layout.CONT_TOP_Y_MM;
-      let currentY: number = topY;
-
+      // 2. Stack every section continuously top-to-bottom cleanly (ZERO empty bottom gaps!)
+      let currentYMm = borderClearanceMm;
       for (const sec of page.sections) {
-        pdf.addImage(sec.imgData, "JPEG", sec.renderXMm, currentY, sec.renderWidthMm, sec.renderHeightMm, undefined, "FAST");
+        if (!(sec.name in exactSectionTargetCoords)) {
+          exactSectionTargetCoords[sec.name] = { pageNumber: pIdx + 1, yMm: currentYMm };
+        }
+        pdf.addImage(sec.imgData, "JPEG", contentXMm, currentYMm, contentWidthMm, sec.heightMm, undefined, "FAST");
         if (sec.name === "executive-index") {
           indexPlacements.push({
             pdfPage: pIdx + 1,
-            x: sec.renderXMm,
-            y: currentY,
-            w: sec.renderWidthMm,
-            h: sec.renderHeightMm,
-            sourceTopRatio: sec.sourceTopRatio ?? 0,
-            sourceBottomRatio: sec.sourceBottomRatio ?? 1,
+            x: contentXMm,
+            y: currentYMm,
+            w: contentWidthMm,
+            h: sec.heightMm,
           });
         }
-        currentY += sec.renderHeightMm;
+        currentYMm += sec.heightMm;
       }
 
-      // 4. Running Footer strictly INSIDE the inner gold frame (< 289.2mm)
-      pdf.setDrawColor(217, 119, 6);
-      pdf.setLineWidth(0.22);
-      pdf.line(11, layout.FOOTER_LINE_Y_MM, layout.A4_WIDTH_MM - 11, layout.FOOTER_LINE_Y_MM);
+      // 3. Draw Outer & Inner Royal Gold Double Borders LAST (Exact Premium PDF V1 Style)
+      pdf.setDrawColor(180, 83, 9);
+      pdf.setLineWidth(0.75);
+      pdf.rect(4, 4, pdfWidthMm - 8, pageHeightMm - 8, "S");
 
-      if (runningFooterChunk) {
-        pdf.addImage(
-          runningFooterChunk.imgData,
-          "JPEG",
-          layout.IMAGE_X_MM,
-          282.1,
-          runningFooterChunk.widthMm,
-          runningFooterChunk.heightMm,
-          undefined,
-          "FAST"
-        );
-      } else if (lang === "en") {
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(7.5);
-        pdf.setTextColor(146, 64, 14);
-        pdf.text("BAGGONA PANCHANGA  *  SRI KSHETRA GOKARNA", 12, layout.FOOTER_TEXT_Y_MM);
-      }
-
-      const footerPageText = `${formatPageTag6L(pIdx + 1, lang)} / ${toNativeDigits(totalPages, lang)}`;
-      const pageTagImg = renderNativePageTagImage(footerPageText, lang);
-      if (pageTagImg) {
-        const tagX = layout.A4_WIDTH_MM - 11.5 - pageTagImg.widthMm;
-        pdf.addImage(pageTagImg.imgData, "JPEG", tagX, 282.3, pageTagImg.widthMm, pageTagImg.heightMm, undefined, "FAST");
-      } else {
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(7.5);
-        pdf.setTextColor(120, 53, 15);
-        const asciiFallback = lang === "en" ? `Page ${pIdx + 1} / ${totalPages}` : `${pIdx + 1} / ${totalPages}`;
-        pdf.text(asciiFallback, layout.A4_WIDTH_MM - 12, layout.FOOTER_TEXT_Y_MM, { align: "right" });
-      }
-
-      // 5. Clean Gold Page Frame drawn LAST on top so edges remain unbroken and uncluttered
-      const ob = layout.OUTER_BORDER_INSET_MM;
-      const ib = layout.INNER_BORDER_INSET_MM;
-      pdf.setDrawColor(180, 83, 9); // amber-700
-      pdf.setLineWidth(0.45);
-      pdf.rect(ob, ob, layout.A4_WIDTH_MM - ob * 2, layout.A4_HEIGHT_MM - ob * 2);
-
-      pdf.setDrawColor(232, 190, 128); // subtle warm gold hairline
-      pdf.setLineWidth(0.15);
-      pdf.rect(ib, ib, layout.A4_WIDTH_MM - ib * 2, layout.A4_HEIGHT_MM - ib * 2);
+      pdf.setDrawColor(180, 83, 9);
+      pdf.setLineWidth(0.25);
+      pdf.rect(6, 6, pdfWidthMm - 12, pageHeightMm - 12, "S");
     }
 
-    // Bind interactive PDF hyperlinks for every chapter/section row in the Table of Contents
+    // Bind clickable Table of Contents internal hyperlinks
     for (const placement of indexPlacements) {
-      const span = Math.max(0.001, placement.sourceBottomRatio - placement.sourceTopRatio);
       for (const item of indexLinkItems) {
-        const targetPage = exactSectionPageMap[item.targetKey];
-        if (!targetPage || targetPage < 1 || targetPage > totalPages) continue;
-        if (item.bottomRatio <= placement.sourceTopRatio || item.topRatio >= placement.sourceBottomRatio) {
-          continue;
-        }
-        const clippedTop = Math.max(placement.sourceTopRatio, item.topRatio);
-        const clippedBot = Math.min(placement.sourceBottomRatio, item.bottomRatio);
-        const relTop = (clippedTop - placement.sourceTopRatio) / span;
-        const relBot = (clippedBot - placement.sourceTopRatio) / span;
+        const targetInfo = exactSectionTargetCoords[item.targetKey];
+        if (!targetInfo || targetInfo.pageNumber < 1 || targetInfo.pageNumber > totalPages) continue;
         const linkX = placement.x + item.leftRatio * placement.w;
-        const linkY = placement.y + relTop * placement.h;
+        const linkY = placement.y + item.topRatio * placement.h;
         const linkW = Math.max(10, (item.rightRatio - item.leftRatio) * placement.w);
-        const linkH = Math.max(2, (relBot - relTop) * placement.h);
+        const linkH = Math.max(2, (item.bottomRatio - item.topRatio) * placement.h);
         pdf.setPage(placement.pdfPage);
-        pdf.link(linkX, linkY, linkW, linkH, { pageNumber: targetPage });
+        pdf.link(linkX, linkY, linkW, linkH, { pageNumber: targetInfo.pageNumber });
       }
     }
 
@@ -1888,6 +1877,11 @@ export async function captureSampoornaMaster25Pdf(
   } finally {
     for (const item of originalIndexPageTexts) {
       item.el.textContent = item.text;
+    }
+    if (originalContainerStyle) {
+      containerEl.setAttribute("style", originalContainerStyle);
+    } else {
+      containerEl.removeAttribute("style");
     }
     if (parentEl) {
       parentEl.setAttribute("style", originalStyle);
