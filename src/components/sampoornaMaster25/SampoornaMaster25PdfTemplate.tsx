@@ -349,13 +349,13 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             boxSizing: "border-box",
             letterSpacing: "normal",
             textAlign: "center",
-            padding: "8px 6px 4px 6px",
+            padding: "12px 10px 6px 10px",
           }}
         >
           <p
             style={{
-              margin: "0 0 10px 0",
-              fontSize: "14px",
+              margin: "0 0 12px 0",
+              fontSize: "14.5px",
               fontWeight: 700,
               color: "#92400e",
               letterSpacing: "normal",
@@ -364,53 +364,58 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             {sacredInvocation}
           </p>
 
-          {/* Premium PDF V1 Royal Banner Pill (Clean Open Bordered Top/Bottom Strip) */}
+          {/* Grand Stately V1 Royal Banner Heading (Brand + Big Main Heading Unified) */}
           <div
             style={{
               display: "inline-block",
-              padding: "10px 38px",
-              marginBottom: "10px",
-              borderRadius: "8px",
-              borderTop: "2px solid rgba(180, 83, 9, 0.45)",
-              borderBottom: "2px solid rgba(180, 83, 9, 0.45)",
-              backgroundColor: "rgba(254, 243, 199, 0.35)",
-              fontSize: "34px",
-              fontWeight: 800,
-              lineHeight: 1.3,
-              color: "#78350f",
-              letterSpacing: "normal",
+              padding: "16px 52px",
+              marginBottom: "12px",
+              borderRadius: "10px",
+              borderTop: "2.5px solid rgba(180, 83, 9, 0.5)",
+              borderBottom: "2.5px solid rgba(180, 83, 9, 0.5)",
+              backgroundColor: "rgba(254, 243, 199, 0.32)",
             }}
           >
-            {data.coverPage.brandBannerTitle}
+            <div
+              style={{
+                fontSize: "19px",
+                fontWeight: 800,
+                lineHeight: 1.3,
+                color: "#92400e",
+                marginBottom: "6px",
+                letterSpacing: "normal",
+              }}
+            >
+              {data.coverPage.brandBannerTitle}
+            </div>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "38px",
+                fontWeight: 800,
+                lineHeight: 1.28,
+                color: "#451a03",
+                letterSpacing: "normal",
+              }}
+            >
+              {pick6(
+                {
+                  kn: "ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಗ್ರಂಥ",
+                  mr: "संपूर्ण २५ अध्यायांचे महा-जन्मपत्रिका ग्रंथ",
+                  hi: "संपूर्ण २५ अध्यायों का महा-जन्मकुंडली ग्रंथ",
+                  te: "సంపూర్ణ 25 అధ్యాయాల మహా జాతక గ్రంథం",
+                  ta: "சம்பூர்ண 25 அத்தியாய மகா ஜாதக நூல்",
+                  en: "Sampoorna 25-Chapter Master Horoscope",
+                },
+                lang
+              )}
+            </h1>
           </div>
-
-          <h1
-            style={{
-              margin: "4px 0 6px 0",
-              fontSize: "27px",
-              fontWeight: 800,
-              lineHeight: 1.35,
-              color: "#451a03",
-              letterSpacing: "normal",
-            }}
-          >
-            {pick6(
-              {
-                kn: "ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಗ್ರಂಥ",
-                mr: "संपूर्ण २५ अध्यायांचे महा-जन्मपत्रिका ग्रंथ",
-                hi: "संपूर्ण २५ अध्यायों का महा-जन्मकुंडली ग्रंथ",
-                te: "సంపూర్ణ 25 అధ్యాయాల మహా జాతక గ్రంథం",
-                ta: "சம்பூர்ண 25 அத்தியாய மகா ஜாதக நூல்",
-                en: "Sampoorna 25-Chapter Master Horoscope",
-              },
-              lang
-            )}
-          </h1>
 
           <p
             style={{
               margin: "0 auto 14px auto",
-              fontSize: "15.5px",
+              fontSize: "16.5px",
               fontStyle: "italic",
               fontWeight: 600,
               color: "#78350f",
@@ -431,14 +436,14 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               opacity: 0.85,
             }}
           >
-            <div style={{ width: "96px", borderBottom: "1.5px solid rgba(180, 83, 9, 0.5)" }} />
-            <span style={{ fontSize: "18px", fontWeight: 700, color: "#92400e" }}>
+            <div style={{ width: "100px", borderBottom: "1.5px solid rgba(180, 83, 9, 0.5)" }} />
+            <span style={{ fontSize: "19px", fontWeight: 700, color: "#92400e" }}>
               {lang === "ta" ? "✦" : "ॐ"}
             </span>
-            <div style={{ width: "96px", borderBottom: "1.5px solid rgba(180, 83, 9, 0.5)" }} />
+            <div style={{ width: "100px", borderBottom: "1.5px solid rgba(180, 83, 9, 0.5)" }} />
           </div>
 
-          {/* Borderless Compact Pratah Darshana & Concise Prarthana Accent */}
+          {/* Borderless Compact Pratah Darshana Accent */}
           <div
             data-cover-element="pratah-prarthana"
             style={{
@@ -449,7 +454,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               gap: "14px",
               maxWidth: "740px",
               margin: "0 auto",
-              padding: "4px 8px",
+              padding: "2px 8px",
               textAlign: "left",
             }}
           >
@@ -457,8 +462,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               src="/daily_posters/poster_1_shiva.jpg"
               alt="Sri Gokarna Mahabaleshwara Pratah Darshana"
               style={{
-                width: "54px",
-                height: "54px",
+                width: "52px",
+                height: "52px",
                 borderRadius: "9999px",
                 objectFit: "cover",
                 border: "2px solid #d97706",
@@ -518,7 +523,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               justifyContent: "space-between",
               alignItems: "center",
               paddingBottom: "10px",
-              marginBottom: "18px",
+              marginBottom: "16px",
               borderBottom: "2px solid rgba(180, 83, 9, 0.35)",
             }}
           >
@@ -540,15 +545,15 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             </span>
           </div>
 
-          {/* Premium PDF V1 Unified Open Parchment Grid Card (Zero Mini-Box Clutter) */}
+          {/* Premium PDF V1 Unified Open Parchment Grid Card (Clean Balanced 7x2 Grid) */}
           <div
             style={{
               position: "relative",
               overflow: "hidden",
-              borderRadius: "16px",
+              borderRadius: "14px",
               border: "2px solid rgba(180, 83, 9, 0.45)",
               backgroundColor: "rgba(254, 243, 199, 0.45)",
-              padding: "28px 34px",
+              padding: "26px 32px",
               boxShadow: "0 2px 8px rgba(120, 53, 15, 0.08)",
             }}
           >
@@ -561,7 +566,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: "18px 36px",
+                gap: "16px 36px",
               }}
             >
               {/* Row 1 */}
@@ -677,44 +682,26 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                   ✨ {data.yogiPlanet} • ⚠️ {data.avayogiPlanet} • {houseWord} {n(data.maandiHouse)} ({data.maandiRashi})
                 </div>
               </div>
-            </div>
 
-            {/* Clean Spaced Holistic Synthesis Footer Lines Inside Same Parchment Card */}
-            <div
-              style={{
-                marginTop: "18px",
-                paddingTop: "14px",
-                borderTop: "1.5px solid rgba(180, 83, 9, 0.3)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-                fontSize: "16.5px",
-                fontWeight: 700,
-                color: "#78350f",
-                lineHeight: 1.55,
-              }}
-            >
-              <div>
-                <span style={{ color: "#92400e" }}>
-                  {pick6({ kn: "ತಾರಾಬಲ, ಬಾಧಕ & ಪಂಚಭೂತ: ", mr: "ताराबल, बाधक व पंचतत्त्व: ", hi: "ताराबल, बाधक एवं पंचभूत: ", te: "తారాబలం, బాధక & పంచభూతం: ", ta: "தாராபலம், பாதகம் & பஞ்சபூதம்: ", en: "Tarabala, Badhaka & Elements: " }, lang)}
-                </span>
-                {data.precisionProfile.liveTarabalaHeadline} • {data.precisionProfile.badhakaSummary} • {data.dominantElement}
-              </div>
-              <div>
-                <span style={{ color: "#92400e" }}>
-                  {pick6({ kn: "ಶುಭ ಯೋಗ & ಸಕ್ರಿಯ ದೋಷ: ", mr: "शुभ योग व सक्रिय दोष: ", hi: "शुभ योग एवं सक्रिय दोष: ", te: "శుభ యోగాలు & దోషాలు: ", ta: "சுப யோகங்கள் & தோஷங்கள்: ", en: "Key Yogas & Diagnostics: " }, lang)}
-                </span>
-                {data.detectedYogasSummary} • {data.detectedDoshasSummary}
-              </div>
-              {data.heroSummary && (
-                <div>
-                  <span style={{ color: "#92400e" }}>
-                    {pick6({ kn: "ಕುಂಡಲಿಯ ಪ್ರಧಾನ ಗ್ರಹ ನಾಯಕ & ಆಪ್ತ ಸಹೋದ್ಯೋಗಿ: ", mr: "कुंडलीचा मुख्य नायक ग्रह व जवळील सहकारी: ", hi: "कुंडली का मुख्य नायक ग्रह एवं निकटतम सहयोगी: ", te: "కుండలి ప్రధాన నాయకుడు & సమీప సహచర గ్రహం: ", ta: "ஜாதகத்தின் முதன்மை நாயகன் & நெருங்கிய துணை கிரகம்: ", en: "Strongest Kundli Hero & Nearest Colleague: " }, lang)}
-                  </span>
-                  {data.heroSummary.heroPlanetName} ({data.heroSummary.heroPlanetRashi}) •{" "}
-                  {data.heroSummary.nearestColleagueName} ({data.heroSummary.nearestColleagueRashi})
+              {/* Row 7: Clean Grid Integration of Tarabala, Element & Principal Kundli Hero */}
+              <div style={{ paddingTop: "2px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
+                  {pick6({ kn: "ಇಂದಿನ ತಾರಾಬಲ & ಪ್ರಧಾನ ತತ್ತ್ವ", mr: "आजचे ताराबल व मुख्य तत्त्व", hi: "आज का ताराबल एवं प्रमुख तत्त्व", te: "నేటి తారాబలం & ప్రధాన తత్త్వం", ta: "இன்றைய தாராபலம் & முக்கிய தத்துவம்", en: "Live Tarabala & Dominant Element" }, lang)}
                 </div>
-              )}
+                <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.44, wordBreak: "break-word" }}>
+                  {data.precisionProfile.liveTarabalaHeadline} • {data.dominantElement}
+                </div>
+              </div>
+
+              <div style={{ paddingTop: "2px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
+                  {pick6({ kn: "ಪ್ರಧಾನ ಯೋಗ & ಗ್ರಹ ನಾಯಕ", mr: "प्रमुख योग व मुख्य ग्रह", hi: "प्रमुख योग एवं नायक ग्रह", te: "ప్రధాన యోగాలు & నాయక గ్రహం", ta: "முக்கிய யோகம் & நாயக கிரகம்", en: "Key Yogas & Principal Planet" }, lang)}
+                </div>
+                <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.44, wordBreak: "break-word" }}>
+                  {data.detectedYogasSummary}
+                  {data.heroSummary ? ` • ${data.heroSummary.heroPlanetName} (${data.heroSummary.heroPlanetRashi})` : ""}
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -595,11 +595,15 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(coverEl.compareDocumentPosition(detailsEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(detailsEl.compareDocumentPosition(ch1El) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    // Cover stays clean & minimalist (brand banner + Pratah vignette, zero stacked dedication card clutter)
+    // Cover stays clean & minimalist with unified royal heading + Pratah vignette; Tarabala + Yogas sit neatly inside user-details grid
     const coverText = coverEl.textContent || "";
     const detailsText = detailsEl.textContent || "";
+    const coverH1 = coverEl.querySelector("h1");
+    expect(coverH1).not.toBeNull();
+    expect(coverH1?.textContent).toContain("೨೫ ಅಧ್ಯಾಯ");
     expect(coverText).toContain("ಬಗ್ಗೋಣ ಪಂಚಾಂಗ");
     expect(detailsText).toContain(payloadKn.devoteeName);
+    expect(detailsText).toContain(payloadKn.precisionProfile.liveTarabalaHeadline);
     expect(detailsText).not.toContain(`${payloadKn.pakshaName} ${payloadKn.pakshaName}`);
     const pratahImg = coverEl.querySelector('[data-cover-element="pratah-prarthana"] img');
     expect(pratahImg).not.toBeNull();

@@ -5,6 +5,7 @@ import KundliPage from "../pages/KundliPage";
 import { useAuthStore } from "../features/auth/authStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { useAppStore } from "../stores/appStore";
+import { calculateKundli } from "../core/KundliEngine";
 import { db } from "../db/indexedDb";
 import * as SunApi from "../core/sunriseSunsetApi";
 import * as devoteeSearchService from "../services/devoteeSearchService";
@@ -130,6 +131,43 @@ describe("KundliPage - Devotee Database Search & Auto-Fill Integration", () => {
     await waitFor(() => {
       const nameInput = screen.getByTestId("kundli-name-input") as HTMLInputElement;
       expect(nameInput.value).toBe("Ganesh Hegde");
+    });
+  });
+
+  it("includes Next 5 Years Details and Sampoorna 25-Chapter options inside Premium ZIP Bundle modal", async () => {
+    const sampleInput = {
+      name: "Ganesh Hegde",
+      birthDate: "1988-11-20",
+      birthTime: "08:15",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      pincode: "581326",
+      gender: "Male" as const,
+      maritalStatus: "married" as const,
+      childrenStatus: "has_children" as const
+    };
+    const computed = calculateKundli(sampleInput);
+    useKundliViewerStore.getState().setSession({
+      input: sampleInput,
+      birthDateYmd: "1988-11-20",
+      birthTimeHm: "08:15",
+      placeLabel: "Gokarna, Karnataka (581326)",
+      homePlaceName: "Gokarna",
+      result: computed,
+      dailyPrediction: "Auspicious day",
+      dasha: [],
+      includePriestCalendar: false
+    });
+
+    render(<KundliPage />);
+
+    const bundleBtn = await screen.findByRole("button", { name: /Premium Download/i });
+    fireEvent.click(bundleBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/6\. Next 5 Years Details Forecast/i)).toBeDefined();
+      expect(screen.getByText(/7\. Sampoorna 25-Chapter Master Booklet/i)).toBeDefined();
+      expect(screen.getByText(/Download Selected ZIP \(7\)/i)).toBeDefined();
     });
   });
 });

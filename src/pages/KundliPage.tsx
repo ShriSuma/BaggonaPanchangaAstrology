@@ -18,6 +18,9 @@ import { prepareBhavishyaV1Data, captureBhavishyaV1Pdf, type BhavishyaV1Payload 
 import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
 import { prepareSampoornaMaster25Data, captureSampoornaMaster25Pdf, type SampoornaMaster25Payload } from "../services/sampoornaMaster25Service";
 import { SampoornaMaster25PdfTemplate } from "../components/sampoornaMaster25/SampoornaMaster25PdfTemplate";
+import { prepare5YearPredictionData, captureFiveYearPredictionPdf } from "../features/fiveYearPrediction/fiveYearPredictionService";
+import { type FiveYearPredictionPayload } from "../features/fiveYearPrediction/fiveYearPredictionEngine";
+import { FiveYearPredictionPdfTemplate } from "../components/fiveYearPrediction/FiveYearPredictionPdfTemplate";
 import { type SixLang } from "../features/fiveYearPrediction/fiveYearLocale";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "../core/birthTime";
@@ -160,7 +163,9 @@ export default function KundliPage(): JSX.Element {
     remedy: true,
     bhavishya: true,
     dosha: true,
-    qrCalendar: true
+    qrCalendar: true,
+    fiveYear: true,
+    master25: true
   });
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
   const [selectedPriestId, setSelectedPriestId] = useState<string>("chaitanya-pandit");
@@ -179,11 +184,15 @@ export default function KundliPage(): JSX.Element {
     bhavishya?: { blob: Blob; fileName: string; url: string };
     dosha?: { blob: Blob; fileName: string; url: string };
     qrCalendar?: { blob: Blob; fileName: string; url: string };
+    fiveYear?: { blob: Blob; fileName: string; url: string };
+    master25?: { blob: Blob; fileName: string; url: string };
     zip?: { blob: Blob; fileName: string; url: string };
   } | null>(null);
   const [qrCardDataUrl, setQrCardDataUrl] = useState<string>("");
   const [premiumBhavishyaPayload, setPremiumBhavishyaPayload] = useState<BhavishyaV1Payload | null>(null);
   const premiumBhavishyaPdfRef = useRef<HTMLDivElement>(null);
+  const [fiveYearBundlePayload, setFiveYearBundlePayload] = useState<FiveYearPredictionPayload | null>(null);
+  const fiveYearBundlePdfRef = useRef<HTMLDivElement>(null);
   const [isGeneratingMaster25Pdf, setIsGeneratingMaster25Pdf] = useState(false);
   const [master25Progress, setMaster25Progress] = useState(0);
   const [master25ProgressMsg, setMaster25ProgressMsg] = useState("");
@@ -1185,7 +1194,9 @@ export default function KundliPage(): JSX.Element {
       packageSelectedItems.remedy ||
       packageSelectedItems.bhavishya ||
       packageSelectedItems.dosha ||
-      packageSelectedItems.qrCalendar;
+      packageSelectedItems.qrCalendar ||
+      packageSelectedItems.fiveYear ||
+      packageSelectedItems.master25;
 
     if (!atLeastOne) {
       alert(
@@ -1210,8 +1221,10 @@ export default function KundliPage(): JSX.Element {
     const safeName = (form.name || "Devotee").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
     const safePriest = (priestNameInput || "Shreeram_Pandit").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
     const todayStr = new Date().toISOString().slice(0, 10);
-    const langNames: Record<string, string> = { kn: "Kannada", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
+    const langNames: Record<string, string> = { kn: "Kannada", mr: "Marathi", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
     const langName = langNames[pdfLanguage] || "Kannada";
+    const rawBundleLang = ((pdfLanguage || i18n.language || "kn").slice(0, 2)).toLowerCase();
+    const bundleSixLang: SixLang = (rawBundleLang === "ml" ? "en" : ["kn", "hi", "mr", "te", "ta", "en"].includes(rawBundleLang) ? rawBundleLang : "kn") as SixLang;
 
     const zip = new JSZip();
     let pdf1Blob: Blob | null = null;
@@ -1219,12 +1232,16 @@ export default function KundliPage(): JSX.Element {
     let pdf3Blob: Blob | null = null;
     let pdf4Blob: Blob | null = null;
     let pdf5Blob: Blob | null = null;
+    let pdf6Blob: Blob | null = null;
+    let pdf7Blob: Blob | null = null;
 
     const pdf1FileName = `1_Baggona_Janana_Kundali_${langName}_${safeName}.pdf`;
     const pdf2FileName = `2_Baggona_Daivika_Parihara_${langName}_${safeName}.pdf`;
     const pdf3FileName = `3_Baggona_Divya_Bhavishya_V1_${langName}_${safeName}.pdf`;
     const pdf4FileName = `4_Baggona_Kundli_Doshas_${langName}_${safeName}.pdf`;
     const pdf5FileName = `5_Baggona_30Day_Muhurtha_QR_${langName}_${safeName}.pdf`;
+    const pdf6FileName = `6_Baggona_Next_5_Years_Report_${langName}_${safeName}.pdf`;
+    const pdf7FileName = `7_Baggona_Sampoorna_25_Chapters_${langName}_${safeName}.pdf`;
 
     try {
       // 1. Baggona Janana Kundali & Dasha PDF
@@ -1232,10 +1249,10 @@ export default function KundliPage(): JSX.Element {
         setBundleProgress(15);
         setBundleStageText(
           pdfLanguage === "kn"
-            ? "೧/೫ ಜನನ ಕುಂಡಲಿ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿ ಪಿಡಿಎಫ್ ರಚನೆ..."
+            ? "೧/೭ ಜನನ ಕುಂಡಲಿ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿ ಪಿಡಿಎಫ್ ರಚನೆ..."
             : pdfLanguage === "hi"
-            ? "1/5 जन्म कुंडली एवं दशा-भुक्ति पीडीएफ निर्माण..."
-            : "1/5 Generating Baggona Janana Kundali & Dasha PDF..."
+            ? "1/7 जन्म कुंडली एवं दशा-भुक्ति पीडीएफ निर्माण..."
+            : "1/7 Generating Baggona Janana Kundali & Dasha PDF..."
         );
 
         const el = traditionalExportRef.current;
@@ -1267,10 +1284,10 @@ export default function KundliPage(): JSX.Element {
         setBundleProgress(35);
         setBundleStageText(
           pdfLanguage === "kn"
-            ? "೨/೫ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ (ದೈವಿಕ ನಿರೂಪಣೆ ಪರಿಶೀಲನೆ)..."
+            ? "೨/೭ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ (ದೈವಿಕ ನಿರೂಪಣೆ ಪರಿಶೀಲನೆ)..."
             : pdfLanguage === "hi"
-            ? "2/5 दैविक परिहार रिपोर्ट पीडीएफ मुद्रण (दैविक विवरण)..."
-            : "2/5 Generating Daivika Parihara Remedy Report PDF (Divine Narration)..."
+            ? "2/7 दैविक परिहार रिपोर्ट पीडीएफ मुद्रण (दैविक विवरण)..."
+            : "2/7 Generating Daivika Parihara Remedy Report PDF (Divine Narration)..."
         );
 
         setRemedyPdfLanguage(pdfLanguage);
@@ -1308,10 +1325,10 @@ export default function KundliPage(): JSX.Element {
         setBundleProgress(55);
         setBundleStageText(
           pdfLanguage === "kn"
-            ? "೩/೫ ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 ಸಮಗ್ರ ೧೦-ಅಧ್ಯಾಯಗಳ ಗಣನೆ..."
+            ? "೩/೭ ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 ಸಮಗ್ರ ೧೦-ಅಧ್ಯಾಯಗಳ ಗಣನೆ..."
             : pdfLanguage === "hi"
-            ? "3/5 बग्गोण दिव्य भविष्य V1 संपूर्ण १०-अध्यायों का विश्लेषण..."
-            : "3/5 Preparing Baggona Divya Bhavishya V1 (10 Chapters)..."
+            ? "3/7 बग्गोण दिव्य भविष्य V1 संपूर्ण १०-अध्यायों का विश्लेषण..."
+            : "3/7 Preparing Baggona Divya Bhavishya V1 (10 Chapters)..."
         );
 
         if (!effectiveSession) throw new Error("Kundli session not available");
@@ -1360,10 +1377,10 @@ export default function KundliPage(): JSX.Element {
         setBundleProgress(78);
         setBundleStageText(
           pdfLanguage === "kn"
-            ? "೪/೫ ಕುಂಡಲಿ ಸಮಗ್ರ ದೋಷಗಳ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ..."
+            ? "೪/೭ ಕುಂಡಲಿ ಸಮಗ್ರ ದೋಷಗಳ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ..."
             : pdfLanguage === "hi"
-            ? "4/5 कुंडली समग्र दोष रिपोर्ट पीडीएफ मुद्रण..."
-            : "4/5 Generating Kundli Comprehensive Doshas Report PDF..."
+            ? "4/7 कुंडली समग्र दोष रिपोर्ट पीडीएफ मुद्रण..."
+            : "4/7 Generating Kundli Comprehensive Doshas Report PDF..."
         );
 
         await new Promise(r => setTimeout(r, 500));
@@ -1376,10 +1393,10 @@ export default function KundliPage(): JSX.Element {
         setBundleProgress(88);
         setBundleStageText(
           pdfLanguage === "kn"
-            ? "೫/೫ ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ ಮುದ್ರಣ..."
+            ? "೫/೭ ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ ಮುದ್ರಣ..."
             : pdfLanguage === "hi"
-            ? "5/5 अगले ३०-दिनों का मुहूर्त क्यूआर कार्ड निर्माण..."
-            : "5/5 Generating 30-Day Auspicious Calendar QR Card PDF..."
+            ? "5/7 अगले ३०-दिनों का मुहूर्त क्यूआर कार्ड निर्माण..."
+            : "5/7 Generating 30-Day Auspicious Calendar QR Card PDF..."
         );
 
         try {
@@ -1437,8 +1454,79 @@ export default function KundliPage(): JSX.Element {
         pdf5Blob = pdf5.output("blob");
       }
 
-      // 6. Packaging into ZIP
-      setBundleProgress(95);
+      // 6. Next 5 Years Master Destiny Prediction PDF
+      if (packageSelectedItems.fiveYear) {
+        if (!effectiveSession) throw new Error("Kundli session not available");
+        setBundleProgress(89);
+        setBundleStageText(
+          pdfLanguage === "kn"
+            ? "೬/೭ ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಭವಿಷ್ಯ ವರದಿ (5-Year Prediction) ಪಿಡಿಎಫ್ ರಚನೆ..."
+            : pdfLanguage === "hi"
+            ? "6/7 आगामी ५ वर्षों की भविष्य रिपोर्ट पीडीएफ निर्माण..."
+            : "6/7 Generating Next 5 Years Future Prediction PDF..."
+        );
+
+        const geminiKey = useAppStore.getState().geminiApiKey || "";
+        const fiveYearPayloadData = await prepare5YearPredictionData(effectiveSession, bundleSixLang, {
+          geminiApiKey: geminiKey,
+          onProgress: (pct, msg) => {
+            setBundleProgress(89 + Math.floor((pct / 100) * 3));
+            if (msg) setBundleStageText(msg);
+          }
+        });
+        setFiveYearBundlePayload(fiveYearPayloadData);
+        await new Promise((r) => setTimeout(r, 900));
+
+        if (!fiveYearBundlePdfRef.current) {
+          throw new Error("5-Year Prediction PDF container not found");
+        }
+        const pdf6 = await captureFiveYearPredictionPdf(
+          fiveYearBundlePdfRef.current,
+          pdf6FileName,
+          false,
+          (_pct, stageText) => {
+            if (stageText) setBundleStageText(stageText);
+          }
+        );
+        pdf6Blob = pdf6.output("blob");
+      }
+
+      // 7. Sampoorna 25-Chapter Master Booklet PDF
+      if (packageSelectedItems.master25) {
+        if (!effectiveSession) throw new Error("Kundli session not available");
+        setBundleProgress(92);
+        setBundleStageText(
+          pdfLanguage === "kn"
+            ? "೭/೭ ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ (25 Chapters) ಪಿಡಿಎಫ್ ರಚನೆ..."
+            : pdfLanguage === "hi"
+            ? "7/7 संपूर्ण २५ अध्यायों की महा-जन्मकुंडली पुस्तिका निर्माण..."
+            : "7/7 Generating Sampoorna 25-Chapter Master Booklet PDF..."
+        );
+
+        const m25PayloadData = await prepareSampoornaMaster25Data(effectiveSession, bundleSixLang, {
+          onProgress: (pct, msg) => {
+            setBundleProgress(92 + Math.floor((pct / 100) * 3));
+            if (msg) setBundleStageText(msg);
+          }
+        });
+        setMaster25Payload(m25PayloadData);
+        await new Promise((r) => setTimeout(r, 1000));
+
+        if (!master25PdfRef.current) {
+          throw new Error("Sampoorna 25-Chapter PDF container not found");
+        }
+        const pdf7 = await captureSampoornaMaster25Pdf(master25PdfRef.current, pdf7FileName, false, {
+          payload: m25PayloadData,
+          lang: bundleSixLang,
+          onProgress: (_pct, msg) => {
+            if (msg) setBundleStageText(msg);
+          }
+        });
+        pdf7Blob = pdf7.output("blob");
+      }
+
+      // 8. Packaging into ZIP
+      setBundleProgress(96);
       setBundleStageText(
         pdfLanguage === "kn"
           ? "ಆಯ್ಕೆಮಾಡಿದ ಎಲ್ಲಾ ಪಿಡಿಎಫ್‌ಗಳನ್ನು ಜಿಪ್ ಕಡತವಾಗಿ ಸಂಯೋಜಿಸಲಾಗುತ್ತಿದೆ..."
@@ -1452,6 +1540,8 @@ export default function KundliPage(): JSX.Element {
       if (pdf3Blob) zip.file(pdf3FileName, pdf3Blob);
       if (pdf4Blob) zip.file(pdf4FileName, pdf4Blob);
       if (pdf5Blob) zip.file(pdf5FileName, pdf5Blob);
+      if (pdf6Blob) zip.file(pdf6FileName, pdf6Blob);
+      if (pdf7Blob) zip.file(pdf7FileName, pdf7Blob);
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const zipFileName = `${safeName}_${safePriest}_${todayStr}.zip`;
@@ -1472,6 +1562,8 @@ export default function KundliPage(): JSX.Element {
         bhavishya: pdf3Blob ? { blob: pdf3Blob, fileName: pdf3FileName, url: URL.createObjectURL(pdf3Blob) } : undefined,
         dosha: pdf4Blob ? { blob: pdf4Blob, fileName: pdf4FileName, url: URL.createObjectURL(pdf4Blob) } : undefined,
         qrCalendar: pdf5Blob ? { blob: pdf5Blob, fileName: pdf5FileName, url: URL.createObjectURL(pdf5Blob) } : undefined,
+        fiveYear: pdf6Blob ? { blob: pdf6Blob, fileName: pdf6FileName, url: URL.createObjectURL(pdf6Blob) } : undefined,
+        master25: pdf7Blob ? { blob: pdf7Blob, fileName: pdf7FileName, url: URL.createObjectURL(pdf7Blob) } : undefined,
         zip: { blob: zipBlob, fileName: zipFileName, url: zipUrl }
       });
 
@@ -2479,8 +2571,8 @@ export default function KundliPage(): JSX.Element {
                       </div>
                       <span className="text-xs font-semibold text-amber-100/90 tracking-normal text-center">
                         {i18n.language.startsWith("kn")
-                          ? "ಕುಂಡಲಿ + ಪರಿಹಾರ + ದಿವ್ಯ ಭವಿಷ್ಯ + 30-ದಿನಗಳ ಮುಹೂರ್ತ QR (ZIP ಪ್ಯಾಕೇಜ್)"
-                          : "Kundli + Remedies + Bhavishya + 30-Day QR (ZIP Package)"}
+                          ? "ಕುಂಡಲಿ + ಪರಿಹಾರ + ಭವಿಷ್ಯ V1 + ದೋಷಗಳು + QR + 5-ವರ್ಷ + 25-ಅಧ್ಯಾಯ (ZIP)"
+                          : "Kundli + Parihara + Bhavishya + Doshas + QR + 5-Year + 25-Chapter (ZIP)"}
                       </span>
                     </button>
                   </div>
@@ -2720,6 +2812,30 @@ export default function KundliPage(): JSX.Element {
             premiumData={premiumBhavishyaPayload.premiumData}
             ageYears={premiumBhavishyaPayload.ageYears}
             lang={pdfLanguage}
+          />
+        </div>
+      )}
+
+      {/* Hidden Next 5 Years Master Prediction PDF Template Container conforming to baggona-pdf-layout-guard */}
+      {effectiveSession && fiveYearBundlePayload && (
+        <div
+          id="kundli-5year-pdf-render-host"
+          style={{
+            position: "fixed",
+            left: 0,
+            top: 0,
+            width: 900,
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: -1,
+            overflow: "hidden",
+            height: 0
+          }}
+          aria-hidden="true"
+        >
+          <FiveYearPredictionPdfTemplate
+            ref={fiveYearBundlePdfRef}
+            data={fiveYearBundlePayload}
           />
         </div>
       )}
@@ -3080,6 +3196,46 @@ export default function KundliPage(): JSX.Element {
                     </p>
                   </div>
                 </label>
+
+                {/* Item 6: Next 5 Years Details Report */}
+                <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                  <input
+                    type="checkbox"
+                    checked={packageSelectedItems.fiveYear}
+                    onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, fiveYear: e.target.checked }))}
+                    className="mt-0.5 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400 shrink-0"
+                  />
+                  <div className="text-left text-xs min-w-0">
+                    <p className="font-bold text-amber-200 text-sm">
+                      {pdfLanguage === "kn" ? "೬. ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಭವಿಷ್ಯ ವರದಿ (PDF)" : "6. Next 5 Years Details Forecast (PDF)"}
+                    </p>
+                    <p className="text-slate-300 mt-0.5 leading-snug">
+                      {pdfLanguage === "kn"
+                        ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಸುವರ್ಣಾವಕಾಶಗಳು, ವಾರ್ಷಿಕ ಫಲಗಳು, ಆರ್ಥಿಕ ಮಾರ್ಗದರ್ಶನ & ಆರೋಗ್ಯ ರಕ್ಷಣೆ"
+                        : "Year-by-year 5-year destiny roadmap, turning points, wealth timing, and cautions"}
+                    </p>
+                  </div>
+                </label>
+
+                {/* Item 7: Sampoorna 25 Chapters Master Report */}
+                <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                  <input
+                    type="checkbox"
+                    checked={packageSelectedItems.master25}
+                    onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, master25: e.target.checked }))}
+                    className="mt-0.5 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400 shrink-0"
+                  />
+                  <div className="text-left text-xs min-w-0">
+                    <p className="font-bold text-amber-200 text-sm">
+                      {pdfLanguage === "kn" ? "೭. ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ (PDF)" : "7. Sampoorna 25-Chapter Master Booklet (PDF)"}
+                    </p>
+                    <p className="text-slate-300 mt-0.5 leading-snug">
+                      {pdfLanguage === "kn"
+                        ? "ವರ್ತಮಾನ ಗೋಚಾರ, ಬೃಗು ಬಿಂದು, ಯೋಗಿ-ಅವಯೋಗಿ, ದಶಾ-ಭುಕ್ತಿ & ೨೫ ಅಧ್ಯಾಯಗಳ ಸಮಗ್ರ ಜಾತಕ ಗ್ರಂಥ"
+                        : "Complete 25-chapter story horoscope covering present life, Bhrigu Bindu, Yogas, Doshas & 5-year milestones"}
+                    </p>
+                  </div>
+                </label>
               </div>
 
               {/* Conditional Priest Database Selector & Editor when Item 5 (QR Calendar) is checked */}
@@ -3292,16 +3448,32 @@ export default function KundliPage(): JSX.Element {
                     )}
                     {packageSelectedItems.qrCalendar && (
                       <div className="flex items-center gap-2">
-                        <span>{bundleProgress >= 90 ? "✅" : "⏳"}</span>
-                        <span className={bundleProgress >= 90 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                        <span>{bundleProgress >= 89 ? "✅" : "⏳"}</span>
+                        <span className={bundleProgress >= 89 ? "text-amber-200 font-semibold" : "text-slate-400"}>
                           5. Next 30-Day Auspicious Calendar QR Card (PDF)
+                        </span>
+                      </div>
+                    )}
+                    {packageSelectedItems.fiveYear && (
+                      <div className="flex items-center gap-2">
+                        <span>{bundleProgress >= 92 ? "✅" : "⏳"}</span>
+                        <span className={bundleProgress >= 92 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                          6. Next 5 Years Details Forecast (PDF)
+                        </span>
+                      </div>
+                    )}
+                    {packageSelectedItems.master25 && (
+                      <div className="flex items-center gap-2">
+                        <span>{bundleProgress >= 96 ? "✅" : "⏳"}</span>
+                        <span className={bundleProgress >= 96 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                          7. Sampoorna 25-Chapter Master Booklet (PDF)
                         </span>
                       </div>
                     )}
                     <div className="flex items-center gap-2">
                       <span>{bundleProgress >= 100 ? "✅" : "⏳"}</span>
                       <span className={bundleProgress >= 100 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                        6. High-Compression ZIP Bundle Packaging
+                        8. High-Compression ZIP Bundle Packaging
                       </span>
                     </div>
                   </div>
@@ -3421,6 +3593,44 @@ export default function KundliPage(): JSX.Element {
                           <div className="text-left min-w-0 truncate">
                             <p className="font-semibold text-white truncate">೫. ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ (PDF)</p>
                             <p className="text-[10px] text-slate-400 font-normal truncate">{bundleDownloadedPdfs.qrCalendar.fileName}</p>
+                          </div>
+                        </div>
+                        <span className="text-amber-400 text-[11px] shrink-0 ml-2">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                      </a>
+                    )}
+
+                    {bundleDownloadedPdfs.fiveYear && (
+                      <a
+                        href={bundleDownloadedPdfs.fiveYear.url}
+                        download={bundleDownloadedPdfs.fiveYear.fileName}
+                        className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="shrink-0">🌟</span>
+                          <div className="text-left min-w-0 truncate">
+                            <p className="font-semibold text-white truncate">
+                              {pdfLanguage === "kn" ? "೬. ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಭವಿಷ್ಯ ವರದಿ (PDF)" : "6. Next 5 Years Details Forecast (PDF)"}
+                            </p>
+                            <p className="text-[10px] text-slate-400 font-normal truncate">{bundleDownloadedPdfs.fiveYear.fileName}</p>
+                          </div>
+                        </div>
+                        <span className="text-amber-400 text-[11px] shrink-0 ml-2">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                      </a>
+                    )}
+
+                    {bundleDownloadedPdfs.master25 && (
+                      <a
+                        href={bundleDownloadedPdfs.master25.url}
+                        download={bundleDownloadedPdfs.master25.fileName}
+                        className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="shrink-0">📖</span>
+                          <div className="text-left min-w-0 truncate">
+                            <p className="font-semibold text-white truncate">
+                              {pdfLanguage === "kn" ? "೭. ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ (PDF)" : "7. Sampoorna 25-Chapter Master Booklet (PDF)"}
+                            </p>
+                            <p className="text-[10px] text-slate-400 font-normal truncate">{bundleDownloadedPdfs.master25.fileName}</p>
                           </div>
                         </div>
                         <span className="text-amber-400 text-[11px] shrink-0 ml-2">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
