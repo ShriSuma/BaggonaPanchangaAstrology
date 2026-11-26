@@ -241,10 +241,6 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
     { kn: "ವರ್ಷ", mr: "वर्षे", hi: "वर्ष", te: "సం", ta: "வயது", en: "yrs" },
     lang
   );
-  const padaWord = pick6(
-    { kn: "ಪಾದ", mr: "चरण", hi: "पाद", te: "పాదం", ta: "பாதம்", en: "Pada" },
-    lang
-  );
   const houseWord = pick6(
     { kn: "ಮನೆ", mr: "स्थान", hi: "भाव", te: "స్థానం", ta: "வீடு", en: "House" },
     lang
@@ -619,10 +615,10 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಜನ್ಮ ನಕ್ಷತ್ರ & ಪಾದ", mr: "जन्म नक्षत्र व चरण", hi: "जन्म नक्षत्र एवं पाद", te: "జన్మ నక్షత్రం & పాదం", ta: "ஜென்ம நட்சத்திரம் & பாதம்", en: "Birth Nakshatra & Pada" }, lang)}
+                  {pick6({ kn: "ಜನ್ಮ ನಕ್ಷತ್ರ", mr: "जन्म नक्षत्र", hi: "जन्म नक्षत्र", te: "జన్మ నక్షత్రం", ta: "ஜென்ம நட்சத்திரம்", en: "Birth Nakshatra" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
-                  {data.nakshatraName} ({padaWord} {n(data.nakshatraPada)})
+                  {data.nakshatraName}
                 </div>
               </div>
 
@@ -686,7 +682,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {/* Row 7: Clean Grid Integration of Tarabala, Element & Principal Kundli Hero */}
               <div style={{ paddingTop: "2px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಇಂದಿನ ತಾರಾಬಲ & ಪ್ರಧಾನ ತತ್ತ್ವ", mr: "आजचे ताराबल व मुख्य तत्त्व", hi: "आज का ताराबल एवं प्रमुख तत्त्व", te: "నేటి తారాబలం & ప్రధాన తత్త్వం", ta: "இன்றைய தாராபலம் & முக்கிய தத்துவம்", en: "Live Tarabala & Dominant Element" }, lang)}
+                  {pick6({ kn: "ತಾರಾಬಲ & ಪ್ರಧಾನ ತತ್ತ್ವ", mr: "ताराबल व मुख्य तत्त्व", hi: "ताराबल एवं प्रमुख तत्त्व", te: "తారాబలం & ప్రధాన తత్త్వం", ta: "தாராபலம் & முக்கிய தத்துவம்", en: "Tarabala & Dominant Element" }, lang)}
                 </div>
                 <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.44, wordBreak: "break-word" }}>
                   {data.precisionProfile.liveTarabalaHeadline} • {data.dominantElement}
@@ -851,7 +847,6 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 moonName={data.moonRashi}
                 moonIndex={data.moonRashiIdx ?? 0}
                 nakshatraName={data.nakshatraName}
-                pada={n(data.nakshatraPada)}
                 mahaLord={data.currentMahadasha}
                 bhuktiLord={data.currentBhukti}
                 mahaLordKey={data.rawMahadashaPlanet}

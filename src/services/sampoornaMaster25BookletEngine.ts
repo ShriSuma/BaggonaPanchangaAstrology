@@ -59,6 +59,8 @@ export interface ExtendedPrecisionMetrics {
   liveTarabala: LiveTodayTarabalaOutput;
   taraLabelLocalized: string;
   taraGuidanceLocalized: string;
+  reportDateDisplay: string;
+  tarabalaForThatDayPhrase: string;
   rahuDispositorName: string;
   rahuDispositorHouse: number;
   ketuDispositorName: string;
@@ -167,6 +169,40 @@ function formatDigits(num: number | string, lang: SixLang): string {
       ? teDigits
       : taDigits;
   return s.replace(/\d/g, (d) => map[parseInt(d, 10)] || d);
+}
+
+const REPORT_MONTHS_6L: Record<SixLang, readonly string[]> = {
+  kn: ["ಜನವರಿ", "ಫೆಬ್ರವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್", "ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"],
+  mr: ["जानेवारी", "फेब्रुवारी", "मार्च", "एप्रिल", "मे", "जून", "जुलै", "ऑगस्ट", "सप्टेंबर", "ऑक्टोबर", "नोव्हेंबर", "डिसेंबर"],
+  hi: ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्तूबर", "नवंबर", "दिसंबर"],
+  te: ["జనవరి", "ఫిబ్రవరి", "మార్చి", "ఏప్రిల్", "మే", "జూన్", "జులై", "ఆగస్టు", "సెప్టెంబర్", "అక్టోబర్", "నవంబర్", "డిసెంబర్"],
+  ta: ["ஜனவரி", "பிப்ரவரி", "மார்ச்", "ஏப்ரல்", "மே", "ஜூன்", "ஜூலை", "ஆகஸ்ட்", "செப்டம்பர்", "அக்டோபர்", "நவம்பர்", "டிசம்பர்"],
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+};
+
+/** Formats a Gregorian date purely in the target script without Latin leakage. */
+export function formatReportDate6L(date: Date, lang: SixLang): string {
+  const safeDate = isNaN(date.getTime()) ? new Date() : date;
+  const day = formatDigits(safeDate.getDate(), lang);
+  const monthName = REPORT_MONTHS_6L[lang]?.[safeDate.getMonth()] || REPORT_MONTHS_6L.en[safeDate.getMonth()] || "";
+  const year = formatDigits(safeDate.getFullYear(), lang);
+  return `${day} ${monthName} ${year}`.trim();
+}
+
+/** Builds the bracket-ready "for <date> only" Tarabala qualifier across all 6 languages. */
+export function formatTarabalaDayPhrase6L(date: Date, lang: SixLang): string {
+  const dateDisplay = formatReportDate6L(date, lang);
+  return pick6(
+    {
+      kn: `${dateDisplay} ದಿನಕ್ಕೆ ಮಾತ್ರ`,
+      mr: `फक्त ${dateDisplay} साठी`,
+      hi: `केवल ${dateDisplay} के लिए`,
+      te: `${dateDisplay} రోజుకు మాత్రమే`,
+      ta: `${dateDisplay} நாளுக்கு மட்டும்`,
+      en: `for ${dateDisplay} only`
+    },
+    lang
+  );
 }
 
 export function formatPageTag6L(pageNum: number, lang: SixLang): string {
@@ -332,6 +368,8 @@ export function computeExtendedPrecisionMetrics(params: {
   const taraEntry = TARA_NAMES_7L[liveTarabala.taraNumber]?.[targetLang] || TARA_NAMES_7L[liveTarabala.taraNumber]?.en;
   const taraLabelLocalized = taraEntry?.name || liveTarabala.taraName;
   const taraGuidanceLocalized = taraEntry?.desc || liveTarabala.guidanceText;
+  const reportDateDisplay = formatReportDate6L(now, targetLang);
+  const tarabalaForThatDayPhrase = formatTarabalaDayPhrase6L(now, targetLang);
 
   // 7. Rahu & Ketu Dispositors
   const rahuPos = precisionPlanets.find((p) => p.planet === "Rahu");
@@ -436,12 +474,14 @@ export function computeExtendedPrecisionMetrics(params: {
     liveTarabala,
     taraLabelLocalized,
     taraGuidanceLocalized,
+    reportDateDisplay,
+    tarabalaForThatDayPhrase,
     rahuDispositorName,
     rahuDispositorHouse,
     ketuDispositorName,
     ketuDispositorHouse,
     precisionProfileSummary: {
-      liveTarabalaHeadline: `${taraLabelLocalized} (${n(liveTarabala.score)}%)`,
+      liveTarabalaHeadline: `${taraLabelLocalized} (${n(liveTarabala.score)}% — ${tarabalaForThatDayPhrase})`,
       liveTarabalaBadge: taraGuidanceLocalized,
       isChandrashtama: liveTarabala.isChandrashtama,
       chandrashtamaWarning,
@@ -467,7 +507,7 @@ export function buildBookletCoverContent(params: {
   lagnaName: string;
   moonRashi: string;
   nakshatraName: string;
-  nakshatraPada: number;
+  nakshatraPada?: number;
   targetLang: SixLang;
 }): BookletCoverContent {
   const {
@@ -478,7 +518,6 @@ export function buildBookletCoverContent(params: {
     lagnaName,
     moonRashi,
     nakshatraName,
-    nakshatraPada,
     targetLang
   } = params;
   const n = (v: number | string) => formatDigits(v, targetLang);
@@ -530,12 +569,12 @@ export function buildBookletCoverContent(params: {
     ),
     personalAssurancePara1: pick6(
       {
-        kn: `ಪ್ರೀತಿಯ ${devoteeName}, ಈ ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಗ್ರಂಥವು ಯಾವುದೇ ಸಾಮಾನ್ಯ ವರದಿಯಲ್ಲ — ಇದು ${n(birthDate)} ರಂದು ${n(birthTime)} ಗಂಟೆಗೆ ${birthPlace} ಪುಣ್ಯಭೂಮಿಯಲ್ಲಿ ನೀವು ಪ್ರಥಮ ಶ್ವಾಸವನ್ನು ತೆಗೆದುಕೊಂಡ ಕ್ಷಣದ ನಿಖರ ನಕ್ಷತ್ರ-ಗ್ರಹ ಸ್ಥಿತಿಗಳಿಂದ ಕೇವಲ ನಿಮಗಾಗಿ ಮಾತ್ರ ಹೆಣೆಯಲ್ಪಟ್ಟ ಜೀವನ ದರ್ಪಣವಾಗಿದೆ. ನಿಮ್ಮ ${lagnaName} ಲಗ್ನ, ${moonRashi} ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ನಕ್ಷತ್ರದ ಸೂಕ್ಷ್ಮ ತರಂಗಗಳನ್ನು ಲೆಕ್ಕಹಾಕಿ, ನಿಮ್ಮ ಸ್ವಂತ ಆತ್ಮದ ಕೈಪಿಡಿಯಾಗಿ ರಕ್ಷಿಸಿಟ್ಟುಕೊಳ್ಳಲು ಈ ಪುಸ್ತಕವನ್ನು ಭಕ್ತಿಯಿಂದ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ.`,
-        mr: `प्रिय ${devoteeName}, ही २५ अध्यायांची महा-जन्मपत्रिका पुस्तिका केवळ आपल्यासाठीच घडवलेली एक अद्वितीय जीवन-नोंद आहे. दिनांक ${n(birthDate)} रोजी ${n(birthTime)} वाजता ${birthPlace} येथे आपण घेतलेल्या पहिल्या श्वासाच्या अचूक ग्रहस्थितीवरून हा ग्रंथ तयार केला आहे. आपले ${lagnaName} लग्न, ${moonRashi} चंद्र राशी व ${nakshatraName} (चरण ${n(nakshatraPada)}) नक्षत्राच्या सूक्ष्म स्पंदनांचा अभ्यास करून केवळ आपल्या वैयक्तिक जपवणुकीसाठी ही अमृतपुस्तिका अर्पण केली आहे.`,
-        hi: `प्रिय ${devoteeName}, यह संपूर्ण २५-अध्यायीय महा-जन्मकुंडली पुस्तिका कोई सामान्य विवरण नहीं, अपितु केवल आपके लिए निर्मित आपके जीवन का प्रामाणिक दर्पण है। दिनांक ${n(birthDate)} को ${n(birthTime)} बजे ${birthPlace} में आपके जन्म क्षण की शुद्ध खगोलीय गणनाओं के आधार पर यह ग्रंथ रचा गया है। आपके ${lagnaName} लग्न, ${moonRashi} चंद्र राशि एवं ${nakshatraName} (पाद ${n(nakshatraPada)}) की सूक्ष्म तरंगों को संजोकर यह अमूल्य धरोहर केवल आपकी निजी सहेज के लिए तैयार की गई है।`,
-        te: `ప్రియమైన ${devoteeName}, ఈ 25 అధ్యాయాల సంపూర్ణ జాతక పుస్తకం కేవలం మీ కోసం మాత్రమే రూపొందించబడిన పవిత్ర జీవన దర్పణం. ${n(birthDate)} నాడు ${n(birthTime)} గంటలకు ${birthPlace} లో మీరు జన్మించిన ఖచ్చితమైన గ్రహ స్థితుల ఆధారంగా, మీ ${lagnaName} లగ్నం, ${moonRashi} చంద్ర రాశి మరియు ${nakshatraName} (${n(nakshatraPada)}వ పాదం) ఆధారంగా దీనిని మీ వ్యక్తిగత భద్రత మరియు మార్గదర్శనం కోసం ఎంతో శ్రద్ధతో సిద్ధం చేశాము.`,
-        ta: `அன்புள்ள ${devoteeName}, இந்த 25 அத்தியாய மகா ஜாதக நூல் பொதுவான அறிக்கை அல்ல; ${n(birthDate)} அன்று ${n(birthTime)} மணிக்கு ${birthPlace} புண்ணிய மண்ணில் நீங்கள் பிறந்த துல்லியமான வானியல் கணக்கீட்டின்படி உங்களுக்காக மட்டுமே உருவாக்கப்பட்ட வாழ்க்கைக் கண்ணாடியாகும். உங்கள் ${lagnaName} லக்னம், ${moonRashi} சந்திர ராசி மற்றும் ${nakshatraName} (${n(nakshatraPada)}-ம் பாதம்) நட்சத்திர அதிர்வுகளைக் கணித்து உங்கள் தனிப்பட்ட பாதுகாப்பிற்காக இது அன்புடன் படைக்கப்பட்டுள்ளது.`,
-        en: `Dear ${devoteeName}, this 25-Chapter Sampoorna Destiny Booklet is not an impersonal printout — it is a sacred mirror crafted solely for you from the exact celestial sky above ${birthPlace} at ${birthTime} on ${birthDate}. Computed directly from your ${lagnaName} Ascendant, ${moonRashi} Moon, and ${nakshatraName} (Pada ${nakshatraPada}), every page is dedicated exclusively for your personal keeping.`
+        kn: `ಪ್ರೀತಿಯ ${devoteeName}, ಈ ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಗ್ರಂಥವು ಯಾವುದೇ ಸಾಮಾನ್ಯ ವರದಿಯಲ್ಲ — ಇದು ${n(birthDate)} ರಂದು ${n(birthTime)} ಗಂಟೆಗೆ ${birthPlace} ಪುಣ್ಯಭೂಮಿಯಲ್ಲಿ ನೀವು ಪ್ರಥಮ ಶ್ವಾಸವನ್ನು ತೆಗೆದುಕೊಂಡ ಕ್ಷಣದ ನಿಖರ ನಕ್ಷತ್ರ-ಗ್ರಹ ಸ್ಥಿತಿಗಳಿಂದ ಕೇವಲ ನಿಮಗಾಗಿ ಮಾತ್ರ ಹೆಣೆಯಲ್ಪಟ್ಟ ಜೀವನ ದರ್ಪಣವಾಗಿದೆ. ನಿಮ್ಮ ${lagnaName} ಲಗ್ನ, ${moonRashi} ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ${nakshatraName} ನಕ್ಷತ್ರದ ಸೂಕ್ಷ್ಮ ತರಂಗಗಳನ್ನು ಲೆಕ್ಕಹಾಕಿ, ನಿಮ್ಮ ಸ್ವಂತ ಆತ್ಮದ ಕೈಪಿಡಿಯಾಗಿ ರಕ್ಷಿಸಿಟ್ಟುಕೊಳ್ಳಲು ಈ ಪುಸ್ತಕವನ್ನು ಭಕ್ತಿಯಿಂದ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ.`,
+        mr: `प्रिय ${devoteeName}, ही २५ अध्यायांची महा-जन्मपत्रिका पुस्तिका केवळ आपल्यासाठीच घडवलेली एक अद्वितीय जीवन-नोंद आहे. दिनांक ${n(birthDate)} रोजी ${n(birthTime)} वाजता ${birthPlace} येथे आपण घेतलेल्या पहिल्या श्वासाच्या अचूक ग्रहस्थितीवरून हा ग्रंथ तयार केला आहे. आपले ${lagnaName} लग्न, ${moonRashi} चंद्र राशी व ${nakshatraName} नक्षत्राच्या सूक्ष्म स्पंदनांचा अभ्यास करून केवळ आपल्या वैयक्तिक जपवणुकीसाठी ही अमृतपुस्तिका अर्पण केली आहे.`,
+        hi: `प्रिय ${devoteeName}, यह संपूर्ण २५-अध्यायीय महा-जन्मकुंडली पुस्तिका कोई सामान्य विवरण नहीं, अपितु केवल आपके लिए निर्मित आपके जीवन का प्रामाणिक दर्पण है। दिनांक ${n(birthDate)} को ${n(birthTime)} बजे ${birthPlace} में आपके जन्म क्षण की शुद्ध खगोलीय गणनाओं के आधार पर यह ग्रंथ रचा गया है। आपके ${lagnaName} लग्न, ${moonRashi} चंद्र राशि एवं ${nakshatraName} की सूक्ष्म तरंगों को संजोकर यह अमूल्य धरोहर केवल आपकी निजी सहेज के लिए तैयार की गई है।`,
+        te: `ప్రియమైన ${devoteeName}, ఈ 25 అధ్యాయాల సంపూర్ణ జాతక పుస్తకం కేవలం మీ కోసం మాత్రమే రూపొందించబడిన పవిత్ర జీవన దర్పణం. ${n(birthDate)} నాడు ${n(birthTime)} గంటలకు ${birthPlace} లో మీరు జన్మించిన ఖచ్చితమైన గ్రహ స్థితుల ఆధారంగా, మీ ${lagnaName} లగ్నం, ${moonRashi} చంద్ర రాశి మరియు ${nakshatraName} ఆధారంగా దీనిని మీ వ్యక్తిగత భద్రత మరియు మార్గదర్శనం కోసం ఎంతో శ్రద్ధతో సిద్ధం చేశాము.`,
+        ta: `அன்புள்ள ${devoteeName}, இந்த 25 அத்தியாய மகா ஜாதக நூல் பொதுவான அறிக்கை அல்ல; ${n(birthDate)} அன்று ${n(birthTime)} மணிக்கு ${birthPlace} புண்ணிய மண்ணில் நீங்கள் பிறந்த துல்லியமான வானியல் கணக்கீட்டின்படி உங்களுக்காக மட்டுமே உருவாக்கப்பட்ட வாழ்க்கைக் கண்ணாடியாகும். உங்கள் ${lagnaName} லக்னம், ${moonRashi} சந்திர ராசி மற்றும் ${nakshatraName} நட்சத்திர அதிர்வுகளைக் கணித்து உங்கள் தனிப்பட்ட பாதுகாப்பிற்காக இது அன்புடன் படைக்கப்பட்டுள்ளது.`,
+        en: `Dear ${devoteeName}, this 25-Chapter Sampoorna Destiny Booklet is not an impersonal printout — it is a sacred mirror crafted solely for you from the exact celestial sky above ${birthPlace} at ${birthTime} on ${birthDate}. Computed directly from your ${lagnaName} Ascendant, ${moonRashi} Moon, and ${nakshatraName}, every page is dedicated exclusively for your personal keeping.`
       },
       targetLang
     ),
@@ -586,7 +625,7 @@ export function buildChapterPrecisionEnrichment(params: {
   lagnaRashiName: string;
   moonRashiName: string;
   nakshatraName: string;
-  nakshatraPada: number;
+  nakshatraPada?: number;
   currentHoraPlanet: string;
   currentMahadasha: string;
   currentBhuktiLord: string;
@@ -622,7 +661,6 @@ export function buildChapterPrecisionEnrichment(params: {
     lagnaRashiName,
     moonRashiName,
     nakshatraName,
-    nakshatraPada,
     currentHoraPlanet,
     currentMahadasha,
     currentBhuktiLord,
@@ -672,6 +710,7 @@ export function buildChapterPrecisionEnrichment(params: {
     liveTarabala,
     taraLabelLocalized,
     taraGuidanceLocalized,
+    tarabalaForThatDayPhrase,
     rahuDispositorName,
     rahuDispositorHouse,
     ketuDispositorName,
@@ -791,12 +830,12 @@ export function buildChapterPrecisionEnrichment(params: {
   if (chBand === "hook") {
     const ch1Extra = pick6(
       {
-        kn: `${devoteeName}, ಇಂದಿನ ನಿಖರ ತಾರಾಬಲ ಗಣಿತವನ್ನು ಗಮನಿಸಿದಾಗ ಪ್ರಸ್ತುತ ಚಂದ್ರ ಸಂಚಾರವು ನಿಮ್ಮ ${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ನಕ್ಷತ್ರಕ್ಕೆ '${taraLabelLocalized}' (${n(liveTarabala.score)}% ಶುಭ ಬಲ — ${taraGuidanceLocalized}) ಫಲವನ್ನು ನೀಡುತ್ತಿದೆ. ಅಲ್ಲದೆ ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ${house1Info.lordName} ${n(house1Info.placedHouse)}ನೇ ಭಾವದಲ್ಲಿದ್ದು (${house1Info.placedRashi}), ${retroNote}. ${knotNote} — ಆದ್ದರಿಂದ ಪ್ರಸ್ತುತ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಯಾವುದೇ ದ್ವಂದ್ವವನ್ನು ಶಾಂತವಾಗಿ ಬಿಡಿಸಿಕೊಂಡು ಮುಂದುವರಿಯಲು ಇದು ಸೂಕ್ತ ದೈವಿಕ ಸೂಚನೆಯಾಗಿದೆ.`,
-        mr: `${devoteeName}, आजचे ताराबल गणित पाहिले असता आपल्या ${nakshatraName} (चरण ${n(nakshatraPada)}) नक्षत्रासाठी '${taraLabelLocalized}' (${n(liveTarabala.score)}% अनुकूल बळ — ${taraGuidanceLocalized}) कार्यरत आहे. आपले लग्नेश ${house1Info.lordName} ${n(house1Info.placedHouse)}व्या स्थानात (${house1Info.placedRashi}) स्थित असून, ${retroNote}. तसेच ${knotNote}; त्यामुळे कोणताही ताण न घेता पुढच्या पावलावर विश्वास ठेवणे हाच या क्षणाचा खरा मार्ग आहे.`,
-        hi: `${devoteeName}, आज के प्रत्यक्ष ताराबल परीक्षण से विदित होता है कि आपके ${nakshatraName} (पाद ${n(nakshatraPada)}) के सापेक्ष '${taraLabelLocalized}' (${n(liveTarabala.score)}% शुभ बल — ${taraGuidanceLocalized}) सक्रिय है। आपके लग्नेश ${house1Info.lordName} की ${n(house1Info.placedHouse)}वें भाव (${house1Info.placedRashi}) में स्थिति के साथ ${retroNote}। ${knotNote}, अतः मन के संदेह त्यागकर धैर्यपूर्वक कदम बढ़ाना ही इस क्षण का सटीक मार्ग है।`,
-        te: `${devoteeName}, ఈనాటి తారాబల గణన ప్రకారం మీ ${nakshatraName} (${n(nakshatraPada)}వ పాదం) నక్షత్రానికి '${taraLabelLocalized}' (${n(liveTarabala.score)}% అనుకూల బలం — ${taraGuidanceLocalized}) నడుస్తోంది. మీ లగ్నాధిపతి ${house1Info.lordName} ${n(house1Info.placedHouse)}వ స్థానంలో (${house1Info.placedRashi}) ఉండి, ${retroNote}. ${knotNote} — కనుక మనసులోని ఆందోళనను వీడి స్థిరంగా ముందుకు సాగండి.`,
-        ta: `${devoteeName}, இன்றைய தாராபலக் கணக்கீட்டின்படி உங்கள் ${nakshatraName} (${n(nakshatraPada)}-ம் பாதம்) நட்சத்திரத்திற்கு '${taraLabelLocalized}' (${n(liveTarabala.score)}% சுப பலம் — ${taraGuidanceLocalized}) செயல்படுகிறது. உங்கள் லக்னாதிபதி ${house1Info.lordName} ${n(house1Info.placedHouse)}-ம் வீட்டில் (${house1Info.placedRashi}) அமர்ந்து, ${retroNote}. ${knotNote} — ஆகவே மனக்குழப்பம் நீங்கி நம்பிக்கையுடன் செயல்பட இதுவே சரியான தருணம்.`,
-        en: `${devoteeName}, real-time Tarabala calculation relative to your natal ${nakshatraName} (Pada ${nakshatraPada}) confirms today activates '${taraLabelLocalized}' (${liveTarabala.score}% cosmic alignment — ${taraGuidanceLocalized}). Simultaneously, your ascendant lord ${house1Info.lordName} positioned in House ${house1Info.placedHouse} (${house1Info.placedRashi}) interacts dynamically where ${retroNote}. Because ${knotNote}, trust that present friction marks a passing threshold rather than permanent defeat.`
+        kn: `${devoteeName}, ವರದಿ ದಿನದ ನಿಖರ ತಾರಾಬಲ ಗಣಿತವನ್ನು ಗಮನಿಸಿದಾಗ ಚಂದ್ರ ಸಂಚಾರವು ನಿಮ್ಮ ${nakshatraName} ನಕ್ಷತ್ರಕ್ಕೆ '${taraLabelLocalized}' (${n(liveTarabala.score)}% ಶುಭ ಬಲ — ${tarabalaForThatDayPhrase}, ${taraGuidanceLocalized}) ಫಲವನ್ನು ನೀಡುತ್ತಿದೆ. ಅಲ್ಲದೆ ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ${house1Info.lordName} ${n(house1Info.placedHouse)}ನೇ ಭಾವದಲ್ಲಿದ್ದು (${house1Info.placedRashi}), ${retroNote}. ${knotNote} — ಆದ್ದರಿಂದ ಪ್ರಸ್ತುತ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಯಾವುದೇ ದ್ವಂದ್ವವನ್ನು ಶಾಂತವಾಗಿ ಬಿಡಿಸಿಕೊಂಡು ಮುಂದುವರಿಯಲು ಇದು ಸೂಕ್ತ ದೈವಿಕ ಸೂಚನೆಯಾಗಿದೆ.`,
+        mr: `${devoteeName}, अहवाल दिनाचे ताराबल गणित पाहिले असता आपल्या ${nakshatraName} नक्षत्रासाठी '${taraLabelLocalized}' (${n(liveTarabala.score)}% अनुकूल बळ — ${tarabalaForThatDayPhrase}, ${taraGuidanceLocalized}) कार्यरत आहे. आपले लग्नेश ${house1Info.lordName} ${n(house1Info.placedHouse)}व्या स्थानात (${house1Info.placedRashi}) स्थित असून, ${retroNote}. तसेच ${knotNote}; त्यामुळे कोणताही ताण न घेता पुढच्या पावलावर विश्वास ठेवणे हाच या क्षणाचा खरा मार्ग आहे.`,
+        hi: `${devoteeName}, इस विवरण के दिन के प्रत्यक्ष ताराबल परीक्षण से विदित होता है कि आपके ${nakshatraName} नक्षत्र के सापेक्ष '${taraLabelLocalized}' (${n(liveTarabala.score)}% शुभ बल — ${tarabalaForThatDayPhrase}, ${taraGuidanceLocalized}) सक्रिय है। आपके लग्नेश ${house1Info.lordName} की ${n(house1Info.placedHouse)}वें भाव (${house1Info.placedRashi}) में स्थिति के साथ ${retroNote}। ${knotNote}, अतः मन के संदेह त्यागकर धैर्यपूर्वक कदम बढ़ाना ही इस क्षण का सटीक मार्ग है।`,
+        te: `${devoteeName}, ఈ నివేదిక రోజు తారాబల గణన ప్రకారం మీ ${nakshatraName} నక్షత్రానికి '${taraLabelLocalized}' (${n(liveTarabala.score)}% అనుకూల బలం — ${tarabalaForThatDayPhrase}, ${taraGuidanceLocalized}) నడుస్తోంది. మీ లగ్నాధిపతి ${house1Info.lordName} ${n(house1Info.placedHouse)}వ స్థానంలో (${house1Info.placedRashi}) ఉండి, ${retroNote}. ${knotNote} — కనుక మనసులోని ఆందోళనను వీడి స్థిరంగా ముందుకు సాగండి.`,
+        ta: `${devoteeName}, அறிக்கை நாளின் தாராபலக் கணக்கீட்டின்படி உங்கள் ${nakshatraName} நட்சத்திரத்திற்கு '${taraLabelLocalized}' (${n(liveTarabala.score)}% சுப பலம் — ${tarabalaForThatDayPhrase}, ${taraGuidanceLocalized}) செயல்படுகிறது. உங்கள் லக்னாதிபதி ${house1Info.lordName} ${n(house1Info.placedHouse)}-ம் வீட்டில் (${house1Info.placedRashi}) அமர்ந்து, ${retroNote}. ${knotNote} — ஆகவே மனக்குழப்பம் நீங்கி நம்பிக்கையுடன் செயல்பட இதுவே சரியான தருணம்.`,
+        en: `${devoteeName}, Tarabala calculation relative to your natal ${nakshatraName} confirms '${taraLabelLocalized}' (${liveTarabala.score}% cosmic alignment — ${tarabalaForThatDayPhrase}, ${taraGuidanceLocalized}). Simultaneously, your ascendant lord ${house1Info.lordName} positioned in House ${house1Info.placedHouse} (${house1Info.placedRashi}) interacts dynamically where ${retroNote}. Because ${knotNote}, trust that present friction marks a passing threshold rather than permanent defeat.`
       },
       targetLang
     );
@@ -825,7 +864,7 @@ export function buildChapterPrecisionEnrichment(params: {
 
     const anchors1 = [
       `${currentHoraPlanet}`,
-      `${taraLabelLocalized} (${n(liveTarabala.score)}%)`,
+      `${taraLabelLocalized} (${n(liveTarabala.score)}% — ${tarabalaForThatDayPhrase})`,
       `${house1Info.lordName} → ${n(house1Info.placedHouse)}`
     ];
     const anchors2 = [
@@ -1111,12 +1150,12 @@ export function buildChapterPrecisionEnrichment(params: {
       chapterNumber === 17
         ? pick6(
             {
-              kn: `ಮುಂದಿನ ೯೦ ದಿನಗಳ ದಶಾ-ತಾರಾ ಸಮನ್ವಯ: ಪ್ರಸ್ತುತ '${mahaNatureLabel}' ಸ್ವರೂಪದ ${currentMahadasha} ದಶೆಯೊಳಗೆ ${currentBhuktiLord} ಅಂತರ್ದಶೆಯು ${n(bhuktiEndDate)} ರವರೆಗೆ ಸಾಗುತ್ತಿದ್ದು, ಇಂದಿನ ತಾರಾಬಲ '${taraLabelLocalized}' (${n(liveTarabala.score)}%) ನಿಮ್ಮ ಆರಂಭಿಕ ವೇಗವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${guruHouseFromMoon === 2 || guruHouseFromMoon === 5 || guruHouseFromMoon === 7 || guruHouseFromMoon === 9 || guruHouseFromMoon === 11 ? "ಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿಯು" : "ಶಾಂತ ತಾಳ್ಮೆಯು"} ಮುಂದಿನ ೯೦ ದಿನಗಳ ನಿರ್ಣಾಯಕ ಮಾತುಕತೆಗಳಲ್ಲಿ ನಿಮಗೆ ಜಯ ತಂದುಕೊಡುತ್ತದೆ.`,
-              mr: `आगामी ९० दिवसांचे दशा-तारा समन्व्य: चालू ${currentMahadasha} – ${currentBhuktiLord} अंतर्दशा (${n(bhuktiEndDate)} पर्यंत) व आजचे '${taraLabelLocalized}' (${n(liveTarabala.score)}%) बळ सुरुवातीची गती दर्शवतात. संयम व स्पष्ट नियोजनाने या तिमाहीत महत्त्वाची कामे पूर्ण होतील.`,
-              hi: `आगामी ९० दिनों का दशा-तारा समन्वय: वर्तमान ${currentMahadasha} – ${currentBhuktiLord} अंतर्दशा (${n(bhuktiEndDate)} तक) तथा '${taraLabelLocalized}' (${n(liveTarabala.score)}%) ताराबल आपकी प्रारंभिक गति तय करते हैं। धैर्य और स्पष्ट योजना से इस तिमाही के प्रमुख कार्य पूर्ण होंगे।`,
-              te: `రాబోయే 90 రోజుల దశా-తారా సమన్వయం: ప్రస్తుతం ${currentMahadasha} – ${currentBhuktiLord} అంతర్దశ (${n(bhuktiEndDate)} వరకు) మరియు '${taraLabelLocalized}' (${n(liveTarabala.score)}%) బలం మీ తక్షణ వేగాన్ని సూచిస్తున్నాయి. క్రమశిక్షణతో ముఖ్య పనులు పూర్తవుతాయి.`,
-              ta: `அடுத்த 90 நாட்களின் தசா-தாரை ஒருங்கிணைப்பு: நடப்பு ${currentMahadasha} – ${currentBhuktiLord} புக்தி (${n(bhuktiEndDate)} வரை) மற்றும் '${taraLabelLocalized}' (${n(liveTarabala.score)}%) தாராபலம் உங்கள் ஆரம்ப வேகத்தைக் காட்டுகின்றன. நிதானமான திட்டமிடல் முக்கிய பணிகளை நிறைவேற்றும்.`,
-              en: `Precision 90-Day Alignment: running '${mahaNatureLabel}' ${currentMahadasha}–${currentBhuktiLord} (through ${bhuktiEndDate}) synchronized with today's '${taraLabelLocalized}' (${liveTarabala.score}%) reveals clear tactical traction once administrative details are verified calmly.`
+              kn: `ಮುಂದಿನ ೯೦ ದಿನಗಳ ದಶಾ-ತಾರಾ ಸಮನ್ವಯ: ಪ್ರಸ್ತುತ '${mahaNatureLabel}' ಸ್ವರೂಪದ ${currentMahadasha} ದಶೆಯೊಳಗೆ ${currentBhuktiLord} ಅಂತರ್ದಶೆಯು ${n(bhuktiEndDate)} ರವರೆಗೆ ಸಾಗುತ್ತಿದ್ದು, ವರದಿ ದಿನದ ತಾರಾಬಲ '${taraLabelLocalized}' (${n(liveTarabala.score)}% — ${tarabalaForThatDayPhrase}) ನಿಮ್ಮ ಆರಂಭಿಕ ವೇಗವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${guruHouseFromMoon === 2 || guruHouseFromMoon === 5 || guruHouseFromMoon === 7 || guruHouseFromMoon === 9 || guruHouseFromMoon === 11 ? "ಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿಯು" : "ಶಾಂತ ತಾಳ್ಮೆಯು"} ಮುಂದಿನ ೯೦ ದಿನಗಳ ನಿರ್ಣಾಯಕ ಮಾತುಕತೆಗಳಲ್ಲಿ ನಿಮಗೆ ಜಯ ತಂದುಕೊಡುತ್ತದೆ.`,
+              mr: `आगामी ९० दिवसांचे दशा-तारा समन्व्य: चालू ${currentMahadasha} – ${currentBhuktiLord} अंतर्दशा (${n(bhuktiEndDate)} पर्यंत) व '${taraLabelLocalized}' (${n(liveTarabala.score)}% — ${tarabalaForThatDayPhrase}) बळ सुरुवातीची गती दर्शवतात. संयम व स्पष्ट नियोजनाने या तिमाहीत महत्त्वाची कामे पूर्ण होतील.`,
+              hi: `आगामी ९० दिनों का दशा-तारा समन्वय: वर्तमान ${currentMahadasha} – ${currentBhuktiLord} अंतर्दशा (${n(bhuktiEndDate)} तक) तथा '${taraLabelLocalized}' (${n(liveTarabala.score)}% — ${tarabalaForThatDayPhrase}) ताराबल आपकी प्रारंभिक गति तय करते हैं। धैर्य और स्पष्ट योजना से इस तिमाही के प्रमुख कार्य पूर्ण होंगे।`,
+              te: `రాబోయే 90 రోజుల దశా-తారా సమన్వయం: ప్రస్తుతం ${currentMahadasha} – ${currentBhuktiLord} అంతర్దశ (${n(bhuktiEndDate)} వరకు) మరియు '${taraLabelLocalized}' (${n(liveTarabala.score)}% — ${tarabalaForThatDayPhrase}) బలం మీ తక్షణ వేగాన్ని సూచిస్తున్నాయి. క్రమశిక్షణతో ముఖ్య పనులు పూర్తవుతాయి.`,
+              ta: `அடுத்த 90 நாட்களின் தசா-தாரை ஒருங்கிணைப்பு: நடப்பு ${currentMahadasha} – ${currentBhuktiLord} புக்தி (${n(bhuktiEndDate)} வரை) மற்றும் '${taraLabelLocalized}' (${n(liveTarabala.score)}% — ${tarabalaForThatDayPhrase}) தாராபலம் உங்கள் ஆரம்ப வேகத்தைக் காட்டுகின்றன. நிதானமான திட்டமிடல் முக்கிய பணிகளை நிறைவேற்றும்.`,
+              en: `Precision 90-Day Alignment: running '${mahaNatureLabel}' ${currentMahadasha}–${currentBhuktiLord} (through ${bhuktiEndDate}) alongside '${taraLabelLocalized}' (${liveTarabala.score}% — ${tarabalaForThatDayPhrase}) reveals clear tactical traction once administrative details are verified calmly.`
             },
             targetLang
           )
@@ -1169,12 +1208,12 @@ export function buildChapterPrecisionEnrichment(params: {
 
   const ch24Extra = pick6(
     {
-      kn: `ನಿತ್ಯ ಜಪದಲ್ಲಿ ವೈಯಕ್ತಿಕ ತಾರಾ-ಯೋಗಿ ಶಕ್ತಿ: ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ ${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ಮತ್ತು ಧನ ಪ್ರದಾತ ಯೋಗಿ ಗ್ರಹ ${yogiPlanetName} ತರಂಗಗಳನ್ನು ಒಂದೇ ಮಂತ್ರ ಚಕ್ರದಲ್ಲಿ ಜೋಡಿಸಲು, ಪ್ರತಿದಿನ ಬೆಳಗ್ಗೆ ದೀಪದ ಮುಂದೆ ೧೦ ನಿಮಿಷ ಶಾಂತವಾಗಿ ಕುಳಿತು '${yogiPlanetName}' ದಿನದಂದು ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ. ಈ ಸರಳ ನಿರಂತರ ಅಭ್ಯಾಸವು ನಿಮ್ಮ ಅಂತರಂಗದ ಒತ್ತಡವನ್ನು ತಗ್ಗಿಸಿ ಬುದ್ಧಿಯಲ್ಲಿ ದೈವಿಕ ಸ್ಪಷ್ಟತೆಯನ್ನು ತುಂಬುತ್ತದೆ.`,
-      mr: `दैनिक जपातील तारा-योगी शक्ती: आपले नक्षत्र ${nakshatraName} (चरण ${n(nakshatraPada)}) व योगी ग्रह '${yogiPlanetName}' यांची ऊर्जा एकत्रित करण्यासाठी दररोज सकाळी १० मिनिटे शांत ध्यान व जप करा. हा नियमित सराव मनाची अस्थिरता दूर करून विवेक जागृत ठेवतो.`,
-      hi: `दैनिक जप में नक्षत्र-योगी समन्वय: अपने जन्म नक्षत्र ${nakshatraName} (पाद ${n(nakshatraPada)}) एवं योगी ग्रह '${yogiPlanetName}' की ऊर्जा को एकीकृत करने हेतु नित्य प्रातः १० मिनट शांत दीपक के समक्ष जप करें। यह नियमित साधना मानसिक उद्वेग शांत कर दिव्य स्पष्टता प्रदान करती है।`,
-      te: `నిత్య జపంలో తారా-యోగి సమన్వయం: మీ ${nakshatraName} (${n(nakshatraPada)}వ పాదం) నక్షత్రం మరియు యోగి గ్రహం '${yogiPlanetName}' శక్తిని ఏకం చేయడానికి రోజూ ఉదయం 10 నిమిషాలు దీపం ముందు ప్రశాంతంగా జపం చేయండి. ఇది మనసులోని ఆందోళనను తొలగించి స్పష్టతనిస్తుంది.`,
-      ta: `தினசரி ஜபத்தில் நட்சத்திர-யோகி இணைப்பு: உங்கள் ${nakshatraName} (${n(nakshatraPada)}-ம் பாதம்) நட்சத்திரம் மற்றும் யோகி '${yogiPlanetName}' ஆற்றலை ஒருங்கிணைக்க தினமும் காலையில் 10 நிமிடங்கள் தீபத்தின் முன் அமைதியாக ஜபிக்கவும். இந்தப் பயிற்சி மன அழுத்தத்தை நீக்கித் தெளிவைத் தரும்.`,
-      en: `Integrating Nakshatra & Yogi Resonance into Daily Japa: uniting your natal star ${nakshatraName} (Pada ${nakshatraPada}) with Yogi ${yogiPlanetName} in just 10 calm morning minutes before a lamp dissolves stress and harmonizes intuition across every weekly cycle.`
+      kn: `ನಿತ್ಯ ಜಪದಲ್ಲಿ ವೈಯಕ್ತಿಕ ತಾರಾ-ಯೋಗಿ ಶಕ್ತಿ: ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ ${nakshatraName} ಮತ್ತು ಧನ ಪ್ರದಾತ ಯೋಗಿ ಗ್ರಹ ${yogiPlanetName} ತರಂಗಗಳನ್ನು ಒಂದೇ ಮಂತ್ರ ಚಕ್ರದಲ್ಲಿ ಜೋಡಿಸಲು, ಪ್ರತಿದಿನ ಬೆಳಗ್ಗೆ ದೀಪದ ಮುಂದೆ ೧೦ ನಿಮಿಷ ಶಾಂತವಾಗಿ ಕುಳಿತು '${yogiPlanetName}' ದಿನದಂದು ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ. ಈ ಸರಳ ನಿರಂತರ ಅಭ್ಯಾಸವು ನಿಮ್ಮ ಅಂತರಂಗದ ಒತ್ತಡವನ್ನು ತಗ್ಗಿಸಿ ಬುದ್ಧಿಯಲ್ಲಿ ದೈವಿಕ ಸ್ಪಷ್ಟತೆಯನ್ನು ತುಂಬುತ್ತದೆ.`,
+      mr: `दैनिक जपातील तारा-योगी शक्ती: आपले नक्षत्र ${nakshatraName} व योगी ग्रह '${yogiPlanetName}' यांची ऊर्जा एकत्रित करण्यासाठी दररोज सकाळी १० मिनिटे शांत ध्यान व जप करा. हा नियमित सराव मनाची अस्थिरता दूर करून विवेक जागृत ठेवतो.`,
+      hi: `दैनिक जप में नक्षत्र-योगी समन्वय: अपने जन्म नक्षत्र ${nakshatraName} एवं योगी ग्रह '${yogiPlanetName}' की ऊर्जा को एकीकृत करने हेतु नित्य प्रातः १० मिनट शांत दीपक के समक्ष जप करें। यह नियमित साधना मानसिक उद्वेग शांत कर दिव्य स्पष्टता प्रदान करती है।`,
+      te: `నిత్య జపంలో తారా-యోగి సమన్వయం: మీ ${nakshatraName} నక్షత్రం మరియు యోగి గ్రహం '${yogiPlanetName}' శక్తిని ఏకం చేయడానికి రోజూ ఉదయం 10 నిమిషాలు దీపం ముందు ప్రశాంతంగా జపం చేయండి. ఇది మనసులోని ఆందోళనను తొలగించి స్పష్టతనిస్తుంది.`,
+      ta: `தினசரி ஜபத்தில் நட்சத்திர-யோகி இணைப்பு: உங்கள் ${nakshatraName} நட்சத்திரம் மற்றும் யோகி '${yogiPlanetName}' ஆற்றலை ஒருங்கிணைக்க தினமும் காலையில் 10 நிமிடங்கள் தீபத்தின் முன் அமைதியாக ஜபிக்கவும். இந்தப் பயிற்சி மன அழுத்தத்தை நீக்கித் தெளிவைத் தரும்.`,
+      en: `Integrating Nakshatra & Yogi Resonance into Daily Japa: uniting your natal star ${nakshatraName} with Yogi ${yogiPlanetName} in just 10 calm morning minutes before a lamp dissolves stress and harmonizes intuition across every weekly cycle.`
     },
     targetLang
   );
@@ -1193,7 +1232,7 @@ export function buildChapterPrecisionEnrichment(params: {
 
     const remedyAnchors: Record<number, string[]> = {
       23: [`${n(badhakaHouse)} (${badhakaInfo.lordName})`, `${maandiRashiName} (${n(maandiHouse)})`, `${yogiPlanetName}`],
-      24: [`${nakshatraName} (${n(nakshatraPada)})`, `${yogiPlanetName}`, `${currentMahadasha}`],
+      24: [`${nakshatraName}`, `${yogiPlanetName}`, `${currentMahadasha}`],
       25: [`${lagnaRashiName}`, `${moonRashiName}`, `${yogiPlanetName}`]
     };
 

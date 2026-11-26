@@ -90,7 +90,7 @@ export interface StoryEngineInput {
   karanaName: string;
   nakshatraIdx: number;
   nakshatraName: string;
-  nakshatraPada: number;
+  nakshatraPada?: number;
   janmaHora: string;
   livePrashnaHora: string;
 
@@ -276,7 +276,6 @@ export function buildDynamicBookletCover(ctx: StoryEngineInput): BookletCoverCon
     karanaName,
     nakshatraIdx,
     nakshatraName,
-    nakshatraPada,
     lagnaRashiName,
     moonRashiName,
     janmaHora,
@@ -379,28 +378,28 @@ export function buildDynamicBookletCover(ctx: StoryEngineInput): BookletCoverCon
   // Gana + Element personal twist for Para 2
   const ganaTwist = gana === "deva"
     ? pick6({
-      kn: `${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ನಕ್ಷತ್ರದ ದೇವ ಗಣ ಸ್ವಭಾವದಿಂದ ನೀವು ಹೃದಯದಿಂದ ಯೋಚಿಸುವವರು — ಕಪಟತನ ನಿಮ್ಮಿಂದ ಸಾಧ್ಯವೇ ಇಲ್ಲ; ಅದೇ ನಿಮಗೆ ಅನೇಕ ಬಾರಿ ನೋವು ತಂದರೂ, ಕೊನೆಗೆ ಅದು ನಿಮ್ಮ ದೊಡ್ಡ ರಕ್ಷಣೆಯಾಗುತ್ತದೆ`,
-      mr: `${nakshatraName} (चरण ${n(nakshatraPada)}) नक्षत्राच्या देव गणामुळे आपण मनाने अतिशय शुद्ध व प्रामाणिक आहात — कधीकधी याच चांगुलपणाचा त्रास झाला असला तरी शेवटी हेच आपले सर्वात मोठे कवच ठरते`,
-      hi: `${nakshatraName} (पाद ${n(nakshatraPada)}) के देव गण ने आपको निष्कपट हृदय दिया है — भलाई के बदले कड़वाहट मिलने पर भी यही सच्चाई अंततः आपका सबसे बड़ा रक्षा कवच बनती है`,
-      te: `${nakshatraName} (${n(nakshatraPada)}వ పాదం) దేవ గణ స్వభావం వల్ల మీరు కపటం ఎరుగని మనసు కలవారు — అదే మీకు కొన్నిసార్లు బాధ కలిగించినా, చివరికి అదే మిమ్మల్ని కాపాడుతుంది`,
-      ta: `${nakshatraName} (${n(nakshatraPada)}-ம் பாதம்) தேவ கண இயல்பால் கபடமற்ற மனம் கொண்டவர் — சில சமயம் அதனால் வருத்தம் வந்தாலும் அதுவே உங்கள் நிரந்தர கவசம்`,
+      kn: `${nakshatraName} ನಕ್ಷತ್ರದ ದೇವ ಗಣ ಸ್ವಭಾವದಿಂದ ನೀವು ಹೃದಯದಿಂದ ಯೋಚಿಸುವವರು — ಕಪಟತನ ನಿಮ್ಮಿಂದ ಸಾಧ್ಯವೇ ಇಲ್ಲ; ಅದೇ ನಿಮಗೆ ಅನೇಕ ಬಾರಿ ನೋವು ತಂದರೂ, ಕೊನೆಗೆ ಅದು ನಿಮ್ಮ ದೊಡ್ಡ ರಕ್ಷಣೆಯಾಗುತ್ತದೆ`,
+      mr: `${nakshatraName} नक्षत्राच्या देव गणामुळे आपण मनाने अतिशय शुद्ध व प्रामाणिक आहात — कधीकधी याच चांगुलपणाचा त्रास झाला असला तरी शेवटी हेच आपले सर्वात मोठे कवच ठरते`,
+      hi: `${nakshatraName} नक्षत्र के देव गण ने आपको निष्कपट हृदय दिया है — भलाई के बदले कड़वाहट मिलने पर भी यही सच्चाई अंततः आपका सबसे बड़ा रक्षा कवच बनती है`,
+      te: `${nakshatraName} నక్షత్ర దేవ గణ స్వభావం వల్ల మీరు కపటం ఎరుగని మనసు కలవారు — అదే మీకు కొన్నిసార్లు బాధ కలిగించినా, చివరికి అదే మిమ్మల్ని కాపాడుతుంది`,
+      ta: `${nakshatraName} நட்சத்திர தேவ கண இயல்பால் கபடமற்ற மனம் கொண்டவர் — சில சமயம் அதனால் வருத்தம் வந்தாலும் அதுவே உங்கள் நிரந்தர கவசம்`,
       en: `Because your birth star ${nakshatraName} belongs to the empathetic Deva archetype, you lead with sincerity—and though takers tested your trust, that same integrity quietly attracts your breakthrough`,
     }, lang)
     : gana === "manushya"
     ? pick6({
-      kn: `${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ನಕ್ಷತ್ರದ ಮನುಷ್ಯ ಗಣ ಬುದ್ಧಿಯಿಂದ ನೀವು ಭಾವನೆ ಮತ್ತು ವಾಸ್ತವ ಎರಡನ್ನೂ ಸಮತೋಲನಗೊಳಿಸುತ್ತೀರಿ — ಪ್ರತಿಯೊಂದು ಸವಾಲೂ ನಿಮ್ಮನ್ನು ಹಂತ ಹಂತವಾಗಿ ಮತ್ತಷ್ಟು ಪ್ರಬುದ್ಧರನ್ನಾಗಿಸಿದೆ`,
-      mr: `${nakshatraName} (चरण ${n(nakshatraPada)}) नक्षत्राच्या मनुष्य गणामुळे आपण भावना व व्यवहार यांचा अचूक समतोल साधता — प्रत्येक अडचणीने तुम्हाला अधिक परिपक्व व खंबीर बनवले आहे`,
-      hi: `${nakshatraName} (पाद ${n(nakshatraPada)}) के मनुष्य गण के कारण आप भावना और व्यावहारिकता का अद्भुत संतुलन रखते हैं — हर संघर्ष ने आपको पहले से अधिक मजबूत बनाया है`,
-      te: `${nakshatraName} (${n(nakshatraPada)}వ పాదం) మనుష్య గణం వల్ల భావోద్వేగాలను, వాస్తవాన్ని సమన్వయం చేసుకోగలరు — ప్రతి పరీక్ష మిమ్మల్ని మరింత దృఢంగా మార్చింది`,
-      ta: `${nakshatraName} (${n(nakshatraPada)}-ம் பாதம்) மனுஷ்ய கண இயல்பால் உணர்வையும் யதார்த்தத்தையும் சமமாகக் கையாள்பவர் — ஒவ்வொரு தடையும் உங்களை வலிமைப்படுத்தியுள்ளது`,
+      kn: `${nakshatraName} ನಕ್ಷತ್ರದ ಮನುಷ್ಯ ಗಣ ಬುದ್ಧಿಯಿಂದ ನೀವು ಭಾವನೆ ಮತ್ತು ವಾಸ್ತವ ಎರಡನ್ನೂ ಸಮತೋಲನಗೊಳಿಸುತ್ತೀರಿ — ಪ್ರತಿಯೊಂದು ಸವಾಲೂ ನಿಮ್ಮನ್ನು ಹಂತ ಹಂತವಾಗಿ ಮತ್ತಷ್ಟು ಪ್ರಬುದ್ಧರನ್ನಾಗಿಸಿದೆ`,
+      mr: `${nakshatraName} नक्षत्राच्या मनुष्य गणामुळे आपण भावना व व्यवहार यांचा अचूक समतोल साधता — प्रत्येक अडचणीने तुम्हाला अधिक परिपक्व व खंबीर बनवले आहे`,
+      hi: `${nakshatraName} नक्षत्र के मनुष्य गण के कारण आप भावना और व्यावहारिकता का अद्भुत संतुलन रखते हैं — हर संघर्ष ने आपको पहले से अधिक मजबूत बनाया है`,
+      te: `${nakshatraName} నక్షత్ర మనుష్య గణం వల్ల భావోద్వేగాలను, వాస్తవాన్ని సమన్వయం చేసుకోగలరు — ప్రతి పరీక్ష మిమ్మల్ని మరింత దృఢంగా మార్చింది`,
+      ta: `${nakshatraName} நட்சத்திர மனுஷ்ய கண இயல்பால் உணர்வையும் யதார்த்தத்தையும் சமமாகக் கையாள்பவர் — ஒவ்வொரு தடையும் உங்களை வலிமைப்படுத்தியுள்ளது`,
       en: `Born in the grounded Manushya archetype of ${nakshatraName}, you balance heart with realism—every delayed promise so far was quietly training you for bigger stewardship`,
     }, lang)
     : pick6({
-      kn: `${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ನಕ್ಷತ್ರದ ರಾಕ್ಷಸ ಗಣದ ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿಯಿಂದ ಸುಳ್ಳು ಮಾತುಗಳನ್ನು ನೀವು ಕ್ಷಣದಲ್ಲಿ ಕಂಡುಹಿಡಿಯುತ್ತೀರಿ — ಹಳೆಯ ಗಡಿಗಳನ್ನು ಮುರಿದು ಹೊಸ ಹಾದಿ ನಿರ್ಮಿಸುವುದೇ ನಿಮ್ಮ ನಿಜವಾದ ಶಕ್ತಿ`,
-      mr: `${nakshatraName} (चरण ${n(nakshatraPada)}) नक्षत्राच्या राक्षस गणामुळे खोटेपणा आपल्या नजरेतून सुटत नाही — जुन्या मर्यादा मोडून नवी वाट तयार करणे हीच आपली खरी ताकद आहे`,
-      hi: `${nakshatraName} (पाद ${n(nakshatraPada)}) के प्रखर स्वभाव के कारण बनावटी बातें आपसे छिप नहीं सकतीं — पुरानी सीमाओं को तोड़कर नया मार्ग बनाना ही आपकी वास्तविक शक्ति है`,
-      te: `${nakshatraName} (${n(nakshatraPada)}వ పాదం) రాక్షస గణ తీక్షణ దృష్టి వల్ల అబద్ధాలను వెంటనే పసిగట్టగలరు — పాత హద్దులను దాటి కొత్త దారి వేయడమే మీ అసలైన బలం`,
-      ta: `${nakshatraName} (${n(nakshatraPada)}-ம் பாதம்) இயல்பின் கூர்மையான பார்வையால் போலிகளை நொடியில் அடையாளம் காண்பவர் — பழைய எல்லைகளைத் தாண்டி புதிய பாதை அமைப்பதே உங்கள் பலம்`,
+      kn: `${nakshatraName} ನಕ್ಷತ್ರದ ರಾಕ್ಷಸ ಗಣದ ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿಯಿಂದ ಸುಳ್ಳು ಮಾತುಗಳನ್ನು ನೀವು ಕ್ಷಣದಲ್ಲಿ ಕಂಡುಹಿಡಿಯುತ್ತೀರಿ — ಹಳೆಯ ಗಡಿಗಳನ್ನು ಮುರಿದು ಹೊಸ ಹಾದಿ ನಿರ್ಮಿಸುವುದೇ ನಿಮ್ಮ ನಿಜವಾದ ಶಕ್ತಿ`,
+      mr: `${nakshatraName} नक्षत्राच्या राक्षस गणामुळे खोटेपणा आपल्या नजरेतून सुटत नाही — जुन्या मर्यादा मोडून नवी वाट तयार करणे हीच आपली खरी ताकद आहे`,
+      hi: `${nakshatraName} नक्षत्र के प्रखर स्वभाव के कारण बनावटी बातें आपसे छिप नहीं सकतीं — पुरानी सीमाओं को तोड़कर नया मार्ग बनाना ही आपकी वास्तविक शक्ति है`,
+      te: `${nakshatraName} నక్షత్ర రాక్షస గణ తీక్షణ దృష్టి వల్ల అబద్ధాలను వెంటనే పసిగట్టగలరు — పాత హద్దులను దాటి కొత్త దారి వేయడమే మీ అసలైన బలం`,
+      ta: `${nakshatraName} நட்சத்திர இயல்பின் கூர்மையான பார்வையால் போலிகளை நொடியில் அடையாளம் காண்பவர் — பழைய எல்லைகளைத் தாண்டி புதிய பாதை அமைப்பதே உங்கள் பலம்`,
       en: `Guided by the bold, perceptive archetype of ${nakshatraName}, you spot hidden agendas almost instantly—your life opens fastest the day you stop shrinking to make hesitant people comfortable`,
     }, lang);
 
@@ -762,6 +761,7 @@ function buildChapterThemeAndNarrativeLayer(args: {
   isChildOrInfant: boolean;
   taraScore: number;
   taraWord: string;
+  taraDayPhrase: string;
   chapterBadge?: string;
 }): {
   storyHook: string;
@@ -780,6 +780,7 @@ function buildChapterThemeAndNarrativeLayer(args: {
     isChildOrInfant,
     taraScore,
     taraWord,
+    taraDayPhrase,
     chapterBadge,
   } = args;
 
@@ -787,7 +788,6 @@ function buildChapterThemeAndNarrativeLayer(args: {
     targetLang: lang,
     devoteeName,
     nakshatraName,
-    nakshatraPada,
     yogaName,
     karanaName,
     weekdayName,
@@ -1552,7 +1552,7 @@ function buildChapterThemeAndNarrativeLayer(args: {
 
   const chapterVisualLookup: Record<number, { near: string; far: string; verdict: string; house?: number; yr?: number }> = {
     1: {
-      near: pick6({ kn: `ಇಂದಿನ ತಾರಾಬಲ (${n(taraScore)}%) & ಸ್ಪಷ್ಟತೆ`, mr: `आजची ताराबळ ऊर्जा (${n(taraScore)}%)`, hi: `आज का ताराबल (${n(taraScore)}%) एवं सूझ`, te: `నేటి తారాబలం (${n(taraScore)}%)`, ta: `இன்றைய தாராபலன் (${n(taraScore)}%)`, en: `Live Clarity (${taraScore}% • ${taraWord})` }, lang),
+      near: pick6({ kn: `ತಾರಾಬಲ (${n(taraScore)}% — ${taraDayPhrase}) & ಸ್ಪಷ್ಟತೆ`, mr: `ताराबळ ऊर्जा (${n(taraScore)}% — ${taraDayPhrase})`, hi: `ताराबल (${n(taraScore)}% — ${taraDayPhrase}) एवं सूझ`, te: `తారాబలం (${n(taraScore)}% — ${taraDayPhrase})`, ta: `தாராபலன் (${n(taraScore)}% — ${taraDayPhrase})`, en: `Tarabala (${taraScore}% on ${taraWord} — ${taraDayPhrase})` }, lang),
       far: pick6({ kn: "ಹಳೆಯ ಗೊಂದಲ ಮತ್ತು ಮೌನ ಚಿಂತೆ", mr: "जुनी अस्वस्थता व गोंधळ", hi: "पुरानी दुविधा और चिंता", te: "పాత ఆందోళన & గందరగోళం", ta: "பழைய குழப்பம் & தயக்கம்", en: "Silent Confusion & Old Worry" }, lang),
       verdict: `${taraWord} • ${n(taraScore)}%`,
     },
@@ -1754,7 +1754,6 @@ export function buildDynamicStoryChapters(
     moonRashiName,
     nakshatraIdx,
     nakshatraName,
-    nakshatraPada,
     weekdayName,
     pakshaName,
     tithiName,
@@ -1802,6 +1801,7 @@ export function buildDynamicStoryChapters(
 
   const taraScore = extendedPrecision.liveTarabala.score;
   const taraWord = extendedPrecision.taraLabelLocalized;
+  const taraDayPhrase = extendedPrecision.tarabalaForThatDayPhrase;
   const savByHouse = Array.from({ length: 12 }, (_, idx) => savTable[(lagnaRashiIdx + idx) % 12] ?? 28);
   const peakHouseNum = savByHouse.reduce((bestIdx, val, idx, arr) => (val > arr[bestIdx] ? idx : bestIdx), 0) + 1;
 
@@ -1870,12 +1870,12 @@ export function buildDynamicStoryChapters(
         en: `Notice how uncanny the timing is: as you open this page under ${livePrashnaHora} influence, your ${weekdayName} spirit and ${modalityStyle} tell a clear story. You appear composed on the outside, yet one unfinished commitment or someone's unexpected silence has been replaying in your mind all week.`,
       },
       p2: {
-        kn: `ಇಲ್ಲಿಯೇ ಕಥೆಯ ದೊಡ್ಡ ತಿರುವು ಇದೆ: ನೀವು ಅಂದುಕೊಂಡಂತೆ ಇದು ಸೋಲಿನ ಸೂಚನೆಯಲ್ಲ! ಇಂದಿನ '${taraWord}' (${n(taraScore)}%) ಸ್ಥಿತಿಯು ಹಳೆಯ ಗೊಂದಲಗಳನ್ನು ತೊಳೆಯುವ ಒಂದು ಮೌನ ಪರದೆ. ಯಾರನ್ನು ನೀವು ಕೈತಪ್ಪಿತು ಎಂದು ಭಾವಿಸಿದ್ದೀರೋ, ಆ ಪರಿಸ್ಥಿತಿಯೇ ಮುಂದಿನ ಕೆಲವು ವಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ನಿಜವಾದ ಬೆಲೆಯನ್ನು ತೋರಿಸುವ ಹಂತಕ್ಕೆ ತಿರುಗಲಿದೆ.`,
-        mr: `इथेच कथेचे खरे वळण आहे: तुम्ही ज्याला माघार समजता आहात, ती खरं तर पुढच्या उडीची तयारी आहे! आजचा '${taraWord}' (${n(taraScore)}%) टप्पा जुनी धूळ साफ करत आहे — ज्या गोष्टी हातातून गेल्या असे वाटत होते, त्याच पुढच्या काही आठवड्यांत नव्या रूपात तुमच्यासमोर येतील.`,
-        hi: `यहीं कहानी का सबसे बड़ा मोड़ है: जिसे आप रुकावट समझ रहे हैं, वह वास्तव में अगले चरण से पहले की सफ़ाई है। आज का '${taraWord}' (${n(taraScore)}%) चरण दिखाता है कि जो बात हाथ से निकलती दिखी, वही कुछ ही सप्ताह में आपके पक्ष में मुड़ने वाली है।`,
-        te: `ఇక్కడే అసలైన మలుపు ఉంది: మీరు వెనుకడుగు అనుకున్నదే నిజానికి తదుపరి ఎత్తుకు పునాది! నేటి '${taraWord}' (${n(taraScore)}%) స్థితి పాత గందరగోళాన్ని తొలగిస్తోంది—చేజారిపోయిందనుకున్న ఒక అంశం త్వరలోనే మీకు అనుకూలంగా మారుతుంది.`,
-        ta: `இங்கேதான் கதையின் பெரிய திருப்பம்: நீங்கள் தோல்வி என நினைத்தது உண்மையில் அடுத்த பாய்ச்சலுக்கான அமைதி! இன்றைய '${taraWord}' (${n(taraScore)}%) நிலை பழைய குழப்பத்தைக் கரைக்கிறது—நழுவியது என நினைத்த ஒன்று விரைவில் உங்கள் பக்கம் திரும்பும்.`,
-        en: `Here is the plot twist almost nobody spots: this pause is not rejection—it is filtration. Today's alignment (${taraScore}% on ${taraWord}) marks the closing act of old confusion; the very delay bothering you right now is clearing space so the next move lands on your terms.`,
+        kn: `ಇಲ್ಲಿಯೇ ಕಥೆಯ ದೊಡ್ಡ ತಿರುವು ಇದೆ: ನೀವು ಅಂದುಕೊಂಡಂತೆ ಇದು ಸೋಲಿನ ಸೂಚನೆಯಲ್ಲ! ವರದಿ ದಿನದ '${taraWord}' (${n(taraScore)}% — ${taraDayPhrase}) ಸ್ಥಿತಿಯು ಹಳೆಯ ಗೊಂದಲಗಳನ್ನು ತೊಳೆಯುವ ಒಂದು ಮೌನ ಪರದೆ. ಯಾರನ್ನು ನೀವು ಕೈತಪ್ಪಿತು ಎಂದು ಭಾವಿಸಿದ್ದೀರೋ, ಆ ಪರಿಸ್ಥಿತಿಯೇ ಮುಂದಿನ ಕೆಲವು ವಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ನಿಜವಾದ ಬೆಲೆಯನ್ನು ತೋರಿಸುವ ಹಂತಕ್ಕೆ ತಿರುಗಲಿದೆ.`,
+        mr: `इथेच कथेचे खरे वळण आहे: तुम्ही ज्याला माघार समजता आहात, ती खरं तर पुढच्या उडीची तयारी आहे! अहवाल दिनाचा '${taraWord}' (${n(taraScore)}% — ${taraDayPhrase}) टप्पा जुनी धूळ साफ करत आहे — ज्या गोष्टी हातातून गेल्या असे वाटत होते, त्याच पुढच्या काही आठवड्यांत नव्या रूपात तुमच्यासमोर येतील.`,
+        hi: `यहीं कहानी का सबसे बड़ा मोड़ है: जिसे आप रुकावट समझ रहे हैं, वह वास्तव में अगले चरण से पहले की सफ़ाई है। विवरण के दिन का '${taraWord}' (${n(taraScore)}% — ${taraDayPhrase}) चरण दिखाता है कि जो बात हाथ से निकलती दिखी, वही कुछ ही सप्ताह में आपके पक्ष में मुड़ने वाली है।`,
+        te: `ఇక్కడే అసలైన మలుపు ఉంది: మీరు వెనుకడుగు అనుకున్నదే నిజానికి తదుపరి ఎత్తుకు పునాది! నివేదిక రోజు నాటి '${taraWord}' (${n(taraScore)}% — ${taraDayPhrase}) స్థితి పాత గందరగోళాన్ని తొలగిస్తోంది—చేజారిపోయిందనుకున్న ఒక అంశం త్వరలోనే మీకు అనుకూలంగా మారుతుంది.`,
+        ta: `இங்கேதான் கதையின் பெரிய திருப்பம்: நீங்கள் தோல்வி என நினைத்தது உண்மையில் அடுத்த பாய்ச்சலுக்கான அமைதி! அறிக்கை நாளின் '${taraWord}' (${n(taraScore)}% — ${taraDayPhrase}) நிலை பழைய குழப்பத்தைக் கரைக்கிறது—நழுவியது என நினைத்த ஒன்று விரைவில் உங்கள் பக்கம் திரும்பும்.`,
+        en: `Here is the plot twist almost nobody spots: this pause is not rejection—it is filtration. The Tarabala alignment (${taraScore}% on ${taraWord} — ${taraDayPhrase}) marks the closing act of old confusion; the very delay bothering you right now is clearing space so the next move lands on your terms.`,
       },
       p3: {
         kn: `ಈ ಕ್ಷಣದ ನಿಮ್ಮ ಜಾಣ ಹೆಜ್ಜೆ: ಹಿಂದೆ ನಡೆದ ಮಾತುಗಳನ್ನು ಮನಸ್ಸಿನಲ್ಲಿ ಪುನಃ ಓಡಿಸುವುದನ್ನು ನಿಲ್ಲಿಸಿ. ನಿಮ್ಮ ${moonRashiName} ಮನಸ್ಸಿನ ತೀಕ್ಷ್ಣ ಗ್ರಹಿಕೆ ಈ ವಾರ ನಿಮಗೆ ಸರಿಯಾದ ಸುಳಿವು ಕೊಡುತ್ತದೆ — ಆತುರದ ಪ್ರತಿಕ್ರಿಯೆ ನೀಡದೆ ಕೇವಲ ೭ ದಿನ ಶಾಂತವಾಗಿ ಗಮನಿಸಿ, ಸತ್ಯ ತಾನಾಗಿಯೇ ಬಯಲಾಗುತ್ತದೆ.`,
@@ -1894,7 +1894,7 @@ export function buildDynamicStoryChapters(
         en: `Pause & Check: Think back over the last 10 days—just when frustration peaked, did one unexpected small clue or message appear out of nowhere? That was not coincidence.`,
       },
       badge: { kn: "ಆತ್ಮ-ಪರಿಶೀಲನೆ", mr: "स्व-निरीक्षण", hi: "आत्म-संकेत", te: "స్వీయ పరిశీలన", ta: "சுய சோதனை", en: "Story Mirror" },
-      anchors: [`${livePrashnaHora}`, `${taraWord} (${n(taraScore)}%)`],
+      anchors: [`${livePrashnaHora}`, `${taraWord} (${n(taraScore)}% — ${taraDayPhrase})`],
     },
 
     // CHAPTER 2 — Nigooda Rahasya (Hidden Burdens & Silent Turning Point)
@@ -3132,6 +3132,7 @@ export function buildDynamicStoryChapters(
         isChildOrInfant,
         taraScore,
         taraWord,
+        taraDayPhrase,
         chapterBadge: cleanRegional(pick6(item.badge, lang), lang),
       });
 

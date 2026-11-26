@@ -873,4 +873,45 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       expect(closingP3Set.size).toBe(25);
     }
   });
+
+  it("19. Excludes Nakshatra Pada across the 25-Chapter PDF and qualifies Tarabala with the exact report date in brackets across all 6 languages", async () => {
+    const { formatReportDate6L, formatTarabalaDayPhrase6L } = await import("../services/sampoornaMaster25BookletEngine");
+    const langs = ["kn", "mr", "hi", "te", "ta", "en"] as const;
+    const now = new Date();
+
+    for (const lang of langs) {
+      cleanup();
+      const payload = await prepareSampoornaMaster25Data(
+        { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+        lang
+      );
+      const { container } = render(<SampoornaMaster25PdfTemplate data={payload} />);
+      const detailsText = container.querySelector('[data-section="user-details"]')?.textContent || "";
+      const cosmicAuraText = container.querySelector('[data-section="cosmic-aura"]')?.textContent || "";
+      const ch1Text = container.querySelector('[data-section="chapter-1"]')?.textContent || "";
+
+      // 1. Nakshatra Pada must NEVER appear in Page 1 details, Cosmic Aura, Cover, or Chapters
+      const padaTokenRegex = /(?:ಪಾದ|పాదం|பாதம்|\bPada\b|(?:^|[\s(])(?:पाद|चरण)(?=[\s\d०-९)]|$)|ಜನ್ಮ ನಕ್ಷತ್ರ\s*&|जन्म नक्षत्र\s*(?:व|एवं)|జన్మ నక్షత్రం\s*&|ஜென்ம நட்சத்திரம்\s*&|Birth Nakshatra\s*&)/i;
+      expect(detailsText).toContain(payload.nakshatraName);
+      expect(detailsText).not.toMatch(padaTokenRegex);
+      expect(cosmicAuraText).toContain(payload.nakshatraName);
+      expect(cosmicAuraText).not.toMatch(padaTokenRegex);
+      expect(payload.coverPage.personalAssurancePara1).not.toMatch(padaTokenRegex);
+      expect(payload.coverPage.personalAssurancePara2).not.toMatch(padaTokenRegex);
+
+      // 2. Tarabala must explicitly show the report date & "for that day only" inside brackets
+      const expectedDate = formatReportDate6L(now, lang);
+      const expectedDayPhrase = formatTarabalaDayPhrase6L(now, lang);
+      expect(payload.precisionProfile.liveTarabalaHeadline).toContain(`(${payload.precisionProfile.liveTarabalaHeadline.match(/\(([^)]+)\)/)?.[1] || ""})`);
+      expect(payload.precisionProfile.liveTarabalaHeadline).toContain(expectedDate);
+      expect(payload.precisionProfile.liveTarabalaHeadline).toContain(expectedDayPhrase);
+      expect(detailsText).toContain(expectedDayPhrase);
+      expect(ch1Text).toContain(expectedDayPhrase);
+
+      // 3. Zero English leakage in Indic Tarabala headline
+      if (lang !== "en") {
+        expect(payload.precisionProfile.liveTarabalaHeadline).not.toMatch(/[a-zA-Z]/);
+      }
+    }
+  });
 });
