@@ -872,6 +872,27 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 letterSpacing: "normal",
               }}
             >
+              {/* Per-Chapter Narrative Lens Badge Pill */}
+              {chapter.visualSummary?.themeBadge && (
+                <div style={{ marginBottom: "8px", letterSpacing: "normal" }}>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      background: "rgba(217, 119, 6, 0.12)",
+                      border: "1px solid rgba(217, 119, 6, 0.35)",
+                      borderRadius: "999px",
+                      padding: "3px 12px",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      color: "#92400e",
+                      letterSpacing: "normal",
+                    }}
+                  >
+                    {chapter.visualSummary.themeBadge}
+                  </span>
+                </div>
+              )}
+
               {/* Premium PDF V1 Clean Bold Chapter Heading */}
               <h2
                 style={{
@@ -910,7 +931,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                     letterSpacing: "normal",
                   }}
                 >
-                  ✨ {questionEyebrow}
+                  ✨ {chapter.promptEyebrow || questionEyebrow}
                 </div>
                 <div
                   style={{
@@ -923,8 +944,13 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                   }}
                 >
                   <span style={{ color: "#b45309", marginRight: "8px" }}>❖</span>
-                  <span style={{ marginRight: "6px" }}>{questionLabel}</span>
-                  {(chapter.question || "").replace(/^(ಪ್ರಶ್ನೆ|प्रश्न|ప్రశ్న|கேள்வி|ചോദ്യം|Question)\s*:\s*/i, "").trim()}
+                  <span style={{ marginRight: "6px" }}>{chapter.promptLabel || questionLabel}</span>
+                  {(chapter.question || "")
+                    .replace(
+                      /^(?:ಪ್ರಶ್ನೆ|ಮೂಲ ವಿಚಾರ|ಜಾತಕ ಸುಳಿವು|ಜೀವನ ಕನ್ನಡಿ|ತಿರುವಿನ ಕೇಂದ್ರ|ಜೀವನ ಸೂತ್ರ|प्रश्न|मुख्य गाभा|कुंडली संकेत|जीवन आरसा|वळणाचा केंद्रबिंदू|जीवन चिंतन|मुख्य विचार|जीवन दर्पण|निर्णायक बिंदु|जीवन सूत्र|ప్రశ్న|ప్రధానాంశం|కుండలి సంకేతం|జీవన అద్దం|మలుపు కేంద్రం|జీవన సూత్రం|கேள்வி|மையக் கரு|ஜாதக குறிப்பு|வாழ்வியல் பார்வை|திருப்புமுனை|வாழ்வியல் நோக்கு|ചോദ്യം|Question|Core Focus|Chart Clue|Life Lens|Turning Point|Key Lens)\s*:\s*/i,
+                      ""
+                    )
+                    .trim()}
                 </div>
               </div>
 

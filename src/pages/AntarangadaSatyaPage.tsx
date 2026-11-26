@@ -2054,7 +2054,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               gender: gender === "female" ? "Female" : "Male"
             }
           },
-          pdfLang
+          pdfLang,
+          { narrativeVariant: downloadCounts.fiveYear || 0 }
         );
         setMaster25Payload(m25);
       } catch (m25Err) {
@@ -2141,7 +2142,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               gender: gender === "female" ? "Female" : "Male"
             }
           },
-          pdfLang
+          pdfLang,
+          { narrativeVariant: downloadCounts.fiveYear || 0 }
         ).then(setMaster25Payload).catch((e) => console.warn("Master 25 lang update:", e));
       } catch (err) {
         console.warn("Language switch master25 warning:", err);
@@ -2288,9 +2290,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
       if (master25PdfRef.current && master25Payload) {
         const pdfLang: SixLang = (selectedLang === "kn" || selectedLang === "hi" || selectedLang === "mr" || selectedLang === "te" || selectedLang === "ta") ? selectedLang : "en";
-        // Re-prepare payload if language changed since precomputation
+        // Re-prepare payload with a fresh narrative edition on repeat downloads for same person (or language change)
         let activePayload = master25Payload;
-        if (master25Payload.targetLanguage !== pdfLang && computedKundli) {
+        if ((currentCount > 0 || master25Payload.targetLanguage !== pdfLang) && computedKundli) {
           try {
             const effectiveTime = isTimeUnknown ? "12:00" : birthTime;
             activePayload = await prepareSampoornaMaster25Data(
@@ -2306,12 +2308,14 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   gender: gender === "female" ? "Female" : "Male"
                 }
               },
-              pdfLang
+              pdfLang,
+              { narrativeVariant: currentCount }
             );
             setMaster25Payload(activePayload);
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+            await new Promise((resolve) => setTimeout(resolve, 450));
           } catch (syncErr) {
-            console.warn("Language sync re-prepare warning:", syncErr);
+            console.warn("Edition/language sync re-prepare warning:", syncErr);
           }
         }
         fileName = `Baggona_Sampoorna_25_Chapter_Master_Report_${selectedLang.toUpperCase()}_${cleanName}.pdf`;

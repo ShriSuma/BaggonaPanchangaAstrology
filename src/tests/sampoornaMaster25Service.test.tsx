@@ -914,4 +914,228 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       }
     }
   });
+
+  it("20. Produces genuinely distinct chart-grounded narratives across a 4-member family at the same hotel table (Ch 1–25) without identical starting points", async () => {
+    const buildCustomChart = (
+      lagnaIdx: number,
+      lagnaDeg: number,
+      moonIdx: number,
+      moonDeg: number,
+      moonNakIdx: number,
+      sunIdx: number,
+      marsIdx: number,
+      mercIdx: number,
+      jupIdx: number,
+      venIdx: number,
+      satIdx: number,
+      rahuIdx: number
+    ): KundliOutput => ({
+      planets: [
+        { name: PlanetName.Sun, degree: sunIdx * 30 + 12, rashi: { index: sunIdx, english: "SunSign", sanskrit: "SunSign" }, nakshatra: { index: (sunIdx * 2 + 1) % 27, english: "N1", sanskrit: "N1", deity: "Surya" }, house: ((sunIdx - lagnaIdx + 12) % 12) + 1 },
+        { name: PlanetName.Moon, degree: moonDeg, rashi: { index: moonIdx, english: "MoonSign", sanskrit: "MoonSign" }, nakshatra: { index: moonNakIdx, english: "N2", sanskrit: "N2", deity: "Chandra" }, house: ((moonIdx - lagnaIdx + 12) % 12) + 1 },
+        { name: PlanetName.Mars, degree: marsIdx * 30 + 18, rashi: { index: marsIdx, english: "MarsSign", sanskrit: "MarsSign" }, nakshatra: { index: (marsIdx * 2 + 2) % 27, english: "N3", sanskrit: "N3", deity: "Mangala" }, house: ((marsIdx - lagnaIdx + 12) % 12) + 1 },
+        { name: PlanetName.Mercury, degree: mercIdx * 30 + 8, rashi: { index: mercIdx, english: "MercSign", sanskrit: "MercSign" }, nakshatra: { index: (mercIdx * 2 + 1) % 27, english: "N4", sanskrit: "N4", deity: "Budha" }, house: ((mercIdx - lagnaIdx + 12) % 12) + 1 },
+        { name: PlanetName.Jupiter, degree: jupIdx * 30 + 20, rashi: { index: jupIdx, english: "JupSign", sanskrit: "JupSign" }, nakshatra: { index: (jupIdx * 2 + 3) % 27, english: "N5", sanskrit: "N5", deity: "Guru" }, house: ((jupIdx - lagnaIdx + 12) % 12) + 1 },
+        { name: PlanetName.Venus, degree: venIdx * 30 + 24, rashi: { index: venIdx, english: "VenSign", sanskrit: "VenSign" }, nakshatra: { index: (venIdx * 2 + 4) % 27, english: "N6", sanskrit: "N6", deity: "Shukra" }, house: ((venIdx - lagnaIdx + 12) % 12) + 1 },
+        { name: PlanetName.Saturn, degree: satIdx * 30 + 11, rashi: { index: satIdx, english: "SatSign", sanskrit: "SatSign" }, nakshatra: { index: (satIdx * 2 + 5) % 27, english: "N7", sanskrit: "N7", deity: "Shani" }, house: ((satIdx - lagnaIdx + 12) % 12) + 1 },
+        { name: PlanetName.Rahu, degree: rahuIdx * 30 + 14, rashi: { index: rahuIdx, english: "RahuSign", sanskrit: "RahuSign" }, nakshatra: { index: (rahuIdx * 2 + 2) % 27, english: "N8", sanskrit: "N8", deity: "Rahu" }, house: ((rahuIdx - lagnaIdx + 12) % 12) + 1 },
+        { name: PlanetName.Ketu, degree: ((rahuIdx + 6) % 12) * 30 + 14, rashi: { index: (rahuIdx + 6) % 12, english: "KetuSign", sanskrit: "KetuSign" }, nakshatra: { index: ((rahuIdx + 6) * 2 + 2) % 27, english: "N9", sanskrit: "N9", deity: "Ketu" }, house: ((((rahuIdx + 6) % 12) - lagnaIdx + 12) % 12) + 1 }
+      ],
+      houses: Array.from({ length: 12 }, (_, i) => (lagnaIdx * 30 + i * 30) % 360),
+      ascendant: lagnaDeg,
+      lagnaRashi: { index: lagnaIdx, english: "Lagna", sanskrit: "Lagna" },
+      moonSign: { index: moonIdx, english: "Moon", sanskrit: "Moon" },
+      sunSign: { index: sunIdx, english: "Sun", sanskrit: "Sun" },
+      moonPada: 2
+    });
+
+    const familyMembers: Array<{ label: string; input: KundliInput; result: KundliOutput }> = [
+      {
+        label: "Father",
+        input: { name: "Raghavendra Rao", birthDate: "1974-04-18", birthTime: "06:45", latitude: 14.55, longitude: 74.32, gender: "Male" },
+        result: buildCustomChart(0, 14, 10, 315, 23, 0, 2, 11, 10, 10, 2, 7)
+      },
+      {
+        label: "Mother",
+        input: { name: "Sumathi Rao", birthDate: "1978-09-22", birthTime: "15:20", latitude: 14.55, longitude: 74.32, gender: "Female" },
+        result: buildCustomChart(3, 102, 7, 224, 17, 5, 6, 4, 3, 6, 4, 5)
+      },
+      {
+        label: "Daughter",
+        input: { name: "Ananya Rao", birthDate: "2001-11-09", birthTime: "21:10", latitude: 14.55, longitude: 74.32, gender: "Female" },
+        result: buildCustomChart(6, 195, 9, 286, 21, 6, 9, 6, 2, 6, 1, 2)
+      },
+      {
+        label: "SonChild",
+        input: { name: "Pranav Rao", birthDate: "2018-02-14", birthTime: "11:05", latitude: 14.55, longitude: 74.32, gender: "Male" },
+        result: buildCustomChart(8, 255, 1, 42, 3, 10, 7, 10, 6, 10, 8, 3)
+      }
+    ];
+
+    const reportsKn = await Promise.all(
+      familyMembers.map((m) =>
+        prepareSampoornaMaster25Data({ result: m.result, input: m.input, placeLabel: "Gokarna, Karnataka" }, "kn", { narrativeVariant: 0 })
+      )
+    );
+    const reportsEn = await Promise.all(
+      familyMembers.map((m) =>
+        prepareSampoornaMaster25Data({ result: m.result, input: m.input, placeLabel: "Gokarna, Karnataka" }, "en", { narrativeVariant: 0 })
+      )
+    );
+
+    // 1. Every single chapter (1..25) must differ across all 4 family members on storyHook, p1, and p2
+    for (let chIdx = 0; chIdx < 25; chIdx++) {
+      const hooksEn = new Set(reportsEn.map((r) => r.chapters[chIdx].storyHook));
+      const p1sEn = new Set(reportsEn.map((r) => r.chapters[chIdx].paragraphs[0]));
+      const p2sEn = new Set(reportsEn.map((r) => r.chapters[chIdx].paragraphs[1]));
+      expect(hooksEn.size, `Ch ${chIdx + 1} English storyHooks collided among 4 family members`).toBe(4);
+      expect(p1sEn.size, `Ch ${chIdx + 1} English p1 collided among 4 family members`).toBe(4);
+      expect(p2sEn.size, `Ch ${chIdx + 1} English p2 collided among 4 family members`).toBe(4);
+
+      const p1sKn = new Set(reportsKn.map((r) => r.chapters[chIdx].paragraphs[0]));
+      const p2sKn = new Set(reportsKn.map((r) => r.chapters[chIdx].paragraphs[1]));
+      expect(p1sKn.size, `Ch ${chIdx + 1} Kannada p1 collided among 4 family members`).toBe(4);
+      expect(p2sKn.size, `Ch ${chIdx + 1} Kannada p2 collided among 4 family members`).toBe(4);
+    }
+
+    // 2. Within a report, chapters must NOT share identical starting eyebrow/label across all 25 chapters
+    const fatherEyebrows = new Set(reportsEn[0].chapters.map((c) => c.promptEyebrow));
+    const fatherLabels = new Set(reportsEn[0].chapters.map((c) => c.promptLabel));
+    expect(fatherEyebrows.size).toBeGreaterThanOrEqual(4);
+    expect(fatherLabels.size).toBeGreaterThanOrEqual(4);
+
+    // 3. No false "unmarried" presumption when maritalStatus is omitted for hotel-table adults (Father & Mother)
+    // while keeping Kannada "ಸಂಗಾತಿ" and minor safety for SonChild
+    const motherCh14Kn = reportsKn[1].chapters[13].paragraphs.join(" ");
+    expect(motherCh14Kn).toContain("ಸಂಗಾತಿ");
+    const motherCh14En = reportsEn[1].chapters[13].paragraphs.join(" ");
+    expect(motherCh14En).not.toMatch(/when you are ready to marry|future spouse hunt/i);
+
+    const childCh12En = [reportsEn[3].chapters[11].question, ...reportsEn[3].chapters[11].paragraphs].join(" ");
+    expect(childCh12En).not.toMatch(/job promotion|office politics|salary negotiation/i);
+    const childCh14En = [reportsEn[3].chapters[13].question, ...reportsEn[3].chapters[13].paragraphs].join(" ");
+    expect(childCh14En).not.toMatch(/\bspouse\b|\bmarriage\b|\bwedding\b/i);
+  });
+
+  it("21. Rotates narrations automatically across Download #1, #2, and #3 for the SAME person while keeping identical chart truth", async () => {
+    const freshDevotee: KundliInput = {
+      name: "Karthik Bhat",
+      birthDate: "1991-08-27",
+      birthTime: "07:35",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      gender: "Male",
+      maritalStatus: "married"
+    };
+
+    const dl1 = await prepareSampoornaMaster25Data({ result: mockAdultKundli, input: freshDevotee, placeLabel: "Gokarna, Karnataka" }, "en");
+    const dl2 = await prepareSampoornaMaster25Data({ result: mockAdultKundli, input: freshDevotee, placeLabel: "Gokarna, Karnataka" }, "en");
+    const dl3 = await prepareSampoornaMaster25Data({ result: mockAdultKundli, input: freshDevotee, placeLabel: "Gokarna, Karnataka" }, "en");
+
+    expect(dl1.narrativeVariant).toBe(0);
+    expect(dl2.narrativeVariant).toBe(1);
+    expect(dl3.narrativeVariant).toBe(2);
+
+    // Underlying chart facts remain 100% consistent across all downloads
+    expect(dl1.lagnaRashiIdx).toBe(dl2.lagnaRashiIdx);
+    expect(dl2.lagnaRashiIdx).toBe(dl3.lagnaRashiIdx);
+    expect(dl1.nakshatraName).toBe(dl2.nakshatraName);
+    expect(dl1.yogiPlanet).toBe(dl2.yogiPlanet);
+    expect(dl1.bhriguBinduRashi).toBe(dl3.bhriguBinduRashi);
+
+    // Cover assurance & chapter narrations shift across downloads
+    expect(dl1.coverPage.personalAssurancePara1).not.toBe(dl2.coverPage.personalAssurancePara1);
+    expect(dl2.coverPage.personalAssurancePara1).not.toBe(dl3.coverPage.personalAssurancePara1);
+
+    for (let i = 0; i < 25; i++) {
+      const hooks = new Set([dl1.chapters[i].storyHook, dl2.chapters[i].storyHook, dl3.chapters[i].storyHook]);
+      expect(hooks.size, `Ch ${i + 1} repeat downloads shared identical storyHook`).toBe(3);
+
+      const p1s = new Set([dl1.chapters[i].paragraphs[0], dl2.chapters[i].paragraphs[0], dl3.chapters[i].paragraphs[0]]);
+      expect(p1s.size, `Ch ${i + 1} repeat downloads shared identical p1`).toBe(3);
+    }
+
+    // Rendered DOM sanity across editions (no double label prefix)
+    cleanup();
+    const { container } = render(<SampoornaMaster25PdfTemplate data={dl2} />);
+    const renderedText = container.textContent || "";
+    expect(renderedText).not.toMatch(/Question:\s*Question:/i);
+    expect(renderedText).not.toMatch(/Core Focus:\s*Core Focus:/i);
+    expect(renderedText).not.toMatch(/Chart Clue:\s*Through [^?]+?:/i);
+  });
+
+  it("22. Passes zero duplicate sentence skeletons, zero 99% leakage, and pure script isolation across all 4 editions and 6 languages", async () => {
+    const langs = ["kn", "mr", "hi", "te", "ta", "en"] as const;
+    const editions = [0, 1, 2, 3] as const;
+
+    const splitSentences = (txt: string): string[] =>
+      txt
+        .split(/(?<=[.!?।॥])\s+|\s*\n\s*/)
+        .map((s) => s.trim())
+        .filter((s) => s.length >= 20);
+
+    const normalizeSkeleton = (s: string): string =>
+      s
+        .replace(/[\d೦-೯०-९౦-౯௦-௯]+/g, "#")
+        .replace(/['"“”‘’()❖✦•—–\-:,.!?।॥]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+
+    for (const ed of editions) {
+      for (const lang of langs) {
+        const payload = await prepareSampoornaMaster25Data(
+          { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka (581326)" },
+          lang,
+          { narrativeVariant: ed }
+        );
+        expect(payload.chapters).toHaveLength(25);
+
+        const seenSkeletons = new Map<string, string>();
+        for (const ch of payload.chapters) {
+          expect(ch.paragraphs).toHaveLength(3);
+          for (const p of ch.paragraphs) {
+            expect(p.length, `[ed=${ed}, lang=${lang}, ch=${ch.chapterNumber}] short para`).toBeGreaterThanOrEqual(60);
+          }
+          expect((ch.storyHook || "").length).toBeGreaterThanOrEqual(40);
+          expect(ch.promptEyebrow).toBeTruthy();
+          expect(ch.promptLabel).toBeTruthy();
+
+          if (ch.chapterNumber !== 4) {
+            const body = [ch.question, ...ch.paragraphs, ch.practicalGuidance || ""].join(" ");
+            expect(body).not.toMatch(/(99%|೯೯%|९९%|௯௯%)/);
+          }
+
+          if (lang !== "en") {
+            const body = [ch.question, ...ch.paragraphs, ch.practicalGuidance || ""].join(" ");
+            expect(body, `[ed=${ed}, lang=${lang}, ch=${ch.chapterNumber}] English word leak`).not.toMatch(/[a-zA-Z]{2,}/);
+          }
+          if (lang === "ta") {
+            const body = [ch.question, ...ch.paragraphs, ch.practicalGuidance || ""].join(" ");
+            expect(body, `[ed=${ed}, ch=${ch.chapterNumber}] Devanagari/danda in Tamil`).not.toMatch(/[\u0900-\u097F॥।ॐ]/);
+          }
+          if (lang !== "kn") {
+            const body = [ch.question, ...ch.paragraphs, ch.practicalGuidance || ""].join(" ");
+            expect(body, `[ed=${ed}, lang=${lang}, ch=${ch.chapterNumber}] Kannada char in non-Kannada`).not.toMatch(/[\u0C80-\u0CFF]/);
+          }
+
+          const fields: Array<[string, string]> = [
+            ["q", ch.question],
+            ["p1", ch.paragraphs[0] || ""],
+            ["p2", ch.paragraphs[1] || ""],
+            ["p3", ch.paragraphs[2] || ""],
+            ["guidance", ch.practicalGuidance || ""]
+          ];
+          for (const [field, txt] of fields) {
+            for (const sent of splitSentences(txt)) {
+              const skel = normalizeSkeleton(sent);
+              const loc = `Ch${ch.chapterNumber}.${field}`;
+              expect(seenSkeletons.has(skel), `[ed=${ed}, lang=${lang}] Duplicate skeleton at ${loc} & ${seenSkeletons.get(skel)}: "${sent}"`).toBe(false);
+              seenSkeletons.set(skel, loc);
+            }
+          }
+        }
+      }
+    }
+  });
 });

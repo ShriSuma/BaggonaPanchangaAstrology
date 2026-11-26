@@ -83,6 +83,8 @@ export interface Master25Chapter {
   title: string;
   icon: string;
   question: string;
+  promptEyebrow?: string;
+  promptLabel?: string;
   storyHook?: string;
   paragraphs: string[];
   precisionAnchors?: string[];
@@ -203,6 +205,7 @@ export interface SampoornaMaster25Payload {
 
   // 25 Chapters
   chapters: Master25Chapter[];
+  narrativeVariant?: number;
 
   // 15-Day Personal Daily Darshana Google Calendar QR Section
   calendarQrSection?: CalendarQrSectionData;
@@ -365,10 +368,41 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
 // 3. MASTER DATA PREPARATION PIPELINE
 // ============================================================================
 
+const NARRATIVE_EDITION_MEMORY = new Map<string, number>();
+
+function resolveNextNarrativeEdition(personKey: string, explicitVariant?: number): number {
+  if (typeof explicitVariant === "number" && Number.isFinite(explicitVariant)) {
+    return Math.max(0, Math.floor(explicitVariant));
+  }
+  let current = NARRATIVE_EDITION_MEMORY.get(personKey) ?? -1;
+  if (current < 0) {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const stored = window.localStorage.getItem(`bp_m25_ed_${personKey}`);
+        if (stored !== null && /^\d+$/.test(stored)) {
+          current = parseInt(stored, 10);
+        }
+      }
+    } catch {
+      // Storage blocked in headless/sandbox environments
+    }
+  }
+  const next = current >= 0 ? (current + 1) % 4 : 0;
+  NARRATIVE_EDITION_MEMORY.set(personKey, next);
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem(`bp_m25_ed_${personKey}`, String(next));
+    }
+  } catch {
+    // Ignore persistence write failures
+  }
+  return next;
+}
+
 export async function prepareSampoornaMaster25Data(
   sessionOrData: any,
   langArg?: SixLang,
-  options?: { onProgress?: (pct: number, msg: string) => void }
+  options?: { onProgress?: (pct: number, msg: string) => void; narrativeVariant?: number }
 ): Promise<SampoornaMaster25Payload> {
   const rawRequestedLang = (langArg || (sessionOrData?.targetLanguage as string) || "kn").slice(0, 2).toLowerCase();
   const targetLang: SixLang = (rawRequestedLang === "ml" ? "en" : ["kn", "mr", "hi", "te", "ta", "en"].includes(rawRequestedLang) ? rawRequestedLang : "kn") as SixLang;
@@ -418,6 +452,7 @@ export async function prepareSampoornaMaster25Data(
 
   const cleanRegionalLabel = (val: string): string => cleanRegionalPreserveBullets(val, targetLang);
   const gender: "male" | "female" = (input?.gender?.toLowerCase() === "female") ? "female" : "male";
+  const hasExplicitMarital = Boolean(input?.maritalStatus && String(input.maritalStatus).trim() !== "");
   const maritalStatus = input?.maritalStatus || "unmarried";
   const childrenStatus = input?.childrenStatus || "no_children";
 
@@ -429,6 +464,14 @@ export async function prepareSampoornaMaster25Data(
     ? Math.max(0.1, computedAge)
     : (isNaN(birthDt.getTime()) ? 30 : Math.max(0.1, (now.getTime() - birthDt.getTime()) / (365.25 * 24 * 3600 * 1000)));
   const ageCategory = getAgeCategory25(ageDecimal);
+  const maritalContext: "married" | "unmarried" | "unspecified" = hasExplicitMarital
+    ? (String(maritalStatus).toLowerCase() === "married" ? "married" : "unmarried")
+    : ageDecimal < 24
+    ? "unmarried"
+    : "unspecified";
+  const normNameKey = String(rawName || "devotee").trim().toLowerCase().replace(/\s+/g, "_").slice(0, 28);
+  const personEditionKey = `${birthDate}|${birthTime}|${lat.toFixed(2)}|${lng.toFixed(2)}|${normNameKey}|${targetLang}`;
+  const narrativeVariant = resolveNextNarrativeEdition(personEditionKey, options?.narrativeVariant);
 
   options?.onProgress?.(25, pick6({
     kn: "೨. ದಕ್ಷಿಣ ಭಾರತದ ರಹಸ್ಯ ಗಣಿತ (ಯೋಗಿ, ಅವಯೋಗಿ, ಬೃಗು ಬಿಂದು, ಮಾಂದಿ)...",
@@ -934,6 +977,17 @@ export async function prepareSampoornaMaster25Data(
     lagnaLordName: lagnaLord,
     extendedPrecision,
     nowYear: now.getFullYear(),
+    narrativeVariant,
+    maritalContext,
+    janmaDashaBalance,
+    rawMaha,
+    rawBhukti,
+    rawAvayogi,
+    shaniVedhaObstructed: Boolean(shaniVedha?.isObstructed),
+    guruVedhaObstructed: Boolean(guruVedha?.isObstructed),
+    yogiRashiName: RASHI_6L[secretProfile.yogiRashi]?.[targetLang] || "Aries",
+    avayogiRashiName: RASHI_6L[secretProfile.avayogiRashi]?.[targetLang] || "Gemini",
+    bhriguBinduHouseFromMoon: houseFromMoon(secretProfile.bhriguBinduRashi),
   };
 
   const coverPage: BookletCoverContent = buildDynamicBookletCover(storyCtx);
@@ -1303,6 +1357,7 @@ export async function prepareSampoornaMaster25Data(
     initialCalendarQrPage: 28,
     initialFinalBlessingPage: 30,
     chapters,
+    narrativeVariant,
     calendarQrSection,
     familyProtectionHook,
     priestBooking,

@@ -19,6 +19,18 @@ import { cleanEnglishFromRegionalText } from "../features/premiumPdf/premiumPdfL
 import { cleanDegreesFromText, cleanPunctuationArtifacts } from "../features/premiumPdf/yogaDoshaGocharaEnricher";
 import { type SixLang, pick6, RASHI_6L, GRAHA_6L } from "../features/fiveYearPrediction/fiveYearLocale";
 import type { BookletCoverContent, ExtendedPrecisionMetrics, HouseLordPlacementInfo } from "./sampoornaMaster25BookletEngine";
+import {
+  extractChartArchetypeSnapshot,
+  buildDynamicCoverEditionParas,
+  buildChapterUniqueHook,
+  buildChapterHeaderMeta,
+  buildDynamicChapterQuestion,
+  buildChartGroundedSupplement,
+  buildNonRepetitiveP2Opener,
+  stripFormulaicTwistLead,
+  stripFormulaicPauseLead,
+  buildNonRepetitiveReflectionLead,
+} from "./sampoornaMaster25DynamicNarratives";
 
 export type ChapterVisualType =
   | "energy-gauge"
@@ -162,6 +174,17 @@ export interface StoryEngineInput {
 
   extendedPrecision: ExtendedPrecisionMetrics;
   nowYear: number;
+  narrativeVariant?: number;
+  maritalContext?: "married" | "unmarried" | "unspecified";
+  janmaDashaBalance?: string;
+  rawMaha?: string;
+  rawBhukti?: string;
+  rawAvayogi?: string;
+  shaniVedhaObstructed?: boolean;
+  guruVedhaObstructed?: boolean;
+  yogiRashiName?: string;
+  avayogiRashiName?: string;
+  bhriguBinduHouseFromMoon?: number;
 }
 
 export type NarrativeThemeKey =
@@ -190,6 +213,8 @@ export interface GeneratedStoryChapter {
   title: string;
   icon: string;
   question: string;
+  promptEyebrow?: string;
+  promptLabel?: string;
   storyHook: string;
   paragraphs: string[];
   precisionAnchors: string[];
@@ -412,23 +437,16 @@ export function buildDynamicBookletCover(ctx: StoryEngineInput): BookletCoverCon
       ? pick6({ kn: "ವಾಯು ಚುರುಕುತನ", mr: "वायू गती", hi: "वायु गतिशीलता", te: "వాయు వేగం", ta: "வாயு வேகம்", en: "Air agility" }, lang)
       : pick6({ kn: "ಜಲ ಅಂತಃಪ್ರಜ್ಞೆ", mr: "जल संवेदनशीलता", hi: "जल अंतर्ज्ञान", te: "జల అంతర్దృష్టి", ta: "நீர் உள்ளுணர்வு", en: "Water intuition" }, lang);
 
-  const p1 = pick6({
-    kn: `ಪ್ರೀತಿಯ ${devoteeName}, ${n(birthDate)} ರಂದು ${n(birthTime)}ಕ್ಕೆ ${birthPlace}ದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಥಮ ಶ್ವಾಸ ಮೂಡಿದ ಕ್ಷಣದ ಪವಿತ್ರ ಪಂಚಾಂಗವು (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} ಹೋರೆ) ಒಂದು ಅಪೂರ್ವ ಜೀವನ ಕಥೆಯನ್ನು ಬರೆದಿದೆ: ${varaSpark}; ಹಾಗೂ ${pakshaTone}.`,
-    mr: `प्रिय ${devoteeName}, दिनांक ${n(birthDate)} रोजी ${n(birthTime)} वाजता ${birthPlace} येथील आपल्या जन्मपंचांगाने (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} होरा) एक अनोखी जीवनकथा घडवली आहे: ${varaSpark}; तसेच ${pakshaTone}.`,
-    hi: `प्रिय ${devoteeName}, दिनांक ${n(birthDate)} को ${n(birthTime)} बजे ${birthPlace} के पावन जन्म-पंचांग (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} होरा) ने आपके जीवन की एक विशिष्ट कथा लिखी है: ${varaSpark}, और ${pakshaTone}।`,
-    te: `ప్రియమైన ${devoteeName}, ${n(birthDate)} నాడు ${n(birthTime)} గంటలకు ${birthPlace}లో మీ జన్మ పంచాంగం (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} హోర) ఒక విశేషమైన జీవన కథనాన్ని రాసింది: ${varaSpark}; మరియు ${pakshaTone}.`,
-    ta: `அன்புள்ள ${devoteeName}, ${n(birthDate)} அன்று ${n(birthTime)} மணிக்கு ${birthPlace}ல் அமைந்த உங்கள் ஜென்ம பஞ்சாங்கம் (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} ஹோரை) ஒரு தனித்துவமான வாழ்க்கைக் கதையை வரைந்துள்ளது: ${varaSpark}; மேலும் ${pakshaTone}.`,
-    en: `Dear ${devoteeName}, your exact birth Panchanga on ${birthDate} at ${birthTime} in ${birthPlace} (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} Hora) reveals why your path never matched anyone else's: ${varaSpark}, while ${pakshaTone}.`,
-  }, lang);
-
-  const p2 = pick6({
-    kn: `${ganaTwist}. ನಿಮ್ಮ ${lagnaRashiName} ಲಗ್ನ ಮತ್ತು ${moonRashiName} ರಾಶಿಯಲ್ಲಿ ಬೆಸೆದ '${elemFlavor}', ಯೋಗಿ '${yogiPlanetName}' ರಕ್ಷೆ ಹಾಗೂ ${n(maandiHouse)}ನೇ ಭಾವದ (${maandiDomainAffected}) ಪರೀಕ್ಷೆ ಏಕೆ ನಡೆದಿದೆ ಎಂಬ ರಹಸ್ಯವು ಮುಂದಿನ ೨೫ ಅಧ್ಯಾಯಗಳಲ್ಲಿ ರೋಚಕ ತಿರುವುಗಳೊಂದಿಗೆ ತೆರೆದುಕೊಳ್ಳಲಿದೆ — ಇದು ಕೇವಲ ನಿಮಗಾಗಿ ಬರೆದ ಜೀವನ ಕೈಪಿಡಿ!`,
-    mr: `${ganaTwist}. आपल्या ${lagnaRashiName} लग्न व ${moonRashiName} राशीतील '${elemFlavor}', योगी '${yogiPlanetName}' चे बळ आणि ${n(maandiHouse)}व्या स्थानाची (${maandiDomainAffected}) परीक्षा कशी सुटणार, ही रंजक कथा पुढील २५ अध्यायांत उलगडणार आहे — ही केवळ आपल्यासाठी घडवलेली पुस्तिका आहे!`,
-    hi: `${ganaTwist}। आपके ${lagnaRashiName} लग्न और ${moonRashiName} राशि में समाहित '${elemFlavor}', योगी '${yogiPlanetName}' का वरदान एवं ${n(maandiHouse)}वें स्थान (${maandiDomainAffected}) के अनकहे मोड़ आगे के २५ अध्यायों में एक रोचक कथा की तरह खुलेंगे — इसे संभालकर रखें!`,
-    te: `${ganaTwist}. మీ ${lagnaRashiName} లగ్నం, ${moonRashiName} రాశిలోని '${elemFlavor}', యోగి '${yogiPlanetName}' బలం మరియు ${n(maandiHouse)}వ స్థానం (${maandiDomainAffected}) వెనుక ఉన్న ఆసక్తికర మలుపులు రాబోయే 25 అధ్యాయాల్లో కళ్ళకు కట్టినట్లు విచ్చుకోనున్నాయి!`,
-    ta: `${ganaTwist}. உங்கள் ${lagnaRashiName} லக்னம் மற்றும் ${moonRashiName} ராசியின் '${elemFlavor}', யோகி '${yogiPlanetName}' துணை மற்றும் ${n(maandiHouse)}-ம் இட (${maandiDomainAffected}) திருப்பங்கள் அடுத்த 25 அத்தியாயங்களில் விறுவிறுப்பான கதையாக விரியவுள்ளன!`,
-    en: `${ganaTwist}. Woven around your ${lagnaRashiName} ascendant, ${moonRashiName} Moon, innate ${elemFlavor}, Yogi ${yogiPlanetName}'s quiet backing, and the hidden test inside ${maandiDomainAffected}, the 25 chapters ahead unfold your real story—keep this private edition close.`,
-  }, lang);
+  const coverEdition = ((((ctx.narrativeVariant ?? 0) % 4) + 4) % 4) as 0 | 1 | 2 | 3;
+  const { p1, p2 } = buildDynamicCoverEditionParas(
+    ctx,
+    cleanTithiWithPaksha,
+    varaSpark,
+    pakshaTone,
+    ganaTwist,
+    elemFlavor,
+    coverEdition
+  );
 
   const rawCover: BookletCoverContent = {
     brandBannerTitle: pick6({
@@ -706,8 +724,14 @@ function buildShuffledChapterThemes(ctx: StoryEngineInput): Record<number, Narra
   const dobSum = (ctx.birthDate || "")
     .split("")
     .reduce((acc, ch) => acc + (ch.charCodeAt(0) || 0), 0);
+  const nameSum = (ctx.devoteeName || "")
+    .split("")
+    .reduce((acc, ch) => acc + (ch.charCodeAt(0) || 0), 0);
+  const editionSalt = ((((ctx.narrativeVariant ?? 0) % 4) + 4) % 4) * 131;
   const seedBase =
     dobSum * 31 +
+    nameSum * 23 +
+    editionSalt +
     ctx.nakshatraIdx * 17 +
     ctx.lagnaRashiIdx * 13 +
     ctx.moonRashiIdx * 11 +
@@ -1795,7 +1819,11 @@ export function buildDynamicStoryChapters(
   const isChildOrInfant = ageCategory === "infant" || ageCategory === "early_child" || ageCategory === "child";
   const isMinor = isChildOrInfant || ageCategory === "teen";
   const isSenior = ageCategory === "senior";
-  const isUnmarried = !isMinor && String(maritalStatus || "").toLowerCase() === "unmarried";
+  const isUnmarried =
+    !isMinor &&
+    (ctx.maritalContext
+      ? ctx.maritalContext === "unmarried"
+      : String(maritalStatus || "").toLowerCase() === "unmarried");
   const gana = getNakshatraGana(nakshatraIdx);
   const modality = getLagnaModality(lagnaRashiIdx);
 
@@ -3114,8 +3142,22 @@ export function buildDynamicStoryChapters(
     }
   );
 
-  // Shuffled 5-Theme Story Lens (cinema, nakshatra, yoga_karana, near_far, parable) + 5-6 line enrichment
+  // Shuffled 5-Theme Story Lens + Chart-Grounded Edition Dynamics (zero shared family boilerplate)
   const themeAssignment = buildShuffledChapterThemes(ctx);
+  const arch = extractChartArchetypeSnapshot(ctx);
+
+  const hasShortColonPrefix = (text: string) => /^[^.!?।॥\n]{2,42}:\s/.test(text);
+  const takeLeadSentences = (text: string, maxChars: number): string => {
+    if (!text || text.length <= maxChars) return text;
+    const parts = text.split(/(?<=[.!?।॥])\s+/).filter(Boolean);
+    if (parts.length <= 1) return text;
+    let out = parts[0];
+    for (let i = 1; i < parts.length; i++) {
+      if ((out + " " + parts[i]).length <= maxChars) out = `${out} ${parts[i]}`;
+      else break;
+    }
+    return out;
+  };
 
   // Sort strictly 1..25 and clean all strings for 100% selected-language purity
   return list
@@ -3143,10 +3185,76 @@ export function buildDynamicStoryChapters(
       const expandTo5Lines = (base: string, ext: string) =>
         ext && base.length < minTargetLen ? cleanRegional(`${base} ${ext}`, lang) : base;
 
-      // Blend the first-person Hero Voice cleanly into Paragraph 1 (matching Premium PDF V1 card flow)
-      const heroParagraph1 = layer.storyHook
-        ? cleanRegional(`${layer.storyHook} ${baseP1}`, lang)
-        : expandTo5Lines(baseP1, layer.extP1);
+      const dynamicHook = cleanRegional(
+        buildChapterUniqueHook(item.n, themeKey, arch, ctx, isChildOrInfant),
+        lang
+      );
+      const headerMeta = buildChapterHeaderMeta(item.n, themeKey, lang, arch.edition);
+      const rawQuestion = cleanRegional(pick6(item.question, lang), lang);
+      const dynamicQuestion = cleanRegional(buildDynamicChapterQuestion(item.n, ctx, arch, rawQuestion), lang);
+      const supp = buildChartGroundedSupplement(item.n, arch, ctx, isChildOrInfant, isMinor, isSenior);
+
+      const isGenericStaticCh =
+        item.n === 3 ||
+        item.n === 6 ||
+        item.n === 7 ||
+        item.n === 8 ||
+        item.n === 9 ||
+        item.n === 10 ||
+        (item.n >= 19 && item.n <= 22);
+      const keepFullBaseCh = [1, 11, 12, 14, 23, 25].includes(item.n);
+      const isNeutralMaritalCh14 = item.n === 14 && ctx.maritalContext === "unspecified" && !isMinor;
+
+      // Paragraph 1: Dynamic unique opener + chart-grounded insight (+ age/keyword-safe core)
+      const suppP1 = cleanRegional(supp.p1Focus, lang);
+      const p1Body = suppP1
+        ? isGenericStaticCh || isNeutralMaritalCh14
+          ? suppP1
+          : keepFullBaseCh
+          ? cleanRegional(`${suppP1} ${baseP1}`, lang)
+          : cleanRegional(`${suppP1} ${takeLeadSentences(baseP1, 220)}`, lang)
+        : baseP1;
+
+      const heroParagraph1 = dynamicHook
+        ? expandTo5Lines(cleanRegional(`${dynamicHook} ${p1Body}`, lang), layer.extP1)
+        : expandTo5Lines(p1Body, layer.extP1);
+
+      // Paragraph 2: Strip formulaic "twist:" lead and weave varied edition + chart angle
+      const cleanedBaseP2 = cleanRegional(stripFormulaicTwistLead(baseP2), lang);
+      const p2Lead = cleanRegional(buildNonRepetitiveP2Opener(item.n, arch.edition, lang), lang);
+      const suppP2 = cleanRegional(supp.p2Body, lang);
+      let p2Raw: string;
+      if (suppP2) {
+        const formattedSuppP2 = hasShortColonPrefix(suppP2) ? suppP2 : cleanRegional(`${p2Lead} ${suppP2}`, lang);
+        if (isGenericStaticCh && suppP2.length >= 60) {
+          p2Raw = formattedSuppP2;
+        } else {
+          const baseP2Slice = keepFullBaseCh ? cleanedBaseP2 : takeLeadSentences(cleanedBaseP2, 200);
+          p2Raw = baseP2Slice ? cleanRegional(`${formattedSuppP2} ${baseP2Slice}`, lang) : formattedSuppP2;
+        }
+      } else {
+        p2Raw = cleanRegional(`${p2Lead} ${cleanedBaseP2}`, lang);
+      }
+
+      // Paragraph 3: Ground closing takeaway in chart + edition progression
+      const suppP3 = cleanRegional(supp.p3Body, lang);
+      const p3Raw =
+        suppP3.length >= 50
+          ? isGenericStaticCh || !keepFullBaseCh
+            ? suppP3
+            : cleanRegional(`${suppP3} ${takeLeadSentences(baseP3, 200)}`, lang)
+          : baseP3;
+
+      // Reflection: Strip cloned "Pause & Check:" and vary per chapter & edition
+      const rawRefl = cleanRegional(pick6(item.reflection, lang), lang);
+      const cleanedRefl = cleanRegional(stripFormulaicPauseLead(rawRefl), lang);
+      const reflLead = cleanRegional(buildNonRepetitiveReflectionLead(item.n, arch.edition, lang), lang);
+      const suppRefl = cleanRegional(supp.reflectionNote, lang);
+      const finalGuidance = suppRefl
+        ? hasShortColonPrefix(suppRefl)
+          ? suppRefl
+          : cleanRegional(`${reflLead} ${suppRefl}`, lang)
+        : cleanRegional(`${reflLead} ${cleanedRefl}`, lang);
 
       return {
         chapterNumber: item.n,
@@ -3154,16 +3262,18 @@ export function buildDynamicStoryChapters(
         sectionTitle: cleanRegional(item.secTitle, lang),
         title: cleanRegional(pick6(item.title, lang), lang),
         icon: item.icon,
-        question: cleanRegional(pick6(item.question, lang), lang),
-        storyHook: layer.storyHook,
+        question: dynamicQuestion,
+        promptEyebrow: cleanRegional(headerMeta.promptEyebrow, lang),
+        promptLabel: cleanRegional(headerMeta.promptLabel, lang),
+        storyHook: dynamicHook,
         paragraphs: [
           heroParagraph1,
-          expandTo5Lines(baseP2, layer.extP2),
-          expandTo5Lines(baseP3, layer.extP3),
+          expandTo5Lines(p2Raw, layer.extP2),
+          expandTo5Lines(p3Raw, layer.extP3),
         ],
         precisionAnchors: item.anchors,
         guidanceBadge: cleanRegional(pick6(item.badge, lang), lang),
-        practicalGuidance: cleanRegional(pick6(item.reflection, lang), lang),
+        practicalGuidance: finalGuidance,
         visualType: item.visual,
         visualSummary: layer.visualSummary,
       };
