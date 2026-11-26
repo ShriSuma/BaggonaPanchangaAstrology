@@ -288,6 +288,14 @@ export function buildDynamicBookletCover(ctx: StoryEngineInput): BookletCoverCon
 
   const n = (v: number | string) => digits(v, lang);
   const gana = getNakshatraGana(nakshatraIdx);
+  const cleanTithiWithPaksha = (() => {
+    const cleanT = tithiName.replace(/^(\S+)\s+\1(?=\s|$)/u, "$1").trim();
+    if (!pakshaName || isShuklaPaksha === undefined) return cleanT;
+    if (cleanT.includes(pakshaName) || /ಹುಣ್ಣಿಮೆ|ಅಮಾವಾಸ್ಯೆ|पूर्णिमा|अमावस्या|పౌర్ణమి|అమావాస్య|பௌர்ணமி|அமாவாசை|purnima|amavasya/i.test(cleanT)) {
+      return cleanT;
+    }
+    return `${pakshaName} ${cleanT}`.trim();
+  })();
 
   // 7 distinct weekday life-spark archetypes
   const varaSpark = [
@@ -406,12 +414,12 @@ export function buildDynamicBookletCover(ctx: StoryEngineInput): BookletCoverCon
       : pick6({ kn: "ಜಲ ಅಂತಃಪ್ರಜ್ಞೆ", mr: "जल संवेदनशीलता", hi: "जल अंतर्ज्ञान", te: "జల అంతర్దృష్టి", ta: "நீர் உள்ளுணர்வு", en: "Water intuition" }, lang);
 
   const p1 = pick6({
-    kn: `ಪ್ರೀತಿಯ ${devoteeName}, ${n(birthDate)} ರಂದು ${n(birthTime)}ಕ್ಕೆ ${birthPlace}ದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಥಮ ಶ್ವಾಸ ಮೂಡಿದ ಕ್ಷಣದ ಪವಿತ್ರ ಪಂಚಾಂಗವು (${pakshaName} ${tithiName} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} ಹೋರೆ) ಒಂದು ಅಪೂರ್ವ ಜೀವನ ಕಥೆಯನ್ನು ಬರೆದಿದೆ: ${varaSpark}; ಹಾಗೂ ${pakshaTone}.`,
-    mr: `प्रिय ${devoteeName}, दिनांक ${n(birthDate)} रोजी ${n(birthTime)} वाजता ${birthPlace} येथील आपल्या जन्मपंचांगाने (${pakshaName} ${tithiName} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} होरा) एक अनोखी जीवनकथा घडवली आहे: ${varaSpark}; तसेच ${pakshaTone}.`,
-    hi: `प्रिय ${devoteeName}, दिनांक ${n(birthDate)} को ${n(birthTime)} बजे ${birthPlace} के पावन जन्म-पंचांग (${pakshaName} ${tithiName} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} होरा) ने आपके जीवन की एक विशिष्ट कथा लिखी है: ${varaSpark}, और ${pakshaTone}।`,
-    te: `ప్రియమైన ${devoteeName}, ${n(birthDate)} నాడు ${n(birthTime)} గంటలకు ${birthPlace}లో మీ జన్మ పంచాంగం (${pakshaName} ${tithiName} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} హోర) ఒక విశేషమైన జీవన కథనాన్ని రాసింది: ${varaSpark}; మరియు ${pakshaTone}.`,
-    ta: `அன்புள்ள ${devoteeName}, ${n(birthDate)} அன்று ${n(birthTime)} மணிக்கு ${birthPlace}ல் அமைந்த உங்கள் ஜென்ம பஞ்சாங்கம் (${pakshaName} ${tithiName} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} ஹோரை) ஒரு தனித்துவமான வாழ்க்கைக் கதையை வரைந்துள்ளது: ${varaSpark}; மேலும் ${pakshaTone}.`,
-    en: `Dear ${devoteeName}, your exact birth Panchanga on ${birthDate} at ${birthTime} in ${birthPlace} (${pakshaName} ${tithiName} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} Hora) reveals why your path never matched anyone else's: ${varaSpark}, while ${pakshaTone}.`,
+    kn: `ಪ್ರೀತಿಯ ${devoteeName}, ${n(birthDate)} ರಂದು ${n(birthTime)}ಕ್ಕೆ ${birthPlace}ದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಥಮ ಶ್ವಾಸ ಮೂಡಿದ ಕ್ಷಣದ ಪವಿತ್ರ ಪಂಚಾಂಗವು (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} ಹೋರೆ) ಒಂದು ಅಪೂರ್ವ ಜೀವನ ಕಥೆಯನ್ನು ಬರೆದಿದೆ: ${varaSpark}; ಹಾಗೂ ${pakshaTone}.`,
+    mr: `प्रिय ${devoteeName}, दिनांक ${n(birthDate)} रोजी ${n(birthTime)} वाजता ${birthPlace} येथील आपल्या जन्मपंचांगाने (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} होरा) एक अनोखी जीवनकथा घडवली आहे: ${varaSpark}; तसेच ${pakshaTone}.`,
+    hi: `प्रिय ${devoteeName}, दिनांक ${n(birthDate)} को ${n(birthTime)} बजे ${birthPlace} के पावन जन्म-पंचांग (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} होरा) ने आपके जीवन की एक विशिष्ट कथा लिखी है: ${varaSpark}, और ${pakshaTone}।`,
+    te: `ప్రియమైన ${devoteeName}, ${n(birthDate)} నాడు ${n(birthTime)} గంటలకు ${birthPlace}లో మీ జన్మ పంచాంగం (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} హోర) ఒక విశేషమైన జీవన కథనాన్ని రాసింది: ${varaSpark}; మరియు ${pakshaTone}.`,
+    ta: `அன்புள்ள ${devoteeName}, ${n(birthDate)} அன்று ${n(birthTime)} மணிக்கு ${birthPlace}ல் அமைந்த உங்கள் ஜென்ம பஞ்சாங்கம் (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} ஹோரை) ஒரு தனித்துவமான வாழ்க்கைக் கதையை வரைந்துள்ளது: ${varaSpark}; மேலும் ${pakshaTone}.`,
+    en: `Dear ${devoteeName}, your exact birth Panchanga on ${birthDate} at ${birthTime} in ${birthPlace} (${cleanTithiWithPaksha} • ${weekdayName} • ${yogaName} • ${karanaName} • ${janmaHora} Hora) reveals why your path never matched anyone else's: ${varaSpark}, while ${pakshaTone}.`,
   }, lang);
 
   const p2 = pick6({
@@ -449,12 +457,12 @@ export function buildDynamicBookletCover(ctx: StoryEngineInput): BookletCoverCon
       en: `Exclusive Private Edition for ${devoteeName}`,
     }, lang),
     bookletEditionLine: pick6({
-      kn: `${weekdayName} • ${pakshaName} ${tithiName} • ${yogaName} ಯೋಗ • ${karanaName} ಕರಣ • ${janmaHora} ಹೋರೆ`,
-      mr: `${weekdayName} • ${pakshaName} ${tithiName} • ${yogaName} योग • ${karanaName} करण • ${janmaHora} होरा`,
-      hi: `${weekdayName} • ${pakshaName} ${tithiName} • ${yogaName} योग • ${karanaName} करण • ${janmaHora} होरा`,
-      te: `${weekdayName} • ${pakshaName} ${tithiName} • ${yogaName} యోగం • ${karanaName} కరణం • ${janmaHora} హోర`,
-      ta: `${weekdayName} • ${pakshaName} ${tithiName} • ${yogaName} யோகம் • ${karanaName} கரணம் • ${janmaHora} ஹோரை`,
-      en: `${weekdayName} • ${pakshaName} ${tithiName} • ${yogaName} • ${karanaName} • ${janmaHora} Hora`,
+      kn: `${weekdayName} • ${cleanTithiWithPaksha} • ${yogaName} ಯೋಗ • ${karanaName} ಕರಣ • ${janmaHora} ಹೋರೆ`,
+      mr: `${weekdayName} • ${cleanTithiWithPaksha} • ${yogaName} योग • ${karanaName} करण • ${janmaHora} होरा`,
+      hi: `${weekdayName} • ${cleanTithiWithPaksha} • ${yogaName} योग • ${karanaName} करण • ${janmaHora} होरा`,
+      te: `${weekdayName} • ${cleanTithiWithPaksha} • ${yogaName} యోగం • ${karanaName} కరణం • ${janmaHora} హోర`,
+      ta: `${weekdayName} • ${cleanTithiWithPaksha} • ${yogaName} யோகம் • ${karanaName} கரணம் • ${janmaHora} ஹோரை`,
+      en: `${weekdayName} • ${cleanTithiWithPaksha} • ${yogaName} • ${karanaName} • ${janmaHora} Hora`,
     }, lang),
     personalAssurancePara1: cleanRegional(p1, lang),
     personalAssurancePara2: cleanRegional(p2, lang),
@@ -1396,7 +1404,7 @@ export function buildDynamicStoryChapters(
         en: `Pause & Check: Have you ever asked yourself, "Why do I always show up for everyone, yet feel strangely alone when the tables turn?"—that chapter ends here.`,
       },
       badge: { kn: "ಆಂತರಿಕ ಗಡಿ", mr: "भावनिक मर्यादा", hi: "भावनात्मक सीमा", te: "హృదయ సత్యం", ta: "உள்ளத் தெளிவு", en: "Hidden Truth" },
-      anchors: [`${yogiPlanetName}`, `${pakshaName} ${tithiName}`],
+      anchors: [`${yogiPlanetName}`, tithiName.includes(pakshaName) ? tithiName : `${pakshaName} ${tithiName}`],
     },
 
     // CHAPTER 3 — Past 24-Month Reality Check & Turning Point

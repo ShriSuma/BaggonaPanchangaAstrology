@@ -1275,28 +1275,71 @@ const PLACE_TERMS_6L: Record<string, Record<SixLang, string>> = {
 };
 
 /**
- * Resolves place labels into pure selected-language script so Latin city names
- * do not mix into regional-language booklet covers/headers (and vice versa).
+ * Parses and deduplicates noisy compound place strings such as
+ * "Gokarna (581326) · Gokarna (581326) · Karnataka" into a crisp, non-repeating
+ * localized display string without losing parenthesized pincodes.
  */
 export function resolvePlaceDisplayName(rawPlace: string, lang: SixLang): string {
   const clean = (rawPlace || "").trim();
   if (!clean) return "";
-  return clean
-    .split(",")
-    .map((segment) => {
-      const part = segment.trim();
-      const lower = part.toLowerCase();
+
+  const rawParts = clean
+    .split(/[,·•|\n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  // Deduplicate semantically equivalent tokens; prefer the pincode-annotated token if both exist.
+  const orderedKeys: string[] = [];
+  const byCoreKey = new Map<string, string>();
+
+  for (const segment of rawParts) {
+    const pinMatch = segment.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    const rawCore = (pinMatch ? pinMatch[1] : segment).trim();
+    const rawPin = pinMatch ? pinMatch[2].trim() : "";
+
+    const localizeCore = (text: string): string => {
+      if (!text) return "";
+      const lower = text.toLowerCase();
       if (PLACE_TERMS_6L[lower]?.[lang]) {
         return PLACE_TERMS_6L[lower][lang];
       }
       if (lang === "en") {
-        return resolveDevoteeDisplayName(part, "en");
+        return resolveDevoteeDisplayName(text, "en");
       }
-      const localizedPart = /[a-zA-Z]/.test(part)
-        ? transliterateName(part, lang)
-        : resolveDevoteeDisplayName(part, lang);
-      return formatDigits(localizedPart, lang);
-    })
-    .filter(Boolean)
-    .join(", ");
+      const localized = /[a-zA-Z]/.test(text)
+        ? transliterateName(text, lang)
+        : resolveDevoteeDisplayName(text, lang);
+      return formatDigits(localized, lang);
+    };
+
+    const localizedCore = localizeCore(rawCore);
+    if (!localizedCore && !rawPin) continue;
+
+    const localizedPin = rawPin ? formatDigits(rawPin, lang) : "";
+    const formatted = localizedPin && localizedCore
+      ? `${localizedCore} (${localizedPin})`
+      : (localizedCore || localizedPin);
+
+    const coreKey = (rawCore || localizedCore).toLowerCase().replace(/\s+/g, " ").trim();
+    const existing = byCoreKey.get(coreKey);
+    if (!existing) {
+      orderedKeys.push(coreKey);
+      byCoreKey.set(coreKey, formatted);
+    } else if (localizedPin && !existing.includes("(")) {
+      byCoreKey.set(coreKey, formatted);
+    }
+  }
+
+  return orderedKeys.map((k) => byCoreKey.get(k)!).filter(Boolean).join(", ");
+}
+
+/**
+ * Extracts a concise single-city label (without repeating segments or pincodes)
+ * for natural conversational sentences in the cover & chapter narratives.
+ */
+export function extractShortPlaceDisplayName(rawPlace: string, lang: SixLang): string {
+  const resolved = resolvePlaceDisplayName(rawPlace, lang);
+  if (!resolved) return "";
+  const firstSegment = resolved.split(",")[0]?.trim() || resolved;
+  return firstSegment.replace(/\s*\([^)]*\)\s*/g, "").trim() || firstSegment;
 }

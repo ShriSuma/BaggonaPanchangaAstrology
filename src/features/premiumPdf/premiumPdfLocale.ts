@@ -746,11 +746,15 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     .replace(/\b(Saturn\s*Transit|Jupiter\s*Transit|Rahu[\s\-]Ketu\s*Transit)\b/gi, "")
     .replace(/\b(Transit|Impact|Phase|Remedy)\b/gi, "");
 
-  // 2. Strip all remaining Latin/English alphabets for all regional languages
-  cleaned = cleaned.replace(/[a-zA-Z]+/g, "");
+  // 2. Strip parenthetical Latin glosses (e.g. "(Kuja / Manglik Dosha)", "(Janma-Saptama Transit)") & trailing "- English",
+  //    then strip any remaining single Latin words for all regional languages.
+  cleaned = cleaned
+    .replace(/\(\s*[A-Za-z0-9\s\/\-–—&,+.:;']+\s*\)/g, "")
+    .replace(/\s*[-–—\/]+\s*[A-Za-z][A-Za-z0-9\s\/\-–—()&,+.:;']*$/g, "")
+    .replace(/[a-zA-Z]+/g, "");
 
-  // 3. Remove empty or orphan parentheses left behind, e.g. "()", "( )", "( , )"
-  cleaned = cleaned.replace(/\(\s*[\.,;:]*\s*\)/g, "");
+  // 3. Remove empty or orphan parentheses left behind, e.g. "()", "( / )", "( - )"
+  cleaned = cleaned.replace(/\(\s*[\s.,;:\/\-–—&+]*\s*\)/g, "");
   cleaned = cleaned.replace(/（\s*）/g, "");
   cleaned = cleaned.replace(/【\s*】/g, "");
 

@@ -449,10 +449,19 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(payload.birthPlace).not.toMatch(/[a-zA-Z]/);
     expect(detailsText).not.toContain(`${payload.pakshaName} ${payload.pakshaName}`);
 
-    expect(container.querySelector('[data-section="executive-index"]')).not.toBeNull();
+    expect(container.querySelector('[data-section="executive-index"]')).toBeNull();
     expect(container.querySelector("#sampoorna-master-25-running-header")).not.toBeNull();
     expect(container.querySelector("#sampoorna-master-25-running-footer")).not.toBeNull();
     expect(container.querySelector("table")).toBeNull();
+
+    // Verify repeated place strings deduplicate cleanly and Dosha summary has zero "( / )" or "( - )"
+    const { resolvePlaceDisplayName } = await import("../services/sampoornaMaster25BookletEngine");
+    const dedupedPlace = resolvePlaceDisplayName(
+      "Gokarna (581326) · Gokarna (581326) · Gokarna (581326) · Gokarna (581326)",
+      "kn"
+    );
+    expect(dedupedPlace).toBe("ಗೋಕರ್ಣ (೫೮೧೩೨೬)");
+    expect(payload.detectedDoshasSummary).not.toMatch(/\(\s*[\/\-–—]+\s*\)/);
 
     // Ensure ZERO responsive classes or transform-skew glitches exist in rendered markup
     const rawHtml = container.innerHTML;
@@ -552,14 +561,14 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       }
     }
 
-    // 3. Verify strict DOM booklet section order, all 25 indexed chapter page markers, and SVG visuals in DOM
+    // 3. Verify clean Cover -> Details -> Cosmic Aura -> Chapters flow (index intentionally removed)
     const payloadKn = await prepareSampoornaMaster25Data(
-      { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+      { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna (581326) · Gokarna (581326)" },
       "kn"
     );
     const { container } = render(<SampoornaMaster25PdfTemplate data={payloadKn} />);
     const coverEl = container.querySelector('[data-section="cover"]')!;
-    const indexEl = container.querySelector('[data-section="executive-index"]')!;
+    const indexEl = container.querySelector('[data-section="executive-index"]');
     const detailsEl = container.querySelector('[data-section="user-details"]')!;
     const ch1El = container.querySelector('[data-section="chapter-1"]')!;
 
@@ -570,7 +579,7 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     const doshaCards = container.querySelector('[data-v1-visual="dosha-remedy-cards"]');
 
     expect(coverEl).not.toBeNull();
-    expect(indexEl).not.toBeNull();
+    expect(indexEl).toBeNull();
     expect(detailsEl).not.toBeNull();
     expect(ch1El).not.toBeNull();
     expect(cosmicAuraEl).not.toBeNull();
@@ -582,29 +591,20 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(container.querySelectorAll("svg").length).toBeGreaterThanOrEqual(1);
     expect(payloadKn.chapters[0].paragraphs[0].length).toBeGreaterThanOrEqual(250);
 
-    // Order check: cover -> executive-index -> user-details -> chapter-1
-    expect(coverEl.compareDocumentPosition(indexEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(indexEl.compareDocumentPosition(detailsEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Order check: cover -> user-details -> chapter-1
+    expect(coverEl.compareDocumentPosition(detailsEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(detailsEl.compareDocumentPosition(ch1El) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    // Cover contains Baggona Panchanga brand & user DOB + personal emotional narrative
+    // Cover contains Baggona Panchanga brand, Devotee name, single clean edition line & Pratah Prarthana vignette
     const coverText = coverEl.textContent || "";
     expect(coverText).toContain("ಬಗ್ಗೋಣ ಪಂಚಾಂಗ");
     expect(coverText).toContain(payloadKn.devoteeName);
-    expect(coverText).toContain(payloadKn.coverPage.personalAssurancePara1);
-
-    // Index lists Cover, Index, Preliminaries, ALL 25 chapters, calendar-qr, and priest contact with page tags
-    expect(indexEl.querySelector('[data-index-page-for="cover"]')?.textContent).toContain("ಪುಟ");
-    expect(indexEl.querySelector('[data-index-page-for="executive-index"]')?.textContent).toContain("ಪುಟ");
-    for (let ch = 1; ch <= 25; ch++) {
-      const pageBadge = indexEl.querySelector(`[data-index-page-for="chapter-${ch}"]`);
-      expect(pageBadge, `Missing index page badge for chapter-${ch}`).not.toBeNull();
-      expect(pageBadge?.textContent).toContain("ಪುಟ");
-      expect(indexEl.querySelector(`[data-index-link-target="chapter-${ch}"]`)).not.toBeNull();
-    }
-    expect(indexEl.querySelector('[data-index-page-for="user-details"]')).not.toBeNull();
-    expect(indexEl.querySelector('[data-index-page-for="fifteen-day-calendar-qr"]')).not.toBeNull();
-    expect(indexEl.querySelector('[data-index-page-for="family-referral-and-priest"]')).not.toBeNull();
+    expect(coverText).toContain(payloadKn.coverPage.bookletEditionLine);
+    expect(coverText).not.toContain(`${payloadKn.pakshaName} ${payloadKn.pakshaName}`);
+    const pratahImg = coverEl.querySelector('[data-cover-element="pratah-prarthana"] img');
+    expect(pratahImg).not.toBeNull();
+    expect(pratahImg?.getAttribute("src")).toContain("/daily_posters/poster_1_shiva.jpg");
+    expect((detailsEl.textContent || "").match(/ಗೋಕರ್ಣ/g)?.length || 0).toBeLessThanOrEqual(2);
   });
 
   it("14. Verifies full-page Cover -> Index -> Details -> 1 Chapter Per Page isolation & Extended Jyotish Precision Gates", async () => {
@@ -670,16 +670,16 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(rhInner?.style.display).toBe("flex");
     expect(rhInner?.style.justifyContent).toBe("space-between");
 
-    // Verify English report shows "Page N" in Index with clickable target links
+    // Verify English report cleanly omits Executive Index and renders Chapter headings & Pratah Cover cleanly
     cleanup();
     const payloadEn = await prepareSampoornaMaster25Data(
       { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
       "en"
     );
     const { container: enContainer } = render(<SampoornaMaster25PdfTemplate data={payloadEn} />);
-    expect(enContainer.querySelector('[data-index-page-for="cover"]')?.textContent).toBe("Page 1");
-    expect(enContainer.querySelector('[data-index-page-for="chapter-1"]')?.textContent).toBe("Page 4");
-    expect(enContainer.querySelector('[data-index-link-target="chapter-1"]')).not.toBeNull();
+    expect(enContainer.querySelector('[data-section="executive-index"]')).toBeNull();
+    expect(enContainer.querySelector('[data-section="chapter-1"] h2')?.textContent).toContain("Chapter 1:");
+    expect(enContainer.querySelector('[data-section="cover"] [data-cover-element="pratah-prarthana"]')).not.toBeNull();
   });
 
   it("16. Ensures per-person Panchanga uniqueness on Cover & Chapters, zero remedy spam in Ch 1-22, and structured Dosha cards in Ch 23", async () => {

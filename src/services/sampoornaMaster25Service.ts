@@ -46,6 +46,7 @@ import {
 import {
   computeExtendedPrecisionMetrics,
   formatPageTag6L,
+  extractShortPlaceDisplayName,
   resolvePlaceDisplayName,
   type BookletCoverContent,
   type ExtendedPrecisionMetrics
@@ -412,6 +413,7 @@ export async function prepareSampoornaMaster25Data(
         ta: "ஸ்ரீ கோகர்ண க்ஷேத்திரம்",
         en: "Sri Kshetra Gokarna"
       }, targetLang);
+  const birthPlaceShort = rawPlace ? (extractShortPlaceDisplayName(String(rawPlace), targetLang) || birthPlace) : birthPlace;
 
   const cleanRegionalLabel = (val: string): string => cleanRegionalPreserveBullets(val, targetLang);
   const gender: "male" | "female" = (input?.gender?.toLowerCase() === "female") ? "female" : "male";
@@ -537,9 +539,10 @@ export async function prepareSampoornaMaster25Data(
         : (traditional?.tithi5L?.[targetLang] || (targetLang === "en" ? traditional?.tithi : traditional?.tithiKn) || "Pratipada");
 
   const isPurnimaOrAmavasya = /purnima|amavasya|ಹುಣ್ಣಿಮೆ|ಅಮಾವಾಸ್ಯೆ|पूर्णिमा|अमावस्या|పౌర్ణమి|అమావాస్య|பௌர்ணமி|அமாவாசை/i.test(rawTithiName);
-  const tithiName = (!isPurnimaOrAmavasya && !rawTithiName.includes(pakshaName))
-    ? `${pakshaName} ${rawTithiName}`
-    : rawTithiName;
+  const cleanedRawTithi = rawTithiName.replace(new RegExp(`^(?:${pakshaName}\\s+)+`, "u"), "").trim() || rawTithiName.trim();
+  const tithiName = (!isPurnimaOrAmavasya && !cleanedRawTithi.includes(pakshaName))
+    ? `${pakshaName} ${cleanedRawTithi}`
+    : cleanedRawTithi;
 
   const moonPlanet = result.planets.find(p => p.name === PlanetName.Moon);
   const moonNakIdx = moonPlanet?.nakshatra?.index ?? (result.moonSign ? Math.floor(((result.moonSign.index * 30) + (moonPlanet?.degree ?? 0)) / 13.333333) % 27 : 0);
@@ -598,12 +601,12 @@ export async function prepareSampoornaMaster25Data(
   const dYears = toNativeDigits(traditional?.dashaYears ?? 5, targetLang);
   const dMonths = toNativeDigits(traditional?.dashaMonths ?? 0, targetLang);
   const janmaDashaBalance = pick6({
-    kn: `${dashaBalLord} (${dYears} ವ. ${dMonths} ತಿಂ.)`,
-    mr: `${dashaBalLord} (${dYears} व. ${dMonths} म.)`,
-    hi: `${dashaBalLord} (${dYears} व. ${dMonths} मा.)`,
-    te: `${dashaBalLord} (${dYears} సం. ${dMonths} నె.)`,
-    ta: `${dashaBalLord} (${dYears} ஆ. ${dMonths} மா.)`,
-    en: `${dashaBalLord} (${dYears}Y ${dMonths}M)`
+    kn: `${dashaBalLord} (${dYears} ವರ್ಷ ${dMonths} ತಿಂಗಳು)`,
+    mr: `${dashaBalLord} (${dYears} वर्षे ${dMonths} महिने)`,
+    hi: `${dashaBalLord} (${dYears} वर्ष ${dMonths} माह)`,
+    te: `${dashaBalLord} (${dYears} సం॥ ${dMonths} నె॥)`,
+    ta: `${dashaBalLord} (${dYears} ஆண். ${dMonths} மா.)`,
+    en: `${dashaBalLord} (${dYears} Yrs ${dMonths} Mos)`
   }, targetLang);
 
   // Dasha-Bhukti
@@ -855,7 +858,7 @@ export async function prepareSampoornaMaster25Data(
     devoteeName: localizedDevoteeName,
     birthDate,
     birthTime,
-    birthPlace,
+    birthPlace: birthPlaceShort,
     ageYears: ageDecimal,
     ageCategory,
     gender,
@@ -1649,6 +1652,19 @@ export async function captureSampoornaMaster25Pdf(
 
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
+    }
+    const pendingImages = Array.from(containerEl.querySelectorAll("img"))
+      .filter((img) => !img.complete)
+      .map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            const timer = setTimeout(resolve, 2500);
+            img.addEventListener("load", () => { clearTimeout(timer); resolve(); }, { once: true });
+            img.addEventListener("error", () => { clearTimeout(timer); resolve(); }, { once: true });
+          })
+      );
+    if (pendingImages.length > 0) {
+      await Promise.all(pendingImages);
     }
     await new Promise((resolve) => setTimeout(resolve, 450));
 

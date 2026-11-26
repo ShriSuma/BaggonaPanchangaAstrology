@@ -249,8 +249,30 @@ export default function KundliPage(): JSX.Element {
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [narrativeError, setNarrativeError] = useState("");
 
+  const combineUniquePlaceLabel = (homePlace: string, core: string): string => {
+    const parts = [homePlace, core]
+      .flatMap((chunk) => (chunk || "").split(/[·•]+/))
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const ordered: string[] = [];
+    const seen = new Set<string>();
+    for (const part of parts) {
+      const baseKey = part.replace(/\s*\([^)]*\)\s*$/, "").toLowerCase().trim();
+      if (!seen.has(baseKey)) {
+        seen.add(baseKey);
+        ordered.push(part);
+      } else {
+        const idx = ordered.findIndex((x) => x.replace(/\s*\([^)]*\)\s*$/, "").toLowerCase().trim() === baseKey);
+        if (idx >= 0 && /\(\d{4,}\)/.test(part) && !/\(\d{4,}\)/.test(ordered[idx])) {
+          ordered[idx] = part;
+        }
+      }
+    }
+    return ordered.join(" · ");
+  };
+
   const placeDisplay = useMemo(
-    () => (homePlaceName.trim() ? `${homePlaceName.trim()} · ${locationCore}` : locationCore),
+    () => combineUniquePlaceLabel(homePlaceName, locationCore),
     [homePlaceName, locationCore]
   );
 
@@ -326,7 +348,7 @@ export default function KundliPage(): JSX.Element {
   }, [pageParams, appLanguage, i18n.language]);
 
   const pushPlaceToStore = (lat: number, lng: number, core: string, pin?: string) => {
-    const label = homePlaceName.trim() ? `${homePlaceName.trim()} · ${core}` : core;
+    const label = combineUniquePlaceLabel(homePlaceName, core);
     void setDefaultLocation(lat, lng, label, pin && /^\d{6}$/.test(pin) ? pin : "");
   };
 
@@ -388,7 +410,7 @@ export default function KundliPage(): JSX.Element {
     const place = devotee.placeName || locationCore;
 
     setLocationCore(place);
-    setHomePlaceName(place);
+    setHomePlaceName("");
     pushPlaceToStore(lat, lng, place, pin);
 
     if (pin) {
@@ -470,7 +492,7 @@ export default function KundliPage(): JSX.Element {
             void setDefaultLocation(
               14.5479,
               74.3188,
-              homePlaceName.trim() ? `${homePlaceName.trim()} · ${fallbackCore}` : fallbackCore,
+              combineUniquePlaceLabel(homePlaceName, fallbackCore),
               "581326"
             );
             return;
@@ -490,7 +512,7 @@ export default function KundliPage(): JSX.Element {
         void setDefaultLocation(
           place.lat,
           place.lng,
-          homePlaceName.trim() ? `${homePlaceName.trim()} · ${core}` : core,
+          combineUniquePlaceLabel(homePlaceName, core),
           place.pincode
         );
       })
@@ -509,7 +531,7 @@ export default function KundliPage(): JSX.Element {
           void setDefaultLocation(
             14.5479,
             74.3188,
-            homePlaceName.trim() ? `${homePlaceName.trim()} · ${fallbackCore}` : fallbackCore,
+            combineUniquePlaceLabel(homePlaceName, fallbackCore),
             "581326"
           );
           return;
@@ -538,8 +560,10 @@ export default function KundliPage(): JSX.Element {
       const bd = parseYmdToDate(kundliSession.birthDateYmd);
       if (bd) setBirthDatePicker(bd);
       setBirthTimeHm(kundliSession.birthTimeHm);
-      setHomePlaceName(kundliSession.homePlaceName);
-      setLocationCore(kundliSession.placeLabel);
+      const cleanedHome = (kundliSession.homePlaceName || "").trim();
+      const restoredCore = combineUniquePlaceLabel("", kundliSession.placeLabel || "");
+      setHomePlaceName(cleanedHome && restoredCore.toLowerCase().includes(cleanedHome.toLowerCase().replace(/\s*\([^)]*\)\s*$/, "")) ? "" : cleanedHome);
+      setLocationCore(restoredCore);
       setDasha(kundliSession.dasha);
       setDailyPrediction(kundliSession.dailyPrediction);
       if (kundliSession.includePriestCalendar !== undefined) {
@@ -760,7 +784,7 @@ export default function KundliPage(): JSX.Element {
       birthDateYmd: birthDate,
       birthTimeHm: birthTime,
       homePlaceName,
-      placeLabel: homePlaceName.trim() ? `${homePlaceName.trim()} · ${locationCore}` : locationCore,
+      placeLabel: combineUniquePlaceLabel(homePlaceName, locationCore),
       dasha: dashaTimeline,
       dailyPrediction: predText,
       includePriestCalendar
@@ -971,7 +995,7 @@ export default function KundliPage(): JSX.Element {
       birthDateYmd: bdYmd,
       birthTimeHm: btHm,
       homePlaceName,
-      placeLabel: homePlaceName.trim() ? `${homePlaceName.trim()} · ${locationCore}` : locationCore,
+      placeLabel: combineUniquePlaceLabel(homePlaceName, locationCore),
       dasha: dashaTimeline,
       dailyPrediction: dailyPrediction || "",
       includePriestCalendar
