@@ -34,9 +34,11 @@ const SESSIONS_COL = "consultation_sessions";
 const QUESTIONS_COL = "consultation_questions";
 const REVIEWS_COL = "consultation_reviews";
 const LOCAL_STORAGE_PREFIX = "bgn_consultation_";
+const LOCAL_CHAT_BACKUP_PREFIX = "bgn_consultation_chat_history_";
 const LOCAL_RECENT_INDEX_KEY = "bgn_consultation_recent_ids";
 const LOCAL_QUESTIONS_KEY = "bgn_consultation_questions_list";
 const LOCAL_REVIEWS_KEY = "bgn_consultation_reviews_list";
+const READ_ONLY_PDF_GRACE_MINUTES = 360; // 6 hours after 20-min Q&A ends
 const CIPHER_SALT = "BAGGONA_GOKARNA_VEDIC_CONSULTATION_2026";
 
 /**
@@ -256,6 +258,7 @@ function removeLocalSession(id: string): void {
   try {
     if (typeof sessionStorage !== "undefined") {
       sessionStorage.removeItem(LOCAL_STORAGE_PREFIX + id);
+      sessionStorage.removeItem(LOCAL_CHAT_BACKUP_PREFIX + id);
     }
   } catch {
     // Ignore error
@@ -263,6 +266,7 @@ function removeLocalSession(id: string): void {
   try {
     if (typeof localStorage !== "undefined") {
       localStorage.removeItem(LOCAL_STORAGE_PREFIX + id);
+      localStorage.removeItem(LOCAL_CHAT_BACKUP_PREFIX + id);
       const rawIndex = localStorage.getItem(LOCAL_RECENT_INDEX_KEY);
       if (rawIndex) {
         let ids: string[] = JSON.parse(rawIndex);
@@ -278,8 +282,8 @@ function removeLocalSession(id: string): void {
 /**
  * Evaluates session lifecycle timings:
  * - Pending sessions are NEVER expired or deleted
- * - If now >= deleteAt (20m after expiry), deletes from Firestore and local cache
- * - If active and now >= expiresAt (20m after start), sets status = expired
+ * - If now >= expiresAt (20m or 21m), sets status = expired (blocks new Q&A) while keeping answers readable/PDF-downloadable for 6 hours
+ * - If now >= deleteAt (6h after Q&A expiry), deletes permanently from Firestore and local cache
  */
 export async function processSessionLifecycle(session: ConsultationSession): Promise<ConsultationSession> {
   // CRITICAL GUARD: Pending sessions MUST NEVER be expired or deleted!
@@ -287,10 +291,25 @@ export async function processSessionLifecycle(session: ConsultationSession): Pro
     return session;
   }
 
-  const now = Date.now();
+  if (session.status === "deleted") {
+    removeLocalSession(session.id);
+    return {
+      ...session,
+      status: "deleted",
+      messages: [],
+      rulingsLedger: []
+    };
+  }
 
-  // 1. Check if 40 minutes have elapsed since start (20m session + 20m grace) -> Auto-delete!
-  if (session.deleteAt && now >= new Date(session.deleteAt).getTime()) {
+  const now = Date.now();
+  const expiresAtMs = session.expiresAt ? new Date(session.expiresAt).getTime() : null;
+  const fallbackDeleteAtMs = expiresAtMs
+    ? expiresAtMs + READ_ONLY_PDF_GRACE_MINUTES * 60 * 1000
+    : null;
+  const deleteAtMs = session.deleteAt ? new Date(session.deleteAt).getTime() : fallbackDeleteAtMs;
+
+  // 1. Check if 6-hour read/PDF grace period after 20-minute Q&A has elapsed -> Auto-delete!
+  if (deleteAtMs && now >= deleteAtMs) {
     try {
       if (firestore) {
         await deleteDoc(doc(firestore, SESSIONS_COL, session.id));
@@ -301,21 +320,30 @@ export async function processSessionLifecycle(session: ConsultationSession): Pro
     removeLocalSession(session.id);
     return {
       ...session,
-      status: "deleted"
+      status: "deleted",
+      messages: [],
+      rulingsLedger: []
     };
   }
 
-  // 2. Check if 20 minutes (or 21 minutes if bonus claimed) have elapsed since start -> Deactivate/Expire & Clean Out Session Historical Data!
-  if (session.status === "active" && session.expiresAt && now >= new Date(session.expiresAt).getTime()) {
+  // 2. Check if 20 minutes (or 21 minutes if bonus claimed) have elapsed -> Disable Q&A, keep answers & PDF available for 6 hours!
+  if (session.status === "active" && expiresAtMs && now >= expiresAtMs) {
     session.status = "expired";
-    // Clean out ephemeral conversation messages & rulings memory after 20 minutes
-    session.messages = [];
     session.rulingsLedger = [];
+    session.graceDeleteMinutes = READ_ONLY_PDF_GRACE_MINUTES;
+    if (!session.deleteAt) {
+      session.deleteAt = new Date(expiresAtMs + READ_ONLY_PDF_GRACE_MINUTES * 60 * 1000).toISOString();
+    }
     try {
       if (firestore) {
         await setDoc(
           doc(firestore, SESSIONS_COL, session.id),
-          { status: "expired", messages: [], rulingsLedger: [] },
+          {
+            status: "expired",
+            rulingsLedger: [],
+            deleteAt: session.deleteAt,
+            graceDeleteMinutes: READ_ONLY_PDF_GRACE_MINUTES
+          },
           { merge: true }
         );
       }
@@ -326,11 +354,22 @@ export async function processSessionLifecycle(session: ConsultationSession): Pro
     return session;
   }
 
-  // 3. If session is already marked expired, ensure in-memory and cached message history is purged
-  if (session.status === "expired" && ((session.messages && session.messages.length > 0) || (session.rulingsLedger && session.rulingsLedger.length > 0))) {
-    session.messages = [];
-    session.rulingsLedger = [];
-    saveLocalSession(session);
+  // 3. If session is already marked expired within the 6-hour read/PDF window, retain messages & ensure deleteAt exists
+  if (session.status === "expired") {
+    let changed = false;
+    if (session.rulingsLedger && session.rulingsLedger.length > 0) {
+      session.rulingsLedger = [];
+      changed = true;
+    }
+    if (!session.deleteAt) {
+      const baseMs = expiresAtMs || now;
+      session.deleteAt = new Date(baseMs + READ_ONLY_PDF_GRACE_MINUTES * 60 * 1000).toISOString();
+      session.graceDeleteMinutes = READ_ONLY_PDF_GRACE_MINUTES;
+      changed = true;
+    }
+    if (changed) {
+      saveLocalSession(session);
+    }
     return session;
   }
 
@@ -363,7 +402,7 @@ export async function createConsultationSession(input: CreateConsultationInput):
     bonusMinuteClaimed: false,
     messages: [],
     durationMinutes: 20,
-    graceDeleteMinutes: 20,
+    graceDeleteMinutes: READ_ONLY_PDF_GRACE_MINUTES,
     priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
     priestPhone: "9972339362"
   };
@@ -471,12 +510,13 @@ export async function startConsultationTimer(id: string): Promise<ConsultationSe
   }
 
   const startedAtDate = new Date();
-  const expiresAtDate = new Date(startedAtDate.getTime() + 20 * 60 * 1000); // +20 minutes
-  const deleteAtDate = new Date(startedAtDate.getTime() + 40 * 60 * 1000); // +40 minutes (20m session + 20m grace)
+  const expiresAtDate = new Date(startedAtDate.getTime() + 20 * 60 * 1000); // +20 minutes Q&A
+  const deleteAtDate = new Date(expiresAtDate.getTime() + READ_ONLY_PDF_GRACE_MINUTES * 60 * 1000); // +6 hours read/PDF window after Q&A ends
 
   current.startedAt = startedAtDate.toISOString();
   current.expiresAt = expiresAtDate.toISOString();
   current.deleteAt = deleteAtDate.toISOString();
+  current.graceDeleteMinutes = READ_ONLY_PDF_GRACE_MINUTES;
   current.status = "active";
 
   // Automatically insert the personalized priest welcome greeting if empty
@@ -531,8 +571,11 @@ export async function claimBonusMinute(id: string): Promise<ConsultationSession>
 
   const currentExpiry = current.expiresAt ? new Date(current.expiresAt).getTime() : Date.now();
   const newExpiry = new Date(currentExpiry + 60 * 1000); // +1 minute (60,000ms)
+  const newDeleteAt = new Date(newExpiry.getTime() + READ_ONLY_PDF_GRACE_MINUTES * 60 * 1000); // Keep full 6-hour read/PDF grace after Q&A ends
   current.expiresAt = newExpiry.toISOString();
+  current.deleteAt = newDeleteAt.toISOString();
   current.durationMinutes = 21;
+  current.graceDeleteMinutes = READ_ONLY_PDF_GRACE_MINUTES;
   current.bonusMinuteClaimed = true;
 
   try {
@@ -542,7 +585,9 @@ export async function claimBonusMinute(id: string): Promise<ConsultationSession>
         docRef,
         sanitize({
           expiresAt: current.expiresAt,
+          deleteAt: current.deleteAt,
           durationMinutes: 21,
+          graceDeleteMinutes: READ_ONLY_PDF_GRACE_MINUTES,
           bonusMinuteClaimed: true
         }),
         { merge: true }
@@ -569,9 +614,15 @@ export async function addConsultationMessage(
     throw new Error(`Consultation session not found: ${id}`);
   }
 
-  // Strict Security Sandbox: Expired sessions cannot accept new messages
-  if (current.status === "expired" || (current.expiresAt && Date.now() > new Date(current.expiresAt).getTime())) {
-    console.warn(`[consultationDb] Security Guard: Rejected message append for expired session ${id}`);
+  // Strict Security Sandbox: Expired or deleted sessions cannot accept new messages
+  const nowMs = Date.now();
+  if (
+    current.status === "expired" ||
+    current.status === "deleted" ||
+    (current.expiresAt && nowMs >= new Date(current.expiresAt).getTime()) ||
+    (current.deleteAt && nowMs >= new Date(current.deleteAt).getTime())
+  ) {
+    console.warn(`[consultationDb] Security Guard: Rejected message append for expired/deleted session ${id}`);
     throw new Error(`Consultation session has expired. New messages are strictly rejected.`);
   }
 
@@ -647,20 +698,44 @@ export async function purgeExpiredConsultationSession(id: string): Promise<void>
 }
 
 /**
- * Manually marks a session as expired
+ * Marks a session as Q&A-expired while preserving answers for the 6-hour read/PDF window.
  */
 export async function expireConsultationSession(id: string): Promise<void> {
+  const now = Date.now();
+  const existing = getLocalSession(id);
+  const expiresAtIso =
+    existing?.expiresAt && new Date(existing.expiresAt).getTime() <= now
+      ? existing.expiresAt
+      : new Date(now).toISOString();
+  const deleteAtIso =
+    existing?.deleteAt && new Date(existing.deleteAt).getTime() > now + 60 * 60 * 1000
+      ? existing.deleteAt
+      : new Date(now + READ_ONLY_PDF_GRACE_MINUTES * 60 * 1000).toISOString();
+
   try {
     if (firestore) {
-      await setDoc(doc(firestore, SESSIONS_COL, id), { status: "expired" }, { merge: true });
+      await setDoc(
+        doc(firestore, SESSIONS_COL, id),
+        {
+          status: "expired",
+          expiresAt: expiresAtIso,
+          deleteAt: deleteAtIso,
+          graceDeleteMinutes: READ_ONLY_PDF_GRACE_MINUTES,
+          rulingsLedger: []
+        },
+        { merge: true }
+      );
     }
   } catch (e) {
     console.warn("[consultationDb] Firestore expire notice:", e);
   }
-  const local = getLocalSession(id);
-  if (local) {
-    local.status = "expired";
-    saveLocalSession(local);
+  if (existing) {
+    existing.status = "expired";
+    existing.expiresAt = expiresAtIso;
+    existing.deleteAt = deleteAtIso;
+    existing.graceDeleteMinutes = READ_ONLY_PDF_GRACE_MINUTES;
+    existing.rulingsLedger = [];
+    saveLocalSession(existing);
   }
 }
 

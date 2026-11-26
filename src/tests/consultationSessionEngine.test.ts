@@ -220,9 +220,10 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       const expectedExpiry = new Date("2026-10-18T10:20:00.000Z").toISOString();
       expect(activeSession.expiresAt).toBe(expectedExpiry);
 
-      // Exactly 40 minutes for deleteAt (20m session + 20m grace)
-      const expectedDelete = new Date("2026-10-18T10:40:00.000Z").toISOString();
+      // Exactly 6 hours after 20-minute Q&A expires for deleteAt (20m session + 6h read/PDF grace = 380m)
+      const expectedDelete = new Date("2026-10-18T16:20:00.000Z").toISOString();
       expect(activeSession.deleteAt).toBe(expectedDelete);
+      expect(activeSession.graceDeleteMinutes).toBe(360);
     });
 
     it("verifies multi-browser timing consistency based on database startedAt", async () => {

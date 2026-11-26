@@ -79,15 +79,17 @@ describe("20-Minute Isolated Consultation Session Memory & Ulta-Palta Anti-Contr
       expect(loadedBeforeExpiry!.rulingsLedger).toBeTruthy();
       expect(loadedBeforeExpiry!.rulingsLedger!.length).toBeGreaterThan(0);
 
-      // Simulate 20 minutes elapsed
+      // Simulate 20 minutes elapsed (inside 6-hour read/PDF grace window)
       activeSession.expiresAt = new Date(Date.now() - 5000).toISOString();
+      activeSession.deleteAt = new Date(Date.now() + 6 * 60 * 60 * 1000 - 5000).toISOString();
 
       // Process lifecycle after 20 minutes
       const expiredSession = await processSessionLifecycle(activeSession);
       expect(expiredSession.status).toBe("expired");
 
-      // MANDATORY USER REQUIREMENT: After 20 minutes, historical chat data is completely cleaned out
-      expect(expiredSession.messages).toEqual([]);
+      // NEW LIFECYCLE RULE: After 20 minutes, active rulingsLedger is cleared and new Q&A is blocked,
+      // while historical messages are retained for 6 hours strictly for viewing and PDF download!
+      expect(expiredSession.messages.length).toBeGreaterThan(0);
       expect(expiredSession.rulingsLedger).toEqual([]);
 
       // Security check: Expired session strictly rejects any new message append
@@ -99,6 +101,13 @@ describe("20-Minute Isolated Consultation Session Memory & Ulta-Palta Anti-Contr
           timestamp: new Date().toISOString()
         })
       ).rejects.toThrow(/expired/i);
+
+      // Simulate 6 hours after expiry -> Complete permanent database deletion
+      expiredSession.deleteAt = new Date(Date.now() - 1000).toISOString();
+      const deletedSession = await processSessionLifecycle(expiredSession);
+      expect(deletedSession.status).toBe("deleted");
+      expect(deletedSession.messages).toEqual([]);
+      expect(deletedSession.rulingsLedger).toEqual([]);
     });
   });
 

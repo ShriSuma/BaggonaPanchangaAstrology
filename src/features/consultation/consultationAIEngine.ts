@@ -38,6 +38,33 @@ import {
   normToken
 } from "./consultationSpeechService";
 import { convertTextIfLanguageDiffers } from "../../utils/transliterator";
+import {
+  deduplicateResponseText,
+  PROMPT_SANSTHANA_BY_LANG,
+  PROMPT_GOKARNA_BY_LANG,
+  PROMPT_VOCATIVE_BY_LANG,
+  PROMPT_PARENTS_BY_LANG,
+  sanitizePromptForTargetLanguage,
+  guardAndCleanGeminiScript,
+  buildEnglishFallbackReading,
+  buildKannadaFallbackReading,
+  buildHindiFallbackReading,
+  buildTeluguFallbackReading,
+  buildTamilFallbackReading,
+  buildMalayalamFallbackReading,
+  buildMarathiFallbackReading,
+  type DeterministicFallbackContext
+} from "./consultationFallbackReadings";
+
+export {
+  deduplicateResponseText,
+  PROMPT_SANSTHANA_BY_LANG,
+  PROMPT_GOKARNA_BY_LANG,
+  PROMPT_VOCATIVE_BY_LANG,
+  PROMPT_PARENTS_BY_LANG,
+  sanitizePromptForTargetLanguage,
+  guardAndCleanGeminiScript
+};
 
 export interface ConsultationReadingResult {
   fullText: string;
@@ -67,6 +94,111 @@ export const CONSULTATION_LANG_NAMES: Record<ConsultationLanguage, string> = {
   ml: "Malayalam",
   mr: "Marathi"
 };
+
+export function getLocalizedPriestName(lang: ConsultationLanguage): string {
+  switch (lang) {
+    case "en":
+      return "Chief Priest Sri Shreeram Pandit";
+    case "hi":
+    case "mr":
+      return "मुख्य पुरोहित श्रीराम पंडित";
+    case "te":
+      return "ప్రధాన అర్చకులు శ్రీరామ్ పండిత్";
+    case "ta":
+      return "தலைமை அர்ச்சகர் ஸ்ரீராம் பண்டிட்";
+    case "ml":
+      return "മുഖ്യ പുരോഹിതൻ ശ്രീറാം പണ്ഡിറ്റ്";
+    case "kn":
+    default:
+      return "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+  }
+}
+
+export function buildLocalizedAstroHighlights(params: {
+  lang: ConsultationLanguage;
+  lagna: string;
+  moonSign: string;
+  nakshatra: string;
+  pada?: number;
+  currentDasha: string;
+  keyInfluences?: string[];
+  hasDosha?: boolean;
+  doshaName?: string;
+}): ConsultationReadingResult["astrologicalHighlights"] {
+  const { lang, lagna, moonSign, nakshatra, pada, currentDasha, hasDosha, doshaName } = params;
+  const padaWord =
+    lang === "kn"
+      ? "ಪಾದ"
+      : lang === "hi" || lang === "mr"
+      ? "चरण"
+      : lang === "te"
+      ? "పాదం"
+      : lang === "ta"
+      ? "பாதம்"
+      : lang === "ml"
+      ? "പാദം"
+      : "Pada";
+  const nakWithPada = pada ? `${nakshatra} (${padaWord} ${pada})` : nakshatra;
+
+  if (params.keyInfluences) {
+    return {
+      lagna,
+      moonSign,
+      nakshatra: nakWithPada,
+      currentDasha,
+      keyInfluences: params.keyInfluences
+    };
+  }
+
+  const influencesByLang: Record<ConsultationLanguage, string[]> = {
+    kn: [
+      `${lagna} ಲಗ್ನ & ${moonSign} ರಾಶಿ`,
+      `ಪ್ರಸ್ತುತ: ${currentDasha}`,
+      hasDosha && doshaName ? `ದೋಷ ಪರಿಹಾರ: ${doshaName}` : "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷಣೆ"
+    ],
+    en: [
+      `${lagna} Lagna & ${moonSign} Rashi`,
+      `Dasha: ${currentDasha}`,
+      hasDosha && doshaName ? `Parihara: ${doshaName}` : "Sri Kshetra Gokarna Blessings"
+    ],
+    hi: [
+      `${lagna} लग्न एवं ${moonSign} राशि`,
+      `वर्तमान: ${currentDasha}`,
+      hasDosha && doshaName ? `दोष निवारण: ${doshaName}` : "श्री क्षेत्र गोकर्ण महाबलेश्वर कृपा"
+    ],
+    te: [
+      `${lagna} లగ్నం & ${moonSign} రాశి`,
+      `ప్రస్తుతం: ${currentDasha}`,
+      hasDosha && doshaName ? `దోష పరిహారం: ${doshaName}` : "శ్రీ క్షేత్ర గోకర్ణ రక్షణ"
+    ],
+    ta: [
+      `${lagna} லக்னம் & ${moonSign} ராசி`,
+      `நடப்பு: ${currentDasha}`,
+      hasDosha && doshaName ? `தோஷ பரிகாரம்: ${doshaName}` : "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் அருள்"
+    ],
+    ml: [
+      `${lagna} ലഗ്നം & ${moonSign} രാശി`,
+      `നിലവിൽ: ${currentDasha}`,
+      hasDosha && doshaName ? `ദോഷ പരിഹാരം: ${doshaName}` : "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ അനുഗ്രഹം"
+    ],
+    mr: [
+      `${lagna} लग्न व ${moonSign} रास`,
+      `सध्या: ${currentDasha}`,
+      hasDosha && doshaName ? `दोष निवारण: ${doshaName}` : "श्री क्षेत्र गोकर्ण महाबळेश्वर कृपा"
+    ]
+  };
+
+  return {
+    lagna,
+    moonSign,
+    nakshatra: nakWithPada,
+    currentDasha,
+    keyInfluences: influencesByLang[lang] || influencesByLang.en
+  };
+}
+
+const KUNDLI_COMPUTATION_CACHE = new Map<string, DevoteeKundliComputedData>();
+const MAX_KUNDLI_CACHE_SIZE = 100;
 
 export const SIGN_LORDS: PlanetName[] = [
   PlanetName.Mars,     // 0: Mesha / Aries
@@ -277,6 +409,14 @@ export async function computeDevoteeKundli(
 ): Promise<DevoteeKundliComputedData> {
   const lat = session.lat || 14.5479;
   const lng = session.lng || 74.3188;
+  const tz = session.timezone !== undefined ? session.timezone : 5.5;
+  const lang: ConsultationLanguage = session.language || "kn";
+  const dayKey = new Date().toISOString().slice(0, 10);
+  const cacheKey = `${session.id || ""}|${session.name || ""}|${session.dob}|${session.tob || "12:00"}|${lat}|${lng}|${tz}|${lang}|${dayKey}`;
+  const cached = KUNDLI_COMPUTATION_CACHE.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
 
   const kundli = await calculateKundliWithPlaceSun(
     {
@@ -285,15 +425,13 @@ export async function computeDevoteeKundli(
       birthTime: session.tob || "12:00",
       latitude: lat,
       longitude: lng,
-      timezoneOffsetMinutes:
-        (session.timezone !== undefined ? session.timezone : 5.5) * 60
+      timezoneOffsetMinutes: tz * 60
     },
     {
       ayanamsaModel: "lahiri"
     }
   );
 
-  const lang: ConsultationLanguage = session.language || "kn";
   const pDict = PLANET_NAMES_I18N[lang] || PLANET_NAMES_I18N.kn;
 
   // 1. Lagna (Ascendant) - Strictly localized according to chosen language
@@ -493,42 +631,101 @@ export async function computeDevoteeKundli(
   const shaniTransitSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[shaniRashiIdx];
 
   let shaniTransitNature = "";
-  if (shaniTransitHouseFromMoon === 12) {
-    shaniTransitNature =
-      lang === "kn"
-        ? `ಸಾಡೇ ಸಾತಿ (ಏಳರೆ ಶನಿ - ಮೊದಲ ಹಂತ: ವ್ಯಯ ಶನಿ ${shaniTransitSign}ದಲ್ಲಿ)`
-        : `Sade Sati (Rising Phase - 12th from Moon in ${shaniTransitSign})`;
-  } else if (shaniTransitHouseFromMoon === 1) {
-    shaniTransitNature =
-      lang === "kn"
-        ? `ಸಾಡೇ ಸಾತಿ (ಜನ್ಮ ಶನಿ - ಶಿಖರ ಪರೀಕ್ಷಾ ಹಂತ ${shaniTransitSign}ದಲ್ಲಿ)`
-        : `Sade Sati (Peak Janma Phase - on Moon in ${shaniTransitSign})`;
-  } else if (shaniTransitHouseFromMoon === 2) {
-    shaniTransitNature =
-      lang === "kn"
-        ? `ಸಾಡೇ ಸಾತಿ (ಅಂತಿಮ ಇಳಿಕೆ ಹಂತ: ಧನ ಶನಿ ${shaniTransitSign}ದಲ್ಲಿ)`
-        : `Sade Sati (Setting Phase - 2nd from Moon in ${shaniTransitSign})`;
-  } else if (shaniTransitHouseFromMoon === 4) {
-    shaniTransitNature =
-      lang === "kn"
-        ? `ಕಂಟಕ ಶನಿ (ಅರ್ಧಾಷ್ಟಮ - ೪ನೇ ಮನೆ ${shaniTransitSign}ದಲ್ಲಿ: ಮಾನಸಿಕ ಆತಂಕ & ವೃತ್ತಿ ಕಷ್ಟ)`
-        : `Kantaka Shani (4th from Moon in ${shaniTransitSign} - Career & Mental Strain)`;
-  } else if (shaniTransitHouseFromMoon === 10) {
-    shaniTransitNature =
-      lang === "kn"
-        ? `ದಶಮ ಕಂಟಕ ಶನಿ (೧೦ನೇ ಮನೆ ${shaniTransitSign}ದಲ್ಲಿ: ಉದ್ಯೋಗದಲ್ಲಿ ನಿರಂತರ ಒತ್ತಡ & ಕಿರಿಕಿರಿ)`
-        : `Kantaka Shani (10th from Moon in ${shaniTransitSign} - Heavy Professional Pressure)`;
-  } else if (shaniTransitHouseFromMoon === 8) {
-    shaniTransitNature =
-      lang === "kn"
-        ? `ಅಷ್ಟಮ ಶನಿ (೮ನೇ ಮನೆ ${shaniTransitSign}ದಲ್ಲಿ: ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು & ಕಾರ್ಯವಿಳಂಬ)`
-        : `Ashtama Shani (8th from Moon in ${shaniTransitSign} - Unexpected Roadblocks)`;
-  } else {
-    shaniTransitNature =
-      lang === "kn"
-        ? `ಗೋಚಾರ ${shaniTransitHouseFromMoon}ನೇ ಮನೆಯ ಶನಿ ಸಂಚಾರ (${shaniTransitSign}ದಲ್ಲಿ)`
-        : `Saturn transiting House ${shaniTransitHouseFromMoon} from Moon in ${shaniTransitSign}`;
-  }
+  const shaniByLang = (house: number, sign: string): string => {
+    if (house === 12) {
+      return lang === "kn"
+        ? `ಸಾಡೇ ಸಾತಿ (ಏಳರೆ ಶನಿ - ಮೊದಲ ಹಂತ: ವ್ಯಯ ಶನಿ ${sign}ದಲ್ಲಿ)`
+        : lang === "hi"
+        ? `साढ़ेसाती (प्रथम चरण - द्वादश शनि ${sign} में)`
+        : lang === "te"
+        ? `ఏలినాటి శని (మొదటి దశ - 12వ స్థానం ${sign}లో)`
+        : lang === "ta"
+        ? `ஏழரை சனி (முதல் நிலை - விரய சனி ${sign})`
+        : lang === "ml"
+        ? `ഏഴരശ്ശനി (ആദ്യ ഘട്ടം - 12-ാം ഭാവം ${sign})`
+        : lang === "mr"
+        ? `साडेसाती (प्रथम टप्पा - व्यय शनी ${sign} मध्ये)`
+        : `Sade Sati (Rising Phase - 12th from Moon in ${sign})`;
+    }
+    if (house === 1) {
+      return lang === "kn"
+        ? `ಸಾಡೇ ಸಾತಿ (ಜನ್ಮ ಶನಿ - ಶಿಖರ ಪರೀಕ್ಷಾ ಹಂತ ${sign}ದಲ್ಲಿ)`
+        : lang === "hi"
+        ? `साढ़ेसाती (जन्म शनि - मध्य शिखर चरण ${sign} में)`
+        : lang === "te"
+        ? `ఏలినాటి శని (జన్మ శని - ప్రధాన దశ ${sign}లో)`
+        : lang === "ta"
+        ? `ஜென்ம சனி (உச்ச கட்டம் ${sign})`
+        : lang === "ml"
+        ? `ജന്മ ശനി (മധ്യ ഘട്ടം ${sign})`
+        : lang === "mr"
+        ? `साडेसाती (जन्म शनी - मधला टप्पा ${sign} मध्ये)`
+        : `Sade Sati (Peak Janma Phase - on Moon in ${sign})`;
+    }
+    if (house === 2) {
+      return lang === "kn"
+        ? `ಸಾಡೇ ಸಾತಿ (ಅಂತಿಮ ಇಳಿಕೆ ಹಂತ: ಧನ ಶನಿ ${sign}ದಲ್ಲಿ)`
+        : lang === "hi"
+        ? `साढ़ेसाती (अंतिम चरण - द्वितीय शनि ${sign} में)`
+        : lang === "te"
+        ? `ఏలినాటి శని (చివరి దశ - 2వ స్థానం ${sign}లో)`
+        : lang === "ta"
+        ? `பாத சனி (இறுதி நிலை ${sign})`
+        : lang === "ml"
+        ? `ഏഴരശ്ശനി (അവസാന ഘട്ടം ${sign})`
+        : lang === "mr"
+        ? `साडेसाती (अंतिम टप्पा - धन शनी ${sign} मध्ये)`
+        : `Sade Sati (Setting Phase - 2nd from Moon in ${sign})`;
+    }
+    if (house === 4 || house === 10) {
+      return lang === "kn"
+        ? house === 4
+          ? `ಕಂಟಕ ಶನಿ (ಅರ್ಧಾಷ್ಟಮ - ೪ನೇ ಮನೆ ${sign}ದಲ್ಲಿ: ಮಾನಸಿಕ ಆತಂಕ & ವೃತ್ತಿ ಕಷ್ಟ)`
+          : `ದಶಮ ಕಂಟಕ ಶನಿ (೧೦ನೇ ಮನೆ ${sign}ದಲ್ಲಿ: ಉದ್ಯೋಗದಲ್ಲಿ ನಿರಂತರ ಒತ್ತಡ & ಕಿರಿಕಿರಿ)`
+        : lang === "hi"
+        ? `कंटक शनि (${house}वें भाव ${sign} में - कार्यक्षेत्र व मानसिक दबाव)`
+        : lang === "te"
+        ? `కంటక శని (${house}వ స్థానం ${sign}లో - వృత్తి మరియు మానసిక ఒత్తిడి)`
+        : lang === "ta"
+        ? `கண்டக சனி (${house}-ஆம் இடம் ${sign} - தொழில் மற்றும் மன அழுத்தம்)`
+        : lang === "ml"
+        ? `കണ്ടക ശനി (${house}-ാം ഭാവം ${sign} - തൊഴിൽ സമ്മർദ്ദം)`
+        : lang === "mr"
+        ? `कंटक शनी (${house} व्या स्थानी ${sign} मध्ये - कार्य व मानसिक ताण)`
+        : house === 4
+        ? `Kantaka Shani (4th from Moon in ${sign} - Career & Mental Strain)`
+        : `Kantaka Shani (10th from Moon in ${sign} - Heavy Professional Pressure)`;
+    }
+    if (house === 8) {
+      return lang === "kn"
+        ? `ಅಷ್ಟಮ ಶನಿ (೮ನೇ ಮನೆ ${sign}ದಲ್ಲಿ: ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು & ಕಾರ್ಯವಿಳಂಬ)`
+        : lang === "hi"
+        ? `अष्टम शनि (८वें भाव ${sign} में - अप्रत्याशित विलंब)`
+        : lang === "te"
+        ? `అష్టమ శని (8వ స్థానం ${sign}లో - ఆటంకాలు & ఆలస్యం)`
+        : lang === "ta"
+        ? `அஷ்டம சனி (8-ஆம் இடம் ${sign} - எதிர்பாராத தடைகள்)`
+        : lang === "ml"
+        ? `അഷ്ടമ ശനി (8-ാം ഭാവം ${sign} - അപ്രതീക്ഷിത തടസ്സങ്ങൾ)`
+        : lang === "mr"
+        ? `अष्टम शनी (८ व्या स्थानी ${sign} मध्ये - अनपेक्षित विलंब)`
+        : `Ashtama Shani (8th from Moon in ${sign} - Unexpected Roadblocks)`;
+    }
+    return lang === "kn"
+      ? `ಗೋಚಾರ ${house}ನೇ ಮನೆಯ ಶನಿ ಸಂಚಾರ (${sign}ದಲ್ಲಿ)`
+      : lang === "hi"
+      ? `गोचर शनि ${house}वें भाव (${sign}) में`
+      : lang === "te"
+      ? `గోచార శని ${house}వ స్థానం (${sign})లో`
+      : lang === "ta"
+      ? `கோசார சனி ${house}-ஆம் இடம் (${sign})`
+      : lang === "ml"
+      ? `ഗോചര ശനി ${house}-ാം ഭാവം (${sign})`
+      : lang === "mr"
+      ? `गोचर शनी ${house} व्या स्थानी (${sign})`
+      : `Saturn transiting House ${house} from Moon in ${sign}`;
+  };
+  shaniTransitNature = shaniByLang(shaniTransitHouseFromMoon, shaniTransitSign);
 
   // Guru Gochara
   const guruTransit = liveTransits?.[PlanetName.Jupiter];
@@ -536,18 +733,34 @@ export async function computeDevoteeKundli(
   const guruRashiIdx = guruTransit?.rashiIndex ?? 1;
   const guruTransitSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[guruRashiIdx];
 
-  let guruTransitNature = "";
-  if ([2, 5, 7, 9, 11].includes(guruTransitHouseFromMoon)) {
-    guruTransitNature =
-      lang === "kn"
-        ? `ಶುಭ ಗುರುಬಲ (${guruTransitHouseFromMoon}ನೇ ಮನೆ ${guruTransitSign}ದಲ್ಲಿ - ದೈವಾನುಗ್ರಹ & ಕಾರ್ಯಸಿದ್ಧಿ)`
-        : `Auspicious Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Divine Grace & Success)`;
-  } else {
-    guruTransitNature =
-      lang === "kn"
-        ? `ಗುರು ಸಂಚಾರ (${guruTransitHouseFromMoon}ನೇ ಮನೆ ${guruTransitSign}ದಲ್ಲಿ - ತಾಳ್ಮೆ ಹಾಗೂ ಸತತ ಪ್ರಯತ್ನದ ಕಾಲ)`
-        : `Testing Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Requires Patience)`;
-  }
+  const isGuruBenefic = [2, 5, 7, 9, 11].includes(guruTransitHouseFromMoon);
+  const guruTransitNature = isGuruBenefic
+    ? lang === "kn"
+      ? `ಶುಭ ಗುರುಬಲ (${guruTransitHouseFromMoon}ನೇ ಮನೆ ${guruTransitSign}ದಲ್ಲಿ - ದೈವಾನುಗ್ರಹ & ಕಾರ್ಯಸಿದ್ಧಿ)`
+      : lang === "hi"
+      ? `शुभ गुरुबल (${guruTransitHouseFromMoon}वें भाव ${guruTransitSign} में - कार्यसिद्धि एवं कृपा)`
+      : lang === "te"
+      ? `శుభ గురుబలం (${guruTransitHouseFromMoon}వ స్థానం ${guruTransitSign}లో - దైవానుగ్రహం)`
+      : lang === "ta"
+      ? `சுப குரு பலம் (${guruTransitHouseFromMoon}-ஆம் இடம் ${guruTransitSign} - காரிய சித்தி)`
+      : lang === "ml"
+      ? `ശുഭ ഗുരുബലം (${guruTransitHouseFromMoon}-ാം ഭാവം ${guruTransitSign} - കാര്യവിജയം)`
+      : lang === "mr"
+      ? `शुभ गुरुबळ (${guruTransitHouseFromMoon} व्या स्थानी ${guruTransitSign} मध्ये - यश)`
+      : `Auspicious Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Divine Grace & Success)`
+    : lang === "kn"
+    ? `ಗುರು ಸಂಚಾರ (${guruTransitHouseFromMoon}ನೇ ಮನೆ ${guruTransitSign}ದಲ್ಲಿ - ತಾಳ್ಮೆ ಹಾಗೂ ಸತತ ಪ್ರಯತ್ನದ ಕಾಲ)`
+    : lang === "hi"
+    ? `गुरु गोचर (${guruTransitHouseFromMoon}वें भाव ${guruTransitSign} में - धैर्य और सतत प्रयास का काल)`
+    : lang === "te"
+    ? `గురు గోచారం (${guruTransitHouseFromMoon}వ స్థానం ${guruTransitSign}లో - సహనం అవసరమైన కాలం)`
+    : lang === "ta"
+    ? `குரு பெயர்ச்சி (${guruTransitHouseFromMoon}-ஆம் இடம் ${guruTransitSign} - பொறுமை அவசியம்)`
+    : lang === "ml"
+    ? `വ്യാഴ സംക്രമണം (${guruTransitHouseFromMoon}-ാം ഭാവം ${guruTransitSign} - ക്ഷമയുടെ കാലം)`
+    : lang === "mr"
+    ? `गुरु गोचर (${guruTransitHouseFromMoon} व्या स्थानी ${guruTransitSign} मध्ये - संयमाचा काळ)`
+    : `Testing Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Requires Patience)`;
 
   // Rahu & Ketu Gochara
   const rahuTransit = liveTransits?.[PlanetName.Rahu];
@@ -571,7 +784,7 @@ export async function computeDevoteeKundli(
     psychologicalNatureEn: psychObj.en
   };
 
-  return {
+  const computedResult: DevoteeKundliComputedData = {
     kundli,
     lagnaName,
     lagnaNameEn,
@@ -648,6 +861,13 @@ export async function computeDevoteeKundli(
     rahuTransitHouseFromMoon,
     ketuTransitHouseFromMoon
   };
+
+  if (KUNDLI_COMPUTATION_CACHE.size >= MAX_KUNDLI_CACHE_SIZE) {
+    const oldestKey = KUNDLI_COMPUTATION_CACHE.keys().next().value;
+    if (oldestKey) KUNDLI_COMPUTATION_CACHE.delete(oldestKey);
+  }
+  KUNDLI_COMPUTATION_CACHE.set(cacheKey, computedResult);
+  return computedResult;
 }
 
 /**
@@ -655,31 +875,6 @@ export async function computeDevoteeKundli(
  * duplicate consecutive sentences, or repetitive paragraph blocks from LLM / fallback output.
  * Prevents AI stutter and repetitive loop anomalies across all 7 supported languages.
  */
-export function deduplicateResponseText(text: string): string {
-  if (!text) return "";
-  const trimmed = text.trim();
-  if (!trimmed) return "";
-
-  // Split into paragraphs
-  const rawParagraphs = trimmed.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-  if (rawParagraphs.length === 0) return trimmed;
-
-  const cleanParagraphs: string[] = [];
-
-  for (const para of rawParagraphs) {
-    const cleanedPara = sanitizeDuplicateSpeechWords(para).trim();
-    if (!cleanedPara) continue;
-
-    // Check if this paragraph is identical to previous paragraph
-    const prevPara = cleanParagraphs[cleanParagraphs.length - 1];
-    if (prevPara && normToken(cleanedPara) === normToken(prevPara)) {
-      continue;
-    }
-    cleanParagraphs.push(cleanedPara);
-  }
-
-  return cleanParagraphs.join("\n\n");
-}
 
 export type TopicDomain =
   | "MARRIAGE"
@@ -818,14 +1013,52 @@ export function detectConversationIntelligence(
   // Search previous turns for any detected dosha
   let referencedDosha = "";
   const combinedHistoryText = conversationHistory.map((t) => t.text).join(" ");
-  if (/ಕುಜ\s*ದೋಷ|kuja\s*dosha|manglik/i.test(combinedHistoryText)) {
-    referencedDosha = sessionLanguage === "en" ? "Kuja Dosha (Manglik Influence)" : "ಕುಜ ದೋಷ";
-  } else if (/ಸರ್ಪ\s*ದೋಷ|sarpa\s*dosha|rahu\s*dosha/i.test(combinedHistoryText)) {
-    referencedDosha = sessionLanguage === "en" ? "Sarpa Dosha" : "ಸರ್ಪ ದೋಷ";
-  } else if (/ಪಿತೃ\s*ದೋಷ|pitru\s*dosha/i.test(combinedHistoryText)) {
-    referencedDosha = sessionLanguage === "en" ? "Pitru Dosha" : "ಪಿತೃ ದೋಷ";
-  } else if (/ಕಾಳಸರ್ಪ|kala\s*sarpa/i.test(combinedHistoryText)) {
-    referencedDosha = sessionLanguage === "en" ? "Kala Sarpa Dosha" : "ಕಾಳಸರ್ಪ ದೋಷ";
+  const DOSHA_REF_NAMES: Record<string, Record<ConsultationLanguage, string>> = {
+    KUJA: {
+      en: "Kuja Dosha (Manglik Influence)",
+      hi: "कुज दोष (मांगलिक प्रभाव)",
+      te: "కుజ దోషం (మాంగళ్య దోషం)",
+      ta: "செவ்வாய் தோஷம் (குஜ தோஷம்)",
+      ml: "ചൊവ്വാ ദോഷം (കുജ ദോഷം)",
+      mr: "मंगळ दोष (कुज दोष)",
+      kn: "ಕುಜ ದೋಷ"
+    },
+    SARPA: {
+      en: "Sarpa Dosha",
+      hi: "सर्प दोष",
+      te: "సర్ప దోషం",
+      ta: "சர்ப்ப தோஷம்",
+      ml: "സർപ്പ ദോഷം",
+      mr: "सर्प दोष",
+      kn: "ಸರ್ಪ ದೋಷ"
+    },
+    PITRU: {
+      en: "Pitru Dosha",
+      hi: "पितृ दोष",
+      te: "పితృ దోషం",
+      ta: "பித்ரு தோஷம்",
+      ml: "പിതൃ ദോഷം",
+      mr: "पितृ दोष",
+      kn: "ಪಿತೃ ದೋಷ"
+    },
+    KALASARPA: {
+      en: "Kala Sarpa Dosha",
+      hi: "कालसर्प दोष",
+      te: "కాలసర్ప దోషం",
+      ta: "காலசர்ப்ப தோஷம்",
+      ml: "കാളസർപ്പ ദോഷം",
+      mr: "कालसर्प दोष",
+      kn: "ಕಾಳಸರ್ಪ ದೋಷ"
+    }
+  };
+  if (/ಕುಜ\s*ದೋಷ|kuja\s*dosha|manglik|कुज|मांगलिक|కుజ|செவ்வாய்|ചൊവ്വാ|मंगळ/i.test(combinedHistoryText)) {
+    referencedDosha = (DOSHA_REF_NAMES.KUJA[sessionLanguage] || DOSHA_REF_NAMES.KUJA.kn);
+  } else if (/ಸರ್ಪ\s*ದೋಷ|sarpa\s*dosha|rahu\s*dosha|सर्प|సర్ప|சர்ப்ப|സർപ്പ/i.test(combinedHistoryText)) {
+    referencedDosha = (DOSHA_REF_NAMES.SARPA[sessionLanguage] || DOSHA_REF_NAMES.SARPA.kn);
+  } else if (/ಪಿತೃ\s*ದೋಷ|pitru\s*dosha|पितृ|పితృ|பித்ரு|പിതൃ/i.test(combinedHistoryText)) {
+    referencedDosha = (DOSHA_REF_NAMES.PITRU[sessionLanguage] || DOSHA_REF_NAMES.PITRU.kn);
+  } else if (/ಕಾಳಸರ್ಪ|kala\s*sarpa|कालसर्प|కాలసర్ప|காலசர்ப்ப|കാളസർപ്പ/i.test(combinedHistoryText)) {
+    referencedDosha = (DOSHA_REF_NAMES.KALASARPA[sessionLanguage] || DOSHA_REF_NAMES.KALASARPA.kn);
   }
 
   // If current question does not explicitly name a topic (e.g., "when will it happen?", "when will I get married?")
@@ -886,22 +1119,39 @@ export function detectConversationIntelligence(
         contextualBridge = `ಹೌದು, ನಿಮ್ಮ ವೃತ್ತಿಜೀವನ ಮತ್ತು ಉದ್ಯೋಗದ ಸ್ಥಿತಿಗತಿಗಳನ್ನು ಮುಂದುವರಿಸಿ ನಿಮ್ಮ "${q}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ:`;
       }
     } else if (currTopic === "SANTHANA") {
-      if (sessionLanguage === "en") {
-        contextualBridge = `Regarding your continuation on progeny and conception ("${q}"):`;
-      } else {
-        contextualBridge = `ಸಂತಾನ ಭಾಗ್ಯದ ಕುರಿತಾದ ಸಮಾಲೋಚನೆಯನ್ನು ಮುಂದುವರಿಸಿ ನಿಮ್ಮ "${q}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ:`;
-      }
+      const santhanaBridges: Record<ConsultationLanguage, string> = {
+        en: `Regarding your continuation on progeny and conception ("${q}"):`,
+        hi: `संतान सुख के विषय में आगे बढ़ते हुए, आपके प्रश्न "${q}" के संदर्भ में:`,
+        te: `సంతాన భాగ్యం గురించిన సంప్రదింపును కొనసాగిస్తూ, మీ ప్రశ్న "${q}" కు సంబంధించి:`,
+        ta: `சந்தான பாக்கியம் குறித்த ஆலோசனையைத் தொடர்ந்து, உங்கள் கேள்வி "${q}" குறித்து:`,
+        ml: `സന്താന ഭാഗ്യത്തെക്കുറിച്ചുള്ള ചർച്ച തുടർന്നുകൊണ്ട്, "${q}" എന്ന ചോദ്യത്തിന്:`,
+        mr: `संतान सुखाबाबत पुढील मार्गदर्शन करताना, आपल्या "${q}" या प्रश्नाबाबत:`,
+        kn: `ಸಂತಾನ ಭಾಗ್ಯದ ಕುರಿತಾದ ಸಮಾಲೋಚನೆಯನ್ನು ಮುಂದುವರಿಸಿ ನಿಮ್ಮ "${q}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ:`
+      };
+      contextualBridge = santhanaBridges[sessionLanguage] || santhanaBridges.kn;
     } else {
-      contextualBridge =
-        sessionLanguage === "en"
-          ? `Continuing our discussion on your question "${q}":`
-          : `ಹಿಂದಿನ ಸಮಾಲೋಚನೆಯನ್ನು ಮುಂದುವರಿಸಿ ನಿಮ್ಮ "${q}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ:`;
+      const generalBridges: Record<ConsultationLanguage, string> = {
+        en: `Continuing our discussion on your question "${q}":`,
+        hi: `अपने पूर्व परामर्श को आगे बढ़ाते हुए, आपके प्रश्न "${q}" के संबंध में:`,
+        te: `మన మునుపటి చర్చను కొనసాగిస్తూ, మీ ప్రశ్న "${q}" కు సంబంధించి:`,
+        ta: `நமது முந்தைய ஆலோசனையைத் தொடர்ந்து, உங்கள் கேள்வி "${q}" குறித்து:`,
+        ml: `നമ്മുടെ മുൻ ചർച്ച തുടർന്നുകൊണ്ട്, "${q}" എന്ന ചോദ്യത്തിന്:`,
+        mr: `मागील चर्चा पुढे नेत असताना, आपल्या "${q}" या प्रश्नाबाबत:`,
+        kn: `ಹಿಂದಿನ ಸಮಾಲೋಚನೆಯನ್ನು ಮುಂದುವರಿಸಿ ನಿಮ್ಮ "${q}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ:`
+      };
+      contextualBridge = generalBridges[sessionLanguage] || generalBridges.kn;
     }
   } else if (isTopicSwitch) {
-    contextualBridge =
-      sessionLanguage === "en"
-        ? `Having addressed your previous inquiry, now turning specifically to your new question "${q}":`
-        : `ಹಿಂದಿನ ವಿಚಾರದ ಜೊತೆಗೆ, ಈಗ ನಿಮ್ಮ ಹೊಸ ಪ್ರಶ್ನೆಯಾದ "${q}" ಎಂಬುದನ್ನು ಜಾತಕದ ಆಧಾರದ ಮೇಲೆ ಪ್ರತ್ಯೇಕವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ:`;
+    const switchBridges: Record<ConsultationLanguage, string> = {
+      en: `Having addressed your previous inquiry, now turning specifically to your new question "${q}":`,
+      hi: `पूर्व विषय को पूर्ण कर अब आपकी कुंडली के आधार पर इस नए प्रश्न "${q}" का विश्लेषण करते हैं:`,
+      te: `మునుపటి విషయాన్ని పరిశీలించిన తర్వాత, ఇప్పుడు మీ కొత్త ప్రశ్న "${q}" ను జాతక పరంగా చూద్దాం:`,
+      ta: `முந்தைய கேள்விக்குப் பிறகு, இப்போது உங்கள் புதிய கேள்வி "${q}" குறித்து ஜாதக அடிப்படையில் காண்போம்:`,
+      ml: `മുൻ വിഷയത്തിന് ശേഷം, ഇപ്പോൾ നിങ്ങളുടെ പുതിയ ചോദ്യമായ "${q}" ജാതകപ്രകാരം പരിശോധിക്കാം:`,
+      mr: `मागील विषयानंतर, आता आपल्या पत्रिकेच्या आधारे या नवीन प्रश्नाचे "${q}" विश्लेषण करूया:`,
+      kn: `ಹಿಂದಿನ ವಿಚಾರದ ಜೊತೆಗೆ, ಈಗ ನಿಮ್ಮ ಹೊಸ ಪ್ರಶ್ನೆಯಾದ "${q}" ಎಂಬುದನ್ನು ಜಾತಕದ ಆಧಾರದ ಮೇಲೆ ಪ್ರತ್ಯೇಕವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ:`
+    };
+    contextualBridge = switchBridges[sessionLanguage] || switchBridges.kn;
   }
 
   return {
@@ -1011,7 +1261,7 @@ export function analyzeQuestionComplexity(
 
   // 0e. Business vs Job & Partnership
   const isBusinessVsJob =
-    /ಸ್ವಂತ ವ್ಯಾಪಾರ|ಸ್ವಂತ ಉದ್ಯಮ|ಕೆಲಸ ಉತ್ತಮವೋ|ವ್ಯಾಪಾರ ಉತ್ತಮವೋ|ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|business or job|job or business|own business|partnership|start business|do business|व्यापार या नौकरी|नौकरी या व्यापार|भागीदारी|ಸೊಂತ ವ್ಯಾಪారం|వ్యాపారమా ఉద్యోగమా|పార్టనర్‌షిప్|தொழில் அல்லது வேலை|சொந்த தொழில்|கூட்டுத் தொழில்|സ്വന്തം ബിസിനസ്സ്|തൊഴിലോ ബിസിനസ്സോ|भागीदारी व्यवसाय/i.test(
+    /ಸ್ವಂತ ವ್ಯಾಪಾರ|ಸ್ವಂತ ಉದ್ಯಮ|ಕೆಲಸ ಉತ್ತಮವೋ|ವ್ಯಾಪಾರ ಉತ್ತಮವೋ|ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|business or job|job or business|own business|partnership|start business|do business|व्यापार या नौकरी|नौकरी या व्यापार|भागीदारी|సొంత వ్యాపారం|వ్యాపారమా ఉద్యోగమా|పార్టనర్‌షిప్|தொழில் அல்லது வேலை|சொந்த தொழில்|கூட்டுத் தொழில்|സ്വന്തം ബിസിനസ്സ്|തൊഴിലോ ബിസിനസ്സോ|भागीदारी व्यवसाय/i.test(
       q
     );
 
@@ -1049,7 +1299,7 @@ export function analyzeQuestionComplexity(
   );
 
   const isGemstone =
-    /\b(gemstone|ratna|stone|pearl|ruby|emerald|coral|sapphire|diamond|rudraksha|zircon|opal|sphatika|spatika|topaz|amethyst|garnet|tourmaline|peridot|citrine|sunela|heera|manikya|panna|pukhraj|neelam|moti|gomed|lehsunia|which ring|wear which stone|white havala|white coral|safed moonga|substitute|alternative|uparatna|budget stone|cheap stone|cannot afford|don't have money|afford diamond|too expensive)\b|ರತ್ನ|ಹವಳ|ಮುತ್ತು|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ವಜ್ರ|ನೀಲ|ಗೋಮೇಧಿಕ|ವೈಡೂರ್ಯ|ಸ್ಪಟಿಕ|ಸ್ಫಟಿಕ|ಜಿರ್ಕಾನ್|ಓಪಲ್|ರುದ್ರಾಕ್ಷಿ|ಉಂಗುರ|ಯಾವ ರತ್ನ|ರತ್ನ ಧರಿಸ|ಉಪರತ್ನ|ಬದಲಿ ರತ್ನ|ಪರ್ಯಾಯ ರತ್ನ|ಬಿಳಿ ಹವಳ|रत्न|मूंगा|मोती|माणिक|पन्ना|पुखराज|हीरा|नीलम|गोमेद|लहसुनिया|जरकन|ओपल|स्फटिक|उपरत्न|सस्ता रत्न|विकल्प|अंगूठी|రత్నం|పగడం|ముత్యం|కెంపు|పచ్చ|పుష్యరాగం|వజ్రం|నీలం|జిರ್ಕಾನ್|ಓಪಲ್|ఉప రత్నం|உருத்திராட்சம்|பவளம்|முத்து|மாணிக்கம்|மரகதம்|புஷ்பராகம்|வைரம்|நீலம்|ஜிர்கான்|ஓபல்|உப ரத்தினம்|രത്നം|പവിഴം|മുത്ത്|മാണിക്യം|മരതകം|പുഷ്യരാഗം|വൈരം|നീലക്കല്ല്|സിർക്കോൺ|ഓപ്പൽ|उप रत्न/i.test(
+    /\b(gemstone|ratna|stone|pearl|ruby|emerald|coral|sapphire|diamond|rudraksha|zircon|opal|sphatika|spatika|topaz|amethyst|garnet|tourmaline|peridot|citrine|sunela|heera|manikya|panna|pukhraj|neelam|moti|gomed|lehsunia|which ring|wear which stone|white havala|white coral|safed moonga|substitute|alternative|uparatna|budget stone|cheap stone|cannot afford|don't have money|afford diamond|too expensive)\b|ರತ್ನ|ಹವಳ|ಮುತ್ತು|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ವಜ್ರ|ನೀಲ|ಗೋಮೇಧಿಕ|ವೈಡೂರ್ಯ|ಸ್ಪಟಿಕ|ಸ್ಫಟಿಕ|ಜಿರ್ಕಾನ್|ಓಪಲ್|ರುದ್ರಾಕ್ಷಿ|ಉಂಗುರ|ಯಾವ ರತ್ನ|ರತ್ನ ಧರಿಸ|ಉಪರತ್ನ|ಬದಲಿ ರತ್ನ|ಪರ್ಯಾಯ ರತ್ನ|ಬಿಳಿ ಹವಳ|रत्न|मूंगा|मोती|माणिक|पन्ना|पुखराज|हीरा|नीलम|गोमेद|लहसुनिया|जरकन|ओपल|स्फटिक|उपरत्न|सस्ता रत्न|विकल्प|अंगूठी|రత్నం|పగడం|ముత్యం|కెంపు|పచ్చ|పుష్యరాగం|వజ్రం|నీలం|జిర్కాన్|ఓపల్|ఉప రత్నం|உருத்திராட்சம்|பவளம்|முத்து|மாணிக்கம்|மரகதம்|புஷ்பராகம்|வைரம்|நீலம்|ஜிர்கான்|ஓபல்|உப ரத்தினம்|രത്നം|പവിഴം|മുത്ത്|മാണിക്യം|മരതകം|പുഷ്യരാഗം|വൈരം|നീലക്കല്ല്|സിർക്കോൺ|ഓപ്പൽ|उप रत्न/i.test(
       q
     ) ||
     (hasGemstoneContextInHistory &&
@@ -1213,15 +1463,16 @@ export function analyzeQuestionComplexity(
       q
     );
 
-  // 5. Short Follow-Up Clarifications (e.g. which finger, metal, time, or very short follow-up <= 8 words)
+  // 5. Short Gemstone Wearing Clarifications (finger, metal, time, or short <= 8-word follow-up ONLY when in gemstone context)
   const isClarification =
-    /ಯಾವ ಬೆರಳಿಗೆ|ಬೆಳ್ಳಿಯೋ ಚಿನ್ನವೋ|ಬೆಳ್ಳಿ|ಚಿನ್ನ|ಯಾವ ಕೈ|ಯಾವ ಸಮಯ|ಹೇಗೆ ಧರಿಸ|which finger|left hand or right|silver or gold|how to wear|when to wear|right hand or left|gold or silver|किस उंगली|सोने में या चांदी में|ఏ వేలికి|వెళ్ళి|ഏത് വിരലിൽ|कोणत्या बोटात/i.test(
+    /ಯಾವ ಬೆರಳಿಗೆ|ಬೆಳ್ಳಿಯೋ ಚಿನ್ನವೋ|ಬೆಳ್ಳಿ|ಚಿನ್ನ|ಯಾವ ಕೈ|ಯಾವ ಸಮಯ|ಹೇಗೆ ಧರಿಸ|which finger|left hand or right|silver or gold|how to wear|when to wear|right hand or left|gold or silver|किस उंगली|सोने में या चांदी में|ఏ వేలికి|వెండి|బంగారం|எந்த விரலில்|ഏത് വിരലിൽ|कोणत्या बोटात/i.test(
       q
     ) ||
     (!!isSubsequent &&
+      hasGemstoneContextInHistory &&
       wordCount <= 8 &&
       !detectIsAskingTiming(q) &&
-      !/ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ಸಂತಾನ|ಪುತ್ರ|ಆರೋಗ್ಯ|ದೋಷ|marry|married|marriage|wedding|career|job|work|business|health|progeny|santhana|child|dosha|when|timing/i.test(
+      !/ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ಸಂತಾನ|ಪುತ್ರ|ಆರೋಗ್ಯ|ದೋಷ|ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಏಕಾಗ್ರತೆ|ಪರೀಕ್ಷೆ|ಶಿಕ್ಷಣ|ಶಾಂತಿ|ಕುಟುಂಬ|marry|married|marriage|wedding|career|job|work|business|health|progeny|santhana|child|dosha|study|studies|school|education|exam|focus|concentration|memory|when|timing|पढ़ाई|शिक्षा|परीक्षा|విద్య|చదువు|ఆరోగ్యం|படிப்பு|கல்வி|പഠനം|അഭ്യാസ|शिक्षण/i.test(
         q
       ));
 
@@ -1648,13 +1899,13 @@ export function detectFamilyMemberSeparateBirthDataRequest(question: string): bo
 
   // 1. Check for family member / another person keywords
   const hasOtherPersonKeyword =
-    /\b(husband|wife|son|daughter|child|children|baby|brother|sister|mother|father|mom|dad|spouse|relative|friend|partner|another person|someone else)\b|ಗಂಡ|ಪತಿ|ಹೆಂಡತಿ|ಪತ್ನಿ|ಮಗ|ಮಗಳು|ಮಗು|ಅಣ್ಣ|ತಮ್ಮ|ಅಕ್ಕ|ತಂಗಿ|ತಾಯಿ|ಅಮ್ಮ|ತಂದೆ|ಅಪ್ಪ|ಸ್ನೇಹಿತ|ಬೇರೆಯವರ|ಮತ್ತೊಬ್ಬರ|ಇವರ ಜಾತಕ|ಅವರ ಜಾತಕ|ಹೊಸ ಜಾತಕ|ಇನ್ನೊಂದು ಜಾತಕ|ಇನ್ನೊಬ್ಬರ|ಮತ್ತೊಂದು|ಬೇರೆ ಜಾತಕ|ಪ್ರತ್ಯೇಕ ಜಾತಕ|पति|पत्नी|बेटा|बेटी|बच्चा|भाई|बहन|माता|पिता|दोस्त|दुसरे|భర్త|భార్య|కుమారుడు|కూతురు|అన్న|తమ్ముడు|అక్క|చెల్లి|కణవర్|மனைவி|மகன்|மகள்|சகோதரன்|ഭർത്താവ്|ഭാര്യ|മകൻ|മകൾ|पती|पत्नी|मुलगा|मुलगी/i.test(
+    /\b(husband|wife|son|daughter|child|children|baby|brother|sister|mother|father|mom|dad|spouse|relative|friend|partner|another person|someone else)\b|ಗಂಡ|ಪತಿ|ಹೆಂಡತಿ|ಪತ್ನಿ|ಮಗ|ಮಗಳು|ಮಗು|ಅಣ್ಣ|ತಮ್ಮ|ಅಕ್ಕ|ತಂಗಿ|ತಾಯಿ|ಅಮ್ಮ|ತಂದೆ|ಅಪ್ಪ|ಸ್ನೇಹಿತ|ಬೇರೆಯವರ|ಮತ್ತೊಬ್ಬರ|ಇವರ ಜಾತಕ|ಅವರ ಜಾತಕ|ಹೊಸ ಜಾತಕ|ಇನ್ನೊಂದು ಜಾತಕ|ಇನ್ನೊಬ್ಬರ|ಮತ್ತೊಂದು|ಬೇರೆ ಜಾತಕ|ಪ್ರತ್ಯೇಕ ಜಾತಕ|पति|पत्नी|बेटा|बेटी|बच्चा|भाई|बहन|माता|पिता|दोस्त|दुसरे|दूसरे|భర్త|భార్య|కుమారుడు|కూతురు|కొడుకు|అన్న|తమ్ముడు|అక్క|చెల్లి|అమ్మ|నాన్న|కణవర్|கணவர்|மனைவி|மகன்|மகள்|சகோதரன்|சகோதரி|அம்மா|அப்பா|ഭർത്താവ്|ഭാര്യ|മകൻ|മകൾ|അമ്മ|അച്ഛൻ|സഹോദരൻ|സഹോദരി|पती|पत्नी|मुलगा|मुलगी|आई|वडील|भाऊ|बहीण/i.test(
       q
     );
 
   // 2. Check for explicit birth details (DOB / date patterns / time patterns / chart calculation)
   const hasBirthDetailPattern =
-    /\b(dob|d\.o\.b|date of birth|birth date|born on|born in|time of birth|birth time|place of birth|pob|chart for|horoscope for|check his|check her|tell about him|tell about her)\b|ಹುಟ್ಟಿದ ದಿನಾಂಕ|ಹುಟ್ಟಿದ ತಾರೀಕು|ಹುಟ್ಟಿದ ಸಮಯ|ಹುಟ್ಟಿದ ಸ್ಥಳ|ಜನ್ಮ ದಿನಾಂಕ|ಜಾತಕ ನೋಡಿ|ಇವರ ಜಾತಕ|ಅವರ ಜಾತಕ|ಹೊಸ ಜಾತಕ|ಇನ್ನೊಂದು ಜಾತಕ|ಬೇರೆ ಜಾತಕ|ಪ್ರತ್ಯೇಕ ಜಾತಕ|ಹಿನ್ನೆಲೆ|जन्म तारीख|जन्म तिथि|जन्म समय|जन्म स्थान|कुंडली देखें|పుట్టిన తేదీ|పుట్టిన సమయం|జాతకం చూడండి|பிறந்த தேதி|பிறந்த நேரம்|ജാതകം നോക്കുക|जन्मतारीख|जन्म वेळ|पत्रिका पहा/i.test(
+    /\b(dob|d\.o\.b|date of birth|birth date|born on|born in|time of birth|birth time|place of birth|pob|chart for|horoscope for|check his|check her|tell about him|tell about her)\b|ಹುಟ್ಟಿದ ದಿನಾಂಕ|ಹುಟ್ಟಿದ ತಾರೀಕು|ಹುಟ್ಟಿದ ಸಮಯ|ಹುಟ್ಟಿದ ಸ್ಥಳ|ಜನ್ಮ ದಿನಾಂಕ|ಜಾತಕ ನೋಡಿ|ಇವರ ಜಾತಕ|ಅವರ ಜಾತಕ|ಹೊಸ ಜಾತಕ|ಇನ್ನೊಂದು ಜಾತಕ|ಬೇರೆ ಜಾತಕ|ಪ್ರತ್ಯೇಕ ಜಾತಕ|ಹಿನ್ನೆಲೆ|जन्म तारीख|जन्म तिथि|जन्म समय|जन्म स्थान|कुंडली देखें|పుట్టిన తేదీ|పుట్టిన సమయం|పుట్టిన స్థలం|జాతకం చూడండి|பிறந்த தேதி|பிறந்த நேரம்|பிறந்த இடம்|ஜாதகம் பார்க்கவும்|ജനന തീയതി|ജനന സമയം|ജനന സ്ഥലം|ജാതകം നോക്കുക|जन्मतारीख|जन्म वेळ|जन्म ठिकाण|पत्रिका पहा/i.test(
       q
     );
 
@@ -1748,7 +1999,7 @@ export function buildConsultationRulingsLedger(
 
     const historyText = (history || []).map((h) => h.text).join(" ");
     const hasAbroadInquiry =
-      /ವಿದೇಶ|ಪರದೇಶ|abroad|foreign|settle.*abroad|settle.*outside|settle.*in.*(usa|uk|canada|germany)|विदेश/i.test(
+      /ವಿದೇಶ|ಪರದೇಶ|abroad|foreign|settle.*abroad|settle.*outside|settle.*in.*(usa|uk|canada|germany)|विदेश|విదేశ|అమెరికా|కెనడా|జర్మనీ|வெளிநாட்|அமெரிக்கா|கனடா|ஜெர்மனி|വിദേശ|അമേരിക്ക|കാനഡ|परदेश|विदेशात|अमेरिका|कॅनडा|जर्मनी/i.test(
         historyText
       );
 
@@ -1772,7 +2023,7 @@ export function buildConsultationRulingsLedger(
     }
 
     const hasPropertyInquiry =
-      /ಆಸ್ತಿ|ಜಮೀನು|ಭೂಮಿ|ಮನೆ|ನಿವೇಶನ|property|asset|land|house|flat|plot|संपत्ति|मकान/i.test(
+      /ಆಸ್ತಿ|ಜಮೀನು|ಭೂಮಿ|ಮನೆ|ನಿವೇಶನ|property|asset|land|house|flat|plot|संपत्ति|मकान|ఆస్తి|భూమి|ఇల్లు|స్థలం|సొంత ఇల్లు|சொத்து|நிலம்|வீடு|மனை|സ്വത്ത്|ഭൂമി|വീട്|സ്ഥലം|मालमत्ता|जमीन|घर|प्लॉट/i.test(
         historyText
       );
 
@@ -1795,7 +2046,7 @@ export function buildConsultationRulingsLedger(
     }
 
     const hasMarriageInquiry =
-      /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಕಲ್ಯಾಣ|marriage|marry|married|wedding|partner|spouse|shadi|विवाह|शादी/i.test(
+      /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಕಲ್ಯಾಣ|marriage|marry|married|wedding|partner|spouse|shadi|विवाह|शादी|వివాహ|పెళ్లి|కళ్యాణ|కళత్ర|திருமணம்|கல்யாணம்|விவாகம்|വിവാഹം|കല്യാണം|लग्न/i.test(
         historyText
       );
 
@@ -1867,7 +2118,7 @@ export function buildConsultationRulingsLedger(
     }
 
     const hasGovtJobInquiry =
-      /ಸರ್ಕಾರಿ|ಯುಪಿಎಸ್‌ಸಿ|ಕೆಪಿಎಸ್‌ಸಿ|govt job|government exam|sarkari naukri|upsc|ias|ips|सरकारी नौकरी/i.test(
+      /ಸರ್ಕಾರಿ|ಯುಪಿಎಸ್‌ಸಿ|ಕೆಪಿಎಸ್‌ಸಿ|govt job|government exam|sarkari naukri|upsc|ias|ips|सरकारी नौकरी|ప్రభుత్వ ఉద్యోగ|అధికార పదవి|గ్రూప్స్|అரசு வேலை|அரசுப் பணி|டிஎன்பிஎஸ்சி|സർക്കാർ ജോലി|പി\.എസ്\.സി|सरकारी नोकरी|स्पर्धा परीक्षा|एमपीएससी|यूपीएससी/i.test(
         historyText
       );
 
@@ -1984,1302 +2235,57 @@ export function formatRulingsLedgerForPrompt(
   return lines.join("\n");
 }
 
-/**
- * Detects whether the devotee is explicitly inquiring about remedies, poojas, homas, pariharas, or shantis.
- * When false, astrological answers MUST focus 100% on answering the core question, planetary causes,
- * and upcoming Dasha-Bhukti transition windows, without unsolicited temple pooja recommendations.
- */
-export function isRemedyRequested(question: string): boolean {
-  return /ಪರಿಹಾರ|ಪೂಜೆ|ಹೋಮ|ಶಾಂತಿ|ಉಪಾಯ|ಸಂಕಲ್ಪ|ಅನುಷ್ಠಾನ|remedy|parihara|pooja|puja|homa|ritual|shanti|sankalpa|havan|उपाय|पूजा|हवन|शांति|संकल्प|పరిహార|పూజ|హోమం|శాంతి|பரிகாரம்|பூஜை|ஹோமம்|சாந்தி|പൂജ|ഹോമം|ശാന്തി|പരിഹാരം|तोडगा/i.test(
-    question
-  );
-}
 
-/**
- * Deterministic Abroad vs India settlement reading across all 7 languages.
- * Grounded in 4th House (Matrubhumi / Sukha Bhava) and multi-turn consistency.
- */
-export function buildDeterministicAbroadSettlementReading(
-  session: ConsultationSession,
-  question: string,
-  astroData: DevoteeKundliComputedData | undefined,
-  ledger?: ConsultationRulingRecord[],
-  isSubsequent?: boolean,
-  conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-  const historyText = conversationHistory
-    ? conversationHistory.map((t) => t.text.toLowerCase()).join(" ")
-    : "";
-  const isFollowUp =
-    !!isSubsequent ||
-    /ಕನಡ|ಕೆನಡಾ|ಅಮೆರಿಕ|ಜರ್ಮನಿ|ಯೂರೋಪ್|canada|germany|usa|uk|europe|settle outside|pr/i.test(question) ||
-    /abroad|ವಿದೇಶ|विदेश/i.test(historyText);
+import {
+  isRemedyRequested,
+  buildDeterministicAbroadSettlementReading,
+  buildDeterministicPropertyReading,
+  getLagnaPrescribedGemstoneText,
+  buildDeterministicMarriageReading,
+  buildDeterministicSanthanaReading,
+  buildDeterministicGovtJobReading,
+  buildDeterministicBusinessVsJobReading,
+  buildDeterministicDebtReliefReading,
+  buildDeterministicLegalCaseReading,
+  buildDeterministicHealthReading,
+  buildDeterministicCompetitiveExamReading,
+  calculateAstrologicalTimeline,
+  type AstrologicalTimelineResult
+} from "./consultationDomainReadings";
 
-  switch (lang) {
-    case "en": {
-      const p1 = isFollowUp
-        ? `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, as we established earlier through your birth chart, your 4th House (Matrubhumi / Sukha Bhava) and Lagna lord anchor your deepest fortune, mental peace, and family prosperity firmly in Swadesha (India). While pursuing short-term technical assignments, higher studies, or project-based work in countries like Canada, the USA, or Germany is astrologically viable during favorable Dasha-Bhukti periods, permanent relocation, immigration, or foreign citizenship outside India is ill-advised and will bring recurrent unrest and instability. Therefore, permanent settlement abroad remains strictly unfavorable.`
-        : `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear devotee, an astrological examination of your 4th House (Matrubhumi and Sukha Sthana) alongside your Janma Lagna indicates that your highest life stability, enduring wealth, and genuine mental tranquility are situated in Swadesha (India). While your 9th and 12th houses support travel for education or short-term professional assignments, relocating permanently outside India (foreign PR or citizenship) runs contrary to your chart's core grounding and may invite emotional unrest and detachment from familial roots. Choosing India for your permanent career and residence is deeply auspicious.`;
-      const p2 = `Embrace temporary overseas professional exposure whenever opportunities arise, but anchor your permanent investments, residence, and career roots in India. Daily recitation of the Aditya Hridaya Stotra and prayers to your Kuladevata will ensure smooth career progression under the divine grace of Sri Kshetra Gokarna Mahabaleshwara.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      const p1 = isFollowUp
-        ? `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, जैसा कि हमने पूर्व में आपकी जन्म पत्रिका के अध्ययन में स्पष्ट किया था, आपका चतुर्थ भाव (मातृभूमि एवं सुख स्थान) तथा लग्नेश इस बात का प्रमाण हैं कि आपका वास्तविक उत्कर्ष, मानसिक शांति और पारिवारिक समृद्धि स्वदेश (भारत) में ही सुरक्षित है। यदि आप कनाडा, अमेरिका या जर्मनी जैसे देशों में अल्पकालिक प्रोजेक्ट, उच्च शिक्षा अथवा निश्चित समयावधि के तकनीकी कार्य हेतु जाना चाहते हैं, तो शुभ दशा में यह उचित है; किंतु भारत छोड़कर विदेश में स्थायी रूप से बसना अथवा नागरिकता लेना आपके ग्रहों के अनुकूल नहीं है और यह मानसिक अशांति का कारण बनेगा। अतः विदेश में स्थायी निवास का विचार त्यागना ही श्रेयस्कर है।`
-        : `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्त, आपकी जन्म कुंडली के चतुर्थ भाव (मातृभूमि व सुख स्थान) और लग्नेश की स्थिति का सूक्ष्म विश्लेषण करने पर यह स्पष्ट होता है कि आपका दीर्घकालिक कल्याण, आर्थिक स्थिरता और मानसिक शांति स्वदेश (भारत) में ही फलित होगी। कुंडली का नवम और द्वादश भाव शिक्षा अथवा सीमित अवधि के तकनीकी प्रोजेक्ट हेतु विदेश यात्रा का समर्थन करते हैं, किंतु भारत छोड़कर विदेश में स्थायी रूप से बसना ग्रह स्थिति के प्रतिकूल है। अतः स्वदेश में रहकर ही अपनी आजीविका और निवास को समृद्ध करना आपके लिए परम मंगलकारी है।`;
-      const p2 = `अल्पकालिक व्यावसायिक यात्राओं का लाभ उठाएं किंतु अपने जीवन का स्थायी आधार भारत में ही बनाएं। नित्य कुलदेवता का स्मरण एवं आदित्य हृदय स्तोत्र का पाठ करें; श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा से आपको सर्वत्र सफलता प्राप्त होगी।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = isFollowUp
-        ? `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ జాతకంలో నాల్గవ భావం (మాతృభూమి మరియు సుఖ స్థానం) పరిశీలించినప్పుడు, మీ నిజమైన శాంతి మరియు కుటుంబ స్థిరత్వం స్వదేశంలోనే (భారతదేశంలోనే) అత్యంత శ్రేయస్కరమని ముందే గ్రహించాము. కెనడా, జర్మనీ లేదా అమెరికా వంటి దేశాలకు ఉద్యోగ రీత్యా స్వల్పకాలిక ప్రాజెక్ట్‌లకు వెళ్లడం అనుకూలించినప్పటికీ, భారతదేశాన్ని విడిచి అక్కడ శాశ్వతంగా స్థిరపడటం జాతక రీత్యా మానసిక అశాంతికి దారితీస్తుంది. కాబట్టి శాశ్వతంగా విదేశాలలో స్థిరపడే ఆలోచనను విరమించుకోవడం మంచిది.`
-        : `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nఆత్మీయులారా, మీ జన్మ కుండలిలోని నాల్గవ స్థానం (మాతృభూమి మరియు సుఖ భావం) ఆధారంగా చూస్తే, మీ జీవిత సర్వతోముఖాభివృద్ధి, కుటుంబ సౌభాగ్యం మరియు మానసిక ప్రశాంతత స్వదేశంలోనే (భారతదేశంలోనే) విశేషంగా లభిస్తాయి. ఉన్నత విద్య లేదా స్వల్పకాలిక ప్రాజెక్ట్ పనుల కోసం విదేశాలకు వెళ్లడం జాతక రీత్యా సాధ్యమే అయినప్పటికీ, అక్కడ శాశ్వతంగా స్థిరపడటం మీ జాతకానికి అనుకూలం కాదు. స్వదేశంలోనే స్థిరపడి వృత్తిని కొనసాగించడం మీ భవిష్యత్తుకు పరమ శ్రేయస్కరం.`;
-      const p2 = `స్వల్పకాలిక ప్రాజెక్ట్ పర్యటనలు వచ్చినప్పుడు సద్వినియోగం చేసుకోండి, కానీ మీ శాశ్వత జీవితాన్ని భారతదేశంలోనే తీర్చిదిద్దుకోండి. నిత్యం ఆదిత్య హృదయ స్తోత్రం మరియు కులదేవత ప్రార్థన చేయండి; శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని దివ్య అనుగ్రహం మీకు సదా రక్షగా నిలుస్తుంది.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = isFollowUp
-        ? `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 4-ஆம் இடமான சுக ஸ்தானம் மற்றும் தாய்மண் அமைப்பை நாம் ஏற்கனவே ஆராய்ந்தபடி, உங்கள் உண்மையான மன அமைதியும் வாழ்வின் வளர்ச்சியும் தாய்நாடான இந்தியாவிலேயே சிறப்பாக அமையும். கனடா, ஜெர்மனி அல்லது அமெரிக்கா போன்ற நாடுகளுக்கு குறுகிய கால வேலைவாய்ப்பு அல்லது திட்டப் பணிகளுக்கு செல்வது சாதகமாக இருந்தாலும், இந்தியாவை விட்டுவிட்டு நிரந்தரமாக வெளிநாட்டில் குடியேறுவது உங்கள் ஜாதகத்திற்கு ஏற்புடையதல்ல. அது மன உளைச்சலையும் அமைதியின்மையையும் தரும். எனவே நிரந்தர வெளிநாட்டு குடியேற்றத்தை தவிர்ப்பதே நலம்.`
-        : `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்பரே, உங்களது ஜாதகத்தில் 4-ஆம் வீடான மாத்ருபூமி மற்றும் சுக ஸ்தானத்தை நோக்கும்போது, உங்கள் நீண்டகால நல்வாழ்வு, குடும்ப மகிழ்ச்சி மற்றும் மன நிம்மதி தாய்நாடான இந்தியாவிலேயே சிறப்பாக நிலைக்கும் என்று தெளிவாகிறது. 9 மற்றும் 12-ஆம் வீடுகள் உயர்கல்வி அல்லது குறுகிய கால பணிகளுக்கான வெளிநாட்டு பயணங்களை ஆதரித்தாலும், நிரந்தரமாக வெளிநாட்டில் தங்குவது உங்கள் ஜாதக அமைப்பிற்கு முரணானது. எனவே இந்தியாவில் தங்கி தொழில் அல்லது வேலை செய்வதே உங்களுக்கு மிகுந்த நன்மைகளைத் தரும்.`;
-      const p2 = `குறுகிய கால பணிகளுக்கு தைரியமாக செல்லலாம், ஆனால் உங்கள் நிரந்தர வாழ்வை இந்தியாவிலேயே அமைத்துக் கொள்ளுங்கள். ஆதித்ய ஹிருதய ஸ்தோத்திரம் மற்றும் குலதெய்வ வழிபாடு செய்து வாருங்கள்; கோகர்ண மகாபலேஸ்வரரின் அருள் உங்களுக்கு நல்வாழ்வை அருளும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = isFollowUp
-        ? `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ നാലാം ഭാവവും ലഗ്നാധിപതിയും പരിശോധിച്ചതിൽ നിന്ന് സ്വദേശത്ത് (ഭാരതത്തിൽ) വസിക്കുന്നതാണ് ഏറ്റവും ശുഭകരമെന്ന് നാം നേരത്തെ വ്യക്തമാക്കിയതാണ്. കാനഡ, ജർമ്മനി തുടങ്ങിയ വിദേശ രാജ്യങ്ങളിലേക്ക് ഹ്രസ്വകാല പ്രോജക്റ്റുകൾക്കോ തൊഴിലിനോ പോകുന്നത് അനുകൂലമാണെങ്കിലും, ഭാരതം വിട്ട് അവിടെ സ്ഥിരതാമസമാക്കുന്നത് ജാതകപ്രകാരം മനഃസമാധാനക്കുറവിനും അസ്വസ്ഥതയ്ക്കും കാരണമാകും. അതിനാൽ സ്ഥിരമായ വിദേശവാസം ഉപേക്ഷിച്ച് സ്വദേശത്ത് ഉറച്ചുനിൽക്കുകയാണ് ഉത്തമം.`
-        : `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nപ്രിയ ഭക്തരേ, നിങ്ങളുടെ ജന്മജാതകത്തിലെ നാലാം ഭാവവും മാതൃഭൂമി സ്ഥാനവും വ്യക്തമാക്കുന്നത് നിങ്ങളുടെ ജീവിതത്തിലെ യഥാർത്ഥ ഉയർച്ചയും മാനസിക സമാധാനവും ഭാരതത്തിൽ തന്നെ നിലനിൽക്കുമെന്നാണ്. ഉന്നത പഠനത്തിനോ ഹ്രസ്വകാല ജോലിക്കോ വിദേശത്ത് പോകുന്നത് അനുകൂലമാണെങ്കിലും, സ്ഥിരമായി വിദേശത്ത് താമസിക്കുന്നത് നിങ്ങളുടെ ജാതകാനുസരണം ഗുണകരമല്ല. സ്വദേശത്ത് താമസിച്ച് ജോലി ചെയ്യുന്നത് നിങ്ങളുടെ ഭാവിക്ക് അത്യന്തം അനുഗ്രഹപ്രദമാണ്.`;
-      const p2 = `ഹ്രസ്വകാല യാത്രകൾ വരുമ്പോൾ ശുഭസമയത്ത് മുന്നോട്ടുപോകുക. ദിവസവും കുലദേവതാ പ്രാർത്ഥനയും ആദിത്യ ഹൃദയ സ്തോത്രവും ജപിക്കുക; ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹം നിങ്ങൾക്ക് സദാ തുണയായിരിക്കും.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = isFollowUp
-        ? `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या जन्मपत्रिकेतील चतुर्थ भाव (मातृभूमी व सुख स्थान) आणि लग्नेशाच्या स्थितीवरून आपण आधीच पाहिले आहे की, आपली खरी प्रगती, मनःशांती आणि कौटुंबिक समृद्धी स्वदेशातच (भारतात) सुरक्षित आहे. कॅनडा, जर्मनी किंवा अमेरिकेसारख्या देशांमध्ये अल्पावधीसाठी प्रोजेक्ट किंवा नोकरीनिमित्त जाणे अनुकूल असले तरी, भारत सोडून तिथे कायमस्वरूपी स्थायिक होणे पत्रिकेनुसार मानसिक अस्वास्थ्य व अडचणी निर्माण करू शकते. त्यामुळे कायमस्वरूपी विदेशात राहण्याचा हट्ट टाळणेच योग्य ठरेल.`
-        : `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्ता, आपल्या जन्मकुंडलीतील चतुर्थ भाव (सुख व मातृभूमी स्थान) आणि लग्नेशाचा विचार करता, आपल्या जीवनातील खरी स्थिरता, मानसिक शांती आणि दीर्घकालीन यश स्वदेशातच (भारतात) सर्वोत्तम राहील. शिक्षणासाठी अथवा अल्प मुदतीच्या तंत्रज्ञान प्रकल्पासाठी विदेशात जाणे ग्रहमानानुसार शक्य असले, तरी कायमस्वरूपी विदेशात स्थायिक होणे आपल्या कुंडलीतील सुख स्थानास पूरक नाही. भारतात राहूनच करिअर घडवणे अत्यंत शुभफलदायी आहे.`;
-      const p2 = `अल्प मुदतीच्या परदेश प्रवासाचा लाभ अवश्य घ्या, परंतु आपले कायमचे मूळ भारतातच घट्ट करा. नित्य कुलदेवतेचे स्मरण व आदित्य हृदय स्तोत्राचे पठण करा; श्री क्षेत्र गोकर्ण महाबळेश्वराच्या कृपेने आपले जीवन सुखमय होईल.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      const p1 = isFollowUp
-        ? `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಮಗುವೇ, ನಾವು ಮೊದಲೇ ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಕಂಡಂತೆ, ನಿಮ್ಮ ನಾಲ್ಕನೇ ಭಾವ (ಮಾತೃಭೂಮಿ ಹಾಗೂ ಸುಖ ಸ್ಥಾನ) ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಸ್ಥಿತಿಯು ನೀವು ಸ್ವದೇಶದಲ್ಲಿಯೇ (ಭಾರತದಲ್ಲೇ) ನೆಲೆಸಿ ಅಭಿವೃದ್ಧಿ ಹೊಂದುವುದಕ್ಕೆ ಅತ್ಯಂತ ಬಲವಾದ ದೈವಿಕ ರಕ್ಷಣೆಯನ್ನು ನೀಡಿದೆ. ನೀವು ಕೇಳುತ್ತಿರುವಂತೆ ನಿರ್ದಿಷ್ಟ ದೇಶಗಳಿಗೆ (ಅಮೆರಿಕ, ಕೆನಡಾ, ಜರ್ಮನಿ ಮುಂತಾದ ಕಡೆ) ಉದ್ಯೋಗದ ನಿಮಿತ್ತ ಅಲ್ಪಾವಧಿಯ ಪ್ರಾಜೆಕ್ಟ್ ಅಥವಾ ತಾಂತ್ರಿಕ ಕಾರ್ಯಗಳಿಗೆ ತೆರಳುವುದು ಅನುಕೂಲಕರವಾದರೂ, ಅಲ್ಲಿಯೇ ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು ಅಥವಾ ಪೌರತ್ವ ಹೊಂದುವುದು ಜಾತಕ ರೀತ್ಯಾ ನಿಮ್ಮ ಮನಃಶಾಂತಿಗೆ ಹಾಗೂ ಕುಟುಂಬ ಸೌಖ್ಯಕ್ಕೆ ಪೂರಕವಾಗಿಲ್ಲ. ಆದ್ದರಿಂದ ಭಾರತವನ್ನು ತೊರೆದು ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವ ನಿರ್ಧಾರವನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಕೈಬಿಡುವುದು ಶ್ರೇಯಸ್ಕರ.`
-        : `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ನಾಲ್ಕನೇ ಭಾವ (ಮಾತೃಭೂಮಿ ಹಾಗೂ ಸುಖ ಸ್ಥಾನ) ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜೀವನದ ಶಾಶ್ವತ ಏಳಿಗೆ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಮನಃಶಾಂತಿಯು ಸ್ವದೇಶದಲ್ಲಿಯೇ (ಭಾರತದಲ್ಲೇ) ಅತ್ಯಂತ ಶ್ರೇಷ್ಠವಾಗಿ ನೆಲೆಗೊಳ್ಳುತ್ತದೆ. ವಿದೇಶದಲ್ಲಿ ಅಲ್ಪಾವಧಿ ಪ್ರಾಜೆಕ್ಟ್, ಉನ್ನತ ವ್ಯಾಸಂಗ ಅಥವಾ ನಿರ್ದಿಷ್ಟ ಅವಧಿಯ ಉದ್ಯೋಗದ ನಿಮಿತ್ತ ಪ್ರಯಾಣ ಬೆಳೆಸುವುದು ಅನುಕೂಲಕರವಾದರೂ, ಭಾರತವನ್ನು ತೊರೆದು ಅಲ್ಲಿಯೇ ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು ಜಾತಕ ರೀತ್ಯಾ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆ ಮತ್ತು ಅಶಾಂತಿಗೆ ಕಾರಣವಾಗುತ್ತದೆ. ಆದ್ದರಿಂದ ಸ್ವದೇಶದಲ್ಲಿ ನೆಲೆಸಿ ವೃತ್ತಿಜೀವನವನ್ನು ಮುನ್ನಡೆಸುವುದು ನಿಮ್ಮ ಭಾಗ್ಯಕ್ಕೆ ಪರಮ ಮಂಗಳಕರ.`;
-      const p2 = `ಅಲ್ಪಾವಧಿ ವಿದೇಶ ಪ್ರವಾಸದ ಅವಕಾಶಗಳು ಬಂದಾಗ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಮುನ್ನಡೆಯಿರಿ ಹಾಗೂ ನಿತ್ಯವೂ ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಮತ್ತು ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರವನ್ನು ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ ಮತ್ತು ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸಕಲ ಸನ್ಮಂಗಳಗಳು ನೆಲೆಸಲಿ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-  }
-}
+import {
+  detectAndResolveUltaPaltaProbe,
+  verifyAndHarmonizeWithPreviousAnswers,
+  buildDeterministicGemstoneReading,
+  buildDeterministicColorReading,
+  buildDeterministicNumberReading,
+  buildDeterministicDayDeityReading,
+  buildDeterministicFollowUpClarificationReading
+} from "./consultationGemAndConsistencyReadings";
 
-/**
- * Deterministic Property / Land / House acquisition reading across all 7 languages.
- * Grounded in 4th House and Mars (Bhoomi Karaka).
- */
-export function buildDeterministicPropertyReading(
-  session: ConsultationSession,
-  question: string,
-  astroData: DevoteeKundliComputedData | undefined,
-  ledger?: ConsultationRulingRecord[],
-  isSubsequent?: boolean,
-  conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-
-  switch (lang) {
-    case "en": {
-      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, an examination of your 4th House (Sukha and Griha Sthana) alongside Bhoomi-Karaka Mars reveals that acquiring clear-title residential property or building your own home brings auspicious blessings. Divine grace strongly favors owning residential land or constructed home; however, speculative high-debt commercial investments or disputed lands must be strictly avoided.`;
-      const p2 = `Pursue property acquisitions with clear financial boundaries during favorable Dasha-Bhukti periods, and regularly recite the Sri Bhoomi Varaha or Subramanya Stotra for auspicious foundation blessings. May Sri Kshetra Gokarna Mahabaleshwara bless your home with enduring prosperity and harmony.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, आपकी जन्म कुंडली के चतुर्थ भाव (सुख एवं गृह स्थान) तथा भूमि-कारक मंगल का विश्लेषण करने पर यह ज्ञात होता है कि स्पष्ट दस्तावेजों वाले आवासीय भूखंड या स्वयं का घर बनवाना अत्यंत शुभ फलदायी है। आवासीय संपत्ति क्रय करने के लिए ग्रहों का अनुकूल सहयोग प्राप्त है; किंतु अत्यधिक कर्ज लेकर विवादित अथवा सट्टा-संबंधी व्यावसायिक भूमि में निवेश करने से पूर्णतः बचें।`;
-      const p2 = `शुभ दशा-भुक्ति में अपने आवासीय घर का संकल्प पूर्ण करें तथा नित्य श्री भूमि वराह अथवा सुब्रमण्य स्तोत्र का पाठ करें। श्री क्षेत्र गोकर्ण महाबलेश्वर आपके घर में सुख, शांति और समृद्धि की वृद्धि करें।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ జాతకంలోని నాల్గవ స్థానం (సుఖ మరియు గృహ స్థానం) అలాగే భూమికారకుడైన కుజ గ్రహం పరిశీలిస్తే, స్పష్టమైన పత్రాలున్న నివాస స్థలం లేదా సొంత ఇల్లు నిర్మించుకోవడం ఎంతో శుభకరం. సొంత నివాస ప్రాపర్టీని కొనుగోలు చేయడానికి దైవానుగ్రహం ఉంది; కానీ అధిక రుణభారంతో కూడిన వివాదాస్పద కమర్షియల్ స్థలాలలో పెట్టుబడులు పెట్టడం ఖచ్చితంగా నివారించాలి.`;
-      const p2 = `అనుకూల దశా కాలంలో గృహ యోగాన్ని ప్రారంభించండి మరియు నిత్యం శ్రీ భూమి వరాహ స్వామి లేదా సుబ్రహ్మణ్య స్తోత్రం పఠించండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని కృపతో మీ సొంత ఇంటి కల నెరవేరుగాక.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 4-ஆம் வீடான சுக மற்றும் மனை ஸ்தானத்தையும், பூமி காரகனான செவ்வாயையும் பார்க்கும்போது, தெளிவான ஆவணங்கள் கொண்ட குடியிருப்பு நிலம் வாங்குவது அல்லது சொந்த வீடு கட்டுவது மிகவும் சுபயோகமாகும். சொந்த வீடு அமைய நல்ல கிரக ஆதரவு உள்ளது; ஆனால் அதிக கடன் வாங்கி சர்ச்சைக்குரிய வணிக நிலங்களில் முதலீடு செய்வதை அறவே தவிர்க்க வேண்டும்.`;
-      const p2 = `சுப தசா காலத்தில் வீடுகட்டும் பணியைத் தொடங்கி, தினமும் பூமி வராகர் அல்லது சுப்ரமணியர் ஸ்தோத்திரத்தை பாராயணம் செய்யுங்கள். கோகர்ண மகாபலேஸ்வரரின் அருளால் உங்கள் இல்லத்தில் லட்சுமி கடாட்சம் நிலைத்திருக்கட்டும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ നാലാം ഭാവവും ഭൂമീകാരകനായ ചൊവ്വയും വ്യക്തമാക്കുന്നത് വ്യക്തമായ രേഖകളുള്ള പാർപ്പിട ഭൂമി വാങ്ങുന്നതും സ്വന്തമായി വീട് വെക്കുന്നതും അതീവ ശുഭകരമാണെന്നാണ്. സ്വന്തം ഭവനം സ്വന്തമാക്കാൻ അനുഗ്രഹമുണ്ട്; എന്നാൽ ഭീമമായ കടമെടുത്ത് തർക്കഭൂമികളിലോ ഊഹക്കച്ചവടങ്ങളിലോ പണം മുടക്കുന്നത് കർശനമായി ഒഴിവാക്കണം.`;
-      const p2 = `അനുകൂല ദശാകാലത്ത് വീട് നിർമ്മാണം ആരംഭിക്കുക, ഒപ്പം ഭൂമി വരാഹ സ്തോത്രമോ സുബ്രഹ്മണ്യ സ്തോത്രമോ നിത്യവും ജപിക്കുക. ഗോകർണ്ണ മഹാവിനായകന്റെ അനുഗ്രഹത്താൽ നിങ്ങളുടെ ഗൃഹയോഗം സാക്ഷാത്കരിക്കപ്പെടട്ടെ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या जन्मपत्रिकेतील चतुर्थ भाव (सुख व गृह स्थान) आणि भूमीकारक मंगळ ग्रहाचा विचार करता, स्पष्ट कागदपत्रे असलेली निवासी जागा खरेदी करणे किंवा स्वतःचे घर बांधणे अत्यंत शुभफलदायी आहे. स्वतःच्या घरासाठी दैवी अनुकूलता आहे; परंतु कर्जाच्या ओझ्याखाली विवादास्पद किंवा सट्टेबाजीच्या व्यापारी जमिनीत गुंतवणूक करणे पूर्णपणे टाळावे.`;
-      const p2 = `अनुकूल दशेत घराचे काम हाती घ्यावे आणि नित्य श्री भूमी वराह अथवा सुब्रमण्य स्तोत्राचे पठण करावे. श्री क्षेत्र गोकर्ण महाबळेश्वराच्या कृपेने आपल्या घरात सदैव सुख-शांती व समृद्धी नांदो.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ ನಾಲ್ಕನೇ ಭಾವ (ಸುಖ ಮತ್ತು ಗೃಹ ಸ್ಥಾನ) ಹಾಗೂ ಭೂಮಿಕಾರಕ ಕುಜ ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ನಿರ್ಮಿಸುವ ವಸತಿ ಮನೆ ಅಥವಾ ಸ್ಪಷ್ಟ ದಾಖಲೆಗಳಿರುವ ಭೂಮಿ/ನಿವೇಶನ ಖರೀದಿ ಯೋಗವು ಅತ್ಯಂತ ಮಂಗಳಕರವಾಗಿದೆ. ಕೃಷಿ ಭೂಮಿ ಅಥವಾ ಸ್ವಂತ ವಾಸದ ಮನೆ ನಿರ್ಮಾಣಕ್ಕೆ ದೈವಾನುಗ್ರಹವಿದೆ; ಆದರೆ ಯಾವುದೇ ವಿವಾದಾತ್ಮಕ ಆಸ್ತಿ, ಅತಿಯಾದ ಸಾಲದ ಹೊರೆಯೊಂದಿಗೆ ಮಾಡುವ ಊಹಾತ್ಮಕ ವಾಣಿಜ್ಯ ಹೂಡಿಕೆಗಳನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ತಪ್ಪಿಸಬೇಕು.`;
-      const p2 = `ಆಸ್ತಿ ಅಥವಾ ಗೃಹ ಪ್ರವೇಶದ ಕಾರ್ಯಗಳಿಗೆ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ಮುಹೂರ್ತವನ್ನು ಆಯ್ಕೆ ಮಾಡಿಕೊಳ್ಳಿ ಹಾಗೂ ಶ್ರೀ ಭೂಮಿ ವರಾಹ ಸ್ವಾಮಿ ಅಥವಾ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಯ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ದೈವ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ಸ್ವಂತ ಮನೆಯ ಸಂಕಲ್ಪವು ಸಕಾಲದಲ್ಲಿ ಸಾಕಾರಗೊಳ್ಳಲಿ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-  }
-}
-
-/**
- * Helper to get strictly Lagna-aligned auspicious gemstone text for Vivaha / Bhagya recommendations.
- * Prevents catastrophic prescription of Venusian Diamond/Zircon to incompatible Lagnas (Aries, Leo, Cancer, Scorpio, Sagittarius, Pisces).
- */
-export function getLagnaPrescribedGemstoneText(
-  astroData: DevoteeKundliComputedData | undefined,
-  lang: ConsultationLanguage
-): string {
-  const lagnaIdx = astroData?.kundli?.lagnaRashi?.index ?? -1;
-  const isVenusian = [1, 6, 9, 10, 2, 5].includes(lagnaIdx);
-
-  if (isVenusian || lagnaIdx === -1) {
-    switch (lang) {
-      case "en":
-        return "Diamond (Vajra) or natural White Zircon set in silver on a Friday morning";
-      case "hi":
-        return "शुक्र के शुभ रत्न हीरा अथवा शास्त्रसम्मत प्राकृतिक सफेद जरकन";
-      case "te":
-        return "శుక్ర గ్రహ రత్నమైన వజ్రం లేదా సహజ వైట్ జిర్కాన్";
-      case "ta":
-        return "சுக்கிரனுக்குரிய வைரம் அல்லது இயற்கை வெள்ளை ஜிர்கான்";
-      case "ml":
-        return "ശുക്രന്റെ രത്നമായ വജ്രം അല്ലെങ്കിൽ സ്വാഭാവിക വൈറ്റ് സിർക്കോൺ";
-      case "mr":
-        return "शुक्राचे शुभ रत्न हिरा किंवा नैसर्गिक पांढरा जरकन";
-      case "kn":
-      default:
-        return "ಶುಕ್ರನ ರತ್ನವಾದ ವಜ್ರ (ಅಥವಾ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ / ಓಪಲ್)";
-    }
-  }
-
-  // Aries (0) or Scorpio (7) -> Mars Lagnesha -> Red Coral
-  if (lagnaIdx === 0 || lagnaIdx === 7) {
-    switch (lang) {
-      case "en":
-        return "Lagna Lord Mars gemstone Red Coral (Pravala) set in copper or gold on a Tuesday morning";
-      case "hi":
-        return "लग्नेश मंगल का शुभ रत्न लाल मूंगा (तांबे अथवा सोने में)";
-      case "te":
-        return "లగ్నాధిపతి కుజుని శుభ రత్నమైన ఎర్ర పగడం (రాగి లేదా బంగారంలో)";
-      case "ta":
-        return "லக்னாதிபதி செவ்வாயின் சுப ரத்தினமான சிவப்பு பவளம் (செம்பு அல்லது தங்கத்தில்)";
-      case "ml":
-        return "ലഗ്നാധിപനായ ചൊവ്വയുടെ രത്നമായ ചുവന്ന പവിഴം";
-      case "mr":
-        return "लग्नेश मंगळाचे शुभ रत्न लाल पोवळा";
-      case "kn":
-      default:
-        return "ಲಗ್ನಾಧಿಪತಿ ಕುಜನ ಶುಭ ರತ್ನವಾದ ಕೆಂಪು ಹವಳ (ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನದಲ್ಲಿ)";
-    }
-  }
-
-  // Cancer (3) -> Moon Lagnesha -> Natural Pearl
-  if (lagnaIdx === 3) {
-    switch (lang) {
-      case "en":
-        return "Lagna Lord Moon gemstone Natural Pearl (Mukta) set in silver on a Monday morning";
-      case "hi":
-        return "लग्नेश चंद्र का शुभ रत्न सच्चा मोती (चांदी में)";
-      case "te":
-        return "లగ్నాధిపతి చంద్రుని శుభ రత్నమైన సహజ ముత్యం (వెండిలో)";
-      case "ta":
-        return "லக்னாதிபதி சந்திரனின் சுப ரத்தினமான இயற்கை முத்து (வெள்ளியில்)";
-      case "ml":
-        return "ലഗ്നാധിപനായ ചന്ദ്രന്റെ രത്നമായ സ്വാഭാവിക മുത്ത്";
-      case "mr":
-        return "लग्नेश चंद्राचे शुभ रत्न खरा मोती";
-      case "kn":
-      default:
-        return "ಲಗ್ನಾಧಿಪತಿ ಚಂದ್ರನ ಶುಭ ರತ್ನವಾದ ನೈಸರ್ಗಿಕ ಮುತ್ತು (ಬೆಳ್ಳಿಯಲ್ಲಿ)";
-    }
-  }
-
-  // Leo (4) -> Sun Lagnesha -> Ruby
-  if (lagnaIdx === 4) {
-    switch (lang) {
-      case "en":
-        return "Lagna Lord Sun gemstone Ruby (Manikya) set in gold or copper on a Sunday morning";
-      case "hi":
-        return "लग्नेश सूर्य का शुभ रत्न माणिक्य (सोने अथवा तांबे में)";
-      case "te":
-        return "లగ్నాధిపతి సూర్యుని శుభ రత్నమైన మాణిక్యం (బంగారం లేదా రాగిలో)";
-      case "ta":
-        return "லக்னாதிபதி சூரியனின் சுப ரத்தினமான மாணிக்கம் (தங்கம் அல்லது செம்பில்)";
-      case "ml":
-        return "ലഗ്നാധിപനായ സൂര്യന്റെ രത്നമായ മാണിക്യം";
-      case "mr":
-        return "लग्नेश सूर्याचे शुभ रत्न माणिक";
-      case "kn":
-      default:
-        return "ಲಗ್ನಾಧಿಪತಿ ಸೂರ್ಯನ ಶುಭ ರತ್ನವಾದ ಮಾಣಿಕ್ಯ (ಚಿನ್ನ ಅಥವಾ ತಾಮ್ರದಲ್ಲಿ)";
-    }
-  }
-
-  // Sagittarius (8) or Pisces (11) -> Jupiter Lagnesha -> Yellow Sapphire
-  if (lagnaIdx === 8 || lagnaIdx === 11) {
-    switch (lang) {
-      case "en":
-        return "Lagna Lord Jupiter gemstone Yellow Sapphire (Pushparaga) set in pure gold on a Thursday morning";
-      case "hi":
-        return "लग्नेश बृहस्पति का शुभ रत्न पीला पुखराज (सोने में)";
-      case "te":
-        return "లగ్నాధిపతి గురు గ్రహ రత్నమైన పుష్యరాగం (బంగారంలో)";
-      case "ta":
-        return "லக்னாதிபதி குருவின் சுப ரத்தினமான புஷ்பராகம் (தங்கத்தில்)";
-      case "ml":
-        return "ലഗ്നാധിപനായ വ്യാഴത്തിന്റെ രത്നമായ പുഷ്യരാഗം";
-      case "mr":
-        return "लग्नेश गुरूचे शुभ रत्न पिवळा पुखराज";
-      case "kn":
-      default:
-        return "ಲಗ್ನಾಧಿಪತಿ ಗುರುವಿನ ಶುಭ ರತ್ನವಾದ ಪುಷ್ಪರಾಗ (ಅಪ್ಪಟ ಚಿನ್ನದಲ್ಲಿ)";
-    }
-  }
-
-  switch (lang) {
-    case "en":
-      return "your prescribed Lagna Bhagya gemstone";
-    case "hi":
-      return "अपनी लग्न पत्रिका अनुसार निर्धारित मुख्य भाग्य रत्न";
-    case "te":
-      return "మీ లగ్నానికి అనుకూలమైన ప్రధాన భాగ్య రత్నం";
-    case "ta":
-      return "உங்கள் லக்னத்திற்குரிய முதன்மை அதிர்ஷ்ட ரத்தினம்";
-    case "ml":
-      return "നിങ്ങളുടെ ലഗ്നാനുസൃതമായ ഭാഗ്യ രത്നം";
-    case "mr":
-      return "आपल्या लग्नानुसार योग्य भाग्य रत्न";
-    case "kn":
-    default:
-      return "ನಿಮ್ಮ ಲಗ್ನಕ್ಕೆ ನಿಗದಿಪಡಿಸಿದ ಭಾಗ್ಯ ರತ್ನ";
-  }
-}
-
-/**
- * Deterministic 100% confident Marriage Reading across all 7 languages.
- * Eliminates all dilemma, declaring the marriage window with absolute Daivajna authority.
- */
-export function buildDeterministicMarriageReading(
-  session: ConsultationSession,
-  question: string,
-  astroData: DevoteeKundliComputedData | undefined,
-  _ledger?: ConsultationRulingRecord[],
-  _isSubsequent?: boolean
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-  const asksKujaShanti =
-    /ಕುಜ ಶಾಂತಿ|ಕುಶ ಶಾಂತಿ|kuja shanti|kusha shanti|kuja dosha pooja|mangal shanti|मंगल शांति|कुज शांति|కుజ శాంతి|செவ்வாய் சாந்தி|ചൊവ്വാ ദോഷ പൂജ/i.test(
-      question
-    );
-  const asksSixMonths = /6\s*month|೬\s*ತಿಂಗಳ|೬\s*ತಿಂಗಳು|6\s*महीने|6\s*నెలలు|6\s*மாதம்|6\s*മാസം|6\s*महिने/i.test(question);
-  const isRemedy = isRemedyRequested(question) || asksKujaShanti;
-  const isMarriedDiscord =
-    /ವಿಚ್ಛೇದನ|ಡಿವೋರ್ಸ್|ದಾಂಪತ್ಯ ಕಲಹ|ದಾಂಪತ್ಯ ಜಗಳ|ಮನಸ್ತಾಪ|ಹೊಂದಾಣಿಕೆ|divorce|separation|marital dispute|marital discord|conflict with wife|conflict with husband|fight with spouse|तालाक|विवाद/i.test(
-      question
-    );
-  const timeline = astroData?.kundli
-    ? calculateAstrologicalTimeline(astroData.kundli, astroData.ageYears || 30, "MARRIAGE", lang)
-    : null;
-  const timingWindow = (asksKujaShanti || asksSixMonths)
-    ? (lang === "kn" ? "ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ" : "within the next 6 months")
-    : (timeline?.rangeSummary || (lang === "kn" ? "ಮುಂದಿನ ೧ ವರ್ಷದೊಳಗೆ" : "within the next 1 year"));
-
-  switch (lang) {
-    case "en": {
-      if (asksKujaShanti) {
-        const p1 = `100% Confident Astrological Ruling Regarding Kuja Shanti & Marriage Delay: You ask with sincere concern why marriage has not yet materialized despite performing sacred Kuja Shanti (Kusha Shanthi). In Vedic Jyotisha, Kuja Shanti pacifies the intense fiery friction, temperamental clashes, and hostile impediments of Kuja Dosha (Mars in 1st, 4th, 7th, 8th, or 12th). Performing that sacred Shanti was essential and has successfully removed the negative blockage from your 7th house. However, clearing an impediment is the foundation; the actual manifestation of Vivaha requires the positive cosmic activation of Gochara Guru drishti and Kalatra Bhava maturity.`;
-        const p2 = `Now that the Martian obstacle is dissolved, your birth chart confirms with 98% to 100% certainty that ${timingWindow}, incoming Gochara Guru's direct aspect will solemnize your marriage! There is zero permanent delay remaining in your chart. In the upcoming period (over the next 20 to 180 days), the restrictive running Bhukti concludes, and a vibrant, highly auspicious Bhukti activating your 7th house begins, ensuring alliance discussions conclude triumphantly.`;
-        const p3 = `Offering a sacred Kalyana Sankalpa at Sri Kshetra Gokarna Mahabaleshwara under chief priest Sri Shreeram Pandit (Ph: 9972339362) will complete your cosmic alignment. Matrimonial alliance discussions will finalize happily within this confirmed auspicious window.`;
-        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-      }
-      if (isMarriedDiscord) {
-        const p1 = `100% Confident Astrological Ruling Regarding Matrimonial Harmony: Examining your Janma Kundli with deep meditative focus, your current real-life reality is immediately clear to me: you are already married, but matrimonial friction, lack of mutual understanding, and temperamental disputes have created heavy emotional turbulence and sleepless nights. In Vedic Jyotisha, this discord arises from transit friction afflicting your 7th house of partnership and 12th house of domestic peace, exacerbated by an abrasive Vimshottari sub-period.`;
-        const p2 = `However, a decisive cosmic turning point is approaching: over the next 20 to 180 days (${timingWindow}), the obstructive Bhukti shifts into a harmonious Bhukti, and Gochara Guru's soothing aspect restores domestic peace, emotional reconciliation, and mutual respect between both partners. Proceed with patient dignity; this turbulent storm is dissolving under the divine grace of Sri Kshetra Gokarna Mahabaleshwara.`;
-        const p3 = `To pacify conflicting transit energies and bless your marital home with lasting peace, arranging a sacred dampati pooja at Sri Kshetra Gokarna with chief priest Sri Shreeram Pandit (Ph: 9972339362) will provide enduring relief.`;
-        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-      }
-      const p1 = `100% Confident Astrological Prediction: In authentic Vedic Jyotisha, horoscope configurations reflect subtle cosmic vibrations and karmic tendencies (carrying an 85% to 90% planetary indication) rather than rigid civil registry documents. Examining your Janma Kundli with deep meditative focus, your 7th house (Kalatra Bhava) of marriage and partnership, the 7th lord, and Kalatra-karaka Venus (Shukra) reveal a strong Vivaha Yoga energetic cycle.`;
-      const p2 = `Astrologically, this manifests through two dignified real-life dimensions: If you are currently unmarried and awaiting marriage—the reason for prior delay was that your running Vimshottari period was passing through an obstructive sub-period influenced by Saturn-Rahu or the dusthana 6th/8th axis, where matrimonial alliances have repeatedly stalled at the final threshold or broken off unexpectedly. However, a decisive cosmic turning point is now arriving: over the next 20 to 180 days (within the upcoming 6 to 12 months), that restrictive running Bhukti concludes, and a vibrant, highly auspicious Bhukti activating your 7th house begins, blessed by incoming Gochara Guru's divine nectar aspect (amrita drishti). Therefore, with 98% to 100% mathematical certainty, ${timingWindow} your marriage negotiations will finalize smoothly and your wedding will definitely be solemnized! There is zero room for doubt or dilemma in your chart. On the other hand, if you are already married—this exact same 7th house planetary energy governs domestic consolidation, mutual adjustment, and family milestones, guiding you to exercise patience and emotional harmony so that transient transit friction dissolves into lasting matrimonial peace. Keep alliance discussions active with confident peace; the planetary gates of Vivaha Yoga are now swinging open under the divine grace of Sri Kshetra Gokarna Mahabaleshwara.`;
-      const p3 = `To ensure zero minor evil-eye or planetary hurdles impede this sacred alliance, offering a sanctified Kalyana Sankalpa pooja at Sri Kshetra Gokarna Mahabaleshwara will seal your energetic alignment. Contact chief priest Sri Shreeram Pandit at 9972339362 to solemnize this ritual; matrimonial discussions will finalize smoothly.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      if (asksKujaShanti) {
-        const p1 = `१००% निश्चित दैवज्ञ निर्णय (कुज शांति के उपरांत विवाह योग): आपने कुज शांति (मंगल शांति) करवाई, फिर भी विवाह में विलंब क्यों हुआ, इसका प्रामाणिक वैदिक कारण समझें। कुज शांति ने मंगल के तीव्र दोष, कलह एवं विवाह बाधाओं को पूर्ण रूप से शांत कर दिया है। दोष का निवारण नकारात्मक रुकावटों को हटा देता है; किंतु वास्तविक विवाह संपन्न होने के लिए गोचर में गुरु (बृहस्पति) की अमृत दृष्टि और सप्तम भाव का सक्रिय होना अनिवार्य होता है।`;
-        const p2 = `अब जबकि मंगल की बाधा समाप्त हो चुकी है, आपकी कुंडली में आगामी २० से १८० दिनों के भीतर बाधक भुक्ति समाप्त होकर सप्तमेश की शुभ भुक्ति आरंभ होने जा रही है। अतः ९८% से १००% निश्चितता के साथ ${timingWindow} आपका विवाह संपन्न होना शत-प्रतिशत तय है! इस शुभ काल के भीतर आपका शुभ विवाह निर्विघ्न संपन्न होगा।`;
-        const p3 = `श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में मुख्य पुरोहित श्रीराम पंडित (दूरभाष: 9972339362) के मार्गदर्शन में कल्याण संकल्प पूजा संपन्न कराने से वैवाहिक वार्ता निर्विघ्न रूप से सफल होगी।`;
-        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-      }
-      if (isMarriedDiscord) {
-        const p1 = `१००% निश्चित दैवज्ञ निर्णय (दांपत्य सामंजस्य): आपकी जन्म कुंडली का सूक्ष्म विश्लेषण करने पर आपकी वर्तमान वास्तविक स्थिति मुझे स्पष्ट दिखाई दे रही है: आप पहले से विवाहित हैं, किंतु दांपत्य जीवन में आपसी समझ की कमी, वैचारिक मतभेद और कलह के कारण भारी मानसिक अशांति बनी हुई है। ज्योतिष शास्त्र अनुसार, यह स्थिति सप्तम भाव एवं द्वादश भाव पर गोचर ग्रहों के प्रतिकूल प्रभाव तथा क्रूर भुक्ति के कारण उत्पन्न हुई है।`;
-        const p2 = `किंतु आगामी २० से १८० दिनों (${timingWindow}) में यह प्रतिकूल भुक्ति समाप्त होकर शुभ भुक्ति आरंभ होगी और गोचर गुरु की अमृत दृष्टि दांपत्य में पुनः प्रेम, आदर और सामंजस्य स्थापित करेगी। धैर्य और संयम से कार्य लें; भगवान महाबलेश्वर की कृपा से यह कलह शीघ्र ही शांत होगी।`;
-        const p3 = `पारिवारिक शांति एवं दांपत्य सुख की पुनः स्थापना हेतु श्री क्षेत्र गोकर्ण में मुख्य पुरोहित श्रीराम पंडित (दूरभाष: 9972339362) के मार्गदर्शन में शांति पूजा करवाएं।`;
-        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-      }
-      const p1 = `१००% निश्चित दैवज्ञ निर्णय: वैदिक ज्योतिष का प्रामाणिक सत्य यह है कि जन्म पत्रिका किसी प्रशासनिक दस्तावेज की भांति नहीं, अपितु ग्रहों की ऊर्जा तरंगों एवं कर्म योगों का सूक्ष्म दर्पण है (जो ८५% से ९०% ग्रहों की प्रबल संभावना दर्शाता है)। आपकी जन्म कुंडली के सप्तम भाव (कलत्र स्थान), सप्तमेश तथा विवाह-कारक शुक्र एवं गुरु का गहन विश्लेषण करने पर एक अत्यंत सशक्त विवाह योग की ऊर्जा सक्रिय दिखाई दे रही है।`;
-      const p2 = `शास्त्र अनुसार इसके दो वास्तविक स्वरूप हैं: यदि आप वर्तमान में अविवाहित हैं और निष्ठावान प्रयासों के बावजूद विवाह की बातचीत अंतिम चरण में आकर टूट जाती है अथवा अचानक रुक जाती है, जिससे आप और आपका परिवार गहरी चिंता में हैं—तो अब तक के विलंब का मुख्य कारण यह रहा कि आपकी वर्तमान विंशोत्तरी दशा में चल रही भुक्ति पर शनि-राहु अथवा छठे/आठवें भाव के स्वामियों का अवरोधक प्रभाव था। किंतु अब आपके ग्रहों में एक युगांतरकारी शुभ मोड़ आ रहा है: आगामी २० से १८० दिनों के भीतर (अगले ६ से १२ महीनों में), वर्तमान बाधक भुक्ति समाप्त होकर सप्तम भाव को जागृत करने वाली अत्यंत शुभ भुक्ति आरंभ होने जा रही है। साथ ही गोचर में देवगुरु बृहस्पति की अमृत दृष्टि आपकी लग्न व सप्तम भाव पर पूर्णतः सक्रिय हो रही है, जिससे ९८% से १००% निश्चितता के साथ ${timingWindow} आपका विवाह संपन्न होना शत-प्रतिशत तय है! आपकी कुंडली में किसी भी संशय या दुविधा के लिए कोई स्थान नहीं है। इस शुभ काल में आने वाले रिश्ते निर्विघ्न रूप से तय होंगे और मांगलिक कार्य संपन्न होगा। दूसरी ओर, यदि आप पहले से विवाहित हैं—तो यही सप्तम भाव की ऊर्जा दांपत्य जीवन में परस्पर तालमेल, पारिवारिक दायित्वों के निर्वहन तथा आपसी समझ द्वारा मतभेदों को समाप्त कर सुख-शांति स्थापित करने का संकेत देती है। श्री क्षेत्र गोकर्ण महाबलेश्वर का आशीर्वाद सदैव आपके साथ है।`;
-      const p3 = `इस शुभ विवाह योग को निर्विघ्न संपन्न कराने हेतु श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में प्रधान पुरोहित श्रीराम पंडित (दूरभाष: 9972339362) से संपर्क कर कल्याण संकल्प पूजा संपन्न कराएं।`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = `100% ఖచ్చితమైన దైవజ్ఞ నిర్ణయం: వేద జ్యోతిషం ప్రకారం జన్మ కుండలి కేవలం బాహ్య పత్రం కాదు; అది గ్రహాల శక్తి తరంగాలను మరియు కర్మ యోగాలను (85% నుండి 90% సంభావ్యతతో) స్పష్టంగా ప్రతిబింబిస్తుంది. మీ జన్మ కుండలిని లోతుగా పరిశీలించినప్పుడు 7వ కళత్ర భావం, సప్తమాధిపతి మరియు శుక్ర గ్రహ స్థానాలలో బలమైన వివాహ యోగ శక్తి గోచరిస్తోంది.`;
-      const p2 = `జ్యోతిష పరంగా దీనికి రెండు సహజ వాస్తవాలు ఉన్నాయి: మీరు ప్రస్తుతం అవివాహితులుగా ఉండి, ఎంత ప్రయత్నించినా పెళ్లి సంబంధాలు చివరి నిమిషంలో చేజారిపోవడం లేదా ఆగిపోవడం వల్ల మీ కుటుంబంలో తీవ్ర ఆందోళన నెలకొంది. వేద జ్యోతిషం ప్రకారం గత కొంతకాలంగా మీ వింశోత్తరి దశలో నడుస్తున్న భుక్తిపై శని-రాహువుల లేదా 6/8 భావాధిపతుల అవరోధ ప్రభావం ఉండటం వల్ల ఈ విళంబం ఏర్పడింది. అయితే ఇప్పుడు గ్రహస్థితిలో అద్భుతమైన మార్పు సంభవిస్తోంది: రాబోయే 20 నుండి 180 రోజుల వ్యవధిలో (రాబోయే 6 నెలల నుండి 1 సంవత్సరంలో), ప్రస్తుత కఠిన భుక్తి ముగిసి 7వ భావాన్ని ఉత్తేజపరిచే శుభ భుక్తి ప్రారంభం కానుంది. ఇదే సమయంలో గోచార గురు భగవానుని అమృత దృష్టి మీ లగ్నం మరియు సప్తమ స్థానంపై ప్రసరిస్తుండటంతో, 98% నుండి 100% ఖచ్చితత్వంతో ${timingWindow} మీ వివాహం ఖాయంగా నిశ్చయమవుతుంది! మీ కుండలిలో ఎలాంటి సందిగ్ధతకు లేదా సందేహానికి తావులేదు. వివాహ సంబంధాలు శీఘ్రంగా కుదురుతాయి. ఒకవేళ మీరు ఇప్పటికే వివాహితులై ఉంటే—ఇదే 7వ భావ శక్తి దాంపత్యంలో పరస్పర అవగాహన, కుటుంబ బాధ్యతలు మరియు సామరస్యాన్ని పెంపొందించి గృహంలో శాంతిని నెలకొల్పుతుంది. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులు మీకు సదా ఉంటాయి.`;
-      const p3 = `శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి సన్నిధిలో కళ్యాణ సంకల్ప పూజ జరిపించడం వలన వివాహ కార్యాలు ఆటంకాలు లేకుండా పూర్తవుతాయి. ప్రధాన అర్చకులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = `100% உறுதியான ஜோதிடத் தீர்ப்பு: வேத ஜோதிடத்தின் உண்மை என்னவென்றால், ஜாதகம் என்பது வெறும் வெளிப்படையான ஆவணம் அல்ல; அது கிரகங்களின் ஆற்றலையும் கர்ம யோகங்களையும் (85% முதல் 90% சாத்தியக்கூறுகளுடன்) துல்லியமாகக் காட்டுகிறது. உங்கள் ஜாதகத்தை ஆழ்ந்து ஆராயும்போது உங்கள் 7-ஆம் வீடான களத்திர ஸ்தானம், 7-ஆம் அதிபதி மற்றும் சுக்கிரனின் நிலைகளில் வலுவான திருமண யோகம் பிரகாசிக்கிறது.`;
-      const p2 = `இதனை இரண்டு எதார்த்த நிலைகளில் புரிந்து கொள்ளலாம்: நீங்கள் தற்போது திருமணமாகாமல் இருந்து, திருமணப் பேச்சுவார்த்தைகள் இறுதி நேரம் வரை வந்து எதிர்பாராமல் தடைபடுவதால் நீங்களும் உங்கள் குடும்பத்தாரும் மிகுந்த மனக்கவலையில் உள்ளீர்கள். இதுவரை நடந்த விம்சோத்தரி தசையின் உபபுக்தியில் சனி-ராகு அல்லது 6/8-ஆம் அதிபதிகளின் தடையான பார்வை இருந்ததால் தான் நல்ல வரன்கள் வந்தும் திருமணம் தள்ளிப்போனது. ஆனால் இப்போது கிரக நிலையில் மகத்தான திருப்புமுனை உண்டாகிறது: அடுத்த 20 முதல் 180 நாட்களுக்குள் (அடுத்த 6 மாதங்கள் முதல் 1 வருடத்திற்குள்), முந்தைய தடையான புக்தி முடிந்து 7-ஆம் வீட்டை இயக்கும் புதிய சுப புக்தி தொடங்குகிறது! அதே நேரத்தில் கோசார குருவின் அமிர்த பார்வை உங்கள் லக்னம் மற்றும் 7-ஆம் வீட்டின் மீது நேரடியாக விழுவதால், 98% முதல் 100% உறுதியுடன் ${timingWindow} உங்கள் திருமணம் நிச்சயமாகக் கைகூடும்! இதில் எவ்வித சந்தேகத்திற்கும் இடமில்லை. நல்ல வரன் அமைந்து மாங்கல்ய பாக்கியம் கிட்டும். ஒருவேளை நீங்கள் ஏற்கனவே திருமணமானவராக இருந்தால்—இதே 7-ஆம் வீட்டின் கிரக ஆற்றல் தம்பதியரிடையே பரஸ்பர புரிதல், குடும்பப் பொறுப்புகள் மற்றும் ஒற்றுமையை பலப்படுத்தி இல்லறத்தில் அமைதியைத் தரும். கோகர்ண மகாபலேஸ்வரரின் திருவருள் உங்களுக்கு என்றென்றும் துணையாக இருக்கும்.`;
-      const p3 = `ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமி சந்நிதியில் கல்யாண சங்கல்ப பூஜை செய்வதன் மூலம் நல்ல வரன் அமைந்து திருமணம் இனிதே முடியும். தலைமை அர்ச்சகர் ஸ்ரீராம் பண்டிட் (தொலைபேசி: 9972339362) அவர்களைத் தொடர்பு கொள்ளவும்.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = `100% ഉറപ്പായ ജ്യോതിഷ പ്രവചനം: വേദ ജ്യോതിഷത്തിന്റെ ആധികാരിക തത്വം അനുസരിച്ച്, ജാതകം എന്നത് കേവലം ഒരു ബാഹ്യ രേഖയല്ല; മറിച്ച് ഗ്രഹങ്ങളുടെ ഊർജ്ജ പ്രവാഹത്തെയും കർമ്മ യോഗങ്ങളെയും (85% മുതൽ 90% വരെ സാധ്യതയോടെ) വ്യക്തമാക്കുന്ന ദർപ്പണമാണ്. നിങ്ങളുടെ ജന്മജാതകത്തിലെ 7-ാം കളത്ര ഭാവം, സപ്തമാധിപൻ, ശുക്രൻ എന്നിവരെ സൂക്ഷ്മമായി പരിശോധിക്കുമ്പോൾ ശക്തമായ വിവാഹ യോഗം ഉണർന്നിരിക്കുന്നത് വ്യക്തമാണ്.`;
-      const p2 = `ഇതിന് രണ്ട് യാഥാർത്ഥ്യ തലങ്ങളുണ്ട്: നിങ്ങൾ ഇപ്പോൾ അവിവാഹിതനായി/അവിവാഹിതയായി എത്രയൊക്കെ ശ്രമിച്ചിട്ടും വിവാഹാലോചനകൾ അവസാന നിമിഷത്തിൽ മുടങ്ങിപ്പോകുന്നതിനാൽ നിങ്ങൾ വലിയ മാനസിക വിഷമത്തിലാണ്. നിലവിൽ വിംശോത്തരി ദശയിൽ ശനി-രാഹു അല്ലെങ്കിൽ 6/8 അധിപന്മാരുടെ തടസ്സ സ്വാധീനം ഉണ്ടായിരുന്നതിനാലാണ് ബന്ധങ്ങൾ ഉറയ്ക്കാതെ വൈകിയത്. എന്നാൽ ഇപ്പോൾ ഗ്രഹനിലയിൽ ശുഭകരമായ ഒരു വഴിത്തിരിവ് ഉണ്ടാകുന്നു: വരുന്ന 20 മുതൽ 180 ദിവസങ്ങൾക്കുള്ളിൽ (അടുത്ത 6 മാസത്തിനുള്ളിൽ), പഴയ തടസ്സങ്ങൾ നൽകിയ ഭുക്തി അവസാനിക്കുകയും 7-ാം ഭാവത്തെ ഉണർത്തുന്ന പുതിയ ശുഭ ഭുക്തി ആരംഭിക്കുകയും ചെയ്യും. ഒപ്പം ഗോചാര വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടി കൂടി ചേരുന്നതോടെ, 98% മുതൽ 100% ഉറപ്പോടെ ${timingWindow} നിങ്ങളുടെ വിവാഹം നിശ്ചയമായും നടക്കുന്നതാണ്! യാതൊരുവിധ സംശയങ്ങൾക്കും സ്ഥാനമില്ല. വിവാഹാലോചനകൾ വേഗത്തിൽ ശുഭമായി പര്യവസാനിക്കും. മറിച്ച്, നിങ്ങൾ ഇപ്പോൾ വിവാഹിതനാണെങ്കിൽ/വിവാഹിതയാണെങ്കിൽ—ഇതേ 7-ാം ഭാവം ദാമ്പത്യത്തിലെ പൊരുത്തം, ഉത്തരവാദിത്തങ്ങൾ, പരസ്പര സ്നേഹം എന്നിവയെ പരിപോഷിപ്പിച്ച് കുടുംബത്തിൽ സമാധാനം കൊണ്ടുവരുന്ന കാലഘട്ടത്തെ സൂചിപ്പിക്കുന്നു. ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹം നിങ്ങൾക്ക് സദാ തുണയായിരിക്കും.`;
-      const p3 = `ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശവര സന്നിധിയിൽ കല്യാണ സങ്കൽപ്പ പൂജ നടത്തുന്നതിലൂടെ വിവാഹ തടസ്സങ്ങൾ പൂർണ്ണമായി നീങ്ങും. മുഖ്യ പുരോഹിതൻ ശ്രീറാം പണ്ഡിറ്റിനെ (ഫോൺ: 9972339362) ബന്ധപ്പെടുക.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = `१००% अचूक आणि निश्चित दैवज्ञ निर्णय: वैदिक ज्योतिषाचे मूलभूत सत्य हे आहे की जन्मपत्रिका केवळ कायदेशीर कागदपत्र नसते, तर ग्रहांचे ऊर्जा चक्र आणि कर्म योग (८५% ते ९०% ग्रहांची प्रबल अनुकूलता) अचूक दर्शवते. आपल्या जन्मपत्रिकेतील ७ वे कलत्र स्थान, सप्तमेश आणि शुक्र ग्रहाचा सखोल अभ्यास करता अत्यंत प्रबळ विवाह योगाची ऊर्जा सक्रिय झालेली दिसते.`;
-      const p2 = `ज्योतिषशास्त्राच्या दृष्टीने याला दोन वास्तविक पैलू आहेत: जर आपण सध्या अविवाहित असून, विवाह जमवण्याचे सर्व प्रयत्न होऊनही शेवटच्या टप्प्यावर बोलणी फिसकटत आहेत किंवा अडथळे येत आहेत, ज्यामुळे आपण व आपले कुटुंबीय चिंताग्रस्त आहात—तर आपल्या पत्रिकेतील चालू विंशोत्तरी दशेत मागील भुक्तीवर शनी-राहू किंवा ६/८ भावाधिपतींचा अडथळा असल्याने चांगले प्रस्ताव येऊनही विवाह ठरत नव्हता. परंतु आता ग्रहस्थितीत एक अत्यंत अनुकूल व निर्णायक वळण येत आहे: पुढील २० ते १८० दिवसांच्या कालावधीत (पुढील ६ महिने ते १ वर्षात), अडथळे आणणारी भुक्ती समाप्त होऊन सप्तम भावाला शुभ फल देणारी नवीन भुक्ती सुरू होत आहे. याच वेळी गोचर गुरूची अमृत दृष्टी आपल्या लग्न व सप्तम भावावर पूर्णतः सक्रिय होत असल्याने, ९८% ते १००% निश्चिततेसह ${timingWindow} आपला विवाह संपन्न होणे शतप्रतिशत निश्चित आहे! पत्रिकेत कोणताही संशय बाळगण्याचे कारण नाही. विवाहाची बोलणी यशस्वी होऊन लग्न ठरेल. दुसरीकडे, जर आपण आधीच विवाहित असाल—तर हीच सप्तम भावाची ऊर्जा वैवाहिक जीवनातील परस्पर सामंजस्य, कौटुंबिक जबाबदाऱ्या व समजूतदारपणा वाढवून संसारात सुख-शांती निर्माण करण्याचा संकेत देते. श्री क्षेत्र गोकर्ण महाबळेश्वराचा आशीर्वाद सदैव आपल्या पाठीशी राहील.`;
-      const p3 = `विवाह कार्यातील सर्व अडथळे दूर होण्यासाठी श्री क्षेत्र गोकर्ण महाबलेश्वर चरणी कल्याण संकल्प पूजा अर्पण करावी. मुख्य पुरोहित श्रीराम पंडित (मोबाईल: 9972339362) यांच्याशी संपर्क साधावा.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      if (asksKujaShanti) {
-        const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ತೀರ್ಮಾನ (ಕುಜ ಶಾಂತಿಯ ನಂತರದ ವಿವಾಹ ಯೋಗ): ನೀವು ಕುಜ ಶಾಂತಿ (ಕುಶ ಶಾಂತಿ) ಮಾಡಿಸಿದ್ದರೂ ಸಹ ಇನ್ನೂ ಏಕೆ ವಿವಾಹವಾಗಿಲ್ಲ ಎಂಬ ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಶಾಸ್ತ್ರೋಕ್ತವಾದ ಪರಮ ಸತ್ಯವನ್ನು ತಿಳಿಸುತ್ತೇನೆ. ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷಕ್ಕೆ (೧, ೪, ೭, ೮, ೧೨ ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಕುಜ) ಮಾಡಿದ ಕುಜ ಶಾಂತಿಯು, ವಿವಾಹಕ್ಕೆ ಅಡ್ಡಿಪಡಿಸುತ್ತಿದ್ದ ಕುಜನ ತೀಕ್ಷ್ಣ ಉಷ್ಣತೆ, ಜಗಳ ಹಾಗೂ ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವ ದೋಷ ತಡೆಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಶಮನಗೊಳಿಸಿದೆ. ದೋಷ ನಿವಾರಣೆಯು ನಕಾರಾತ್ಮಕ ಅಡೆತಡೆಗಳನ್ನು ತೆಗೆದುಹಾಕುವ ಮೊದಲ ಹೆಜ್ಜೆಯಾಗಿದೆ; ಆದರೆ ನೈಜ ವಿವಾಹ ಸಿದ್ಧಿಗೆ ಗೋಚಾರ ಗುರುವಿನ ದಿವ್ಯ ದೃಷ್ಟಿ ಹಾಗೂ ಕಳತ್ರ ಭಾವದ ಶುಭ ಕಾಲ ಕೂಡಿಬರಬೇಕಾಗುತ್ತದೆ.`;
-        const p2 = `ಕುಜ ಶಾಂತಿಯಿಂದ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿರುವ ಕಾರಣ, ಮುಂದಿನ ೨೦ ರಿಂದ ೧೮೦ ದಿನಗಳ ಅವಧಿಯಲ್ಲಿ ಹಿಂದಿನ ಕಠಿಣ ಭುಕ್ತಿ ಮುಕ್ತಾಯವಾಗಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ೭ನೇ ಭಾವದ ಮೇಲೆ ನೇರವಾಗಿ ಪ್ರಸರಿಸುತ್ತಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಿಂದ ೧೦೦ ರಷ್ಟು ಖಚಿತತೆಯೊಂದಿಗೆ ${timingWindow} ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ದೀರ್ಘಕಾಲಿಕ ವಿಳಂಬವಿಲ್ಲ. ಈ ಶುಭ ಕಾಲಾವಧಿಯೊಳಗೆ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
-        const p3 = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮುಖ್ಯ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ದೂರವಾಣಿ: 9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ; ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
-        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-      }
-      if (isMarriedDiscord) {
-        const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ತೀರ್ಮಾನ (ದಾಂಪತ್ಯ ಸಾಮರಸ್ಯ ನಿರ್ಣಯ): ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ನೈಜ ಪರಿಸ್ಥಿತಿ ನನಗೆ ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತಿದೆ: ನೀವು ಈಗಾಗಲೇ ವಿವಾಹಿತರಾಗಿದ್ದು, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ, ಸಣ್ಣಪುಟ್ಟ ಕಾರಣಗಳಿಗೂ ತೀವ್ರ ಮನಸ್ತಾಪ ಹಾಗೂ ಮಾನಸಿಕ ಸಂಘರ್ಷಗಳಿಂದ ತೊಳಲಾಡುತ್ತಿರುವುದು ತಿಳಿಯುತ್ತಿದೆ. ಜಾತಕದಲ್ಲಿ ೭ನೇ ಕಳತ್ರ ಭಾವ ಹಾಗೂ ೧೨ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಗೋಚಾರ ಗ್ರಹಗಳ ಅಶುಭ ಸಂಚಾರ ಹಾಗೂ ಕ್ರೂರ ಉಪ-ಭುಕ್ತಿಯ ಪ್ರಭಾವದಿಂದ ಈ ಕಿರಿಕಿರಿ ಉಂಟಾಗಿದೆ.`;
-        const p2 = `ಆದರೆ ಮುಂದಿನ ೨೦ ರಿಂದ ೧೮೦ ದಿನಗಳ ಅವಧಿಯಲ್ಲಿ (${timingWindow}), ಈ ಕಠಿಣ ಭುಕ್ತಿಯು ಮುಕ್ತಾಯವಾಗಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅಮೃತ ದೃಷ್ಟಿಯು ದಾಂಪತ್ಯ ಭಾವದ ಮೇಲೆ ಬೀಳಲಿದ್ದು, ಪರಸ್ಪರ ಸಾಮರಸ್ಯ, ಪ್ರೀತಿ ಮತ್ತು ವಿಶ್ವಾಸ ಮರುಕಳಿಸಲಿದೆ. ಸಮಾಧಾನದಿಂದ ಮುನ್ನಡೆಯಿರಿ; ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಸಕಲ ದಾಂಪತ್ಯ ಕಷ್ಟಗಳೂ ಕರಗಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`;
-        const p3 = `ದಾಂಪತ್ಯ ದೋಷ ನಿವಾರಣೆಗೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮುಖ್ಯ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ದೂರವಾಣಿ: 9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ದಂಪತಿ ಶಾಂತಿ ಪೂಜೆ ನೆರವೇರಿಸುವುದು ಶ್ರೇಯಸ್ಕರ.`;
-        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-      }
-      const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದ ಪರಮ ಸತ್ಯವೇನೆಂದರೆ, ಜನ್ಮ ಕುಂಡಲಿಯು ಕೇವಲ ಕಾನೂನಾತ್ಮಕ ಕಾಗದಪತ್ರವಲ್ಲ; ಅದು ಗ್ರಹಗಳ ಶಕ್ತಿಯುತ ಸಂಚಲನ ಮತ್ತು ಕರ್ಮ ಯೋಗಗಳನ್ನು (ಶೇಕಡಾ ೮೫ ರಿಂದ ೯೦ ರಷ್ಟು ಸಂಭವನೀಯತೆಯೊಂದಿಗೆ) ನಿಖರವಾಗಿ ಸೂಚಿಸುತ್ತದೆ. ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ನಾನು ಧ್ಯಾನಸ್ಥನಾಗಿ ಆಳವಾಗಿ ನೋಡಿದಾಗ, ೭ನೇ ಕಳತ್ರ ಭಾವ ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿ ಮತ್ತು ವಿವಾಹಕಾರಕ ಶುಕ್ರ ಗ್ರಹದ ಸ್ಥಾನಗಳು ಪ್ರಬಲವಾದ ವಿವಾಹ ಯೋಗದ ತರಂಗಗಳನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ಹೊರಹೊಮ್ಮಿಸುತ್ತಿವೆ.`;
-      const p2 = `ಶಾಸ್ತ್ರೀಯವಾಗಿ ಈ ಗ್ರಹಸ್ಥಿತಿಯು ಎರಡು ನೈಜ ಆಯಾಮಗಳನ್ನು ಒಳಗೊಂಡಿದೆ: ನೀವು ಪ್ರಸ್ತುತ ಅವಿವಾಹಿತರಾಗಿದ್ದು, ಸಂಬಂಧಗಳು ಕೊನೆಯ ಹಂತದವರೆಗೂ ಬಂದು ಕೈತಪ್ಪಿ ಹೋಗುತ್ತಿರುವುದು, ಮೈತ್ರಿ ಮಾತುಕತೆಗಳು ಅಂತಿಮ ಗಳಿಗೆಯಲ್ಲಿ ನಿಂತುಹೋಗುತ್ತಿರುವುದು ಮತ್ತು ಅನಾವಶ್ಯಕ ವಿಳಂಬದಿಂದ ನೀವು ಹಾಗೂ ನಿಮ್ಮ ಕುಟುಂಬದವರು ಮಾನಸಿಕವಾಗಿ ತೀವ್ರ ಚಿಂತಾಕ್ರಾಂತರಾಗಿರುವುದು ನನಗೆ ತಿಳಿಯುತ್ತಿದೆ. ಇದಕ್ಕೆ ಕಾರಣ ಹಿಂದಿನ ಉಪ-ಭುಕ್ತಿಯು ೭ನೇ ಮನೆಗೆ ಶನಿ-ರಾಹುವಿನ ವಕ್ರ ದೃಷ್ಟಿ ಅಥವಾ ೬/೮ನೇ ಅಧಿಪತಿಯ ಸಂಚಾರದ ಪ್ರಭಾವಕ್ಕೆ ಒಳಪಟ್ಟಿದ್ದಿತು. ಆದರೆ ಈಗ ಗ್ರಹಸ್ಥಿತಿಗಳಲ್ಲಿ ಅತ್ಯಂತ ಮಹತ್ವದ ತಿರುವು ಸಂಭವಿಸುತ್ತಿದೆ: ಮುಂದಿನ ೨೦ ರಿಂದ ೧೮೦ ದಿನಗಳ ಅವಧಿಯಲ್ಲಿ (ಮುಂದಿನ ೬ ತಿಂಗಳಿಂದ ೧ ವರ್ಷದೊಳಗೆ), ಈ ಹಿಂದಿನ ಅಡ್ಡಿ ಉಂಟುಮಾಡುತ್ತಿದ್ದ ಕಠಿಣ ಭುಕ್ತಿಯು ಸಂಪೂರ್ಣವಾಗಿ ಮುಕ್ತಾಯವಾಗಿ, ೭ನೇ ಮನೆಯನ್ನು ಜಾಗೃತಗೊಳಿಸುವ ನೂತನ ಶುಭ ಭುಕ್ತಿ ಆರಂಭವಾಗಲಿದೆ. ಇದೇ ಸಮಯದಲ್ಲಿ ಗೋಚಾರದಲ್ಲಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ (ಗುರು) ಅಮೃತ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ ಹಾಗೂ ೭ನೇ ಕಳತ್ರ ಭಾವದ ಮೇಲೆ ನೇರವಾಗಿ ಬೀಳುತ್ತಿರುವುದರಿಂದ, ${timingWindow} ನಿಮ್ಮ ವಿವಾಹ ಯೋಗವು ೯೮% ರಿಂದ ೧೦೦% ರಷ್ಟು ಖಚಿತತೆಯೊಂದಿಗೆ ಶತಸಿದ್ಧವಾಗಲಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ಗೊಂದಲ ಅಥವಾ ಅನುಮಾನಕ್ಕೆ ಆಸ್ಪದವಿಲ್ಲ. ಈ ಶುಭ ಕಾಲಾವಧಿಯಲ್ಲಿ ಬರುವ ಹೊಸ ಸಂಬಂಧಗಳು ಯಾವುದೇ ಅಡೆತಡೆಗಳಿಲ್ಲದೆ ಸುಲಭವಾಗಿ ನಿಶ್ಚಯವಾಗಲಿದ್ದು, ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ. ಇನ್ನೊಂದೆಡೆ, ನೀವು ಈಗಾಗಲೇ ವಿವಾಹಿತರಾಗಿದ್ದರೆ—ಇದೇ ೭ನೇ ಮನೆಯ ಗ್ರಹಸ್ಥಿತಿಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಹೊಂದಾಣಿಕೆ, ಪ್ರಮುಖ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಗಳು ಹಾಗೂ ಪರಸ್ಪರ ಗೌರವದಿಂದ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಶಮನಗೊಳಿಸಿ ಗೃಹಸ್ಥ ಜೀವನವನ್ನು ಗಟ್ಟಿಗೊಳಿಸುವ ಕಾಲವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಮೇಲಿರಲಿ.`;
-      const p3 = `ವಿವಾಹದ ಈ ಶುಭ ಯೋಗಕ್ಕೆ ಯಾವುದೇ ಸಣ್ಣ ದೃಷ್ಟಿ ದೋಷ ಅಥವಾ ಗ್ರಹ ಅಡೆತಡೆಗಳು ಬಾರದಂತೆ, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸುವುದು ಪರಮ ಮಂಗಳಕರ. ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ದೂರವಾಣಿ: 9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಈ ಸಂಕಲ್ಪ ನೆರವೇರಿಸುವುದರಿಂದ ವಿವಾಹ ಕಾರ್ಯವು ಅಡೆತಡೆಗಳಿಲ್ಲದೆ ಸುಸೂತ್ರವಾಗಿ ನೆರವೇರಲಿದೆ.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-  }
-}
-
-/**
- * Deterministic Santhana / Progeny / Children reading across all 7 languages.
- * Grounded in 5th House (Putra Sthana), 5th Lord, and Putrakaraka Jupiter (Guru).
- * Implements 99%+ accuracy dual-perspective (childless awaiting pregnancy vs already a parent).
- * Zero unsolicited remedies unless explicitly requested.
- */
-export function buildDeterministicSanthanaReading(
-  session: ConsultationSession,
-  question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  _ledger?: ConsultationRulingRecord[],
-  _isSubsequent?: boolean,
-  _conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-  const isRemedy = isRemedyRequested(question);
-
-  switch (lang) {
-    case "en": {
-      const p1 = `100% Confident Astrological Ruling Regarding Progeny & Children: In authentic Vedic Jyotisha, a birth chart maps divine creative cycles and Poorva Punya karmic energies (carrying an 85% to 90% planetary indication) rather than mechanical assumptions. Examining your Janma Kundli with deep meditative focus, your 5th house of progeny and higher intellect (Putra Bhava), the 5th lord, and Putrakaraka Jupiter (Guru) reveal a strong, auspicious Santhana Yoga energetic cycle.`;
-      const p2 = `Astrologically, this manifests through two dignified real-life dimensions: If you are currently awaiting or planning for a child—the reason for prior delay or anxiety was that your running planetary period and 5th house were navigating temporary karmic testing and transit resistance. Over the upcoming lunar cycles (within the next 6 to 12 months), that restrictive sub-period concludes and incoming Gochara Guru casts its divine nectar aspect (amrita drishti) upon your 5th house, opening the golden cosmic window for healthy conception and noble progeny blessing with 98% to 100% celestial certainty! On the other hand, if you are already blessed with children—this exact same 5th house planetary configuration directly empowers your children's cognitive brilliance, academic excellence, noble character, and prosperous future trajectory. Shed all unnecessary anxiety; under the divine grace of Sri Kshetra Gokarna Mahabaleshwara, auspicious blessings surround your lineage.`;
-      const p3 = `To dissolve any subtle ancestral or planetary impediments to progeny, performing the sacred Sri Santhana Gopala Maha Homa and Naga Pratishtha at Sri Kshetra Gokarna will invoke divine fulfillment. Contact chief priest Sri Shreeram Pandit at 9972339362 to schedule this sacred sankalpa.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      const p1 = `१००% निश्चित दैवज्ञ निर्णय (संतान एवं संतति योग): वैदिक ज्योतिष का शास्त्रीय सिद्धांत यह है कि जन्म पत्रिका पूर्व पुण्य एवं दैवीय सृजन शक्ति का सूक्ष्म दिग्दर्शन है (जो ८५% से ९०% ग्रह योगों की अनुकूलता दर्शाती है)। आपकी जन्म कुंडली के पंचम भाव (संतान एवं विद्या स्थान), पंचमेश तथा संतान-कारक देवगुरु बृहस्पति की स्थिति का गहन विश्लेषण करने पर एक अत्यंत पावन संतान योग की ऊर्जा सक्रिय दिखाई देती है।`;
-      const p2 = `शास्त्र अनुसार इसके दो वास्तविक स्वरूप हैं: यदि आप वर्तमान में संतान प्राप्ति की प्रतीक्षा में हैं—तो अब तक के विलंब का कारण यह था कि पंचम भाव एवं संतान कारक पर गोचर ग्रहों की अस्थाई परीक्षा व कर्म बाधाओं का प्रभाव था। किंतु आगामी कालचक्र में (अगले ६ से १२ महीनों में), बाधक भुक्ति समाप्त होकर देवगुरु बृहस्पति की अमृत दृष्टि आपके पंचम भाव पर सक्रिय हो रही है, जिससे ९८% से १००% निश्चितता के साथ गर्भधारण एवं उत्तम संतान प्राप्ति का सुवर्ण योग निर्मित होगा! दूसरी ओर, यदि आप पहले से ही संतानवान हैं—तो यही पंचम भाव की शुभ ऊर्जा आपके बच्चों की कुशाग्र बुद्धि, शिक्षा में अप्रतिम सफलता, उत्तम स्वास्थ्य तथा उज्ज्वल भविष्य को आलोकित करती है। मन से समस्त संशय त्याग दें; भगवान गोकर्ण महाबलेश्वर का आशीर्वाद सदैव आपके साथ है।`;
-      const p3 = `संतान योग की निर्विघ्न सिद्धि हेतु श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में श्री संतान गोपाल महा होम एवं नाग प्रतिष्ठा संपन्न कराएं। प्रधान पुरोहित श्रीराम पंडित (दूरभाष: 9972339362) से संपर्क करें।`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = `100% ఖచ్చితమైన దైవజ్ఞ నిర్ణయం (సంతాన యోగం): వేద జ్యోతిషం ప్రకారం జన్మ కుండలి పూర్వ పుణ్యం మరియు దైవిక సృష్టి శక్తిని (85% నుండి 90% యోగ బలంతో) స్పష్టంగా ప్రతిబింబిస్తుంది. మీ జాతకంలోని 5వ పంచమ స్థానం (సంతాన భావం), పంచమాధిపతి మరియు పుత్రకారకుడైన గురు భగవానుని స్థానాలను పరిశీలించినప్పుడు పవిత్రమైన సంతాన యోగ శక్తి గోచరిస్తోంది.`;
-      const p2 = `జ్యోతిష పరంగా దీనికి రెండు సహజ వాస్తవాలు ఉన్నాయి: మీరు ప్రస్తుతం సంతాన భాగ్యం కోసం ఎదురుచూస్తుంటే—గత కాలంలో పంచమ స్థానంపై తాత్కాలిక గ్రహ పరీక్షల కారణంగా కొంత విళంబం ఏర్పడింది. అయితే రాబోయే కాలంలో (ముఖ్యంగా 6 నుండి 12 నెలల వ్యవధిలో), ఈ కఠిన భుక్తి ముగిసి గోచార గురు భగవానుని అమృత దృష్టి పంచమ స్థానంపై ప్రసరించడంతో 98% నుండి 100% ఖచ్చితత్వంతో గర్భధారణ మరియు సత్సంతాన ప్రాప్తి సుగమమవుతుంది! ఒకవేళ మీరు ఇప్పటికే పిల్లలను కలిగి ఉంటే—ఇదే 5వ భావ శుభ శక్తి మీ పిల్లల బుద్ధివికాసం, విద్యా పురోగతి మరియు ఉజ్వల భవిష్యత్తును ప్రకాశవంతం చేస్తుంది. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులతో మీ వంశం అభివృద్ధి చెందుతుంది.`;
-      const p3 = `సంతాన యోగ ప్రాప్తి కోసం శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి సన్నిధిలో శ్రీ సంతాన గోపాల మహా హోమం మరియు నాగ ప్రతిష్ఠ పూజ జరిపించండి. ప్రధాన అర్చకులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = `100% உறுதியான ஜோதிடத் தீர்ப்பு (சந்தான பாக்கியம்): வேத ஜோதிடத்தின்படி, ஜாதகம் என்பது பூர்வ புண்ணியம் மற்றும் தெய்வீக படைப்பு ஆற்றலை (85% முதல் 90% கிரக யோக வலிமையுடன்) துல்லியமாகக் காட்டுகிறது. உங்கள் ஜாதகத்தில் 5-ஆம் வீடான புத்திர ஸ்தானம், 5-ஆம் அதிபதி மற்றும் புத்திரகாரகனான குருவின் நிலையை ஆராயும்போது புனிதமான சந்தான யோக ஆற்றல் துலங்குகிறது.`;
-      const p2 = `இதனை இரண்டு எதார்த்த நிலைகளில் புரிந்து கொள்ளலாம்: நீங்கள் தற்போது குழந்தை பாக்கியத்திற்காகக் காத்திருந்தால்—முந்தைய காலகட்டத்தில் 5-ஆம் வீட்டில் ஏற்பட்ட தற்காலிக கிரக தடையால் தாமதம் ஏற்பட்டது. ஆனால் அடுத்த காலகட்டத்தில் (அடுத்த 6 முதல் 12 மாதங்களுக்குள்), தடையான புக்தி நீங்கி, கோசார குருவின் அமிர்த பார்வை 5-ஆம் வீட்டின் மீது விழுவதால், 98% முதல் 100% உறுதியுடன் கர்ப்பவதியாகி சத்சந்தான பாக்கியம் கிட்டும்! ஒருவேளை நீங்கள் ஏற்கனவே பெற்றோராய் இருந்தால்—இதே 5-ஆம் வீட்டின் சுப ஆற்றல் உங்கள் குழந்தைகளின் அறிவாற்றல், கல்வி மேன்மை மற்றும் பிரகாசமான எதிர்காலத்தை மேம்படுத்தும். எவ்வித கவலையும் கொள்ள வேண்டாம்; கோகர்ண மகாபலேஸ்வரரின் திருவருள் துணை நிற்கும்.`;
-      const p3 = `சந்தான யோகம் தடையின்றி கைகூட ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமி சந்நிதியில் ஸ்ரீ சந்தான கோபால மகா ஹோமம் மற்றும் நாக பிரதிஷ்டை செய்வது உத்தமமாகும். தலைமை அர்ச்சகர் ஸ்ரீராಮ್ பண்டிட் (தொலைபேசி: 9972339362) அவர்களைத் தொடர்பு கொள்ளவும்.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = `100% ഉറപ്പായ ജ്യോതിഷ പ്രവചനം (സന്താന സൗഭാഗ്യം): വേദ ജ്യോതിഷപ്രകാരം ജന്മജാതകം എന്നത് പൂർവ്വപുണ്യത്തിന്റെയും ദൈവിക സൃഷ്ടിശക്തിയുടെയും (85% മുതൽ 90% വരെ ഗ്രഹയോഗ സാധ്യതയോടെ) പ്രതിഫലനമാണ്. നിങ്ങളുടെ ജാതകത്തിലെ 5-ാം ഭാവമായ പുത്രസ്ഥാനം, പഞ്ചമാധിപൻ, പുത്രകാരകനായ വ്യാഴം എന്നിവരെ നിരീക്ഷിക്കുമ്പോൾ പവിത്രമായ സന്താന യോഗം പ്രകടമായി കാണാം.`;
-      const p2 = `ഇതിന് രണ്ട് യാഥാർത്ഥ്യ തലങ്ങളുണ്ട്: നിങ്ങൾ ഇപ്പോൾ കുഞ്ഞുങ്ങൾക്കായി കാത്തിരിക്കുകയാണെങ്കിൽ—മുൻപ് 5-ാം ഭാവത്തിലുണ്ടായ താൽക്കാലിക ഗ്രഹപരീക്ഷണങ്ങൾ കാരണമാണ് കാലതാമസം ഉണ്ടായത്. എന്നാൽ വരുന്ന കാലഘട്ടത്തിൽ (അടുത്ത 6 മുതൽ 12 മാസത്തിനകം), ആ തടസ്സങ്ങൾ നീങ്ങി വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടി 5-ാം ഭാവത്തിൽ പതിക്കുന്നതോടെ, 98% മുതൽ 100% ഉറപ്പോടെ ഗർഭധാരണവും സത്സന്താന സൗഭാഗ്യവും സാധ്യമാകും! മറിച്ച്, നിങ്ങൾ ഇപ്പോൾ കുട്ടികളുള്ള മാതാപിതാക്കളാണെങ്കിൽ—ഇതേ 5-ാം ഭാവം നിങ്ങളുടെ മക്കളുടെ ബുദ്ധിവികാസം, പഠനമികവ്, ശോഭനമായ ഭാവി എന്നിവയെ അനുഗ്രഹിക്കുന്നതാണ്. യാതൊരുവിധ ആശങ്കകൾക്കും സ്ഥാനമില്ല; ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹം ഉണ്ടാകും.`;
-      const p3 = `സന്താന ഭാഗ്യത്തിനായി ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശവര സന്നിധിയിൽ ശ്രീ സന്താന ഗോപാല മഹാ ഹോമവും നാഗപ്രതിഷ്ഠയും നടത്തുക. മുഖ്യ പുരോഹിതൻ ശ്രീറാം പണ്ഡിറ്റിനെ (ഫോൺ: 9972339362) ബന്ധപ്പെടുക.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = `१००% अचूक आणि निश्चित दैवज्ञ निर्णय (संतान योग): वैदिक ज्योतिषानुसार जन्मपत्रिका ही पूर्वपुण्य व दैवी निर्मिती शक्तीची (८५% ते ९०% ग्रहांच्या अनुकूलतेसह) सूक्ष्म मार्गदर्शक असते. आपल्या पत्रिकेतील ५ वे पंचम स्थान (संतान व बुद्धी भाव), पंचमेश आणि संतानकारक देवगुरू बृहस्पतीचा सखोल अभ्यास करता पावन संतान योगाची ऊर्जा प्रकर्षाने सक्रिय झालेली दिसते.`;
-      const p2 = `ज्योतिषशास्त्राच्या दृष्टीने याला दोन वास्तविक पैलू आहेत: जर आपण सध्या संतान प्राप्तीची प्रतीक्षा करत असाल—तर मागील काळात पंचम भावावर ग्रहांची तात्पुरती परीक्षा असल्याने काही विलंब झाला होता. परंतु पुढील काळात (पुढील ६ ते १२ महिन्यांत), बाधक भुक्ती संपून देवगुरू बृहस्पतीची अमृत दृष्टी पंचम स्थानावर सक्रिय होत असल्याने, ९८% ते १००% निश्चिततेसह गर्भधारणा व उत्तम संतान प्राप्तीचा सुवर्ण योग नक्कीच जुळून येईल! दुसरीकडे, जर आपण आधीच मुले असलेले पालक असाल—तर हीच ५ व्या भावाची शुभ ऊर्जा आपल्या मुलांची कुशाग्र बुद्धिमत्ता, शिक्षणातील उत्तुंग यश आणि उज्ज्वल भवितव्य घडवणारी ठरेल. मनातील चिंता दूर करा; श्री क्षेत्र गोकर्ण महाबळेश्वराचा आशीर्वाद सदैव पाठीशी राहील.`;
-      const p3 = `संतान योगाच्या निर्विघ्न पूर्ततेसाठी श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी श्री संतान गोपाल महा होम व नाग प्रतिष्ठा संपन्न करावी. मुख्य पुरोहित श्रीराम पंडित (मोबाईल: 9972339362) यांच्याशी संपर्क साधावा.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ (ಸಂತಾನ ಭಾಗ್ಯ ಯೋಗ): ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಸತ್ಯವೇನೆಂದರೆ, ಜನ್ಮ ಕುಂಡಲಿಯು ಕೇವಲ ಹೊರಗಿನ ಘಟನೆಗಳ ಪಟ್ಟಿಯಲ್ಲ; ಅದು ಪೂರ್ವ ಪುಣ್ಯ ಮತ್ತು ದೈವಿಕ ಸೃಷ್ಟಿ ಶಕ್ತಿಯ (ಶೇಕಡಾ ೮೫ ರಿಂದ ೯೦ ರಷ್ಟು ಯೋಗ ಬಲದೊಂದಿಗೆ) ನಿಖರ ದಿಕ್ಸೂಚಿಯಾಗಿದೆ. ನಿಮ್ಮ ಜಾತಕದ ೫ನೇ ಪಂಚಮ ಭಾವ (ಪುತ್ರ ಹಾಗೂ ಸಂತಾನ ಸ್ಥಾನ), ಪಂಚಮಾಧಿಪತಿ ಹಾಗೂ ಪುತ್ರಕಾರಕ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ (ಗುರು) ಗ್ರಹಸ್ಥಿತಿಗಳನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಪವಿತ್ರವಾದ ಸಂತಾನ ಯೋಗದ ಶಕ್ತಿ ತರಂಗಗಳು ಪ್ರಬಲವಾಗಿ ಜಾಗೃತಗೊಂಡಿರುವುದು ಸ್ಪಷ್ಟವಾಗಿ ತಿಳಿಯುತ್ತದೆ.`;
-      const p2 = `ಶಾಸ್ತ್ರೀಯವಾಗಿ ಈ ಗ್ರಹಸ್ಥಿತಿಯು ಎರಡು ಸುಂದರ ನೈಜ ಆಯಾಮಗಳನ್ನು ಒಳಗೊಂಡಿದೆ: ನೀವು ಪ್ರಸ್ತುತ ಸಂತಾನ ನಿರೀಕ್ಷೆಯಲ್ಲಿದ್ದು, ಮಗುವಿನ ಪ್ರಾಪ್ತಿಗಾಗಿ ಪ್ರಾರ್ಥಿಸುತ್ತಿದ್ದರೆ—ಹಿಂದಿನ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗೋಚಾರ ಗ್ರಹಗಳ ಪರೀಕ್ಷೆ ಹಾಗೂ ಪಂಚಮ ಸ್ಥಾನದ ಮೇಲಿದ್ದ ಕರ್ಮ ತಡೆಗಳಿಂದಾಗಿ ತಾತ್ಕಾಲಿಕ ವಿಳಂಬ ಉಂಟಾಗಿತ್ತು. ಆದರೆ ಮುಂಬರುವ ಕಾಲಘಟ್ಟದಲ್ಲಿ (ಮುಂದಿನ ೬ ರಿಂದ ೧೨ ತಿಂಗಳೊಳಗೆ), ಕಠಿಣ ಉಪ-ಭುಕ್ತಿ ಮುಕ್ತಾಯವಾಗಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅಮೃತ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಪಂಚಮ ಸ್ಥಾನದ ಮೇಲೆ ನೇರವಾಗಿ ಪ್ರಸರಿಸಲಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಿಂದ ೧೦೦ ರಷ್ಟು ದೈವಿಕ ಬಲದೊಂದಿಗೆ ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸತ್ಸಂತಾನ ಭಾಗ್ಯದ ಸುವರ್ಣ ದ್ವಾರಗಳು ತೆರೆಯಲಿವೆ. ಇನ್ನೊಂದೆಡೆ, ನೀವು ಈಗಾಗಲೇ ಮಕ್ಕಳನ್ನು ಹೊಂದಿರುವ ಪೋಷಕರಾಗಿದ್ದರೆ—ಇದೇ ೫ನೇ ಮನೆಯ ಶುಭ ಗ್ರಹಶಕ್ತಿಯು ನಿಮ್ಮ ಮಕ್ಕಳ ಜ್ಞಾನವಿಕಾಸ, ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ಪ್ರಗತಿ, ಸತ್ಚಾರಿತ್ರ್ಯ ಹಾಗೂ ಅವರ ಭವಿಷ್ಯದ ಅಭಿವೃದ್ಧಿಯನ್ನು ಪ್ರಕಾಶಮಾನವಾಗಿ ಬೆಳಗಿಸುತ್ತದೆ. ನಿಮ್ಮ ಮನಸ್ಸಿನ ಎಲ್ಲ ಆತಂಕಗಳನ್ನು ತ್ಯಜಿಸಿ; ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಸಂತಾನ ಸೌಭಾಗ್ಯವು ಸದಾ ರಕ್ಷಿಸಲ್ಪಡುತ್ತದೆ.`;
-      const p3 = `ಸಂತಾನ ಯೋಗದ ನಿರ್ವಿಘ್ನ ಸಿದ್ಧಿಗಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾ ಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಸಂಕಲ್ಪವನ್ನು ನೆರವೇರಿಸುವುದು ಪರಮ ಶ್ರೇಷ್ಠ. ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ದೂರವಾಣಿ: 9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಈ ದೈವಿಕ ಸೇವೆಯನ್ನು ಸಂಪನ್ನಗೊಳಿಸಿ.`;
-      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
-    }
-  }
-}
-
-/**
- * Deterministic Government Job vs Private Sector reading across all 7 languages.
- * Grounded in 10th House (Rajyadhikara), Sun (Raja Karaka), and 6th House (Spardha).
- */
-export function buildDeterministicGovtJobReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  _ledger?: ConsultationRulingRecord[],
-  _isSubsequent?: boolean,
-  _conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-
-  switch (lang) {
-    case "en": {
-      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear devotee, an astrological examination of your 10th House (Karma & Governance) alongside Raja-Karaka Sun (Surya) reveals the true vehicle of your professional prosperity. In Vedic Jyotisha, sovereign government authority requires powerful Martian or Solar activations across the 10th and 6th houses. While competitive government examinations remain an avenue of honor, if your 10th lord aligns strongly with Mercury, Saturn, or Rahu in technical and enterprise signs, dynamic private corporate sectors and independent technological ventures will yield tenfold faster promotions, superior financial autonomy, and enduring status compared to low-tier government bureaucracy.`;
-      const p2 = `Align your focused energy with high-responsibility roles where your strategic intellect shines. To awaken royal solar vitality (Surya Bala) and conquer competitive hurdles, offer daily water Arghya to the rising Sun from a copper vessel while reciting the sacred Aditya Hridaya Stotra. May Sri Kshetra Gokarna Mahabaleshwara bless your professional endeavors with glorious triumph and unwavering stability.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्त, आपकी जन्म कुंडली के दशम भाव (कर्म एवं राज्याधिकार) तथा राज-कारक सूर्य की स्थिति का विश्लेषण करने पर आपके वास्तविक आजीविका मार्ग का स्पष्ट बोध होता है। वैदिक ज्योतिष के अनुसार, शासकीय सेवा हेतु सूर्य और मंगल का दशम अथवा षष्ठ भाव से प्रगाढ़ संबंध आवश्यक होता है। यदि आपकी कुंडली में दशमेश की स्थिति बुध अथवा शनि के प्रभाव में है, तो निजी कॉर्पोरेट क्षेत्र अथवा तकनीकी उद्यम आपको शासकीय नौकरी की तुलना में कहीं अधिक तीव्र पदोन्नति, वित्तीय स्वतंत्रता और मान-सम्मान प्रदान करेंगे।`;
-      const p2 = `अपनी आंतरिक योग्यता के अनुरूप उच्च-प्रबंधन या तकनीकी उत्तरदायित्वों में आगे बढ़ें। सूर्य बल की वृद्धि तथा प्रतियोगी परीक्षाओं में विजय हेतु नित्य प्रातः तांबे के पात्र से सूर्य देव को अर्घ्य दें एवं आदित्य हृदय स्तोत्र का पाठ करें। श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा से आपका कर्मक्षेत्र सदैव प्रकाशमान रहेगा।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nఆత్మీయులారా, మీ జన్మ కుండలిలోని 10వ స్థానం (కర్మ మరియు రాజ్యాధికార భావం) అలాగే రాజకారకుడైన సూర్య గ్రహాన్ని పరిశీలించినప్పుడు, మీ వృత్తి జీవిత ఉన్నతి మార్గం స్పష్టమవుతుంది. వేద జ్యోతిషం ప్రకారం ప్రభుత్వ ఉద్యోగానికి సూర్య, కుజ గ్రహాల అనుగ్రహం అవసరం. మీ జాతకంలో బుధ, శని గ్రహాల అనుకూలత సాంకేతిక మరియు ప్రైవేట్ కార్పొరేట్ రంగాలలో అద్భుతమైన ధనలాభం, ఉన్నత పదవులు మరియు శీఘ్ర పురోగతిని ప్రసాదిస్తాయి.`;
-      const p2 = `మీ ప్రతిభకు తగిన విధంగా నాయకత్వ బాధ్యతలలో ముందడుగు వేయండి. సూర్య బలం పెంపొందించుకోవడానికి మరియు పోటీ పరీక్షలలో విజయం సాధించడానికి నిత్యం రాగి పాత్రతో ఉదయించే సూర్యునికి అర్ఘ్యం సమర్పించి, ఆదిత్య హృదయ స్తోత్రం పఠించండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులతో మీ వృత్తిలో విజయాలు సాధిస్తారు.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்பரே, உங்கள் ஜாதகத்தின் 10-ஆம் வீடான கர்ம ஸ்தானம் மற்றும் அரசு காரகனான சூரியனின் நிலையை ஆராயும்போது, உங்கள் வாழ்வின் உன்னத உத்தியோக பாதை தெளிவாகிறது. அரசு வேலைவாய்ப்பிற்கு சூரியன் மற்றும் செவ்வாயின் யோக பலம் அவசியமாகும். உங்கள் ஜாதகத்தில் புதன் மற்றும் சனியின் வலிமை தனியார் பெருநிறுவனங்கள் மற்றும் தொழில்நுட்பத் துறையில் அரசு வேலையை விட பன்மடங்கு விரைவான பதவி உயர்வையும் சிறந்த பொருளாதார செழிப்பையும் அள்ளித்தரும்.`;
-      const p2 = `உங்கள் திறமைக்கேற்ற உயர் நிர்வாகப் பொறுப்புகளில் நம்பிக்கையுடன் ஈடுபடுங்கள். சூரிய பலம் பெறவும், போட்டித் தேர்வுகளில் வெற்றி காணவும் தினமும் அதிகாலையில் செப்புப் பாத்திரத்தில் சூரிய தேவனுக்கு அர்க்கியம் விட்டு, ஆதித்ய ஹிருதய ஸ்தோத்திரம் படியுங்கள். கோகர்ண மகாபலேஸ்வரரின் திருவருள் உங்கள் தொழில் வாழ்க்கையில் உன்னத வெற்றியை அருளும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nപ്രിയ ഭക്തരേ, നിങ്ങളുടെ ജന്മജാതകത്തിലെ പത്താം ഭാവവും (കർമ്മ സ്ഥാനം) രാജകാരകനായ സൂര്യന്റെ സ്ഥിതിയും പരിശോധിക്കുമ്പോൾ, നിങ്ങളുടെ യഥാർത്ഥ തൊഴിൽ വിജയ മാർഗ്ഗം വ്യക്തമാകുന്നു. സർക്കാർ ജോലിക്ക് സൂര്യ-ചൊവ്വ ഗ്രഹങ്ങളുടെ അനുഗ്രഹം പ്രധാനം തന്നെയാണ്. എന്നാൽ നിങ്ങളുടെ ഗ്രഹനിലയിൽ ബുധനും ശനിയും സാങ്കേതിക-കോർപ്പറേറ്റ് മേഖലകളിൽ സർക്കാർ ജോലിയേക്കാൾ വേഗത്തിലുള്ള സ്ഥാനക്കയറ്റവും മികച്ച സാമ്പത്തിക സ്വയംപര്യാപ്തതയും പ്രദാനം ചെയ്യുന്നു.`;
-      const p2 = `ഉത്തരവാദിത്തമുള്ള ഉന്നത നേതൃത്വ പദവികളിലേക്ക് ശ്രദ്ധ കേന്ദ്രീകരിക്കുക. സൂര്യബലം വർദ്ധിപ്പിക്കുന്നതിനും മത്സരപരീക്ഷകളിൽ വിജയം വരിക്കുന്നതിനും ദിവസവും രാവിലെ ചെമ്പ് പാത്രത്തിൽ നിന്ന് സൂര്യഭഗവാന് അർഘ്യം സമർപ്പിച്ച് ആദിത്യ ഹൃദയ സ്തോത്രം ജപിക്കുക. ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹത്താൽ നിങ്ങളുടെ ഔദ്യോഗിക ജീവിതം ഉന്നതി പ്രാപിക്കും.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्ता, आपल्या जन्मपत्रिकेतील दशम भाव (कर्म व राज्याधिकार स्थान) आणि राजकारक सूर्य ग्रहाचा सूक्ष्म अभ्यास करता, आपल्या योग्य करिअर मार्गाचा स्पष्ट उलगडा होतो. शासकीय सेवेसाठी सूर्य आणि मंगळाचे दशम अथवा षष्ठ भावाशी शुभ संबंध आवश्यक असतात. जर पत्रिकेत बुध अथवा शनीचा प्रभाव व्यावसायिक क्षेत्रात अधिक असेल, तर खाजगी कॉर्पोरेट क्षेत्र किंवा स्वतंत्र तंत्रज्ञान व्यवसाय आपल्याला शासकीय नोकरीपेक्षा कित्येक पटीने अधिक वेगवान पदोन्नती व आर्थिक स्थैर्य देईल.`;
-      const p2 = `आपल्या अंगभूत कौशल्यानुसार धोरणात्मक व उच्च पदांवर लक्ष केंद्रित करा. सूर्य बल वाढवण्यासाठी आणि स्पर्धात्मक यशासाठी रोज सकाळी तांब्याच्या पात्रातून सूर्याला अर्घ्य देऊन आदित्य हृदय स्तोत्राचे पठण करा. श्री क्षेत्र गोकर्ण महाबळेश्वराच्या आशीर्वादाने आपल्या कार्यक्षेत्रात उत्तुंग यश लाभेल.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೧೦ನೇ ಕರ್ಮಸ್ಥಾನ (ರಾಜ್ಯಾಧಿಕಾರ ಭಾವ) ಹಾಗೂ ರಾಜಕಾರಕ ಸೂರ್ಯನ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ವೃತ್ತಿಜೀವನದ ನೈಜ ಏಳಿಗೆಯ ಹಾದಿಯು ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ಸರ್ಕಾರಿ ಅಧಿಕಾರಕ್ಕೆ ಸೂರ್ಯ ಮತ್ತು ಕುಜನ ಬಲವಾದ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಯೋಗವಿರಬೇಕು. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಬುಧ ಮತ್ತು ಶನಿಯ ಪ್ರಭಾವವು ಖಾಸಗಿ ಕಾರ್ಪೊರೇಟ್ ಕ್ಷೇತ್ರ, ತಾಂತ್ರಿಕ ವಲಯ ಅಥವಾ ಉನ್ನತ ಆಡಳಿತಾತ್ಮಕ ಉದ್ಯಮಗಳಲ್ಲಿ ಸರ್ಕಾರಿ ನೌಕರಿಗಿಂತಲೂ ಹತ್ತು ಪಟ್ಟು ವೇಗದ ಬಡ್ತಿ, ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ ಹಾಗೂ ಅತ್ಯುನ್ನತ ಸಾಮಾಜಿಕ ಗೌರವವನ್ನು ತಂದುಕೊಡುವ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ.`;
-      const p2 = `ನಿಮ್ಮ ಬೌದ್ಧಿಕ ಸಾಮರ್ಥ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಉನ್ನತ ಜವಾಬ್ದಾರಿಯ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಮುನ್ನಡೆಯಿರಿ. ಸೂರ್ಯ ಬಲವನ್ನು ವೃದ್ಧಿಸಿಕೊಳ್ಳಲು ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯಕ್ಕಾಗಿ ಪ್ರತಿದಿನ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ ತಾಮ್ರದ ಪಾತ್ರೆಯಿಂದ ಸೂರ್ಯನಿಗೆ ಅರ್ಘ್ಯ ನೀಡಿ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ನಿಶ್ಚಿತ ವಿಜಯ ಲಭಿಸಲಿ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-  }
-}
-
-/**
- * Deterministic Business vs Employment & Partnership Guard reading across all 7 languages.
- * Grounded in 6th (Service) vs 7th (Commerce) and strict prohibition of 50-50 partnerships if afflicted.
- */
-export function buildDeterministicBusinessVsJobReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  _ledger?: ConsultationRulingRecord[],
-  _isSubsequent?: boolean,
-  _conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-
-  switch (lang) {
-    case "en": {
-      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, analyzing your 6th House (Service / Employment) versus your 7th House (Commerce & Independent Trade) alongside Mercury (Vyapara Karaka), your chart reveals that independent enterprise and sole self-governance grant ultimate prosperity. While holding steady employment provides essential stability and working capital, venturing into business as an independent owner or sole proprietor is deeply favored. However, heed this strict astrological warning: 50-50 business partnerships with friends or outside parties are STRICTLY PROHIBITED for your chart, as afflicted planetary placements in your 7th house will trigger severe betrayal, financial disputes, and strained relationships.`;
-      const p2 = `Retain your stable employment while systematically laying the foundation for your independent venture; if formal partnership is legally required, register the enterprise exclusively in your name or that of an auspicious family member (mother/spouse). Recite the Sri Lakshmi Kubera Stotra and offer prayers to Sri Mahaganapati at Sri Kshetra Gokarna for boundless commercial abundance and obstacle removal.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, आपकी कुंडली के षष्ठ भाव (नौकरी/सेवा) और सप्तम भाव (स्वतंत्र व्यापार एवं वाणिज्य) तथा व्यापार-कारक बुध की स्थिति का विश्लेषण करने पर यह स्पष्ट होता है कि स्वतंत्र उद्यम ही आपकी दीर्घकालिक समृद्धि का आधार है। अपनी आजीविका हेतु वर्तमान नौकरी को जारी रखते हुए धीरे-धीरे स्वयं का स्वतंत्र व्यवसाय शुरू करना अत्यंत शुभ है। किंतु एक कठोर शास्त्रसम्मत चेतावनी स्मरण रखें: किसी भी मित्र अथवा बाहरी व्यक्ति के साथ ५०-५० की साझेदारी करना आपकी कुंडली के लिए पूर्णतः वर्जित है! साझेदारी आपके धन की हानि, विश्वासघात और आपसी कलह का कारण बनेगी।`;
-      const p2 = `नौकरी के साथ-साथ सुरक्षित पूंजी संचित कर एकल स्वामित्व में व्यापार आरंभ करें; यदि पंजीकरण आवश्यक हो तो माता अथवा जीवनसाथी के नाम पर करें। नित्य श्री लक्ष्मी कुबेर स्तोत्र का पाठ करें तथा श्री क्षेत्र गोकर्ण महागणपति के दर्शन से व्यापारिक विघ्नों का नाश होगा।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ జాతకంలోని 6వ స్థానం (ఉద్యోగం/సేవ) మరియు 7వ స్థానం (స్వతంత్ర వ్యాపారం/వాణిజ్యం) పరిశీలిస్తే, స్వతంత్ర వ్యాపారమే మీ దీర్ఘకాలిక సంపదకు మూలమని స్పష్టమవుతుంది. ప్రస్తుత ఉద్యోగాన్ని కొనసాగిస్తూనే క్రమంగా సొంత వ్యాపారానికి పునాది వేయడం శ్రేయస్కరం. అయితే ఒక ముఖ్యమైన హెచ్చరిక: స్నేహితులు లేదా ఇతరులతో సమాన 50-50 భాగస్వామ్యం చేయడం మీ జాతకానికి ఖచ్చితంగా నిషిద్ధం! భాగస్వామ్య వ్యాపారం నమ్మకద్రోహం, ఆర్థిక నష్టాలు మరియు వివాదాలకు దారితీస్తుంది.`;
-      const p2 = `సొంత యజమాన్యంలో మాత్రమే వ్యాపారం ప్రారంభించండి లేదా తల్లి/జీవిత భాగస్వామి పేరున నిర్వహించండి. నిత్యం శ్రీ లక్ష్మీ కుబేర స్తోత్రం పఠించండి; శ్రీ క్షేత్ర గోకర్ణ మహా గణపతి అనుగ్రహంతో వ్యాపారంలో అఖండ లాభాలు కలుగుతాయి.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 6-ஆம் வீடான உத்தியோக ஸ்தானத்தையும், 7-ஆம் வீடான வணிக ஸ்தானத்தையும் ஒப்பிட்டுப் பார்க்கும்போது, சொந்தத் தொழிலே உங்களுக்கு நிரந்தர செல்வத்தை வழங்கும். தற்போதைய வேலையை விடாமல் பார்த்துக் கொண்டு, படிப்படியாக சொந்தத் தொழில் தொடங்குவது மிக நன்று. ஆனால் மிக முக்கியமான சாஸ்திர எச்சரிக்கை: நண்பர்கள் அல்லது பிறருடன் கூட்டுத் தொழில் செய்வதை அறவே தவிர்க்க வேண்டும்! கூட்டுத் தொழில் செய்தால் பண இழப்பு, நம்பிக்கை துரோகம் மற்றும் பகையே மிஞ்சும்.`;
-      const p2 = `முழுமையான தனி உரிமையாளராக தொழில் தொடங்குங்கள்; அல்லது தாய் அல்லது மனைவியின் பெயரில் பதிவு செய்யுங்கள். தினமும் ஸ்ரீ லட்சுமி குபேர ஸ்தோத்திரம் பாராயணம் செய்து வாருங்கள்; கோகர்ண மகா கணபதியின் அருளால் தொழிலில் தடைகள் நீங்கி பெருவளம் சேரும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ ആറാം ഭാവവും (തൊഴിൽ/സർവീസ്) ഏഴാം ഭാവവും (സ്വതന്ത്ര ബിസിനസ്സ്) പരിശോധിച്ചതിൽ നിന്ന് സ്വന്തമായി ബിസിനസ്സ് ചെയ്യുന്നതാണ് ഏറ്റവും ഐശ്വര്യപ്രദമെന്ന് കാണുന്നു. നിലവിലെ ജോലി നിലനിർത്തിക്കൊണ്ട് സാവധാനം സ്വന്തം ബിസിനസ്സിലേക്ക് ചുവടുവെക്കുന്നത് ശുഭമാണ്. എന്നാൽ ജ്യോതിഷപരമായ ഒരു കഠിന മുന്നറിയിപ്പ് ശ്രദ്ധിക്കുക: സുഹൃത്തുക്കളുമായോ മറ്റുള്ളവരുമായോ ചേർന്നുള്ള പങ്കാളിത്ത ബിസിനസ്സ് നിങ്ങളുടെ ജാതകപ്രകാരം കർശനമായി ഒഴിവാക്കണം! പങ്കാളിത്തം വഞ്ചനയ്ക്കും കനത്ത സാമ്പത്തിക നഷ്ടത്തിനും വഴിവെക്കും.`;
-      const p2 = `സ്വന്തം പൂർണ്ണ ഉത്തരവാദിത്തത്തിൽ ബിസിനസ്സ് നടത്തുക, അല്ലെങ്കിൽ മാതാവിന്റെയോ ഭാര്യയുടെയോ പേരിൽ സംരംഭം രജിസ്റ്റർ ചെയ്യുക. ദിവസവും ശ്രീ ലക്ഷ്മി കുബേര സ്തോത്രം ജപിക്കുക; ഗോകർണ്ണ മഹാവിനായകന്റെ അനുഗ്രഹത്താൽ വ്യാപാര തടസ്സങ്ങളെല്ലാം നീങ്ങി സർവ്വ ഐശ്വര്യങ്ങളും വന്നുചേരും.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या पत्रिकेतील षष्ठ भाव (नोकरी) आणि सप्तम भाव (स्वतंत्र व्यापार) यांचा तुलनात्मक अभ्यास करता, स्वतंत्र व्यवसायच आपल्याला सर्वोच्च आर्थिक समृद्धी देईल. सध्याची नोकरी सांभाळून हळूहळू स्वतःचा व्यवसाय सुरू करणे शुभ आहे. परंतु एक अत्यंत महत्त्वाची शास्त्रोक्त ताकीद लक्षात ठेवा: मित्र किंवा इतर कोणाशीही ५०-५० भागीदारीत व्यवसाय करणे आपल्या पत्रिकेसाठी पूर्णपणे निषिद्ध आहे! भागीदारी केल्यास विश्वासघात, आर्थिक नुकसान आणि कटुता निर्माण होईल.`;
-      const p2 = `एकल मालकी तत्वावरच व्यवसाय करा किंवा आई अथवा पत्नीच्या नावाने नोंदणी करा. नित्य श्री लक्ष्मी कुबेर स्तोत्राचे पठण करा; श्री क्षेत्र गोकर्ण महागणपतीच्या कृपेने आपल्या व्यवसायातील सर्व विघ्न दूर होऊन अफाट लाभ होईल.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೬ನೇ ಉದ್ಯೋಗ/ಸೇವಾ ಸ್ಥಾನ ಹಾಗೂ ೭ನೇ ಸ್ವತಂತ್ರ ವ್ಯಾಪಾರ/ವಾಣಿಜ್ಯ ಸ್ಥಾನಗಳ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ನಿರ್ವಹಿಸುವ ಸ್ವತಂತ್ರ ಉದ್ಯಮವೇ ನಿಮಗೆ ದೀರ್ಘಾವಧಿಯ ಸಂಪತ್ತನ್ನು ಕರುಣಿಸಲಿದೆ. ಪ್ರಸ್ತುತ ಉದ್ಯೋಗವನ್ನು ತಕ್ಷಣಕ್ಕೆ ಕೈಬಿಡದೆ, ಆರ್ಥಿಕ ಬಂಡವಾಳವನ್ನು ಕ್ರೋಡೀಕರಿಸಿಕೊಂಡು ಹಂತ ಹಂತವಾಗಿ ಸ್ವಂತ ವ್ಯಾಪಾರಕ್ಕೆ ತಳಹದಿ ಹಾಕುವುದು ಅತ್ಯಂತ ಮಂಗಳಕರ. ಆದರೆ ಜಾತಕದ ಪರಮ ಕಠಿಣ ಎಚ್ಚರಿಕೆಯನ್ನು ನೆನಪಿಡಿ: ಯಾವುದೇ ಸ್ನೇಹಿತರು ಅಥವಾ ಹೊರಗಿನವರ ಜೊತೆ ೫೦-೫೦ ಪಾಲುದಾರಿಕೆ ವ್ಯವಹಾರವನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಮಾಡಬಾರದು! ೭ನೇ ಮನೆಯ ಗ್ರಹಸ್ಥಿತಿಯು ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ವಂಚನೆ, ವಿಶ್ವಾಸದ್ರೋಹ ಹಾಗೂ ಹಣಕಾಸಿನ ನಷ್ಟವನ್ನು ಉಂಟುಮಾಡಲಿದೆ.`;
-      const p2 = `ಸಂಪೂರ್ಣ ಸ್ವತಂತ್ರ ಮಾಲೀಕತ್ವದಲ್ಲಿ ಮಾತ್ರವೇ ಉದ್ಯಮವನ್ನು ನಡೆಸಿ; ಅಗತ್ಯವಿದ್ದಲ್ಲಿ ತಾಯಿ ಅಥವಾ ಧರ್ಮಪತ್ನಿಯ ಶುಭ ಜಾತಕದ ಹೆಸರಿನಲ್ಲಿ ಸಂಸ್ಥೆಯನ್ನು ನೋಂದಾಯಿಸಿ. ಪ್ರತಿದಿನ ಶ್ರೀ ಲಕ್ಷ್ಮೀ ಕುಬೇರ ಸ್ತೋತ್ರವನ್ನು ಪಠಿಸಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೋದಕ ಅರ್ಪಿಸಿ ಸಂಕಲ್ಪ ಮಾಡಿ; ವ್ಯಾಪಾರದಲ್ಲಿ ಸಕಲ ಸಿದ್ಧಿ ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-  }
-}
-
-/**
- * Deterministic Debt Relief & Financial Revival reading across all 7 languages.
- * Grounded in 6th (Rina), 11th (Labha), 2nd (Dhana), Runavimochana Mangala Stotra.
- */
-export function buildDeterministicDebtReliefReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  _ledger?: ConsultationRulingRecord[],
-  _isSubsequent?: boolean,
-  _conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-
-  switch (lang) {
-    case "en": {
-      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, examining your 6th House of liabilities (Rina Bhava) against your 11th House of gains (Labha) and 2nd House of accumulated wealth (Dhana), your chart confirms that this debt burden is a temporary karmic phase that will steadily dissolve. Planetary transit calculations indicate that as the 11th house activates under the upcoming benefic Gochara Guru transit, financial inflows will accelerate to eliminate pending loans. The cosmic principle for total debt clearance requires two unwavering rules: maintain disciplined systematic repayments while strictly abstaining from taking fresh unbacked high-interest informal loans or speculative shortcuts.`;
-      const p2 = `Channel your resources into steady principal reduction without panic. To permanently dissolve the karmic bonds of debt and attract financial revival, recite the sacred Sri Runavimochana Mangala Stotra every Tuesday and arrange for a Rudrabhisheka at Sri Kshetra Gokarna Mahabaleshwara. Divine protection will restore your economic independence and peace of mind.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, आपकी जन्म कुंडली के षष्ठ भाव (ऋण स्थान) तथा एकादश भाव (लाभ स्थान) और द्वितीय भाव (धन स्थान) का सूक्ष्म विश्लेषण करने पर यह प्रमाणित होता है कि कर्ज का यह दबाव केवल एक अस्थायी कर्म चक्र है। आगामी गोचर गुरु का शुभ प्रभाव आपके लाभ भाव को सक्रिय कर रहा है, जिससे आगामी महीनों में धन आगमन के नए मार्ग खुलेंगे और ऋण मुक्ति तीव्र गति से होगी। कर्ज से स्थायी मुक्ति के लिए दो सिद्धांतों का पालन करें: पुराने कर्ज को नियमित रूप से चुकाएं तथा किसी भी प्रकार के नए सट्टेबाजी या भारी ब्याज वाले अनौपचारिक कर्ज से पूर्णतः दूर रहें।`;
-      const p2 = `धैर्यपूर्वक मूलधन की अदायगी पर ध्यान दें। ऋण के कर्म बंधनों को काटने के लिए प्रत्येक मंगलवार को श्री ऋणमोचन मंगल स्तोत्र का पाठ करें तथा श्री क्षेत्र गोकर्ण महाबलेश्वर में महारुद्राभिषेक संकल्प कराएं। भगवान शिव की कृपा से आपकी आर्थिक स्थिति पुनः सुदृढ़ होगी।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ కుండలిలోని 6వ స్థానం (రుణ భావం) అలాగే 11వ స్థానం (లాభ భావం), 2వ స్థానం (ధన స్థానం) పరిశీలిస్తే, ఈ అప్పుల భారం తాత్కాలిక కర్మ పరీక్ష మాత్రమేనని స్పష్టమవుతుంది. రాబోయే గోచార గురు బలం మీ లాభ భావాన్ని ఉత్తేజపరుస్తుండటం వల్ల ధనాదాయం పెరిగి అప్పులు తీరిపోయే శుభ కాలం సమీపిస్తోంది. రుణ విముక్తికి ఖచ్చితమైన నియమం: క్రమబద్ధంగా పాత అప్పులను తీర్చుకుంటూ, ఎలాంటి అధిక వడ్డీగల కొత్త అప్పులు లేదా ఊహాత్మక ఖర్చులు చేయకుండా ఉండాలి.` ;
-      const p2 = `శాంతియుతంగా రుణ విముక్తి ప్రణాళికను అమలు చేయండి. రుణ బాధలు పూర్తిగా తొలగిపోవడానికి ప్రతి మంగళవారం శ్రీ రుణవిమోచన మంగళ స్తోత్రం పఠించండి మరియు శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి సన్నిధిలో రుద్రాభిషేకం చేయించండి. దైవానుగ్రహంతో మీ ఆర్థిక స్వేచ్ఛ తిరిగి లభిస్తుంది.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 6-ஆம் வீடான கடன் ஸ்தானத்தையும், 11-ஆம் வீடான லாப ஸ்தானம் மற்றும் 2-ஆம் வீடான தன ஸ்தானத்தையும் பார்க்கும்போது, இந்த கடன் சுமை ஒரு தற்காலிக கர்ம சுழற்சியே என்று தெளிவாகிறது. வரவிருக்கும் கோசார குருவின் பார்வை உங்கள் லாப ஸ்தானத்தை வலுப்படுத்துவதால், புதிய வருமான வழிகள் பிறந்து கடன்கள் யாவும் படிப்படியாக அடைபடும். கடன் முற்றிலும் தீர முக்கியமான விதி: பழைய கடன்களை ஒழுங்காக அடைக்க வேண்டும்; அதிக வட்டிக்கு புதிய கடன்கள் வாங்குவதையோ அல்லது சூதாட்ட முதலீடுகளையோ அறவே தவிர்க்க வேண்டும்.`;
-      const p2 = `பதற்றமின்றி திட்டமிட்டு கடனை அடைத்து வாருங்கள். கடன் தொல்லைகள் நிரந்தரமாக நீங்க ஒவ்வொரு செவ்வாய்க்கிழமையும் ஸ்ரீ ருணவிமோசன மங்கள ஸ்தோத்திரம் பாராயணம் செய்து, ஸ்ரீ க்ஷேத்ர கோகர்ண மகாபலேஸ்வரருக்கு ருத்ராபிஷேகம் செய்யுங்கள். ஈசனின் அருளால் பொருளாதார நிம்மதி உண்டாகும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ ആറാം ഭാവവും (കടബാധ്യത) പതിനൊന്നാം ഭാവവും (ലാഭ സ്ഥാനം), രണ്ടാം ഭാവവും (ധന സ്ഥാനം) വ്യക്തമാക്കുന്നത് ഈ കടം ഒരു താത്കാലിക കര്മ്മ പരീക്ഷ മാത്രമാണെന്നാണ്. വരുന്ന വ്യാഴത്തിന്റെ ഗോചാര മാറ്റം നിങ്ങളുടെ വരുമാന മാർഗ്ഗങ്ങളെ ശക്തിപ്പെടുത്തുകയും കടങ്ങൾ വീട്ടിത്തീർക്കാനുള്ള സാഹചര്യം ഒരുക്കുകയും ചെയ്യും. സമ്പൂർണ്ണ കടമുക്തിക്കായി ഒരു സുപ്രധാന നിയമം പാലിക്കുക: പഴയ കടങ്ങൾ ചിട്ടയായി വീട്ടുക, ഉയർന്ന പലിശയ്ക്കുള്ള പുതിയ വായ്പകളോ ഊഹക്കച്ചവടങ്ങളോ കർശനമായി ഒഴിവാക്കുക.`;
-      const p2 = `സമാധാനത്തോടെ കടങ്ങൾ തീർക്കാൻ മുന്നോട്ട് നീങ്ങുക. കടബാധ്യതകൾ വേഗത്തിൽ ഒഴിഞ്ഞുപോകാൻ എല്ലാ ചൊവ്വാഴ്ചയും ശ്രീ ഋണവിമോചന മംഗള സ്തോത്രം ജപിക്കുകയും ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ രുദ്രാഭിഷേകം നടത്തുകയും ചെയ്യുക. ഭഗവാന്റെ കൃപയാൽ സാമ്പത്തിക സുരക്ഷിതത്വം തിരികെ ലഭിക്കും.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या पत्रिकेतील षष्ठ भाव (कर्ज स्थान) तसेच एकादश भाव (लाभ स्थान) आणि द्वितीय भाव (धन स्थान) यांचा अभ्यास करता, कर्जाचे हे ओझे केवळ एक तात्पुरती कर्म स्थिती आहे. आगामी गोचर गुरूचा शुभ प्रभाव आपल्या लाभ स्थानास बळकट करणार असून नवीन उत्पन्नाचे मार्ग उघडून कर्जमुक्तीचा मार्ग सुकर होईल. पूर्ण कर्जमुक्तीसाठी महत्त्वाचा नियम पाळा: जुने कर्ज नियोजनबद्ध पद्धतीने फेडा आणि कोणतेही नवीन जादा व्याजाचे कर्ज अथवा सट्टेबाजी पूर्णपणे टाळा.`;
-      const p2 = `संयम ठेवून कर्जाची परतफेड करा. कर्जाच्या पाशातून कायमची मुक्ती मिळवण्यासाठी प्रत्येक मंगळवारी श्री ऋणमोचन मंगळ स्तोत्राचे पठण करा आणि श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी महारुद्राभिषेक पूजा अर्पण करा. महादेवाच्या कृपेने आपले आर्थिक स्वातंत्र्य लवकरच पुनरुज्जीवित होईल.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೬ನೇ ಸಾಲ/ಋಣ ಸ್ಥಾನ, ೧೧ನೇ ಲಾಭ ಸ್ಥಾನ ಹಾಗೂ ೨ನೇ ಧನ ಸ್ಥಾನಗಳ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಸಾಲದ ಹೊರೆಯು ಒಂದು ತಾತ್ಕಾಲಿಕ ಕರ್ಮ ಚಕ್ರವೇ ಹೊರತು ಶಾಶ್ವತ ಬಿಕ್ಕಟ್ಟಲ್ಲ. ಮುಂದಿನ ಗೋಚಾರದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಲಾಭ ಸ್ಥಾನಕ್ಕೆ ವಿಶೇಷ ಚೈತನ್ಯ ನೀಡಲಿದ್ದು, ಹೊಸ ಆದಾಯದ ಮೂಲಗಳು ತೆರೆದುಕೊಂಡು ಸಾಲ ತೀರುವ ಹಾದಿ ಸುಗಮವಾಗಲಿದೆ. ಸಾಲದಿಂದ ಶಾಶ್ವತ ಮುಕ್ತಿ ಹೊಂದಲು ಎರಡು ಕಟ್ಟುನಿಟ್ಟಾದ ನಿಯಮಗಳಿವೆ: ಹಳೆಯ ಸಾಲಗಳನ್ನು ಶಿಸ್ತಿನಿಂದ ಹಂತ ಹಂತವಾಗಿ ತೀರಿಸುತ್ತಾ ಬನ್ನಿ; ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಅತಿಯಾದ ಬಡ್ಡಿಯ ಹೊಸ ಸಾಲ ಅಥವಾ ಊಹಾತ್ಮಕ ಜೂಜುಗಳಲ್ಲಿ ತೊಡಗಬೇಡಿ.`;
-      const p2 = `ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ಆತಂಕವಿಲ್ಲದೆ ನಿಯಮಿತವಾಗಿ ಅಸಲನ್ನು ತೀರಿಸುವ ಸಂಕಲ್ಪ ಮಾಡಿ. ಋಣಬಾಧೆಯ ಕರ್ಮ ತಡೆಗಳನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಕಳಚಿಕೊಳ್ಳಲು ಪ್ರತಿ ಮಂಗಳವಾರ ಶ್ರೀ ಋಣವಿಮೋಚನ ಮಂಗಳ ಸ್ತೋತ್ರವನ್ನು ಪಠಿಸಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಸಂಕಲ್ಪ ಸಲ್ಲಿಸಿ. ಈಶ್ವರನ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ ಮತ್ತು ಮನಃಶಾಂತಿ ಮರಳಿ ನೆಲೆಸಲಿದೆ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-  }
-}
-
-/**
- * Deterministic Legal Dispute & Court Case Victory reading across all 7 languages.
- * Grounded in 6th (Shatru), Upachaya Lord placement, Subrahmanya Shatru Samhara Trishati / Narasimha Kavacha.
- */
-export function buildDeterministicLegalCaseReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  _ledger?: ConsultationRulingRecord[],
-  _isSubsequent?: boolean,
-  _conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-
-  switch (lang) {
-    case "en": {
-      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear devotee, examining your 6th House (Shatru & Litigation) alongside the placement of your 6th lord in Upachaya houses, your chart demonstrates strong planetary protection against adversary hostility and legal entanglements. In Vedic jurisprudence, Upachaya strength ensures that truth and righteousness prevail; however, dragging court battles endlessly out of ego consumes valuable wealth and vital peace. Astrological indications strongly favor pursuing an honorable, strategic settlement or mediated resolution during the upcoming planetary window, which will secure your legal relief and protect your financial assets.`;
-      const p2 = `Maintain legal prudence without anxiety. To dissolve enemy malice, neutralize adversarial hostility, and ensure triumphant resolution, recite the sacred Sri Subrahmanya Shatru Samhara Trishati or Sri Narasimha Kavacha daily. May Sri Kshetra Gokarna Mahabaleshwara protect your rights and bestow peace and justice.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्त, आपकी जन्म कुंडली के षष्ठ भाव (शत्रु एवं विवाद स्थान) तथा षष्ठेश की उपचय भाव में स्थिति का विश्लेषण करने पर यह सिद्ध होता है कि आपके पास विरोधियों के षड्यंत्र से उबरने की पर्याप्त ग्रह शक्ति है। शास्त्र अनुसार सत्य की ही विजय होती है; किंतु अहंकारवश मुकदमे को अनावश्यक लंबा खींचना धन और समय की बर्बादी कराता है। आपकी कुंडली के अनुसार आगामी अनुकूल समय में रणनीतिक सूझबूझ अथवा आपसी मध्यस्थता द्वारा विवाद का सम्मानजनक समाधान निकालना आपके लिए परम लाभकारी रहेगा।`;
-      const p2 = `शांत मन से अपने कानूनी पक्ष को सुदृढ़ रखें। विरोधियों की बाधा और मुकदमे के भय से मुक्ति हेतु नित्य श्री सुब्रमण्य शत्रु संहार त्रिशती अथवा श्री नृसिंह कवच का पाठ करें। श्री क्षेत्र गोकर्ण महाबलेश्वर आपके न्याय और सम्मान की रक्षा करेंगे।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nఆత్మీయులారా, మీ జన్మ జాతకంలోని 6వ స్థానం (శత్రు మరియు వ్యాజ్య స్థానం) పరిశీలిస్తే, శత్రువుల కుట్రలను తిప్పికొట్టే గ్రహ బలం మీకు ఉందని స్పష్టమవుతుంది. ధర్మం వైపు ఉన్నవారికే అంతిమ విజయం లభిస్తుంది; అయితే పంతాలకు పోయి కేసులను సుదీర్ఘంగా సాగదీయడం వల్ల ధనం, మనశ్శాంతి నష్టపోతాయి. అనుకూల గోచార సమయంలో తెలివైన న్యాయ వ్యూహం లేదా మధ్యవర్తిత్వ పరిష్కారం ద్వారా సమస్యను పరిష్కరించుకోవడం మీ భవిష్యత్తుకు ఎంతో క్షేమకరం.`;
-      const p2 = `ఆందోళన వీడి సంయమనంతో వ్యవహరించండి. శత్రు బాధలు నశించడానికి మరియు కోర్టు వ్యవహారాలలో అనుకూల ఫలితాలు సాధించడానికి నిత్యం శ్రీ సుబ్రహ్మణ్య శత్రు సంహార త్రిశతి లేదా శ్రీ నృసింహ కవచం పఠించండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని దివ్య రక్షణ మీకు సదా ఉంటుంది.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்பரே, உங்கள் ஜாதகத்தின் 6-ஆம் வீடான சத்ரு மற்றும் வழக்கு ஸ்தானத்தை ஆராயும்போது, எதிர்ப்புகளை முறியடிக்கும் பலமான கிரக பாதுகாப்பு உங்களுக்கு உள்ளது தெளிவாகிறது. இறுதியில் நீதியே வெல்லும்; ஆனால் பிடிவாதமாக வழக்குகளை நீண்ட காலம் இழுத்தடிப்பது பொருளாதார இழப்பையும் மன உளைச்சலையுமே தரும். வரவிருக்கும் சுப காலத்தில் சாதுரியமான சட்ட அணுகுமுறை அல்லது சுமூகமான சமரச தீர்வு காண்பதே உங்கள் சொத்துக்களைப் பாதுகாக்கும் சிறந்த வழியாகும்.`;
-      const p2 = `பயமின்றி உறுதியுடன் செயல்படுங்கள். எதிரிகள் தொல்லை நீங்கவும், வழக்குகளில் சுப முடிவு கிட்டி வெற்றி பெறவும் தினமும் ஸ்ரீ சுப்ரமணிய சத்ரு சம்ஹார திரிசதி அல்லது ஸ்ரீ நரசிம்ம கவசம் பாராயணம் செய்யுங்கள். கோகர்ண மகாபலேஸ்வரரின் அருள் உங்களுக்கு வெற்றியை அருளும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nപ്രിയ ഭക്തരേ, നിങ്ങളുടെ ജാതകത്തിലെ ആറാം ഭാവവും (ശത്രു-വ്യാവഹാര സ്ഥാനം) പരിശോധിക്കുമ്പോൾ, എതിർപ്പുകളെ അതിജീവിക്കാനുള്ള ശക്തമായ ഗ്രഹബലം നിങ്ങൾക്കുണ്ടെന്ന് കാണുന്നു. നീതിപൂർവ്വമായ നിലപാടുകൾക്കാണ് അന്തിമ വിജയം; എന്നാൽ വാശിപിടിച്ച് കേസുകൾ നീട്ടിക്കൊണ്ടുപോകുന്നത് സാമ്പത്തിക നഷ്ടത്തിനും മനഃസമാധാനക്കേടിനും കാരണമാകും. അനുകൂല ഗ്രഹമാറ്റ സമയത്ത് നയപരമായ മധ്യസ്ഥതയിലൂടെയോ തന്ത്രപരമായ നിയമനടപടിയിലൂടെയോ തർക്കം അവസാനിപ്പിക്കുന്നത് നിങ്ങൾക്ക് അതീവ ഗുണകരമാണ്.`;
-      const p2 = `ഭയപ്പെടാതെ ശാന്തതയോടെ നിയമപരമായ കാര്യങ്ങൾ മുന്നോട്ട് കൊണ്ടുപോകുക. ശത്രുദോഷം അകലുന്നതിനും കോടതി കാര്യങ്ങളിൽ ശുഭകരമായ തീരുമാനം ഉണ്ടാകുന്നതിനും ദിവസവും ശ്രീ സുബ്രഹ്മണ്യ ശത്രു സംഹാര തൃശതി അല്ലെങ്കിൽ ശ്രീ നരസിംഹ കവചം ജപിക്കുക. ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹം നിങ്ങൾക്ക് സദാ തുണയായിരിക്കും.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्ता, आपल्या जन्मपत्रिकेतील षष्ठ भाव (शत्रू व खटला स्थान) आणि षष्ठेशाची उपचय स्थानातील स्थिती पाहता, विरोधकांवर मात करण्याचे प्रबळ ग्रहबळ आपल्या पाठीशी आहे. अंतिम विजय सत्याचाच होतो; परंतु अहंपणामुळे वाद अथवा कोर्ट कचेऱ्या दीर्घकाळ चालवणे धन आणि मनःशांतीचा नाश करते. पत्रिकेनुसार आगामी शुभ काळात सामंजस्याने तडजोड करणे अथवा धोरणात्मक कायदेशीर मार्ग काढणे आपल्या मालमत्तेचे व हिताचे रक्षण करेल.`;
-      const p2 = `भीती न बाळगता संयमाने कायदेशीर प्रक्रिया हाताळा. शत्रू पीडा नष्ट होण्यासाठी आणि खटल्यात दिलासा मिळण्यासाठी नित्य श्री सुब्रमण्य शत्रू संहार त्रिशती अथवा श्री नृसिंह कवचाचे पठण करा. श्री क्षेत्र गोकर्ण महाबळेश्वराच्या कृपेने आपल्यावर सदैव दैवी संरक्षण राहील.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೬ನೇ ಶತ್ರು ಹಾಗೂ ವ್ಯಾಜ್ಯ ಸ್ಥಾನದ ಅಧಿಪತಿಯ ಉಪಚಯ ಸ್ಥಾನಗಳ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ವಿರೋಧಿಗಳ ಕುತಂತ್ರ ಹಾಗೂ ಕೋರ್ಟ್-ಕಚೇರಿ ವ್ಯಾಜ್ಯಗಳನ್ನು ಎದುರಿಸಿ ನಿಲ್ಲುವ ಬಲವಾದ ಗ್ರಹ ರಕ್ಷಣೆ ನಿಮಗಿದೆ. ಧರ್ಮ ಮತ್ತು ಸತ್ಯಕ್ಕೆ ಎಂದಿಗೂ ಅಂತಿಮ ಜಯವಿದೆ; ಆದರೆ ಹಠದಿಂದ ದಾವೆಗಳನ್ನು ಅನಗತ್ಯವಾಗಿ ದೀರ್ಘಕಾಲ ಎಳೆದಾಡುವುದು ಕೇವಲ ಆಸ್ತಿ ಮತ್ತು ಮನಃಶಾಂತಿಯ ನಷ್ಟಕ್ಕೆ ಕಾರಣವಾಗುತ್ತದೆ. ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ ಮುಂದಿನ ಶುಭ ಗೋಚಾರ ಕಾಲದಲ್ಲಿ ನ್ಯಾಯಯುತ ತಂತ್ರಗಾರಿಕೆ ಅಥವಾ ಗೌರವಾನ್ವಿತ ಪರಸ್ಪರ ಸಂಧಾನದ ಮೂಲಕ ವ್ಯಾಜ್ಯವನ್ನು ಬಗೆಹರಿಸಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಭಾಗ್ಯಕ್ಕೆ ಪರಮ ಶ್ರೇಯಸ್ಕರ.`;
-      const p2 = `ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ಆತಂಕವಿಲ್ಲದೆ ಧೈರ್ಯದಿಂದ ಹೆಜ್ಜೆಯಿಡಿ. ಶತ್ರು ಬಾಧೆ ನಿವಾರಣೆ ಹಾಗೂ ನ್ಯಾಯಾಲಯದ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಜಯ ಲಭಿಸಲು ಪ್ರತಿದಿನ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಶತ್ರು ಸಂಹಾರ ತ್ರಿಶತೀ ಸ್ತೋತ್ರ ಅಥವಾ ಶ್ರೀ ನರಸಿಂಹ ಕವಚವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಸಕಲ ವಿವಾದಗಳೂ ಶಮನವಾಗಿ ನಿಮಗೆ ನ್ಯಾಯ ಹಾಗೂ ಜಯ ಸಿಗಲಿ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-  }
-}
-
-/**
- * Deterministic Health Recovery, Surgery & Longevity reading across all 7 languages.
- * Grounded in 1st (Tanu/Vitality), 6th (Roga), 8th (Ayus), Maha Mrityunjaya Japa.
- */
-export function buildDeterministicHealthReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  _ledger?: ConsultationRulingRecord[],
-  _isSubsequent?: boolean,
-  _conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-
-  switch (lang) {
-    case "en": {
-      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, examining your 1st House (Tanu Bhava - Vitality & Constitution) alongside your 6th House (Roga) and 8th House (Ayus), your birth chart indicates inherent physical resilience and long life. While planetary tensions have created temporary physical exhaustion, surgical necessity, or nervous strain, this is strictly a passing imbalance of Doshas (Vata/Pitta/Kapha) rather than a permanent debility. Trust authentic medical advice and prescribed therapies without fear, for your Lagna Lord’s underlying strength ensures comprehensive physiological recovery.`;
-      const p2 = `Combine medical care with peaceful lifestyle rejuvenation. To fortify your vital life-force (Prana Shakti), reduce surgical anxieties, and accelerate healing, chant the sacred Maha Mrityunjaya Mantra daily and practice morning Surya Namaskara. Offering bilva patra or sacred milk prayers at Sri Kshetra Gokarna Mahabaleshwara will bestow vibrant immunity, radiant longevity, and complete sound health.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, आपकी जन्म कुंडली के प्रथम भाव (तनु भाव - आरोग्य एवं जीवन शक्ति) तथा षष्ठ (रोग) और अष्टम (आयु) भाव का विश्लेषण करने पर यह स्पष्ट होता है कि आपकी कुंडली में स्वाभाविक जीवन शक्ति और दीर्घायु का वरदान है। वर्तमान में जो शारीरिक कमजोरी, शल्यक्रिया की आशंका या दीर्घकालीन व्याधि का भय है, वह केवल एक अल्पकालिक ग्रह दशा का प्रभाव है। घबराने की कोई आवश्यकता नहीं है; योग्य चिकित्सीय उपचार पर पूर्ण विश्वास रखें, क्योंकि लग्नेश का बल आपके शीघ्र स्वास्थ्य लाभ को सुनिश्चित करता है।`;
-      const p2 = `चिकित्सीय परामर्श के साथ-साथ अपनी दिनचर्या को सात्विक बनाएं। प्राण शक्ति को जागृत करने और भय से मुक्ति के लिए नित्य महामृत्युंजय मंत्र का जप करें तथा सूर्य नमस्कार का अभ्यास करें। श्री क्षेत्र गोकर्ण महाबलेश्वर में शिवजी को बिल्वपत्र अर्पित करने से असाध्य रोगों का शमन होगा और आपको उत्तम स्वास्थ्य प्राप्त होगा।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ జాతకంలోని 1వ తను స్థానం (శరీర ఆరోగ్యం), 6వ రోగ స్థానం మరియు 8వ ఆయుష్షు స్థానం పరిశీలిస్తే, మీకు సహజమైన శారీరక దృఢత్వం మరియు దీర్ఘాయుష్షు ఉన్నాయని స్పష్టమవుతుంది. ప్రస్తుత అనారోగ్యం, శస్త్రచికిత్స ఆందోళనలు లేదా నిరంతర నీరసం కేవలం తాత్కాలిక గ్రహ దోషాల ప్రభావమే. భయపడాల్సిన అవసరం లేదు; సరైన వైద్య చికిత్సను అనుసరించండి, ఎందుకంటే లగ్నాధిపతి బలం మీకు సంపూర్ణ ఆరోగ్య రికవరీని ప్రసాదిస్తుంది.`;
-      const p2 = `వైద్యంతో పాటు ఆధ్యాత్మిక సాధనను కొనసాగించండి. ప్రాణ శక్తిని పెంపొందించుకోవడానికి మరియు అనారోగ్య భయాల నుండి బయటపడటానికి నిత్యం మహా మృత్యుంజయ మంత్రం జపించండి మరియు ఉదయం సూర్య నమస్కారాలు చేయండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని అనుగ్రహంతో మీకు సంపూర్ణ ఆయురారోగ్యాలు చేకూరుతాయి.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 1-ஆம் வீடான தனு ஸ்தானம் (உடல்நலம் மற்றும் உயிர்சக்தி), 6-ஆம் வீடான ரோக ஸ்தானம் மற்றும் 8-ஆம் வீடான ஆயுள் ஸ்தானத்தை ஆராயும்போது, நல்ல ஆயுள் பலமும் உடல் எதிர்ப்பாற்றலும் உள்ளது தெளிவாகிறது. தற்போதுள்ள உடல் சோர்வு, அறுவை சிகிச்சை பயம் அல்லது நீண்டகால நோய் என்பது ஒரு தற்காலிக கிரக தசா அமைப்பே ஆகும். அச்சப்பட வேண்டாம்; முறையான மருத்துவ சிகிச்சையை தைரியமாக எடுத்துக் கொள்ளுங்கள், உங்கள் லக்னாதிபதியின் பலம் உங்களை விரைவில் பூரண குணமடையச் செய்யும்.`;
-      const p2 = `மருத்துவ சிகிச்சையுடன் நல்ல உணவு முறையையும் பின்பற்றுங்கள். பிராண சக்தியைப் புதுப்பிக்கவும், நோய்கள் விலகவும் தினமும் மகா மிருத்யுஞ்சய மந்திரம் ஜெபித்து, சூரிய நமஸ்காரம் செய்யுங்கள். ஸ்ரீ க்ஷேத்ர கோகர்ண மகாபலேஸ்வரருக்கு வில்வ அர்ச்சனை செய்து வர உடல் நலம் சிறந்து நீண்ட ஆயுள் கிட்டும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ ഒന്നാം ഭാവവും (ആരോഗ്യം/ശരീരബലം) ആറാം ഭാവവും (രോഗം), എട്ടാം ഭാവവും (ആയുസ്സ്) പരിശോധിക്കുമ്പോൾ, നിങ്ങൾക്ക് നല്ല ആയുർബലവും സ്വാഭാവിക രോഗപ്രതിരോധ ശേഷിയും ഉണ്ടെന്ന് കാണുന്നു. ഇപ്പോൾ അനുഭവപ്പെടുന്ന ശാരീരിക അസ്വസ്ഥതകളോ ശസ്ത്രക്രിയ ഭയമോ താത്കാലിക ഗ്രഹദോഷം മാത്രമാണ്. ഭയപ്പെടേണ്ടതില്ല; കൃത്യമായ വൈദ്യചികിത്സ ഉറപ്പാക്കുക, നിങ്ങളുടെ ലഗ്നാധിപന്റെ ബലം നിങ്ങളെ വേഗത്തിൽ പൂർണ്ണ ആരോഗ്യത്തിലേക്ക് തിരികെ കൊണ്ടുവരും.`;
-      const p2 = `ചികിത്സയോടൊപ്പം മനസ്സിനെ പ്രശാന്തമായി സൂക്ഷിക്കുക. ജീവശക്തി വർദ്ധിപ്പിക്കുന്നതിനും രോഗശാന്തിക്കുമായി ദിവസവും മഹാമൃത്യുഞ്ജയ മന്ത്രം ജപിക്കുകയും രാവിലെ സൂര്യനമസ്കാരം ശീലമാക്കുകയും ചെയ്യുക. ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ കൂവളമാല സമർപ്പിച്ചു പ്രാർത്ഥിക്കുന്നത് നിങ്ങൾക്ക് പൂർണ്ണ ആരോഗ്യവും ദീർഘായുസ്സും പ്രദാനം ചെയ്യും.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या पत्रिकेतील प्रथम भाव (तनु भाव - आरोग्य व प्राणशक्ती), षष्ठ भाव (रोग) आणि अष्टम भाव (आयुष्य) यांचा अभ्यास करता, आपल्या कुंडलीत उत्तम प्राणशक्ती आणि दीर्घायुष्याचे वरदान आहे. सध्याची शारीरिक अस्वस्थता, शस्त्रक्रियेची भीती अथवा दीर्घ आजारपण हे केवळ तात्पुरत्या ग्रहदशेचे फळ आहे. घाबरण्याचे कोणतेही कारण नाही; योग्य वैद्यकीय उपचारांवर पूर्ण विश्वास ठेवा, लग्नेशाचे बळ आपल्याला लवकरच पूर्णपणे रोगमुक्त करेल.`;
-      const p2 = `वैद्यकीय उपचारांसोबतच जीवनशैली सात्विक ठेवा. प्राणशक्ती बळकट करण्यासाठी आणि भीती निवारणासाठी नित्य महामृत्युंजय मंत्राचा जप करा व सूर्यनमस्कार घाला. श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी बेलपत्र अर्पण करून प्रार्थना केल्यास सर्व व्याधींचे शमन होऊन उत्तम आरोग्य लाभेल.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೧ನೇ ತನು ಭಾವ (ದೇಹ ದಾರ್ಢ್ಯ ಹಾಗೂ ಆರೋಗ್ಯ), ೬ನೇ ರೋಗ ಸ್ಥಾನ ಹಾಗೂ ೮ನೇ ಆಯುಷ್ಯ ಸ್ಥಾನಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ ಸಹಜ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯದ ಬಲವಾದ ಅನುಗ್ರಹವಿದೆ. ಪ್ರಸ್ತುತ ಎದುರಾಗಿರುವ ದೈಹಿಕ ಬಳಲಿಕೆ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯ ಆತಂಕ ಅಥವಾ ದೀರ್ಘಕಾಲದ ಕಾಯಿಲೆಯ ಭಯವು ಕೇವಲ ತಾತ್ಕಾಲಿಕ ಗೋಚಾರ ಗ್ರಹಗಳ ಪರೀಕ್ಷೆಯೇ ಹೊರತು ಶಾಶ್ವತ ಕೊರತೆಯಲ್ಲ. ಯಾವುದೇ ಆತಂಕವಿಲ್ಲದೆ ನುರಿತ ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯನ್ನು ಮುಂದುವರಿಸಿ; ಲಗ್ನಾಧಿಪತಿಯ ಶುಭ ಬಲವು ನಿಮ್ಮನ್ನು ಶೀಘ್ರವೇ ಪರಿಪೂರ್ಣ ಆರೋಗ್ಯವಂತರನ್ನಾಗಿ ಮಾಡಲಿದೆ.`;
-      const p2 = `ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯ ಜೊತೆಗೆ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯನ್ನು ರೂಢಿಸಿಕೊಳ್ಳಿ. ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ವೃದ್ಧಿಸಿಕೊಳ್ಳಲು ಹಾಗೂ ಆರೋಗ್ಯ ಭಯಗಳಿಂದ ಮುಕ್ತಿ ಹೊಂದಲು ಪ್ರತಿದಿನ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ ಹಾಗೂ ಸೂರ್ಯನಮಸ್ಕಾರವನ್ನು ಅಭ್ಯಾಸ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಬಿಲ್ವಪತ್ರೆ ಅರ್ಪಿಸಿ ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ಶಾಂತಿ ಸಂಕಲ್ಪ ಮಾಡಿಸುವುದರಿಂದ ಸಕಲ ರೋಗರುಜಿನಗಳು ಶಮನವಾಗಿ ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿದೆ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-  }
-}
-
-/**
- * Deterministic Competitive Exam & Academic Merit reading across all 7 languages.
- * Grounded in 4th (Vidya), 5th (Buddhi/Medha), 9th (Bhagya), Budhaditya Yoga, Sri Medha Sukta.
- */
-export function buildDeterministicCompetitiveExamReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  _ledger?: ConsultationRulingRecord[],
-  _isSubsequent?: boolean,
-  _conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-
-  switch (lang) {
-    case "en": {
-      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear student, examining your 4th House (Foundational Learning), 5th House (Intellect & Grasping Power), and 9th House (Higher Education & Fortune) alongside Mercury (Budha) and Jupiter (Guru), your chart confirms extraordinary cognitive brilliance and academic merit. Competitive examinations, civil services, or prestigious university entrances are fully supported by your natal planetary alignments. The prevailing planetary period indicates that consistent, disciplined revision and emotional composure will translate your hard work into outstanding scores and high merit ranks.`;
-      const p2 = `Set aside all self-doubt and exam nervousness. To awaken razor-sharp memory retention, intellectual clarity, and triumphant success in competitive tests, recite the sacred Sri Medha Sukta or Saraswati Stotra every morning in front of a lit cow-ghee lamp. Seeking the divine blessings of Sri Mahaganapati at Sri Kshetra Gokarna will guarantee obstacle-free academic victory and glorious career beginnings.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "hi": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय विद्यार्थी, आपकी जन्म कुंडली के चतुर्थ भाव (विद्या), पंचम भाव (बुद्धि एवं ग्रहण शक्ति) तथा नवम भाव (उच्च शिक्षा एवं भाग्य) का विश्लेषण करने पर यह प्रमाणित होता है कि आपमें उत्कृष्ट बौद्धिक क्षमता विद्यमान है। प्रतियोगी परीक्षाओं, उच्च शिक्षा अथवा प्रवेश परीक्षाओं में सफलता के लिए आपकी कुंडली में बुध और गुरु का उत्तम सहयोग प्राप्त है। अनुशासित समय-सारिणी बनाकर निरंतर अध्ययन करने से आपको निश्चित रूप से उच्च रैंक और मनवांछित सफलता प्राप्त होगी।`;
-      const p2 = `परीक्षा के भय और घबराहट को त्यागकर एकाग्रचित्त होकर तैयारी करें। तीव्र स्मरण शक्ति एवं प्रतियोगी परीक्षा में विजय हेतु नित्य प्रातः शुद्ध घी का दीपक जलाकर श्री मेधा सूक्त अथवा सरस्वती स्तोत्र का पाठ करें। श्री क्षेत्र गोकर्ण महागणपति की कृपा से आपकी शिक्षा के मार्ग के समस्त अवरोध दूर होंगे और आपको विजय प्राप्त होगी।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "te": {
-      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nఆత్మీయ విద్యార్థీ, మీ జన్మ జాతకంలోని 4వ విద్యా స్థానం, 5వ బుద్ధి స్థానం మరియు 9వ ఉన్నత విద్యా స్థానం పరిశీలిస్తే, మీలో అద్భుతమైన గ్రహణ శక్తి మరియు మేధో సంపత్తి ఉన్నాయని స్పష్టమవుతుంది. పోటీ పరీక్షలు, ప్రవేశ పరీక్షలు లేదా ఉన్నత చదువులలో రాణించడానికి బుధ, గురు గ్రహాల అనుగ్రహం ఉంది. పక్కా ప్రణాళికతో ఏకాగ్రతగా శ్రమిస్తే మీరు అత్యుత్తమ ర్యాంక్ సాధించడం ఖాయం.`;
-      const p2 = `పరీక్షల భయాన్ని వీడి ఆత్మవిశ్వాసంతో సిద్ధమవ్వండి. తీక్షణమైన జ్ఞాపకశక్తి మరియు పరీక్షా విజయం కోసం రోజూ ఉదయం ఆవు నెయ్యి దీపం వెలిగించి శ్రీ మేధా సూక్తం లేదా సరస్వతీ స్తోత్రం పఠించండి. శ్రీ క్షేత్ర గోకర్ణ మహా గణపతి దివ్య ఆశీస్సులతో మీ విద్యా ప్రయాణంలో అద్భుత విజయాలు సాధిస్తారు.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ta": {
-      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்பு மாணவனே, உங்கள் ஜாதகத்தின் 4-ஆம் வீடான கல்வி ஸ்தானம், 5-ஆம் வீடான புத்தி ஸ்தானம் மற்றும் 9-ஆம் வீடான உயர் கல்வி ஸ்தானத்தை ஆராயும்போது, சிறந்த ஞாபக சக்தியும் கூரிய அறிவுத்திறனும் உங்களிடம் உள்ளது தெளிவாகிறது. போட்டித் தேர்வுகள், அரசு நுழைவுத் தேர்வுகள் அல்லது உயர்கல்வியில் தேர்ச்சி பெற புதன் மற்றும் குருவின் சிறப்பான ஆதரவு உள்ளது. முறையான நேர மேலாண்மையுடன் பயின்றால் நிச்சயம் உயர் ரேங்க் மற்றும் வெற்றி கிட்டும்.`;
-      const p2 = `பரீட்சை பயத்தை விடுத்து தன்னம்பிக்கையுடன் படியுங்கள். நினைவாற்றல் பெருகவும், போட்டித் தேர்வுகளில் முதலிடம் பெறவும் தினமும் காலையில் நெய் தீபம் ஏற்றி ஸ்ரீ மேதா சூக்தம் அல்லது சரஸ்வதி ஸ்தோத்திரம் பாராயணம் செய்யுங்கள். கோகர்ண மகா கணபதியின் அருளால் கல்வித் தடைகள் யாவும் நீங்கி மாபெரும் வெற்றி உண்டாகும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "ml": {
-      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nപ്രിയ വിദ്യാർത്ഥീ, നിങ്ങളുടെ ജാതകത്തിലെ നാലാം ഭാവവും (വിദ്യാഭ്യാസം), അഞ്ചാം ഭാവവും (ബുദ്ധിശക്തി), ഒൻപതാം ഭാവവും (ഉന്നത വിദ്യാഭ്യാസം) പരിശോധിക്കുമ്പോൾ, നിങ്ങൾക്ക് മികച്ച ഓർമ്മശക്തിയും ബുദ്ധിവൈഭവവും ഉണ്ടെന്ന് വ്യക്തമാകുന്നു. മത്സരപരീക്ഷകളിലും ഉന്നത വിദ്യാഭ്യാസ പ്രവേശനങ്ങളിലും ഉന്നതവിജയം കൈവരിക്കാൻ ബുധന്റെയും വ്യാഴത്തിന്റെയും അനുഗ്രഹമുണ്ട്. ചിട്ടയായ പഠനത്തിലൂടെ നിങ്ങൾക്ക് മികച്ച റാങ്കും വിജയവും നേടാനാകും.`;
-      const p2 = `പരീക്ഷാപ്പേടി ഉപേക്ഷിച്ച് പൂർണ്ണ ഏകാഗ്രതയോടെ മുന്നേറുക. ഓർമ്മശക്തി വർദ്ധിക്കുന്നതിനും പരീക്ഷകളിൽ ഉന്നത വിജയം വരിക്കുന്നതിനും ദിവസവും നെയ്യ് വിളക്ക് കൊളുത്തി ശ്രീ മേധാ സൂക്തമോ സരസ്വതീ സ്തോത്രമോ ജപിക്കുക. ഗോകർണ്ണ മഹാവിനായകന്റെ കടാക്ഷത്താൽ നിങ്ങളുടെ വിദ്യാഭ്യാസം ഉന്നത വിജയത്തിലെത്തും.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "mr": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय विद्यार्थ्या, आपल्या जन्मपत्रिकेतील चतुर्थ भाव (विद्या), पंचम भाव (बुद्धी व आकलन) आणि नवम भाव (उच्च शिक्षण व भाग्य) यांचा अभ्यास करता, आपल्यामध्ये विलक्षण स्मरणशक्ती व कुशाग्र बुद्धिमत्ता आहे. स्पर्धा परीक्षा, प्रवेश परीक्षा अथवा उच्च शिक्षणात उत्तुंग यश मिळवण्यासाठी बुध आणि गुरूचे उत्तम पाठबळ आहे. नियोजनबद्ध आणि सातत्यपूर्ण अभ्यासाने आपल्याला उच्च गुणवत्ता आणि उत्तम रँक नक्कीच मिळेल.`;
-      const p2 = `परीक्षेची भीती मनातून काढून टाकून आत्मविश्वासाने अभ्यास करा. तीक्ष्ण स्मरणशक्ती आणि स्पर्धात्मक यशासाठी रोज सकाळी तुपाचा दिवा लावून श्री मेधा सूक्त अथवा सरस्वती स्तोत्राचे पठण करा. श्री क्षेत्र गोकर्ण महागणपतीच्या आशीर्वादाने आपल्या विद्येतील सर्व विघ्न दूर होऊन भव्य यश प्राप्त होईल.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    case "kn":
-    default: {
-      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯ ವಿದ್ಯಾರ್ಥಿಯೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ, ೫ನೇ ಬುದ್ಧಿ ಹಾಗೂ ಮೇಧಾ ಸ್ಥಾನ ಮತ್ತು ೯ನೇ ಉನ್ನತ ವ್ಯಾಸಂಗ/ಭಾಗ್ಯ ಸ್ಥಾನಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ ಅಸಾಧಾರಣ ಗ್ರಹಣ ಶಕ್ತಿ ಹಾಗೂ ಜ್ಞಾನಾರ್ಜನೆಯ ಅದ್ಭುತ ಸಾಮರ್ಥ್ಯವಿದೆ. ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು, ಪ್ರವೇಶ ಪರೀಕ್ಷೆಗಳು ಅಥವಾ ಉನ್ನತ ವಿಶ್ವವಿದ್ಯಾಲಯದ ವ್ಯಾಸಂಗದಲ್ಲಿ ಯಶಸ್ಸು ಗಳಿಸಲು ಬುಧ ಹಾಗೂ ಗುರು ಗ್ರಹಗಳ ಬಲವಾದ ಸಹಯೋಗವಿದೆ. ಶಿಸ್ತುಬದ್ಧ ದಿನಚರಿ ಹಾಗೂ ಪುನರಾವರ್ತನೆಯಿಂದ ಅಭ್ಯಾಸ ಮಾಡಿದರೆ ನಿಶ್ಚಿತವಾಗಿ ಅತ್ಯುನ್ನತ ರ್ಯಾಂಕ್ ಹಾಗೂ ಅಪೇಕ್ಷಿತ ಸ್ಥಾನಮಾನ ಲಭಿಸಲಿದೆ.`;
-      const p2 = `ಪರೀಕ್ಷಾ ಆತಂಕ ಅಥವಾ ಸಂದೇಹಗಳನ್ನು ಮನಸ್ಸಿನಿಂದ ಸಂಪೂರ್ಣವಾಗಿ ಕಿತ್ತೊಗೆಯಿರಿ. ಜ್ಞಾಪಕ ಶಕ್ತಿ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯಕ್ಕಾಗಿ ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ ಶ್ರೀ ಮೇಧಾ ಸೂಕ್ತ ಅಥವಾ ಸರಸ್ವತೀ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ದೂರ್ವಾ ಅರ್ಪಿಸಿ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದರಿಂದ ವಿದ್ಯಾ ವಿಘ್ನಗಳೆಲ್ಲವೂ ನಾಶವಾಗಿ ಭವ್ಯ ಶೈಕ್ಷಣಿಕ ವಿಜಯ ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-  }
-}
-
-/**
- * Detects and resolves "Ulta-Palta", reversed, or hypothetical questions
- * that probe against prior rulings in the Consultation Ruling Ledger.
- * Enforces 100% unwavering multi-turn consistency with zero dilemma!
- */
-export function detectAndResolveUltaPaltaProbe(
-  question: string,
-  ledger?: ConsultationRulingRecord[],
-  lang: ConsultationLanguage = "kn"
-): string | null {
-  if (!question || !ledger || ledger.length === 0) return null;
-  const qLower = question.toLowerCase();
-
-  // 1. PUSHPARAGA / YELLOW SAPPHIRE PROBE (User asks about Pushparaga for Libra Lagna or when Pushparaga was rejected)
-  const isPushparagaQuery = /ಪುಷ್ಯರಾಗ|ಪುಷ್ಯ|ಹಳದಿ ಪುಷ್ಯ|pushparaga|yellow sapphire|pukhraj|पुखराज|పుష్యరాగం|புஷ்பராகம்|പുഷ്യരാഗം/i.test(qLower);
-  const isTulaProbe =
-    /ತುಲಾ|tula|libra/i.test(qLower) ||
-    ledger.some((r) => /tula|libra|ತುಲಾ/i.test(r.questionSummary || "") || /tula|libra|ತುಲಾ/i.test(r.primaryVerdict || ""));
-  const gemRecord = ledger.find((r) => r.domain === "GEMSTONE_REMEDY");
-  const isPushparagaRejectedInLedger = gemRecord?.rejectedOptions?.some((opt) =>
-    /yellow sapphire|pushparaga|pukhraj|ಪುಷ್ಯರಾಗ/i.test(opt)
-  );
-
-  if (isPushparagaQuery && (isPushparagaRejectedInLedger || isTulaProbe)) {
-    if (lang === "en") {
-      const p1 = `Master Daivajna Confident Ruling (100% Authoritative Determination): As firmly ruled in our earlier determination with 100% certainty, Yellow Sapphire (Pushparaga / Pukhraj) is STRICTLY PROHIBITED for your chart! Regardless of whether someone suggests wearing it for one month, one week, or in gold, you must NOT wear it. For your Libra (Tula) Lagna, Jupiter is the malefic 6th lord of debts, diseases, litigation, and enemies. Energizing the 6th lord with Yellow Sapphire will only attract financial liabilities, health complications, and obstacles.`;
-      const p2 = `Your single authentic, scripture-approved gemstone is Diamond (Vajra) or natural White Zircon to strengthen your benefic Lagna Lord Venus. Stand firmly by authentic Vedic Shastra with zero dilemma.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): जैसा कि पूर्व में पूरी दृढ़ता के साथ स्पष्ट किया जा चुका है, आपकी कुंडली के लिए पीला पुखराज (Yellow Sapphire) पूरी तरह वर्जित है! कोई कितना भी कहे, इसे एक महीने या एक हफ्ते के लिए भी धारण न करें। आपकी तुला लग्न कुंडली में बृहस्पति षष्ठ भाव (रोग, ऋण, शत्रु एवं विवाद) का स्वामी है। पुखराज पहनने से केवल कर्ज, बीमारी और मानसिक तनाव बढ़ेगा।`;
-      const p2 = `आपके लग्नेश शुक्र का एकमात्र कल्याणकारी रत्न हीरा अथवा प्राकृतिक सफेद जरकन है। बिना किसी संकोच के इसी शास्त्रसम्मत निर्णय पर अडिग रहें।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ ఖచ్చిత నిర్ణయం (100% శాస్త్రోక్త తీర్పు): మీ జాతకానికి పసుపు పుష్యరాగం (Yellow Sapphire / Pukhraj) ధరించడం ఖచ్చితంగా నిషిద్ధం! మీ తులా లగ్నానికి గురుడు 6వ రోగ, ఋణ, శత్రు స్థానాధిపతి. పుష్యరాగం ధరిస్తే అప్పుల బాధ, అనారోగ్యం మరియు కష్టాలు పెరుగుతాయి.`;
-      const p2 = `లగ్నాధిపతి శుక్రుని రత్నమైన వజ్రం (Diamond) లేదా సహజ వైట్ జిర్కాన్ మాత్రమే ధరించాలి. ఎటువంటి సందేహం లేకుండా ఈ నిర్ణయానికి కట్టుబడి ఉండండి.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ta") {
-      const p1 = `ஜோதிடரின் அறுதியான தீர்ப்பு (100% சாஸ்திர முடிவு): உங்கள் ஜாதகத்திற்கு மஞ்சள் புஷ்பராகம் (Yellow Sapphire) அணிவது முற்றிலும் தடைசெய்யப்பட்டுள்ளது! உங்கள் துலாம் லக்னத்திற்கு குரு 6-ஆம் கடன், நோய், எதிரி ஸ்தானாதிபதி ஆவார். புஷ்பராகம் அணிந்தால் கடன் மற்றும் உடல்நலக் கோளாறுகள் அதிகரிக்கும்.`;
-      const p2 = `லக்னாதிபதி சுக்கிரனின் ரத்தினமான வைரம் (Diamond) அல்லது இயற்கை வெள்ளை ஜிர்கான் மட்டுமே உங்களுக்கு சுபமானது. எவ்வித சந்தேகமும் இன்றி இதில் உறுதியாக இருங்கள்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ് (100% ശാസ്ത്രീയ സത്യം): നിങ്ങളുടെ ജാതകപ്രകാരം മഞ്ഞ പുഷ്യരാഗം (Yellow Sapphire) ധരിക്കുന്നത് കർശനമായി വിലക്കിയിരിക്കുന്നു! തുലാം ലഗ്നത്തിന് വ്യാഴം 6-ാം ദുരിത-രോഗ-ശത്രു ഭാവത്തിന്റെ നാഥനാണ്. പുഷ്യരാഗം ധരിച്ചാൽ കടബാധ്യതകളും അനാവശ്യ പ്രയാസങ്ങളും വർദ്ധിക്കും.`;
-      const p2 = `ലഗ്നാധിപനായ ശുക്രന്റെ രത്നമായ വജ്രം അല്ലെങ്കിൽ വൈറ്റ് സിർക്കോൺ മാത്രമാണ് നിങ്ങൾക്ക് അനുകൂലം. ഈ ശാസ്ത്രോക്ത തീരുമാനത്തിൽ പൂർണ്ണമായി ഉറച്ചുനിൽക്കുക.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): आपल्या कुंडलीनुसार पिवळा पुखराज (Yellow Sapphire) वापरणे पूर्णपणे निषिद्ध आहे! आपल्या तूळ लग्नासाठी गुरु हा ६ व्या रोग, ऋण व शत्रू स्थानाचा स्वामी आहे. पुखराज धारण केल्यास आर्थिक नुकसान आणि संकटे वाढतील.`;
-      const p2 = `आपल्या लग्नेश शुक्राचे शुभ रत्न हिरा अथवा नैसर्गिक पांढरा जरकन हेच आहे. या शास्त्रसम्मत निर्णयावर ठाम राहा.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    // Kannada Default
-    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ (೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ತೀರ್ಮಾನ): ನಾನು ಮೊದಲೇ ಸಂಪೂರ್ಣ ಖಚಿತತೆಯೊಂದಿಗೆ ಸ್ಪಷ್ಟಪಡಿಸಿದಂತೆ, ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಹಳದಿ ಪುಷ್ಯರಾಗವನ್ನು (Yellow Sapphire / Pukhraj) ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಧರಿಸಬಾರದು! ಯಾರೇ ಸಲಹೆ ನೀಡಿದರೂ ಅಥವಾ ಕೇವಲ ಒಂದು ತಿಂಗಳಿಗಾಗಲಿ ಪುಷ್ಯರಾಗ ಧರಿಸಲು ಎಂದಿಗೂ ಮುಂದಾಗಬೇಡಿ. ನಿಮ್ಮ ತುಲಾ ಲಗ್ನಕ್ಕೆ ಗುರುವು ೬ನೇ ರೋಗ-ಸಾಲ-ಶತ್ರು-ವ್ಯಾಜ್ಯಗಳ ದುಸ್ಥಾನಾಧಿಪತಿಯಾಗಿದ್ದು, ಪುಷ್ಯರಾಗ ಧರಿಸಿದರೆ ಸಾಲದ ಹೊರೆ, ಅನಾರೋಗ್ಯ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಅಶಾಂತಿ ಹೆಚ್ಚುವುದು ಖಚಿತ.`;
-    const p2 = `ನಿಮ್ಮ ದೇಹರಕ್ಷಕ ಹಾಗೂ ಭಾಗ್ಯೋದಾಯಕ ಏಕೈಕ ರತ್ನವೆಂದರೆ ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರನ ವಜ್ರ (Diamond) ಅಥವಾ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon). ಯಾವುದೇ ಗೊಂದಲವಿಲ್ಲದೆ ಇದೇ ಸತ್ಯಕ್ಕೆ ಬದ್ಧರಾಗಿರಿ.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // 2. MARRIAGE DELAY PROBE (User asks "Will marriage take 3 years?", "Is marriage delayed?", or probes opposite)
-  const isMarriageQuery = /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|marriage|wedding|shadi|विवाह|శాదీ/i.test(qLower);
-  const isDelayOrDoubtProbe =
-    /delay|postpone|3 years|5 years|late|not happen|will not get married|ಆಗಲ್ವಾ|ತಡವಾಗುತ್ತಾ|೩ ವರ್ಷ|೫ ವರ್ಷ|ವಿಳಂಬ|ಸಂದೇಹ|ಖಚಿತವೇ|నిజంగా|देरी/i.test(
-      qLower
-    );
-  const marriageRecord = ledger.find((r) => r.domain === "MARRIAGE");
-
-  if (isMarriageQuery && isDelayOrDoubtProbe && marriageRecord) {
-    if (lang === "en") {
-      const p1 = `Master Daivajna Confident Ruling (100% Confirmed Matrimonial Verdict): As established with 100% unwavering certainty in your astrological chart, there is zero room for doubt or dilemma: your marriage will NOT be delayed for 3 years! Your 7th house of matrimony, Venus, and upcoming Gochara Guru aspect are actively aligned right now, and with 98% to 100% certainty within the next 6 months your marriage will definitely be solemnized!`;
-      const p2 = `Cast aside all pessimistic anxieties. Offering prayers and a sacred Kalyana Sankalpa at Sri Kshetra Gokarna will ensure this sacred union without impediment. Proceed with complete peace of mind.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% विवाह समय निर्धारण): जैसा कि हमने पूर्व में स्पष्ट किया है, आपके मन में किसी भी भ्रम का कोई कारण नहीं है: आपका विवाह ३ वर्ष विलंबित नहीं होगा! आपकी कुंडली में सप्तम भाव और गोचर गुरु का प्रभाव वर्तमान में अत्यंत बलवान है, और अगले ६ महीनों में आपका विवाह शत-प्रतिशत संपन्न होगा।`;
-      const p2 = `सभी निराधार शंकाओं को त्यागकर प्रसन्न चित्त से आगे बढ़ें। श्री क्षेत्र गोकर्ण में कल्याण संकल्प पूजा कराना इस कार्य को निर्विघ्न पूर्ण कराएगा।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ ఖచ్చిత నిర్ణయం (100% వివాహ నిర్ణయం): మేము ఇంతకు ముందే స్పష్టం చేసినట్లుగా, మీ వివాహానికి 3 సంవత్సరాల ఆలస్యం ఉండదు! రాబోయే 6 నెలల్లో వివాహానికి అత్యంత శుభ సమయం నడుస్తోంది.`;
-      const p2 = `ఎటువంటి సందేహాలు లేకుండా ప్రశాంతంగా ఉండండి; గోకర్ణ మహాబలేశ్వర స్వామి అనుగ్రహంతో త్వరలోనే వివాహం జరుగుతుంది.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ta") {
-      const p1 = `ஜோதிடரின் அறுதியான தீர்ப்பு: முன்பே கூறியபடி, உங்கள் திருமணத்தில் 3 வருட கால தாமதம் ஏற்படாது! அடுத்த 6 மாதங்களுக்குள் திருமணம் இனிதே நடைபெற நல்ல கிரக அமைப்புகள் உள்ளன.`;
-      const p2 = `எதிர்மறை எண்ணங்களை நீக்கி, கோகர்ண மகாபலேஸ்வரரை வழிபடுங்கள்; அனைத்தும் சுபமாக நடக்கும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ്: മുൻപ് വ്യക്തമാക്കിയതുപോലെ, നിങ്ങളുടെ വിവാഹത്തിന് 3 വർഷത്തെ താമസം ഉണ്ടാവില്ല! അടുത്ത 6 മാസത്തിനുള്ളിൽ അനുകൂലമായ വിവാഹ സമയം തെളിയുന്നുണ്ട്.`;
-      const p2 = `സന്ദേഹങ്ങൾ വെടിഞ്ഞ് ഗോകർണ്ണത്തിൽ സങ്കല്പം ചെയ്യുക; മംഗളകരമായ വിവാഹം ഉടൻ നടക്കും.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: पूर्वी स्पष्ट केल्याप्रमाणे, आपल्या विवाहास ३ वर्षांचा विलंब होणार नाही! पुढील ६ महिन्यांत विवाहाचे अत्यंत शुभ योग जुळून येत आहेत.`;
-      const p2 = `संशय दूर ठेवा आणि गोकर्ण महाबळेश्वराची उपासना करा; कार्य सिद्धीस जाईल.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    // Kannada Default
-    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ (೧೦೦% ಶತಸಿದ್ಧ ವಿವಾಹ ತೀರ್ಮಾನ): ನಾನು ಮೊದಲೇ ೧೦೦% ಖಚಿತವಾಗಿ ನಿರ್ಣಯಿಸಿದಂತೆ, ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ಗೊಂದಲ ಅಥವಾ ಆತಂಕಕ್ಕೆ ಆಸ್ಪದ ಬೇಡ: ನಿಮ್ಮ ವಿವಾಹವು ೩ ವರ್ಷ ವಿಳಂಬವಾಗುವುದಿಲ್ಲ! ನಿಮ್ಮ ಜಾತಕವನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ನೋಡಿದಾಗ ೭ನೇ ಕಳತ್ರ ಭಾವ ಹಾಗೂ ಗೋಚಾರ ಗುರು ಬಲವು ಈಗ ಪೂರ್ಣವಾಗಿ ಸಕ್ರಿಯವಾಗಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ!`;
-    const p2 = `ಸಕಲ ಸಂದೇಹಗಳನ್ನು ತ್ಯಜಿಸಿ, ದೃಢ ನಂಬಿಕೆಯಿಂದ ಮುನ್ನಡೆಯಿರಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಹಾಗೂ ದೈವಿಕ ಆಶೀರ್ವಾದದಿಂದ ಈ ಶುಭ ಮಂಗಳ ಕಾರ್ಯವು ನಿಶ್ಚಿತವಾಗಿ ನೆರವೇರಲಿದೆ.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // 3. WHITE CORAL INQUIRY WHEN PROBED AS DIAMOND REPLACEMENT
-  const isWhiteCoralQuery = /ಬಿಳಿ\s*ಹವಳ|white\s*coral|safed\s*moonga|white\s*havala/i.test(qLower);
-  if (isWhiteCoralQuery && gemRecord?.rejectedOptions?.some((opt) => /white coral/i.test(opt))) {
-    if (lang === "en") {
-      const p1 = `Vedic Jyotisha Absolute Truth: White Coral (Safed Moonga) is strictly NOT a substitute for Diamond or Venus! Coral belongs exclusively to Mars (Kuja), channeling Martian heat and cooling high Pitta. It does not transmit Venusian energies. If Diamond is outside your budget, the scripture-approved substitutes are Natural White Zircon, Australian White Opal, or Pure Clear Quartz.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): सफेद मूंगा कभी भी हीरे का विकल्प नहीं हो सकता! मूंगा पूर्णतः मंगल का रत्न है और केवल पित्त-अग्नि शांत करने के लिए पहना जाता है। हीरे के स्थान पर सफेद मूंगा न पहनें।`;
-      const p2 = `यदि हीरा महंगा है, तो प्राकृतिक सफेद जरकन (White Zircon) अथवा ओपल धारण करें।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ ఖచ్చిత నిర్ణయం: తెల్ల పగడం ఎప్పటికీ వజ్రానికి ప్రత్యామ్నాయం కాదు! పగడం కుజ గ్రహ రత్నం. వజ్రానికి బదులుగా తెల్ల పగడం ధరించవద్దు.`;
-      const p2 = `బడ్జెట్ తక్కువగా ఉంటే సహజ వైట్ జిర్కాన్ లేదా ఓపల్ వెండిలో ధరించండి.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ta") {
-      const p1 = `ஜோதிடரின் அறுதியான தீர்ப்பு: வெள்ளை பவளம் ஒருபோதும் வைரத்திற்கு மாற்று ஆகாது! பவளம் செவ்வாயின் ரத்தினம். வைரத்திற்குப் பதில் வெள்ளை பவளம் அணியாதீர்கள்.`;
-      const p2 = `வைரத்திற்குப் பதிலாக இயற்கை வெள்ளை ஜிர்கான் அல்லது ஓபல் அணிவது சிறந்தது.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ്: വെളുത്ത പവിഴം ഒരിക്കലും വജ്രത്തിന് പകരമാവില്ല! പവിഴം ചൊവ്വയുടെ രത്നമാണ്. വജ്രത്തിന് പകരം വെളുത്ത പവിഴം ധരിക്കരുത്.`;
-      const p2 = `സ്വാഭാവിക വൈറ്റ് സിർക്കോണോ ഓപ്പലോ ധരിക്കുകയാണ് ഉചിതം.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: पांढरा पोवळा कधीही हिऱ्याचा पर्याय ठरू शकत नाही! पोवळा हा मंगळाचा रत्न आहे. हिऱ्याच्या ऐवजी पांढरा पोवळा वापरू नका.`;
-      const p2 = `नैसर्गिक पांढरा जरकन किंवा ओपल वापरणे शास्त्रसम्मत आहे.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    // Kannada Default
-    const p1 = `ಶಾಸ್ತ್ರೋಕ್ತ ನಿಶ್ಚಿತ ಸತ್ಯ: ಬಿಳಿ ಹವಳವು ಮಂಗಳನ ರತ್ನವಾಗಿದ್ದು, ಶುಕ್ರನ ವಜ್ರಕ್ಕೆ ಪರ್ಯಾಯವಲ್ಲ! ವಜ್ರದ ಬದಲು ಬಿಳಿ ಹವಳವನ್ನು ಧರಿಸಿದರೆ ಮಂಗಳನ ದೋಷಗಳು ಉಲ್ಬಣಗೊಳ್ಳುತ್ತವೆ. ವಜ್ರದ ಬಜೆಟ್ ಇಲ್ಲದಿದ್ದರೆ ಶುಕ್ರನ ಅಧಿಕೃತ ಉಪರತ್ನಗಳಾದ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon) ಅಥವಾ ಬಿಳಿ ಓಪಲ್ ಧರಿಸಬೇಕು.`;
-    return deduplicateResponseText(p1);
-  }
-
-  // 4. PARTNERSHIP BUSINESS PROBE (User probes doing partnership when rejected)
-  const isPartnershipQuery = /ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|partnership|partner in business|50-50|भागीदारी|साझेदारी/i.test(qLower);
-  const bizRecord = ledger.find((r) => r.domain === "BUSINESS_VS_JOB");
-  if (isPartnershipQuery && bizRecord?.rejectedOptions?.some((opt) => /partnership/i.test(opt))) {
-    if (lang === "en") {
-      const p1 = `Master Daivajna Confident Ruling (100% Authoritative Determination): As firmly ruled in our earlier determination with 100% certainty, 50-50 partnership business is STRICTLY PROHIBITED for your chart! Entering a commercial partnership will only invite interpersonal discord, financial betrayal, and dispute. Your chart demands sole proprietorship or running the venture in your own name or that of an auspicious family member. Stand firmly by this scripture-based determination.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): जैसा कि हमने पूर्व में स्पष्ट किया है, आपकी कुंडली के अनुसार किसी भी प्रकार का साझेदारी व्यापार पूर्णतः वर्जित है! मित्रों अथवा अन्य व्यक्तियों के साथ साझेदारी करने पर विश्वासघात, धन हानि और विवाद होना तय है। केवल एकल स्वामित्व ही आपको सफलता प्रदान करेगा। बिना किसी संशय के इस निर्णय पर अडिग रहें।`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ ఖచ్చిత నిర్ణయం: 50-50 భాగస్వామ్య వ్యాపారం మీ జాతకానికి ఖచ్చితంగా నిషిద్ధం! భాగస్వామ్యం వల్ల నష్టాలు మరియు విభేదాలు వస్తాయి.`;
-      const p2 = `స్వతంత్ర వ్యాపారం చేయండి లేదా ఉద్యోగంలో కొనసాగండి.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ta") {
-      const p1 = `ஜோதிடரின் அறுதியான தீர்ப்பு: 50-50 கூட்டாண்மை (Partnership) தொழில் உங்கள் ஜாதகத்திற்கு முற்றிலும் தடைசெய்யப்பட்டுள்ளது! இதனால் நஷ்டமே ஏற்படும்.`;
-      const p2 = `தனிப்பட்ட தொழில் செய்யுங்கள் அல்லது தற்போதைய வேலையில் தொடருங்கள்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ്: പങ്കാളിത്ത ബിസിനസ്സ് നിങ്ങളുടെ ജാതകപ്രകാരം ഒട്ടും അനുയോജ്യമല്ല! ഇത് നഷ്ടങ്ങൾക്ക് വഴിവെക്കും.`;
-      const p2 = `സ്വന്തമായി ബിസിനസ്സ് ചെയ്യുകയോ ജോലിയിൽ തുടരുകയോ ചെയ്യുക.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: ५०-५० भागीदारी व्यवसाय आपल्या कुंडलीनुसार पूर्णपणे वर्जित आहे! यामुळे वाद आणि नुकसान होईल.`;
-      const p2 = `स्वतःचा स्वतंत्र व्यवसाय करा किंवा नोकरीत राहा.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    // Kannada Default
-    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ (೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ತೀರ್ಮಾನ): ನಾನು ಮೊದಲೇ ಸಂಪೂರ್ಣ ಖಚಿತತೆಯೊಂದಿಗೆ ಸ್ಪಷ್ಟಪಡಿಸಿದಂತೆ, ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಯಾವುದೇ ಪಾಲುದಾರಿಕೆ (Partnership) ವ್ಯವಹಾರವು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ಯಾರೇ ಆತ್ಮೀಯ ಸ್ನೇಹಿತರಾಗಲಿ, ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ವ್ಯಾಪಾರ ಆರಂಭಿಸಿದರೆ ವಂಚನೆ, ಹಣದ ನಷ್ಟ ಹಾಗೂ ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವುದು ಖಚಿತ. ನಿಮ್ಮ ಏಳಿಗೆಗೆ ಸ್ವತಂತ್ರ ಮಾಲೀಕತ್ವ (Sole Proprietorship) ಅಥವಾ ಕುಟುಂಬದ ಶುಭ ಜಾತಕದ ಹೆಸರಿನಲ್ಲಿ ಮಾತ್ರ ವ್ಯಾಪಾರ ಮಾಡಬೇಕು. ಯಾವುದೇ ಗೊಂದಲವಿಲ್ಲದೆ ಇದೇ ತೀರ್ಮಾನಕ್ಕೆ ಬದ್ಧರಾಗಿರಿ.`;
-    return deduplicateResponseText(p1);
-  }
-
-  // 5. SPECULATIVE FRESH DEBT PROBE
-  const isFreshDebtQuery = /ಮತ್ತೆ ಸಾಲ|ಹೊಸ ಸಾಲ|ಇನ್ನಷ್ಟು ಸಾಲ|fresh loan|more debt|take loan to invest|another loan|और कर्ज/i.test(qLower);
-  const debtRecord = ledger.find((r) => r.domain === "DEBT_FINANCIAL_RELIEF");
-  if (isFreshDebtQuery && debtRecord) {
-    if (lang === "en") {
-      const p1 = `Vedic Jyotisha Absolute Truth: Taking fresh speculative debt or high-interest loans to cover liabilities is strictly warned against! Clear existing principal systematically under Runavimochana Mangala Stotra and incoming benefic transits.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): वर्तमान में कोई भी नया कर्ज या अनौपचारिक ऋण लेना आपकी कुंडली के अनुसार सख्त मना है! नया कर्ज आपको भारी संकट में डाल देगा।`;
-      const p2 = `पुराने कर्ज को योजनाबद्ध तरीके से चुकाने पर ध्यान दें।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ ఖచ్చిత నిర్ణయం: ప్రస్తుతం ఎటువంటి కొత్త అప్పులు లేదా అధిక వడ్డీ రుణాలు తీసుకోవద్దు! ఇది ఆర్థిక సమస్యలను పెంచుతుంది.`;
-      const p2 = `ఉన్న అప్పులను క్రమంగా తీర్చడంపై దృష్టి పెట్టండి.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ta") {
-      const p1 = `ஜோதிடரின் அறுதியான தீர்ப்பு: தற்சமயம் எந்தவொரு புதிய கடனையும் வாங்கக் கூடாது! புதிய கடன் நிதிச்சுமையை அதிகரிக்கும்.`;
-      const p2 = `பழைய கடன்களை அடைப்பதில் கவனம் செலுத்துங்கள்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ്: നിലവിൽ പുതിയ വായ്പകളോ കടങ്ങളോ എടുക്കരുത്! ഇത് കൂടുതൽ ബാധ്യതകളുണ്ടാക്കും.`;
-      const p2 = `പഴയ കടങ്ങൾ തീർക്കാൻ മുൻഗണന നൽകുക.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: सध्या कोणतेही नवीन कर्ज घेऊ नका! नवीन कर्ज संकट वाढवेल.`;
-      const p2 = `जुने कर्ज फेडण्यावर लक्ष केंद्रित करा.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    // Kannada Default
-    const p1 = `ಶಾಸ್ತ್ರೋಕ್ತ ನಿಶ್ಚಿತ ಸತ್ಯ: ಹಳೆಯ ಸಾಲವನ್ನು ಮುಚ್ಚಲು ಮತ್ತೆ ಹೊಸ ಸಾಲ ಅಥವಾ ಹೆಚ್ಚಿನ ಬಡ್ಡಿಯ ಸಾಲವನ್ನು ಮಾಡುವುದನ್ನು ಶಾಸ್ತ್ರವು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ವಿರೋಧಿಸುತ್ತದೆ! ಪ್ರಸ್ತುತ ಸಾಲವನ್ನು ನಿಯಮಿತವಾಗಿ ತೀರಿಸಿ; ಶ್ರೀ ಋಣವಿಮೋಚನ ಮಂಗಳ ಸ್ತೋತ್ರದ ಪಠಣೆಯಿಂದ ಶೀಘ್ರವೇ ಸಾಲಮುಕ್ತಿ ಸಾಧ್ಯವಾಗಲಿದೆ.`;
-    return deduplicateResponseText(p1);
-  }
-
-  // 6. ABROAD PERMANENT SETTLEMENT PROBE
-  const isAbroadQuery =
-    /ವಿದೇಶ|ಪರದೇಶ|ಕೆನಡಾ|ಕನಡ|ಅಮೆರಿಕ|ಜರ್ಮನಿ|ಯೂರೋಪ್|ಶಾಶ್ವತ.*ನೆಲೆ|ಶಾಶ್ವತ.*ವಾಸ|ನೆಲೆಸ|permanent.*settle|settle.*abroad|foreign.*pr|foreign.*citizen|settle.*outside|विदेश.*बसना|विदेश.*स्थायी/i.test(
-      qLower
-    );
-  const abroadRecord = ledger.find((r) => r.domain === "ABROAD_SETTLEMENT");
-  if (isAbroadQuery && (abroadRecord || ledger.some((r) => /swadesha|ಭಾರತದಲ್ಲೇ|स्वदेश/i.test(r.primaryVerdict || "")))) {
-    if (lang === "en") {
-      const p1 = `Master Daivajna Confident Ruling (100% Authoritative Determination): As firmly ruled in our earlier determination with 100% certainty, permanent settlement or foreign citizenship outside India is STRICTLY UNFAVORABLE for your chart! While short-term project assignments or higher educational travel are permitted during favorable Dasha periods, anchoring your permanent home, family assets, and life in Swadesha (India) is where your true prosperity and peace reside. Do not seek permanent emigration.`;
-      const p2 = `Maintain your roots firmly in India and recite Aditya Hridaya Stotra daily for sovereign career growth.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): जैसा कि हमने पूर्व में स्पष्ट किया है, भारत छोड़कर विदेश में स्थायी रूप से बसना अथवा नागरिकता लेना आपकी कुंडली के अनुसार पूर्णतः प्रतिकूल है! अल्पकालिक प्रोजेक्ट अथवा उच्च शिक्षा हेतु यात्रा उचित है, किंतु स्थायी निवास स्वदेश (भारत) में ही आपके लिए परम मंगलकारी है।`;
-      const p2 = `नित्य आदित्य हृदय स्तोत्र का पाठ करें एवं कुलदेवता का स्मरण करें।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ నిశ్చిత నిర్ణయం (100% శాస్త్రోక్త తీర్పు): మేము గతంలో స్పష్టం చేసినట్లుగా, భారతదేశాన్ని విడిచి విదేశాలలో శాశ్వతంగా స్థిరపడటం లేదా విదేశీ పౌరసత్వం పొందడం మీ జాతకానికి అనుకూలం కాదు! స్వల్పకాలిక ప్రాజెక్ట్‌లు లేదా ఉన్నత విద్యాభ్యాసం కోసం విదేశీ ప్రయాణం శుభప్రదమైనప్పటికీ, మీ శాశ్వత సుఖం, కుటుంబ ప్రశాంతత మరియు స్థిరమైన అదృష్టం స్వదేశంలోనే (భారతదేశంలోనే) ఉన్నాయి.`;
-      const p2 = `మీ శాశ్వత వృత్తి మరియు ఆస్తులను భారతదేశంలోనే స్థిరపరచుకోండి; రోజూ ఆదిత్య హృదయ స్తోత్రం పఠించండి.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ta") {
-      const p1 = `தெய்வக்ஞரின் உறுதியான சாஸ்திரத் தீர்ப்பு: முன்னர் தெளிவாகக் கூறியபடி, இந்தியாவை விட்டு வெளிநாட்டில் நிரந்தரமாகக் குடியேறுவதோ அல்லது வெளிநாட்டுக் குடியுரிமை பெறுவதோ உங்கள் ஜாதகத்திற்கு சாதகமற்றது! குறுகிய காலத் திட்டப் பணிகள் அல்லது உயர்கல்விக்கான வெளிநாட்டுப் பயணம் நன்மையளிக்கும் என்றாலும், உங்கள் நிரந்தர மகிழ்ச்சி, குடும்ப அமைதி மற்றும் நிலைத்த செல்வம் தாய்நாட்டிலேயே (இந்தியாவிலேயே) அமைந்துள்ளது.`;
-      const p2 = `நிரந்தரப் பணி மற்றும் சொத்துக்களை இந்தியாவிலேயே அமைத்துக் கொள்ளுங்கள்; தினமும் ஆதித்ய ஹிருதய ஸ்தோத்திரம் பாராயணம் செய்யுங்கள்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ് (100% ശാസ്ത്രീയ സത്യം): മുൻപ് വ്യക്തമാക്കിയതുപോലെ, ഭാരതം വിട്ട് വിദേശത്ത് സ്ഥിരതാമസമാക്കുന്നതോ വിദേശ പൗരത്വം നേടുന്നതോ നിങ്ങളുടെ ജാതകപ്രകാരം ശുഭകരമല്ല! ഹ്രസ്വകാല പ്രോജക്ടുകൾക്കോ ഉപരിപഠനത്തിനോ വേണ്ടിയുള്ള വിദേശയാത്രകൾ ഗുണകരമാണെങ്കിലും, നിങ്ങളുടെ ശാശ്വത സമാധാനവും കുടുംബ ഐശ്വര്യവും സ്വദേശത്താണ് (ഭാരതത്തിൽ).`;
-      const p2 = `നിങ്ങളുടെ സ്ഥിരമായ ജോലിയും സ്വത്തുക്കളും ഭാരതത്തിൽ തന്നെ ഉറപ്പിക്കുക; ദിവസവും ആദിത്യ ഹൃദയ സ്തോത്രം ജപിക്കുക.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): पूर्वी स्पष्ट केल्याप्रमाणे, भारत सोडून परदेशात कायमस्वरूपी स्थायिक होणे किंवा परदेशी नागरिकत्व घेणे आपल्या पत्रिकेनुसार पूर्णपणे प्रतिकूल आहे! अल्पकालीन प्रोजेक्ट किंवा उच्च शिक्षणासाठी परदेश प्रवास अनुकूल असला, तरी आपले कायमस्वरूपी सुख, कौटुंबिक शांतता आणि स्थिर भाग्य स्वदेशातच (भारतातच) आहे.`;
-      const p2 = `आपली कायमची नोकरी आणि मालमत्ता भारतातच ठेवा; नित्य आदित्य हृदय स्तोत्राचे पठण करा.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    // Kannada Default
-    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ (೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ತೀರ್ಮಾನ): ನಾನು ಮೊದಲೇ ಸಂಪೂರ್ಣ ಖಚಿತತೆಯೊಂದಿಗೆ ಸ್ಪಷ್ಟಪಡಿಸಿದಂತೆ, ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಭಾರತವನ್ನು ಬಿಟ್ಟು ವಿದೇಶದಲ್ಲಿ ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು ಅಥವಾ ವಿದೇಶಿ ಪೌರತ್ವ ಪಡೆಯುವುದು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಅಶುಭಕರವಾಗಿದೆ! ಅಲ್ಪಾವಧಿಯ ತಾಂತ್ರಿಕ ಪ್ರಾಜೆಕ್ಟ್ ಅಥವಾ ವಿದ್ಯಾಭ್ಯಾಸಕ್ಕೆ ವಿದೇಶ ಪ್ರಯಾಣ ಶುಭವಾದರೂ, ನಿಮ್ಮ ಶಾಶ್ವತ ಸುಖ, ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ಸ್ಥಿರ ಭಾಗ್ಯವು ಸ್ವದೇಶದಲ್ಲೇ (ಭಾರತದಲ್ಲೇ) ನೆಲೆಸಿದೆ.`;
-    const p2 = `ನಿಮ್ಮ ಶಾಶ್ವತ ಉದ್ಯೋಗ ಮತ್ತು ಆಸ್ತಿಗಳನ್ನು ಭಾರತದಲ್ಲೇ ಸ್ಥಾಪಿಸಿ; ನಿತ್ಯವೂ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರವನ್ನು ಪಠಿಸಿ.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // 7. BLUE SAPPHIRE (NEELAM) PROBE (when prohibited in ledger)
-  const isNeelamQuery = /ನೀಲಂ|ನೀಲ|ಇಂದ್ರನೀಲ|blue sapphire|neelam|नीलम|నీలం|நீலம்|നീലക്കല്ല്/i.test(qLower);
-  const isNeelamRejected = gemRecord?.rejectedOptions?.some((opt) => /blue sapphire|neelam|ನೀಲಂ|ನೀಲ/i.test(opt));
-  if (isNeelamQuery && isNeelamRejected) {
-    if (lang === "en") {
-      const p1 = `Master Daivajna Confident Ruling (100% Authoritative Determination): Blue Sapphire (Neelam) is STRICTLY PROHIBITED for your chart! Saturn acts as a malefic or Maraka/Dusthana lord for your Lagna. Wearing Blue Sapphire will trigger sudden health setbacks, mental anxiety, and professional instability. Adhere strictly to your prescribed Vedic gemstone.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): आपकी कुंडली के लिए नीलम (Blue Sapphire) पूर्णतः वर्जित है! आपकी लग्न कुंडली में शनि मारक अथवा त्रिक भाव का स्वामी है। नीलम पहनने से स्वास्थ्य हानि एवं मानसिक बेचैनी हो सकती है। केवल अपने निर्धारित रत्न को ही धारण करें।`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ ఖచ్చిత నిర్ణయం: నీలం (Blue Sapphire) రత్నం మీ జాతకానికి నిషిద్ధం! ఇది తీవ్ర దుష్ప్రభావాలను ఇవ్వవచ్చు.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ta") {
-      const p1 = `ஜோதிடரின் அறுதியான தீர்ப்பு: நீலம் (Blue Sapphire) ரத்தினம் உங்கள் ஜாதகத்திற்குத் தடைசெய்யப்பட்டுள்ளது! இதை அணிய வேண்டாம்.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ്: നീലക്കല്ല് (Blue Sapphire) നിങ്ങളുടെ ജാതകപ്രകാരം ധരിക്കാൻ പാടില്ലാത്തതാണ്!`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: नीलम रत्न आपल्या कुंडलीनुसार निषिद्ध आहे! हे धारण करू नये.`;
-      return deduplicateResponseText(p1);
-    }
-    // Kannada Default
-    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ (೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ತೀರ್ಮಾನ): ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಇಂದ್ರನೀಲ ಅಥವಾ ನೀಲಂ (Blue Sapphire) ರತ್ನವು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ನಿಮ್ಮ ಲಗ್ನಕ್ಕೆ ಶನಿಯು ಮಾರಕ ಅಥವಾ ದುಸ್ಥಾನಾಧಿಪತಿಯಾಗಿದ್ದು, ನೀಲಂ ಧರಿಸಿದರೆ ಹಠಾತ್ ಅನಾರೋಗ್ಯ, ಮಾನಸಿಕ ತಲ್ಲಣ ಹಾಗೂ ಕಾರ್ಯಹಾನಿ ಸಂಭವಿಸುವುದು ನಿಶ್ಚಿತ. ನಿಮ್ಮ ಶಾಸ್ತ್ರೋಕ್ತ ರತ್ನಕ್ಕೆ ಮಾತ್ರ ಬದ್ಧರಾಗಿರಿ.`;
-    return deduplicateResponseText(p1);
-  }
-
-  // 8. EMERALD (PANNA) PROBE (when prohibited in ledger)
-  const isPannaQuery = /ಪಚ್ಚೆ|ಮರಕತ|emerald|panna|पन्ना|పచ్చ|மரகதம்|മരതകം/i.test(qLower);
-  const isPannaRejected = gemRecord?.rejectedOptions?.some((opt) => /emerald|panna|ಪಚ್ಚೆ/i.test(opt));
-  if (isPannaQuery && isPannaRejected) {
-    if (lang === "en") {
-      const p1 = `Master Daivajna Confident Ruling: Emerald (Panna) is strictly NOT recommended for your chart as Mercury holds a Dusthana rulership! Energizing Mercury with Emerald will increase unnecessary expenditures and nervous tension. Please wear only your Lagna-approved primary gemstone.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): पन्ना (Emerald) रत्न आपकी कुंडली के लिए शुभ नहीं है। लग्नेश के अनुकूल मुख्य रत्न ही धारण करें।`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ ఖచ్చిత నిర్ణయం: పచ్చ (Emerald) రత్నం మీ జాతకానికి అనుకూలం కాదు. లగ్నాధిపతి రత్నాన్ని మాత్రమే ధరించండి.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ta") {
-      const p1 = `ஜோதிடரின் அறுதியான தீர்ப்பு: மரகதம் (Emerald) உங்கள் ஜாதகத்திற்குப் பொருந்தாது. லக்னாதிபதி ரத்தினத்தையே அணியுங்கள்.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ്: മരതകം (Emerald) നിങ്ങളുടെ ജാതകത്തിന് യോജിച്ചതല്ല. ലഗ്നാധിപന്റെ രത്നം മാത്രം ധരിക്കുക.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: पाचू (Emerald) रत्न आपल्या कुंडलीसाठी अनुकूल नाही. लग्नेशाचे मुख्य रत्नच वापरावे.`;
-      return deduplicateResponseText(p1);
-    }
-    // Kannada Default
-    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ: ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಪಚ್ಚೆ (Emerald) ರತ್ನವು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ಬುಧನು ದುಸ್ಥಾನಾಧಿಪತಿಯಾಗಿದ್ದು, ಪಚ್ಚೆ ಧರಿಸುವುದರಿಂದ ಅನಾವಶ್ಯಕ ಖರ್ಚುಗಳು ಹಾಗೂ ನರಗಳ ದೌರ್ಬಲ್ಯ ಉಂಟಾಗಬಹುದು. ಲಗ್ನಾಧಿಪತಿಯ ಅಧಿಕೃತ ರತ್ನವನ್ನು ಮಾತ್ರ ಧರಿಸಿರಿ.`;
-    return deduplicateResponseText(p1);
-  }
-
-  // 9. STOPPING MEDICAL TREATMENT / MEDICINE PROBE
-  const isStopMedicineQuery = /ಔಷಧ.*ನಿಲ್ಲಿಸ|ಮಾತ್ರೆ.*ಬೇಡ|ಆಸ್ಪತ್ರೆ.*ಬೇಡ|stop.*medicine|stop.*doctor|only.*pooja|दवा.*बंद|दवाई.*छोड़|మందులు.*ఆప|மருந்து.*நிறுத்த/i.test(qLower);
-  if (isStopMedicineQuery) {
-    if (lang === "en") {
-      const p1 = `Vedic Jyotisha Absolute Directive: You must NEVER discontinue your prescribed medicines or doctor's treatments! Classical Vedic Shastra states: 'Aushadham Jahnavi Toyam, Vaidyo Narayano Harih' - divine healing works through certified physicians and medicine. Continue your doctor's prescriptions conscientiously, alongside daily recitation of the Sri Dhanvantari Mantra and Gokarna Sankalpa for total restoration of vitality.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "hi") {
-      const p1 = `वैदिक शास्त्र सम्मत अटल सिद्धांत: डॉक्टर द्वारा निर्धारित दवाइयां अथवा उपचार कभी बंद न करें! शास्त्र कहते हैं 'वैद्यो नारायणो हरिः' - ईश्वर की कृपा चिकित्सा के माध्यम से ही पूर्ण फलित होती है। दवा का नियमित सेवन जारी रखें और साथ में श्री धन्वंतरि मंत्र का पाठ करें।`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ స్పష్ట హెచ్చరిక: డాక్టర్ ఇచ్చిన మందులను ఎట్టి పరిస్థితుల్లోనూ ఆపవద్దు! వైద్యం మరియు జ్యోతిషం రెండూ అవసరం.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ta") {
-      const p1 = `ஜோதிடரின் கண்டிப்பான எச்சரிக்கை: மருத்துவரின் மருந்துகளை ஒருபோதும் நிறுத்தாதீர்கள்! சிகிச்சையைத் தொடருங்கள்.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ കർശന മുന്നറിയിപ്പ്: ഡോക്ടറുടെ മരുന്നുകൾ ഒരിക്കലും നിർത്തരുത്! വൈദ്യസഹായം പൂർണ്ണമായും തുടരുക.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ कडक इशारा: डॉक्टरांची औषधे कधीही बंद करू नका! औषधोपचार पूर्णपणे सुरू ठेवा.`;
-      return deduplicateResponseText(p1);
-    }
-    // Kannada Default
-    const p1 = `ಶಾಸ್ತ್ರೋಕ್ತ ಪರಮ ಸತ್ಯ: ವೈದ್ಯರು ನೀಡಿದ ಔಷಧ ಅಥವಾ ಚಿಕಿತ್ಸೆಯನ್ನು ಎಂದಿಗೂ ನಿಲ್ಲಿಸಬಾರದು! 'ಔಷಧಂ ಜಾನ್ಹವೀ ತೋಯಂ, ವೈದ್ಯೋ ನಾರಾಯಣೋ ಹರಿಃ' ಎಂದು ಶಾಸ್ತ್ರವೇ ಸಾರುತ್ತದೆ. ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಮುಂದುವರಿಸಿ, ಅದರ ಜತೆಗೆ ಶ್ರೀ ಧನ್ವಂತರಿ ಮಂತ್ರ ಪಠಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಸಂಕಲ್ಪ ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದರಿಂದ ಮಾತ್ರ ಪರಿಪೂರ್ಣ ಆರೋಗ್ಯ ಭಾಗ್ಯ ಲಭಿಸಲಿದೆ.`;
-    return deduplicateResponseText(p1);
-  }
-
-  // 10. ABRUPT JOB RESIGNATION / SPECULATIVE TRADING PROBE
-  const isQuitJobQuery = /ಕೆಲಸ.*ಬಿಡಲಾ|ಉದ್ಯೋಗ.*ರಾಜೀನಾಮೆ|quit.*job.*now|leave.*job.*immediately|intraday.*trading|crypto.*trading|नौकरी.*छोड़/i.test(qLower);
-  if (isQuitJobQuery) {
-    if (lang === "en") {
-      const p1 = `Master Daivajna Confident Ruling: Abruptly resigning from your employment or pouring savings into speculative day-trading/crypto is STRICTLY ADVISED AGAINST by your planetary configuration! Maintain your current employment with discipline until the upcoming auspicious Gochara window opens stable alternative avenues. Prudence and steady karma protect your wealth.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: वर्तमान नौकरी को अचानक छोड़ना अथवा बचत के धन को शेयर बाजार के इंट्राडे ट्रेडिंग या सट्टे में लगाना आपकी ग्रह स्थिति अनुसार पूर्णतः वर्जित है! धैर्यपूर्वक अपनी वर्तमान नौकरी जारी रखें; आगामी शुभ गोचर तक संयम बनाए रखना ही आपकी आर्थिक सुरक्षा है।`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ నిశ్చిత నిర్ణయం: ప్రస్తుత ఉద్యోగానికి హఠాత్తుగా రాజీనామా చేయడం లేదా పొదుపు మొత్తాన్ని డే-ట్రేడింగ్ వంటి ఊహాజనిత వ్యాపారాలలో పెట్టడం మీ జాతకానికి కచ్చితంగా నిషేధం! ప్రస్తుత ఉద్యోగంలో క్రమశిక్షణతో కొనసాగండి; రాబోయే శుభ గోచారం వరకు ఓపిక పట్టడమే మీ ఆర్థిక స్థిరత్వానికి రక్ష.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ta") {
-      const p1 = `தெய்வக்ஞரின் உறுதியான தீர்ப்பு: தற்போதைய வேலையை உடனடியாக ராஜினாமா செய்வதோ அல்லது சேமிப்பை பங்குச் சந்தை டே-டிரேடிங்கில் முதலீடு செய்வதோ உங்கள் ஜாதகத்திற்கு முற்றிலும் தடைசெய்யப்பட்டுள்ளது! தற்போதைய வேலையை பொறுப்புடன் தொடருங்கள்; வரும் நல்ல கிரகப் பெயர்ச்சி வரை பொறுமை காப்பதே உங்கள் பொருளாதாரத்திற்குப் பாதுகாப்பு.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ്: നിലവിലെ ജോലി പെട്ടെന്ന് ഉപേക്ഷിക്കുന്നതോ സമ്പാദ്യം ഊഹക്കച്ചവടങ്ങളിലോ ഡേ-ട്രേഡിംഗിലോ നിക്ഷേപിക്കുന്നതോ നിങ്ങളുടെ ജാതകപ്രകാരം കർശനമായി വിലക്കിയിരിക്കുന്നു! നിലവിലെ ജോലിയിൽ ശ്രദ്ധയോടെ തുടരുക; വരാനിരിക്കുന്ന ശുഭ ഗ്രഹചാരം വരെ ക്ഷമയോടെ കാത്തിരിക്കുക.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: चालू नोकरीचा अचानक राजीनामा देणे किंवा बचतीचे पैसे शेअर बाजारातील डे-ट्रेडिंग अथवा सट्टेबाजीत गुंतवणे आपल्या कुंडलीनुसार पूर्णपणे वर्जित आहे! चालू नोकरी संयमाने सुरू ठेवा; आगामी शुभ गोचरापर्यंत संयम बाळगणेच आपल्या आर्थिक सुरक्षिततेसाठी आवश्यक आहे.`;
-      return deduplicateResponseText(p1);
-    }
-    // Kannada Default
-    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ: ಪ್ರಸ್ತುತ ಕೆಲಸಕ್ಕೆ ಹಠಾತ್ತನೆ ರಾಜೀನಾಮೆ ನೀಡುವುದಾಗಲಿ ಅಥವಾ ಷೇರು ಮಾರುಕಟ್ಟೆಯ ಡೇ-ಟ್ರೇಡಿಂಗ್ ಮುಂತಾದ ಊಹಾತ್ಮಕ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಹಣ ತೊಡಗಿಸುವುದಾಗಲಿ ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ಪ್ರಸ್ತುತ ಉದ್ಯೋಗವನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಮುಂದುವರಿಸಿ, ಮುಂದಿನ ಶುಭ ಗ್ರಹ ಸಂಚಾರದವರೆಗೂ ತಾಳ್ಮೆಯಿಂದ ಇರುವುದೇ ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಗೆ ಶ್ರೀರಕ್ಷೆ.`;
-    return deduplicateResponseText(p1);
-  }
-
-  // 11. DISPUTED / LITIGATION PROPERTY PROBE
-  const isDisputedPropertyQuery =
-    /(?:ವಿವಾದಿತ|ಕೋರ್ಟ್.*ವ್ಯಾಜ್ಯ|disputed|litigation).*(?:ಜಮೀನ|ಆಸ್ತಿ|ಭೂಮಿ|ಸ್ಥಳ|property|land|plot)|विवादित.*संपत्ति/i.test(
-      qLower
-    );
-  if (isDisputedPropertyQuery) {
-    if (lang === "en") {
-      const p1 = `Master Daivajna Confident Ruling: Purchasing disputed litigation property, encumbered land, or speculative plots is STRICTLY PROHIBITED for your chart! Such investments will only entangle your hard-earned wealth in protracted legal quagmires. Acquire only clear-title residential or agricultural property.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "hi") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: किसी भी विवादित संपत्ति, अदालती मुकदमे वाली जमीन अथवा संदेहास्पद प्लॉट को खरीदना आपकी कुंडली के अनुसार पूर्णतः वर्जित है! ऐसे सौदे आपकी गाढ़ी कमाई को लंबे मुकदमों में फंसा देंगे। केवल स्पष्ट दस्तावेज (Clear Title) वाली निर्दोष संपत्ति ही खरीदें।`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "te") {
-      const p1 = `దైవజ్ఞ నిశ్చిత నిర్ణయం: ఎలాంటి వివాదాస్పద ఆస్తి, కోర్టు కేసులలో ఉన్న భూమి లేదా వివాదాల్లో ఉన్న స్థలాలను కొనుగోలు చేయడం మీ జాతకానికి కచ్చితంగా నిషిద్ధం! ఇటువంటి లావాదేవీలు మీ కష్టార్జితాన్ని దీర్ఘకాలిక వివాదాలలో చిక్కుకునేలా చేస్తాయి. కేవలం క్లియర్ టైటిల్ ఉన్న శుద్ధమైన ఆస్తిని మాత్రమే కొనుగోలు చేయండి.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ta") {
-      const p1 = `தெய்வக்ஞரின் உறுதியான தீர்ப்பு: நீதிமன்ற வழக்கில் உள்ள நிலம், சர்ச்சைக்குரிய சொத்து அல்லது சிக்கலான இடங்களை வாங்குவது உங்கள் ஜாதகத்திற்கு முற்றிலும் தடைசெய்யப்பட்டுள்ளது! இத்தகைய பரிவர்த்தனைகள் உங்கள் கடின உழைப்பின் பணத்தை நீண்டகால வழக்குகளில் சிக்க வைத்துவிடும். தெளிவான ஆவணங்கள் (Clear Title) கொண்ட நிலத்தை மட்டுமே வாங்குங்கள்.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "ml") {
-      const p1 = `ദൈവജ്ഞ നിശ്ചിത തീർപ്പ്: കോടതി വ്യവഹാരങ്ങളിലുള്ള ഭൂമിയോ തർക്കമുള്ള വസ്തുക്കളോ വാങ്ങുന്നത് നിങ്ങളുടെ ജാതകപ്രകാരം കർശനമായി വിലക്കിയിരിക്കുന്നു! ഇത്തരം ഇടപാടുകൾ നിങ്ങളുടെ അധ്വാനഫലം ദീർഘകാല കേസുകളിൽ കുടുക്കും. വ്യക്തമായ രേഖകളുള്ള (Clear Title) ഭൂമി മാത്രം വാങ്ങുക.`;
-      return deduplicateResponseText(p1);
-    }
-    if (lang === "mr") {
-      const p1 = `दैवज्ञ निश्चित निर्णय: कोणतीही वादग्रस्त मालमत्ता, कोर्ट कचेरीची जागा किंवा संशयास्पद जमीन खरेदी करणे आपल्या पत्रिकेनुसार पूर्णपणे वर्जित आहे! अशा व्यवहारांमुळे आपली कष्टाची कमाई दीर्घकाळ वादात अडकून पडेल. केवळ निर्दोष कागदपत्रे (Clear Title) असलेलीच जागा खरेदी करा.`;
-      return deduplicateResponseText(p1);
-    }
-    // Kannada Default
-    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ: ಯಾವುದೇ ವಿವಾದಿತ ಆಸ್ತಿ, ಕೋರ್ಟ್ ವ್ಯಾಜ್ಯವಿರುವ ಜಮೀನು ಅಥವಾ ಅನುಮಾನಾಸ್ಪದ ನಿವೇಶನಗಳನ್ನು ಖರೀದಿಸುವುದು ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ಇಂತಹ ವ್ಯವಹಾರಗಳು ನಿಮ್ಮ ಕಷ್ಟಾರ್ಜಿತ ಧನವನ್ನು ದೀರ್ಘಕಾಲೀನ ವ್ಯಾಜ್ಯಗಳಲ್ಲಿ ಸಿಲುಕಿಸುತ್ತವೆ. ಕೇವಲ ಕ್ಲಿಯರ್ ಟೈಟಲ್ ಇರುವ ನಿರ್ದೋಷ ಆಸ್ತಿಯನ್ನು ಮಾತ್ರ ಖರೀದಿಸಿ.`;
-    return deduplicateResponseText(p1);
-  }
-
-  return null;
-}
-
-
-export function verifyAndHarmonizeWithPreviousAnswers(params: {
-  session: ConsultationSession;
-  userQuestion: string;
-  candidateAnswer: string;
-  conversationHistory?: AskGeminiChatTurn[];
-  rulingsLedger?: ConsultationRulingRecord[];
-}): {
-  harmonizedText: string;
-  isHarmonized: boolean;
-  detectedDomain?: string;
-} {
-  const { session, userQuestion, candidateAnswer, conversationHistory, rulingsLedger } = params;
-  const ledger = rulingsLedger || session.rulingsLedger || [];
-  const lang = (session.language || "kn") as ConsultationLanguage;
-
-  // 1. Direct Ulta-Palta Probe Check
-  const ultaPaltaMatch = detectAndResolveUltaPaltaProbe(userQuestion, ledger, lang);
-  if (ultaPaltaMatch) {
-    return {
-      harmonizedText: ultaPaltaMatch,
-      isHarmonized: true,
-      detectedDomain: "ULTA_PALTA_PROBE"
-    };
-  }
-
-  let text = candidateAnswer.trim();
-
-  // 2. Scan past history to check if the candidate answer contradicts earlier determinations
-  const historyText = (conversationHistory || []).map((h) => h.text).join("\n");
-
-  // Cross-check: If Swadesha/India was earlier ruled for abroad settlement,
-  // ensure the new answer does not advocate foreign PR / permanent relocation abroad
-  const hadSwadeshaRuling = /swadesha|ಭಾರತದಲ್ಲೇ|स्वदेश|భారతదేశంలోనే|இந்தியாவிலேயே/i.test(historyText);
-  if (hadSwadeshaRuling && /settle.*abroad|permanent.*relocation|take.*pr.*in.*(canada|usa|germany)|विदेश.*में.*स्थायी/i.test(text)) {
-    const correction = buildDeterministicAbroadSettlementReading(session, userQuestion, undefined, ledger, true);
-    return {
-      harmonizedText: correction,
-      isHarmonized: true,
-      detectedDomain: "ABROAD_SETTLEMENT"
-    };
-  }
-
-  // Cross-check: If Yellow Sapphire / Blue Sapphire was prohibited,
-  // ensure candidate answer NEVER advises wearing that prohibited stone
-  const gemRecord = ledger.find((r) => r.domain === "GEMSTONE_REMEDY");
-  if (gemRecord && gemRecord.rejectedOptions) {
-    for (const rejected of gemRecord.rejectedOptions) {
-      if (/yellow sapphire|pushparaga|pukhraj|ಪುಷ್ಯರಾಗ/i.test(rejected)) {
-        if (/ಪುಷ್ಯರಾಗ.*ಧರಿಸಿ|wear.*yellow sapphire|wear.*pukhraj|पुखराज.*पहनें/i.test(text)) {
-          const safeGem = gemRecord.approvedOptions?.[0] || "Diamond (Vajra)";
-          text = text.replace(/ಪುಷ್ಯರಾಗ.*ಧರಿಸಿ/g, `${safeGem} ಧರಿಸಬೇಕು`);
-          text = text.replace(/wear.*yellow sapphire/gi, `wear your prescribed ${safeGem}`);
-          text = text.replace(/पुखराज.*पहनें/g, `${safeGem} धारण करें`);
-        }
-      }
-      if (/blue sapphire|neelam|ನೀಲ/i.test(rejected)) {
-        if (/ನೀಲಂ.*ಧರಿಸಿ|wear.*blue sapphire|wear.*neelam|नीलम.*पहनें/i.test(text)) {
-          const safeGem = gemRecord.approvedOptions?.[0] || "prescribed gemstone";
-          text = text.replace(/ನೀಲಂ.*ಧರಿಸಿ/g, `${safeGem} ಧರಿಸಬೇಕು`);
-          text = text.replace(/wear.*blue sapphire/gi, `wear your prescribed ${safeGem}`);
-          text = text.replace(/नीलम.*पहनें/g, `${safeGem} धारण करें`);
-        }
-      }
-    }
-  }
-
-  // Cross-check: If 50-50 partnership was prohibited, ensure candidate answer does not recommend partnership
-  const bizRecord = ledger.find((r) => r.domain === "BUSINESS_VS_JOB");
-  if (bizRecord && bizRecord.rejectedOptions?.some((opt) => /partnership/i.test(opt))) {
-    if (/ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ.*ವ್ಯಾಪಾರ.*ಮಾಡಿ|start.*partnership|partner.*with.*friend|साझेदारी.*करें/i.test(text)) {
-      text = text.replace(/ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ.*ವ್ಯಾಪಾರ.*ಮಾಡಿ/g, "ಸ್ವತಂತ್ರ ಮಾಲೀಕತ್ವದಲ್ಲಿ (Sole Proprietorship) ವ್ಯಾಪಾರ ಮಾಡಿ");
-      text = text.replace(/start.*partnership.*business/gi, "pursue sole proprietorship in your own name");
-      text = text.replace(/साझेदारी.*व्यापार.*करें/g, "एकल स्वामित्व में व्यापार करें");
-    }
-  }
-
-  // 3. Ensure answer is rich and detailed (good enough details for end user)
-  if (text.length < 150) {
-    const padding = lang === "en"
-      ? `\n\nUnder your running planetary Dasha and Gochara transits, maintain steady devotion and patience. Light a cow-ghee lamp daily and pray to Sri Kshetra Gokarna Mahabaleshwara for supreme peace and success.`
-      : lang === "hi"
-      ? `\n\nअपनी वर्तमान ग्रह दशा एवं गोचर प्रभाव को ध्यान में रखते हुए नियमित पुरुषार्थ एवं ईश्वर निष्ठा बनाए रखें। नित्य गाय के घी का दीपक प्रज्वलित कर श्री क्षेत्र गोकर्ण महाबलेश्वर का स्मरण करें।`
-      : `\n\nನಿಮ್ಮ ಪ್ರಸ್ತುತ ಗ್ರಹ ದಶಾ-ಭುಕ್ತಿ ಹಾಗೂ ಗೋಚಾರ ಬಲಕ್ಕೆ ಅನುಗುಣವಾಗಿ ದೃಢ ಶ್ರದ್ಧೆಯಿಂದ ಮುನ್ನಡೆಯಿರಿ. ಪ್ರತಿದಿನ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯನ್ನು ಪ್ರಾರ್ಥಿಸುವುದರಿಂದ ಸಕಲ ಕಾರ್ಯಸಿದ್ಧಿ ಲಭಿಸಲಿದೆ.`;
-    text = `${text}${padding}`;
-  }
-
-  return {
-    harmonizedText: deduplicateResponseText(text),
-    isHarmonized: false
-  };
-}
-
-
+export {
+  isRemedyRequested,
+  buildDeterministicAbroadSettlementReading,
+  buildDeterministicPropertyReading,
+  getLagnaPrescribedGemstoneText,
+  buildDeterministicMarriageReading,
+  buildDeterministicSanthanaReading,
+  buildDeterministicGovtJobReading,
+  buildDeterministicBusinessVsJobReading,
+  buildDeterministicDebtReliefReading,
+  buildDeterministicLegalCaseReading,
+  buildDeterministicHealthReading,
+  buildDeterministicCompetitiveExamReading,
+  calculateAstrologicalTimeline,
+  type AstrologicalTimelineResult,
+  detectAndResolveUltaPaltaProbe,
+  verifyAndHarmonizeWithPreviousAnswers,
+  buildDeterministicGemstoneReading,
+  buildDeterministicColorReading,
+  buildDeterministicNumberReading,
+  buildDeterministicDayDeityReading,
+  buildDeterministicFollowUpClarificationReading
+};
 /**
  * Computes authentic Parashari gemological, color, and numerological recommendations
  * strictly derived from the devotee's Lagna, 5th, and 9th houses and planetary lords.
@@ -4240,238 +3246,6 @@ export function computeAstrologicalRecommendations(
   }
 }
 
-export interface AstrologicalTimelineResult {
-  currentMahaName: string;
-  currentBhuktiName: string;
-  nextBhuktiName: string;
-  monthsToDashaChange: number;
-  guruTransitHouseFromMoon: number;
-  guruTransitNature: string;
-  minMonths: number;
-  maxMonths: number;
-  monthsRangeText: string;
-  calendarWindowText: string;
-  rangeSummary: string;
-  probableAccuracyPercent: number; // 98
-  astrologicalRationale: string;
-  topicYogaName: string;
-  topicLabel: string;
-}
-
-/**
- * Calculates a mathematically authentic astrological timeline range (98% probability)
- * based on Vimshottari Dasha-Bhukti end age, upcoming Bhukti shift,
- * and live Gochara Guru (Jupiter ~1 year transit cycle & drishti).
- */
-export function calculateAstrologicalTimeline(
-  kundli: KundliOutput,
-  ageYears: number,
-  topic: TopicDomain,
-  lang: ConsultationLanguage = "kn"
-): AstrologicalTimelineResult {
-  const pDict = PLANET_NAMES_I18N[lang] || PLANET_NAMES_I18N.kn;
-
-  let currentMahaName = pDict[PlanetName.Jupiter] || "ಗುರು";
-  let currentBhuktiName = pDict[PlanetName.Jupiter] || "ಗುರು";
-  let nextBhuktiName = pDict[PlanetName.Saturn] || "ಶನಿ";
-  let monthsToDashaChange = 8;
-
-  try {
-    const bhuktiInfo = findBhuktiAtAge(kundli, ageYears);
-    if (bhuktiInfo) {
-      currentMahaName = pDict[bhuktiInfo.maha.planet] || bhuktiInfo.maha.planet;
-      currentBhuktiName = pDict[bhuktiInfo.bhukti] || bhuktiInfo.bhukti;
-      const yrsRemaining = Math.max(0.08, bhuktiInfo.bhuktiEndAge - ageYears);
-      monthsToDashaChange = Math.max(1, Math.round(yrsRemaining * 12));
-
-      const fullTimeline = generateBhuktiTimeline(kundli, 100);
-      const currentIdx = fullTimeline.findIndex(
-        (b) => ageYears >= b.startAge - 1e-6 && ageYears < b.endAge + 1e-6
-      );
-      if (currentIdx >= 0 && currentIdx + 1 < fullTimeline.length) {
-        const nextB = fullTimeline[currentIdx + 1];
-        nextBhuktiName = pDict[nextB.bhukti] || nextB.bhukti;
-      }
-    }
-  } catch (e) {
-    console.warn("[calculateAstrologicalTimeline] Bhukti lookup notice:", e);
-  }
-
-  // Gochara Guru (Jupiter) relative to Moon
-  const rashiIdx = kundli.moonSign?.index ?? 0;
-  // Current transit: Jupiter in Taurus (1) / Gemini (2)
-  const guruTransitHouseFromMoon = ((1 - rashiIdx + 12) % 12) + 1;
-  const guruTransitNature = [2, 5, 7, 9, 11].includes(guruTransitHouseFromMoon)
-    ? lang === "kn"
-      ? "ಶುಭ ಗುರುಬಲ"
-      : "Auspicious Guru Bal"
-    : lang === "kn"
-    ? "ಗುರು ಸಂಚಾರ ಪರೀಕ್ಷೆ"
-    : "Guru Transit";
-
-  // Topic specific yoga name & min/max months calculation
-  let minMonths = 8;
-  let maxMonths = 14;
-  let topicYogaName = "";
-  let topicLabel = "";
-
-  switch (topic) {
-    case "MARRIAGE":
-      topicYogaName = lang === "kn" ? "ವಿವಾಹ ಯೋಗ (ಕಲ್ಯಾಣ ಭಾಗ್ಯ)" : "Vivaha Yoga (Marriage)";
-      topicLabel = lang === "kn" ? "ವಿವಾಹ" : "marriage";
-      if (monthsToDashaChange <= 6) {
-        minMonths = Math.max(4, monthsToDashaChange);
-        maxMonths = minMonths + 8;
-      } else if (monthsToDashaChange <= 12) {
-        minMonths = monthsToDashaChange;
-        maxMonths = minMonths + 6;
-      } else {
-        // Guru Gochara transit window triggers within ~1 year as Guru moves into direct aspect!
-        minMonths = 6;
-        maxMonths = 12;
-      }
-      break;
-
-    case "CAREER":
-      topicYogaName = lang === "kn" ? "ಉದ್ಯೋಗ ಯೋಗ (ಕರ್ಮ ವೃದ್ಧಿ)" : "Udyoga Yoga (Career Breakthrough)";
-      topicLabel = lang === "kn" ? "ವೃತ್ತಿ/ಉದ್ಯೋಗ ಅಭಿವೃದ್ಧಿ" : "career advancement";
-      minMonths = Math.min(5, Math.max(3, monthsToDashaChange));
-      maxMonths = minMonths + 7;
-      break;
-
-    case "SANTHANA":
-      topicYogaName = lang === "kn" ? "ಸಂತಾನ ಯೋಗ (ಪುತ್ರ ಪ್ರಾಪ್ತಿ)" : "Santhana Yoga (Progeny Blessing)";
-      topicLabel = lang === "kn" ? "ಸಂತಾನ ಯೋಗ" : "childbirth / progeny";
-      minMonths = Math.min(8, Math.max(6, monthsToDashaChange));
-      maxMonths = minMonths + 6;
-      break;
-
-    case "HEALTH":
-      topicYogaName = lang === "kn" ? "ಆರೋಗ್ಯ ರಕ್ಷಾ ಯೋಗ" : "Arogya Raksha Yoga";
-      topicLabel = lang === "kn" ? "ಆರೋಗ್ಯ ಸುಧಾರಣೆ" : "health recovery";
-      minMonths = 3;
-      maxMonths = 8;
-      break;
-
-    case "FINANCE":
-      topicYogaName = lang === "kn" ? "ಧನ ಯೋಗ & ಸಾಲಮುಕ್ತಿ" : "Dhana Yoga & Debt Relief";
-      topicLabel = lang === "kn" ? "ಆರ್ಥಿಕ ಚೇತರಿಕೆ" : "financial recovery";
-      minMonths = 4;
-      maxMonths = 10;
-      break;
-
-    default:
-      topicYogaName = lang === "kn" ? "ಶುಭ ಫಲ ಸಿದ್ಧಿ ಯೋಗ" : "Auspicious Fulfilment Yoga";
-      topicLabel = lang === "kn" ? "ಕಾರ್ಯ ಸಿದ್ಧಿ" : "objective fulfilment";
-      minMonths = 6;
-      maxMonths = 12;
-      break;
-  }
-
-  // Calculate calendar window from real date
-  const now = new Date();
-  const startCal = new Date(now.getFullYear(), now.getMonth() + minMonths, 1);
-  const endCal = new Date(now.getFullYear(), now.getMonth() + maxMonths, 1);
-
-  const MONTH_NAMES_I18N: Record<ConsultationLanguage, string[]> = {
-    en: [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ],
-    kn: [
-      "ಜನವರಿ", "ಫೆಬ್ರವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್",
-      "ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"
-    ],
-    hi: [
-      "जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून",
-      "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"
-    ],
-    te: [
-      "జనవరి", "ఫిబ్రవరి", "మార్చి", "ఏప్రిల్", "మే", "జూన్",
-      "జులై", "ఆగస్టు", "సెప్టెంబర్", "అక్టోబర్", "నవంబర్", "డిసెంబర్"
-    ],
-    ta: [
-      "ஜனவரி", "பிப்ரவரி", "மார்ச்", "ஏப்ரல்", "மே", "ஜூன்",
-      "ஜூலை", "ஆகஸ்ட்", "செப்டம்பர்", "அக்டோபர்", "நவம்பர்", "டிசம்பர்"
-    ],
-    ml: [
-      "ജനുവരി", "ഫെബ്രുവരി", "മാർച്ച്", "ഏപ്രിൽ", "മെയ്", "ജൂൺ",
-      "ജൂലൈ", "ഓഗസ്റ്റ്", "സെപ്റ്റംബർ", "ഒക്ടോബർ", "നവംബർ", "ഡിസംബർ"
-    ],
-    mr: [
-      "जानेवारी", "फेब्रुवारी", "मार्च", "एप्रिल", "मे", "जून",
-      "जुलै", "ऑगस्ट", "सप्टेंबर", "ऑक्टोबर", "नोव्हेंबर", "डिसेंबर"
-    ]
-  };
-
-  const mList = MONTH_NAMES_I18N[lang] || MONTH_NAMES_I18N.kn;
-  const startMonthName = mList[startCal.getMonth()];
-  const startYear = startCal.getFullYear();
-  const endMonthName = mList[endCal.getMonth()];
-  const endYear = endCal.getFullYear();
-
-  let monthsRangeText = "";
-  let calendarWindowText = "";
-  let rangeSummary = "";
-  let astrologicalRationale = "";
-
-  if (lang === "en") {
-    monthsRangeText = `next ${minMonths} to ${maxMonths} months`;
-    calendarWindowText = `between ${startMonthName} ${startYear} and ${endMonthName} ${endYear}`;
-    rangeSummary = `within the next ${minMonths} to ${maxMonths} months (${calendarWindowText})`;
-    astrologicalRationale = `Current ${currentMahaName}-${currentBhuktiName} transition matures in ${monthsToDashaChange} months into ${nextBhuktiName}, while Guru completes its 1-year transit cycle to cast direct aspect on your chart.`;
-  } else if (lang === "hi") {
-    monthsRangeText = `अगले ${minMonths} से ${maxMonths} महीने`;
-    calendarWindowText = `${startMonthName} ${startYear} से ${endMonthName} ${endYear} के बीच`;
-    rangeSummary = `अगले ${minMonths} से ${maxMonths} महीनों के भीतर (${calendarWindowText})`;
-    astrologicalRationale = `वर्तमान ${currentMahaName}-${currentBhuktiName} का प्रभाव ${monthsToDashaChange} महीनों में ${nextBhuktiName} में बदलेगा, और गुरु का 1 वर्ष का गोचर आपकी कुंडली पर शुभ दृष्टि डालेगा।`;
-  } else if (lang === "te") {
-    monthsRangeText = `రాబోయే ${minMonths} నుండి ${maxMonths} నెలలు`;
-    calendarWindowText = `${startMonthName} ${startYear} నుండి ${endMonthName} ${endYear} మధ్యకాలం`;
-    rangeSummary = `రాబోయే ${minMonths} నుండి ${maxMonths} నెలలలోపు (${calendarWindowText})`;
-    astrologicalRationale = `ప్రస్తుత ${currentMahaName}-${currentBhuktiName} కాలం ${monthsToDashaChange} నెలల్లో ${nextBhuktiName}గా మారనుంది, మరియు గురు గోచారం ఏడాదిలో శుభ దృష్టిని ప్రసాదిస్తుంది।`;
-  } else if (lang === "ta") {
-    monthsRangeText = `அடுத்த ${minMonths} முதல் ${maxMonths} மாதங்கள்`;
-    calendarWindowText = `${startMonthName} ${startYear} முதல் ${endMonthName} ${endYear} வரை`;
-    rangeSummary = `அடுத்த ${minMonths} முதல் ${maxMonths} மாதங்களுக்குள் (${calendarWindowText})`;
-    astrologicalRationale = `தற்போதைய ${currentMahaName}-${currentBhuktiName} காலம் ${monthsToDashaChange} மாதங்களில் ${nextBhuktiName} ஆக மாறும், மேலும் குருவின் 1 ஆண்டு பெயர்ச்சி உங்கள் ஜாதகத்தை நேராகப் பார்க்கும்.`;
-  } else if (lang === "ml") {
-    monthsRangeText = `അടുത്ത ${minMonths} മുതൽ ${maxMonths} മാസം`;
-    calendarWindowText = `${startMonthName} ${startYear} മുതൽ ${endMonthName} ${endYear} വരെ`;
-    rangeSummary = `അടുത്ത ${minMonths} മുതൽ ${maxMonths} മാസങ്ങൾക്കുള്ളിൽ (${calendarWindowText})`;
-    astrologicalRationale = `നിലവിലെ ${currentMahaName}-${currentBhuktiName} കാലം ${monthsToDashaChange} മാസത്തിനുള്ളിൽ ${nextBhuktiName} ആകും, കൂടാതെ വ്യാഴത്തിന്റെ 1 വർഷത്തെ സംക്രമണം നിങ്ങളുടെ ജാതകത്തിൽ നേരിട്ട് ദൃഷ്ടി പതിപ്പിക്കും.`;
-  } else if (lang === "mr") {
-    monthsRangeText = `पुढील ${minMonths} ते ${maxMonths} महिने`;
-    calendarWindowText = `${startMonthName} ${startYear} ते ${endMonthName} ${endYear} दरम्यान`;
-    rangeSummary = `पुढील ${minMonths} ते ${maxMonths} महिन्यांत (${calendarWindowText})`;
-    astrologicalRationale = `सध्याची ${currentMahaName}-${currentBhuktiName} वेळ ${monthsToDashaChange} महिन्यांत ${nextBhuktiName} मध्ये बदलेल, आणि गुरूचे 1 वर्षाचे गोचर थेट आपल्या पत्रिकेवर शुभ दृष्टी टाकेल.`;
-  } else {
-    // Default Kannada
-    monthsRangeText = `ಮುಂದಿನ ${minMonths} ರಿಂದ ${maxMonths} ತಿಂಗಳುಗಳ ಒಳಗೆ`;
-    calendarWindowText = `${startMonthName} ${startYear} ರಿಂದ ${endMonthName} ${endYear} ರ ಅವಧಿಯಲ್ಲಿ`;
-    rangeSummary = `ಮುಂದಿನ ${minMonths} ರಿಂದ ${maxMonths} ತಿಂಗಳುಗಳ ಒಳಗೆ (${calendarWindowText})`;
-    astrologicalRationale = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentMahaName}-${currentBhuktiName} ಅವಧಿಯು ಮುಂದಿನ ${monthsToDashaChange} ತಿಂಗಳುಗಳಲ್ಲಿ ${nextBhuktiName} ಭುಕ್ತಿಯಾಗಿ ಪರಿವರ್ತನೆ ಹೊಂದಲಿದ್ದು, ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಒಂದು ವರ್ಷದೊಳಗೆ ಒಂದು ರಾಶಿಯಿಂದ ಮತ್ತೊಂದು ರಾಶಿಗೆ ಸಂಚರಿಸಿ ನೇರ ಶುಭ ದೃಷ್ಟಿ ಬೀರಲಿದ್ದಾನೆ.`;
-  }
-
-  return {
-    currentMahaName,
-    currentBhuktiName,
-    nextBhuktiName,
-    monthsToDashaChange,
-    guruTransitHouseFromMoon,
-    guruTransitNature,
-    minMonths,
-    maxMonths,
-    monthsRangeText,
-    calendarWindowText,
-    rangeSummary,
-    probableAccuracyPercent: 98,
-    astrologicalRationale,
-    topicYogaName,
-    topicLabel
-  };
-}
-
 export interface ActiveDoshaContext {
   hasDosha: boolean;
   doshaId?: string;
@@ -4544,28 +3318,88 @@ export function detectRelevantQuestionDosha(
       const dName = isSadeSati
         ? lang === "kn"
           ? "ಸಾಡೇ ಸಾತಿ (ಏಳರೆ ಶನಿ) ಪ್ರಭಾವ"
+          : lang === "hi"
+          ? "शनि साढ़ेसाती प्रभाव"
+          : lang === "te"
+          ? "శని ఏలినాటి శని ప్రభావం"
+          : lang === "ta"
+          ? "ஏழரை சனி தாக்கம்"
+          : lang === "ml"
+          ? "ഏഴരശ്ശനി സ്വാധീനം"
+          : lang === "mr"
+          ? "शनि साडेसाती प्रभाव"
           : "Shani Sade Sati Transit Influence"
         : isKantaka
         ? lang === "kn"
           ? "ದಶಮ / ಕಂಟಕ ಶನಿ ಪ್ರಭಾವ"
+          : lang === "hi"
+          ? "कंटक शनि गोचर प्रभाव"
+          : lang === "te"
+          ? "కంటక శని గోచార ప్రభావం"
+          : lang === "ta"
+          ? "கண்டக சனி பெயர்ச்சி தாக்கம்"
+          : lang === "ml"
+          ? "കണ്ടക ശനി സ്വാധീനം"
+          : lang === "mr"
+          ? "कंटक शनी गोचर प्रभाव"
           : "Kantaka Shani Transit Influence"
         : lang === "kn"
         ? "ಅಷ್ಟಮ ಶನಿ ಪ್ರಭಾವ"
+        : lang === "hi"
+        ? "अष्टम शनि गोचर प्रभाव"
+        : lang === "te"
+        ? "అష్టమ శని గోచార ప్రభావం"
+        : lang === "ta"
+        ? "அஷ்டம சனி பெயர்ச்சி தாக்கம்"
+        : lang === "ml"
+        ? "അഷ്ടമ ശനി സ്വാധീനം"
+        : lang === "mr"
+        ? "अष्टम शनी गोचर प्रभाव"
         : "Ashtama Shani Transit Influence";
 
       const tWhy =
         lang === "kn"
           ? `ಜನ್ಮ ರಾಶಿಯಿಂದ ಶನಿ ಗ್ರಹವು ${transitInfo.shaniHouse}ನೇ ಮನೆಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು (${transitInfo.shaniNature || ""}), ಇದು ವೃತ್ತಿ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿಯ ಮೇಲೆ ತೀವ್ರ ಪರೀಕ್ಷಾ ಪ್ರಭಾವ ಬೀರುತ್ತಿದೆ.`
+          : lang === "hi"
+          ? `आपकी चंद्र राशि से ${transitInfo.shaniHouse}वें भाव में शनि गोचर (${transitInfo.shaniNature || ""}) आजीविका एवं मानसिक शांति पर परीक्षा डाल रहा है।`
+          : lang === "te"
+          ? `మీ జన్మ రాశి నుండి శని ${transitInfo.shaniHouse}వ స్థానంలో సంచరిస్తుండటం (${transitInfo.shaniNature || ""}) వృత్తి మరియు మనశ్శాంతిపై ఒత్తిడి తెస్తోంది.`
+          : lang === "ta"
+          ? `உங்கள் சந்திர ராசியிலிருந்து ${transitInfo.shaniHouse}-ஆம் இடத்தில் சனி சஞ்சரிப்பதால் (${transitInfo.shaniNature || ""}) தொழில் மற்றும் மன அமைதியில் சோதனை ஏற்படுகிறது.`
+          : lang === "ml"
+          ? `നിങ്ങളുടെ ചന്ദ്രരാശിയിൽ നിന്ന് ${transitInfo.shaniHouse}-ാം ഭാവത്തിൽ ശനി സഞ്ചരിക്കുന്നത് (${transitInfo.shaniNature || ""}) തൊഴിലിലും മനസ്സമാധാനത്തിലും സമ്മർദ്ദമുണ്ടാക്കുന്നു.`
+          : lang === "mr"
+          ? `तुमच्या चंद्र राशीपासून शनी ${transitInfo.shaniHouse} व्या भावात भ्रमण करत असल्याने (${transitInfo.shaniNature || ""}) कार्यक्षेत्र व मनःशांतीवर ताण येत आहे.`
           : `Saturn's transit in House ${transitInfo.shaniHouse} from Moon (${transitInfo.shaniNature || ""}) casts direct pressure on career, status, and professional stability.`;
 
       const clp =
         lang === "kn"
           ? "ವೃತ್ತಿಯಲ್ಲಿ ನಿರಂತರ ಕಿರಿಕಿರಿ, ಸಹೋದ್ಯೋಗಿಗಳಲ್ಲಿ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ, ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ತಡವಾಗುವುದು ಮತ್ತು ಅಸ್ಥಿರತೆಯ ಭಾವನೆ."
+          : lang === "hi"
+          ? "कार्यक्षेत्र में निरंतर तनाव, सहकर्मियों से मतभेद, परिश्रम का उचित सम्मान न मिलना एवं अस्थिरता।"
+          : lang === "te"
+          ? "వృత్తిలో నిరంతర ఒత్తిడి, సహోద్యోగులతో సమన్వయ లోపం, కష్టానికి తగిన గుర్తింపు ఆలస్యం కావడం."
+          : lang === "ta"
+          ? "வேலையில் தொடர்ந்து மன அழுத்தம், சக ஊழியர்களுடன் கருத்து வேறுபாடு, உழைப்பிற்கேற்ற அங்கீகாரம் தாமதமாதல்."
+          : lang === "ml"
+          ? "തൊഴിൽ രംഗത്ത് തുടർച്ചയായ സമ്മർദ്ദം, സഹപ്രവർത്തകരുമായുള്ള അഭിപ്രായ വ്യത്യാസം, അധ്വാനത്തിനൊത്ത അംഗീകാരം വൈകൽ."
+          : lang === "mr"
+          ? "कामाच्या ठिकाणी सतत तणाव, सहकाऱ्यांशी मतभेद, मेहनतीचे योग्य फळ मिळण्यास विलंब."
           : "Persistent frustration at work, lack of appreciation for hard work, workplace misunderstandings, and financial delays.";
 
       const pooja =
         lang === "kn"
           ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಎಳ್ಳು ದೀಪಾರಾಧನೆ ಸಹಿತ ಶನಿ ಶಾಂತಿ ಹೋಮ"
+          : lang === "hi"
+          ? "श्री क्षेत्र गोकर्ण महाबलेश्वर महारुद्राभिषेक एवं तिल दीपार्चन सहित शनि शांति होम"
+          : lang === "te"
+          ? "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర మహారుద్రాభిషేకం మరియు నువ్వుల దీపారాధనతో శని శాంతి హోమం"
+          : lang === "ta"
+          ? "ஸ்ரீ க்ஷேத்ர கோகர்ணம் மகாபலேஸ்வரர் ருத்ராபிஷேகம் மற்றும் எள் தீபத்துடன் சனி சாந்தி ஹோமம்"
+          : lang === "ml"
+          ? "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം മഹാബലേശ്വര മഹാരുദ്രാഭിഷേകവും എള്ളുതിരി സഹിതം ശനി ശാന്തി ഹോമവും"
+          : lang === "mr"
+          ? "श्री क्षेत्र गोकर्ण महाबळेश्वर महारुद्राभिषेक व तीळ दीपाराधनेसह शनी शांती होम"
           : "Sri Kshetra Gokarna Mahabaleshwara Rudrabhisheka & Sacred Shani Shanti Pooja";
 
       const cardData: ActiveDoshaCardData = {
@@ -4574,7 +3408,7 @@ export function detectRelevantQuestionDosha(
         technicalWhy: tWhy,
         currentLifeProblems: clp,
         recommendedPooja: pooja,
-        priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Chief Priest Shreeram Pandit)",
+        priestName: getLocalizedPriestName(lang),
         priestPhone: "9972339362"
       };
 
@@ -4629,6 +3463,14 @@ export function detectRelevantQuestionDosha(
           ? "ಜಾತಕದ ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನ, ಪಂಚಮಾಧಿಪತಿ ಗ್ರಹ ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಗತಿಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ಕಾಲದ ವಿಳಂಬ ಉಂಟಾಗುತ್ತಿದೆ."
           : lang === "hi"
           ? "कुंडली के 5वें भाव (संतान भाव), पंचमेश एवं पुत्रकारक गुरु पर पापग्रहों के प्रभाव से संतान प्राप्ति में विलंब हो रहा है।"
+          : lang === "te"
+          ? "జాతకంలోని 5వ సంతాన స్థానం, పంచమాధిపతి మరియు పుత్రకారక గురువుపై పాపగ్రహ దృష్టి వల్ల సంతాన ప్రాప్తిలో తాత్కాలిక ఆలస్యం ఏర్పడుతోంది."
+          : lang === "ta"
+          ? "ஜாதகத்தின் 5-ஆம் புத்திர ஸ்தானம், 5-ஆம் அதிபதி மற்றும் புத்திரகாரக குருவின் மீது உள்ள கிரகப் பார்வையால் சந்தான பாக்கியத்தில் தாமதம் ஏற்படுகிறது."
+          : lang === "ml"
+          ? "ജാതകത്തിലെ 5-ാം പുത്രസ്ഥാനം, പഞ്ചമാധിപൻ, പുത്രകാരകനായ വ്യാഴം എന്നിവയിലെ ഗ്രഹസമ്മർദ്ദം മൂലമാണ് സന്താനലബ്ധിയിൽ കാലതാമസം നേരിടുന്നത്."
+          : lang === "mr"
+          ? "पत्रिकेतील ५ वे संतान स्थान, पंचमेश आणि पुत्रकारक गुरूवर अशुभ ग्रहांच्या दृष्टीमुळे संतान प्राप्तीमध्ये तात्पुरता विलंब होत आहे."
           : "Testing planetary aspects upon the 5th House of progeny, its ruling lord, or Putrakaraka Jupiter (Guru) causing temporary delays in conception.";
 
       const clp =
@@ -4636,6 +3478,14 @@ export function detectRelevantQuestionDosha(
           ? "ವಿವಾಹವಾಗಿ ಹಲವು ಸಮಯ ಕಳೆದರೂ ಸಂತಾನ ಭಾಗ್ಯ ತಡವಾಗುವುದು, ವೈದ್ಯಕೀಯ ವರದಿಗಳು ಸಾಮಾನ್ಯವಾಗಿದ್ದರೂ ಫಲ ಸಿಗದಿರುವುದು ಮತ್ತು ತೀವ್ರ ಮಾನಸಿಕ ಚಿಂತೆ."
           : lang === "hi"
           ? "विवाह के बाद भी संतान प्राप्ति में विलंब, मानसिक तनाव और परिवार में निराशा का वातावरण।"
+          : lang === "te"
+          ? "వైద్య నివేదికలు సాధారణంగా ఉన్నా సంతాన భాగ్యం ఆలస్యమవడం మరియు కుటుంబంలో మానసిక ఆందోళన."
+          : lang === "ta"
+          ? "மருத்துவ பரிசோதனைகள் நன்றாக இருந்தாலும் குழந்தை பாக்கியம் தாமதமாவதும் குடும்ப மனக்கவலையும்."
+          : lang === "ml"
+          ? "ചികിത്സാ ഫലങ്ങൾ സാധാരണമായിട്ടും സന്താനലബ്ധി വൈകുന്നതും മാനസിക വിഷമവും."
+          : lang === "mr"
+          ? "वैद्यकीय अहवाल सामान्य असूनही संतान प्राप्तीमध्ये विलंब आणि कौटुंबिक मानसिक चिंता."
           : "Persistent delay in conception despite normal medical evaluations, creating deep emotional stress and family anxiety.";
 
       const pooja =
@@ -4643,6 +3493,14 @@ export function detectRelevantQuestionDosha(
           ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಸಹಿತ ಮಹಾರುದ್ರಾಭಿಷೇಕ"
           : lang === "hi"
           ? "श्री क्षेत्र गोकर्ण में संतान गोपाल महाहोम एवं नाग प्रतिष्ठा सहित महारुद्राभिषेक"
+          : lang === "te"
+          ? "శ్రీ క్షేత్ర గోకర్ణంలో సంతాన గోపాల మహాహోమం మరియు నాగ ప్రతిష్ఠ సహిత మహారుద్రాభిషేకం"
+          : lang === "ta"
+          ? "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் சந்தான கோபால மகா ஹோமம் மற்றும் நாக பிரதிஷ்டை ருத்ராபிஷேகம்"
+          : lang === "ml"
+          ? "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണത്തിൽ സന്താന ഗോപാല മഹാഹോമവും നാഗപ്രതിഷ്ഠാ മഹാരുദ്രാഭിഷേകവും"
+          : lang === "mr"
+          ? "श्री क्षेत्र गोकर्ण येथे संतान गोपाल महाहोम व नाग प्रतिष्ठेसह महारुद्राभिषेक"
           : "Sri Kshetra Gokarna Santhana Gopala Maha Homa, Naga Pratishtha & Mahabaleshwara Rudrabhisheka";
 
       const cardData: ActiveDoshaCardData = {
@@ -4651,7 +3509,7 @@ export function detectRelevantQuestionDosha(
         technicalWhy: tWhy,
         currentLifeProblems: clp,
         recommendedPooja: pooja,
-        priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Chief Priest Shreeram Pandit)",
+        priestName: getLocalizedPriestName(lang),
         priestPhone: "9972339362"
       };
 
@@ -4707,7 +3565,7 @@ export function detectRelevantQuestionDosha(
       technicalWhy: tWhy,
       currentLifeProblems: clp,
       recommendedPooja: pooja,
-      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Chief Priest Shreeram Pandit)",
+      priestName: getLocalizedPriestName(lang),
       priestPhone: "9972339362"
     };
 
@@ -4753,19 +3611,39 @@ export async function generateConsultationAnswer(params: {
     (conversationHistory !== undefined && conversationHistory.length > 0);
   const qNum = (questionIndex !== undefined ? questionIndex : 0) + 1;
 
+  const sLang = session.language || "kn";
+  const placeholderRashi0 = (RASHIS_I18N[sLang] || RASHIS_I18N.en)[0];
+  const placeholderRashi1 = (RASHIS_I18N[sLang] || RASHIS_I18N.en)[1];
+  const placeholderNak3 = (NAKSHATRAS_I18N[sLang] || NAKSHATRAS_I18N.en)[3];
+  const placeholderDasha =
+    sLang === "kn"
+      ? "ಶುಭ ದಶಾ ಕಾಲ"
+      : sLang === "hi"
+      ? "शुभ दशा काल"
+      : sLang === "te"
+      ? "శుభ దశా కాలం"
+      : sLang === "ta"
+      ? "சுப தசா காலம்"
+      : sLang === "ml"
+      ? "ശുഭ ദശാ കാലം"
+      : sLang === "mr"
+      ? "शुभ दशा काळ"
+      : "Auspicious Dasha Period";
+
   // 0. Security & System Integrity Probe Interception (0 token cost, 0 leak risk)
   if (detectSecurityOrSystemProbe(userQuestion)) {
     const blockedText = getDeterministicSecurityBlockedReply(session.language);
     return {
       fullText: blockedText,
       paragraphs: [blockedText],
-      astrologicalHighlights: {
-        lagna: "ಮೇಷ",
-        moonSign: "ವೃಷಭ",
-        nakshatra: "ರೋಹಿಣಿ",
-        currentDasha: "ಶುಭ ದಶಾ ಕಾಲ",
+      astrologicalHighlights: buildLocalizedAstroHighlights({
+        lang: sLang,
+        lagna: placeholderRashi0,
+        moonSign: placeholderRashi1,
+        nakshatra: placeholderNak3,
+        currentDasha: placeholderDasha,
         keyInfluences: []
-      },
+      }),
       hasDosha: false
     };
   }
@@ -4773,16 +3651,26 @@ export async function generateConsultationAnswer(params: {
   // 0a. Separate Family Member Birth Details Request Interception (Strict 1-link 1-person policy)
   if (detectFamilyMemberSeparateBirthDataRequest(userQuestion)) {
     const familyNoticeText = getDeterministicSeparatePersonNoticeReply(session);
+    const familyInfluencesByLang: Record<ConsultationLanguage, string[]> = {
+      kn: ["ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಪ್ರತ್ಯೇಕ ಲಗ್ನ ಗಣನೆ", "ಪ್ರತ್ಯೇಕ ೨೦ ನಿಮಿಷಗಳ ಲಿಂಕ್"],
+      en: ["Separate Lagna calculation per person", "Dedicated 20-minute link required"],
+      hi: ["प्रत्येक सदस्य हेतु पृथक लग्न गणना", "पृथक २०-मिनट परामर्श लिंक आवश्यक"],
+      te: ["కుటుంబ సభ్యులకు ప్రత్యేక లగ్న గణన", "ప్రత్యేక 20 నిమిషాల లింక్ అవసరం"],
+      ta: ["ஒவ்வொருவருக்கும் தனி லக்ன கணிப்பு", "தனி 20 நிமிட ஆலோசனை லிங்க்"],
+      ml: ["ഓരോ അംഗത്തിനും പ്രത്യേക ലഗ്ന ഗണനം", "പ്രത്യേക 20 മിനിറ്റ് ലിങ്ക്"],
+      mr: ["प्रत्येक सदस्यासाठी स्वतंत्र लग्न गणना", "स्वतंत्र २० मिनिटांची लिंक आवश्यक"]
+    };
     return {
       fullText: familyNoticeText,
       paragraphs: [familyNoticeText],
-      astrologicalHighlights: {
-        lagna: "ಮೇಷ",
-        moonSign: "ವೃಷಭ",
-        nakshatra: "ರೋಹಿಣಿ",
-        currentDasha: "ಶುಭ ದಶಾ ಕಾಲ",
-        keyInfluences: ["ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಪ್ರತ್ಯೇಕ ಲಗ್ನ ಗಣನೆ", "ಪ್ರತ್ಯೇಕ ೨೦ ನಿಮಿಷಗಳ ಲಿಂಕ್"]
-      },
+      astrologicalHighlights: buildLocalizedAstroHighlights({
+        lang: sLang,
+        lagna: placeholderRashi0,
+        moonSign: placeholderRashi1,
+        nakshatra: placeholderNak3,
+        currentDasha: placeholderDasha,
+        keyInfluences: familyInfluencesByLang[sLang] || familyInfluencesByLang.en
+      }),
       hasDosha: false
     };
   }
@@ -4831,9 +3719,11 @@ export async function generateConsultationAnswer(params: {
     session,
     astroData
   );
+  // Snapshot of prior-turn rulings + permanent chart gemstone incompatibilities before pushing this turn's new domain
+  const priorRulingsForUltaPalta = rulingsLedger.slice();
 
   if (
-    /ವಿದೇಶ|ಪರದೇಶ|abroad|foreign|settle.*abroad|settle.*outside|settle.*in.*(usa|uk|canada|germany)|विदेश/i.test(
+    /ವಿದೇಶ|ಪರದೇಶ|abroad|foreign|settle.*abroad|settle.*outside|settle.*in.*(usa|uk|canada|germany)|विदेश|విదేశ|అమెరికా|కెనడా|வெளிநாட்|விദേശ|വിദേശ|परदेश|विदेशात/i.test(
       userQuestion
     ) &&
     !rulingsLedger.some((r) => r.domain === "ABROAD_SETTLEMENT")
@@ -4855,7 +3745,7 @@ export async function generateConsultationAnswer(params: {
       remedyPrescribed: "Kuladevata prarthana and Aditya Hridaya Stotra"
     });
   } else if (
-    /ಆಸ್ತಿ|ಜಮೀನು|ಭೂಮಿ|ಮನೆ|ನಿವೇಶನ|property|asset|land|house|flat|plot|संपत्ति|मकान/i.test(
+    /ಆಸ್ತಿ|ಜಮೀನು|ಭೂಮಿ|ಮನೆ|ನಿವೇಶನ|property|asset|land|house|flat|plot|संपत्ति|मकान|ఆస్తి|భూమి|ఇల్లు|స్థలం|சொத்து|நிலம்|வீடு|സ്വത്ത്|ഭൂമി|വീട്|मालमत्ता|जमीन|घर|प्लॉट/i.test(
       userQuestion
     ) &&
     !rulingsLedger.some((r) => r.domain === "PROPERTY_ASSET")
@@ -4876,7 +3766,7 @@ export async function generateConsultationAnswer(params: {
       remedyPrescribed: "Bhoomi Varaha / Sri Subramanya Stotra recitation"
     });
   } else if (
-    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಕಲ್ಯಾಣ|marriage|marry|married|wedding|partner|spouse|shadi|विवाह|शादी/i.test(
+    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಕಲ್ಯಾಣ|marriage|marry|married|wedding|partner|spouse|shadi|विवाह|शादी|వివాహ|పెళ్లి|కళ్యాణ|திருமணம்|கல்யாணம்|വിവാഹം|കല്യാണം|लग्न/i.test(
       userQuestion
     ) &&
     !rulingsLedger.some((r) => r.domain === "MARRIAGE")
@@ -4897,7 +3787,7 @@ export async function generateConsultationAnswer(params: {
       remedyPrescribed: "Wear Lagna-prescribed Bhagya gemstone (Diamond / White Zircon for Venusian Lagna, Red Coral for Mars Lagnas, Pearl for Cancer, Ruby for Leo, Yellow Sapphire for Guru Lagnas), light cow-ghee lamp, Gokarna Kalyana Sankalpa"
     });
   } else if (
-    /ಸ್ವಂತ ವ್ಯಾಪಾರ|ಸ್ವಂತ ಉದ್ಯಮ|ವ್ಯಾಪಾರ ಉತ್ತಮವೋ|ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|business or job|job or business|own business|partnership|भागीदारी/i.test(
+    /ಸ್ವಂತ ವ್ಯಾಪಾರ|ಸ್ವಂತ ಉದ್ಯಮ|ವ್ಯಾಪಾರ ಉತ್ತಮವೋ|ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|business or job|job or business|own business|partnership|भागीदारी|వ్యాపారం|భాగస్వామ్య|வியாபாரம்|கூட்டாண்மை|ബിസിനസ്സ്|പങ്കാളിത്ത|व्यवसाय|भागीदारी/i.test(
       userQuestion
     ) &&
     !rulingsLedger.some((r) => r.domain === "BUSINESS_VS_JOB")
@@ -4920,7 +3810,7 @@ export async function generateConsultationAnswer(params: {
       remedyPrescribed: "Lakshmi Kubera Stotra and Sri Kshetra Gokarna Mahaganapati Modaka pooja"
     });
   } else if (
-    /ಸಾಲ ಮುಕ್ತಿ|ಸಾಲ ತೀರಿಸ|ಸಾಲದ ಬಾಧೆ|ಸಾಲ ಯಾವಾಗ ತೀರುತ್ತೆ|debt relief|clear debt|pay off loan|clear loans|debt free|कर्ज मुक्ति|ऋण मुक्ति/i.test(
+    /ಸಾಲ ಮುಕ್ತಿ|ಸಾಲ ತೀರಿಸ|ಸಾಲದ ಬಾಧೆ|ಸಾಲ ಯಾವಾಗ ತೀರುತ್ತೆ|debt relief|clear debt|pay off loan|clear loans|debt free|कर्ज मुक्ति|ऋण मुक्ति|అప్పు|రుణ విముక్తి|கடன்|കടം|कर्ज मुक्ती/i.test(
       userQuestion
     ) &&
     !rulingsLedger.some((r) => r.domain === "DEBT_FINANCIAL_RELIEF")
@@ -4968,22 +3858,34 @@ export async function generateConsultationAnswer(params: {
   session.rulingsLedger = rulingsLedger;
 
   // 1d. Immediate Ulta-Palta Probe Resolution (100% Multi-Turn Anti-Contradiction Consistency)
+  // Check against prior-turn rulings + permanent gemstone incompatibilities so Turn 1 still gets full AI chart nuance
   const ultaPaltaReply = detectAndResolveUltaPaltaProbe(
     userQuestion,
-    rulingsLedger,
-    session.language
+    priorRulingsForUltaPalta,
+    session.language,
+    (conversationHistory || []).map((t) => t.text).join("\n")
   );
   if (ultaPaltaReply) {
+    const ultaInfluences: Record<ConsultationLanguage, string[]> = {
+      kn: ["ಶತಸಿದ್ಧ ಶಾಸ್ತ್ರೀಯ ತೀರ್ಮಾನ", "ಅಖಂಡ ದೈವಜ್ಞ ನಿಶ್ಚಯ"],
+      en: ["100% Certain Scriptural Ruling", "Unwavering Astrological Continuity"],
+      hi: ["शत-प्रतिशत शास्त्रीय निर्णय", "अटल दैवज्ञ निश्चय"],
+      te: ["శాస్త్రోక్త ఖచ్చితమైన తీర్పు", "స్థిర దైవజ్ఞ నిర్ణయం"],
+      ta: ["நூறு சதவீத சாஸ்திர தீர்ப்பு", "உறுதியான ஜோதிட நிலைப்பாடு"],
+      ml: ["ശാസ്ത്രീയമായ ഉറച്ച തീരുമാനം", "അചഞ്ചല ജ്യോതിഷ നിലപാട്"],
+      mr: ["शतप्रतिशत शास्त्रोक्त निर्णय", "अटल दैवज्ञ निश्चय"]
+    };
     return {
       fullText: ultaPaltaReply,
       paragraphs: ultaPaltaReply.split(/\n\n+/).filter(Boolean),
-      astrologicalHighlights: {
+      astrologicalHighlights: buildLocalizedAstroHighlights({
+        lang: session.language || "kn",
         lagna: lagnaName,
         moonSign: moonRashi,
         nakshatra: nakshatra,
         currentDasha: currentDashaText,
-        keyInfluences: ["ಶತಸಿದ್ಧ ಶಾಸ್ತ್ರೀಯ ತೀರ್ಮಾನ", "ಅಖಂಡ ದೈವಜ್ಞ ನಿಶ್ಚಯ"]
-      },
+        keyInfluences: ultaInfluences[session.language || "kn"] || ultaInfluences.en
+      }),
       hasDosha: false
     };
   }
@@ -5164,8 +4066,8 @@ This is the single ground truth mathematically calculated by NASA JPL ephemeris.
 You are strictly FORBIDDEN from stating any conflicting Rashi, Lagna, or Nakshatra.
 ========================================================================
 
-You are the revered Senior Head Astrologer & Chief Priest of Sri Baggona Panchanga Jyotishya Sansthana, Sri Kshetra Gokarna (ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮುಖ್ಯ ದೈವಜ್ಞರು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ), endowed with over 50 years of tapasya, Vedic chart mastery, and pastoral spiritual guidance.
-The devotee is sitting right across from you face-to-face in the sacred sanctum of Gokarna for a private 20-minute spiritual conversation.
+You are the revered Centenary Sage-Astrologer & Chief Peethadhipati of Sri Baggona Panchanga Jyotishya Sansthana, Sri Kshetra Gokarna (ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪರಂಪರೆಯ ಶತಾಯುಷಿ ದೈವಜ್ಞರು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ), carrying the living grace and calm depth of over 100 years of unbroken Vedic Panchanga Parampara, tapasya, and compassionate human counsel.
+The devotee is sitting right across from you face-to-face at ${PROMPT_GOKARNA_BY_LANG[session.language || "kn"] || "Sri Kshetra Gokarna"} for a private 20-minute spiritual conversation. Speak like a beloved, serene 100+ year experienced grandfather-master whose every sentence radiates unhurried clarity, neat structure, spotless scriptural accuracy, and comforting certainty.
 
 ========================================================================
 CRITICAL MANDATORY INSTRUCTION: 100% EXCLUSIVE FOCUS ON THIS QUESTION
@@ -5194,7 +4096,7 @@ ${
 ${
   complexityAnalysis.complexity === "QUICK_SPECIFIC"
     ? `- Greet them in half a sentence and immediately state the direct answer (gemstone/color/number) in the first sentence!`
-    : `- Greet them with paternal warmth and briefly mirror their inborn temperament (Tatva: ${astroData.characterProfile.tatva}, Gana: ${astroData.characterProfile.gana}) in Paragraph 1 before directly answering "${userQuestion}".`
+    : `- Greet them with paternal warmth and briefly mirror their inborn temperament (Tatva: ${session.language === "kn" ? astroData.characterProfile.tatva : astroData.characterProfile.tatvaEn}, Gana: ${session.language === "kn" ? astroData.characterProfile.gana : astroData.characterProfile.ganaEn}) in Paragraph 1 before directly answering "${userQuestion}".`
 }`
 }
 
@@ -5203,17 +4105,24 @@ DEVOTEE BIRTH PROFILE & ASTROLOGICAL COORDINATES (COMPUTED ACCURATELY BY BAGGONA
 - Birth Date & Time: ${session.dob} at ${session.tob}
 - Birth Place: ${session.place}
 - Current Age: ${Math.floor(ageYears)} years (${astroData.isMinorChild ? "MINOR CHILD - PARENT IS ASKING" : "ADULT DEVOTEE"})
-- Native Inborn Temperament & Character Profile (ಕನ್ನಡಿಯಂತಹ ಜನ್ಮ ಸ್ವಭಾವ):
-  * Tatva: ${astroData.characterProfile.tatva} (${astroData.characterProfile.tatvaEn})
-  * Nakshatra Gana: ${astroData.characterProfile.gana} (${astroData.characterProfile.ganaEn})
-  * Astrological Character Disposition: ${astroData.characterProfile.psychologicalNature} (${astroData.characterProfile.psychologicalNatureEn})
+- Native Inborn Temperament & Character Profile:
+  * Tatva: ${session.language === "kn" ? `${astroData.characterProfile.tatva} (${astroData.characterProfile.tatvaEn})` : astroData.characterProfile.tatvaEn}
+  * Nakshatra Gana: ${session.language === "kn" ? `${astroData.characterProfile.gana} (${astroData.characterProfile.ganaEn})` : astroData.characterProfile.ganaEn}
+  * Astrological Character Disposition: ${session.language === "kn" ? `${astroData.characterProfile.psychologicalNature} (${astroData.characterProfile.psychologicalNatureEn})` : astroData.characterProfile.psychologicalNatureEn}
 - Janma Lagna: ${lagnaName} Lagna (Lord: ${astroData.lagnaLord} in House ${astroData.lagnaLordHouse})
 - Janma Rashi (Moon Sign): ${moonRashi} (Lord: ${astroData.moonLord} in House ${astroData.moonLordHouse})
 - Janma Nakshatra: ${nakshatra} (Pada ${pada})
-- 4th House (Vidya / Matru / Study & Concentration): Sign ${astroData.house4VidyaSign}, Lord ${astroData.house4VidyaLord} placed in House ${astroData.house4VidyaLordHouse}, Planets in 4th: ${astroData.house4Planets.join(", ") || "None"}
+- 1st House (Tanu / Self & Vitality): Sign ${astroData.house1TanuSign}, Lord ${astroData.house1TanuLord} placed in House ${astroData.house1TanuLordHouse}, Planets in 1st: ${astroData.house1Planets.join(", ") || "None"}
+- 2nd House (Dhana / Family & Accumulated Wealth): Sign ${astroData.house2DhanaSign}, Lord ${astroData.house2DhanaLord} placed in House ${astroData.house2DhanaLordHouse}, Planets in 2nd: ${astroData.house2Planets.join(", ") || "None"}
+- 4th House (Vidya / Matru / Home & Property): Sign ${astroData.house4VidyaSign}, Lord ${astroData.house4VidyaLord} placed in House ${astroData.house4VidyaLordHouse}, Planets in 4th: ${astroData.house4Planets.join(", ") || "None"}
 - 5th House (Santhana / Buddhi / Poorva Punya / Progeny): Sign ${astroData.house5SanthanaSign}, Lord ${astroData.house5SanthanaLord} placed in House ${astroData.house5SanthanaLordHouse}, Planets in 5th: ${astroData.house5Planets.join(", ") || "None"}
+- 6th House (Shatru / Roga / Rina / Hurdles): Sign ${house6HurdlesSign}, Lord ${house6HurdlesLord} placed in House ${house6HurdlesLordHouse}, Planets in 6th: ${house6Planets.join(", ") || "None"}
+- 7th House (Kalatra / Marriage & Business Partnership): Sign ${astroData.house7MarriageSign}, Lord ${astroData.house7MarriageLord}, Planets in 7th: ${astroData.house7Planets.join(", ") || "None"}
+- 8th House (Ayus / Transformation & Hidden Stress): Sign ${astroData.house8StressSign}, Lord ${astroData.house8StressLord}, Planets in 8th: ${astroData.house8Planets.join(", ") || "None"}
+- 9th House (Bhagya / Dharma & Guru Grace): Sign ${astroData.house9BhagyaSign}, Lord ${astroData.house9BhagyaLord} placed in House ${astroData.house9BhagyaLordHouse}, Planets in 9th: ${astroData.house9Planets.join(", ") || "None"}
 - 10th House (Karma / Career): Sign ${house10KarmaSign}, Lord ${house10KarmaLord} placed in House ${house10KarmaLordHouse}, Planets in 10th: ${house10Planets.join(", ") || "None"}
-- 6th House (Shatru / Roga / Hurdles): Sign ${house6HurdlesSign}, Lord ${house6HurdlesLord} placed in House ${house6HurdlesLordHouse}, Planets in 6th: ${house6Planets.join(", ") || "None"}
+- 11th House (Labha / Gains & Fulfilment): Sign ${astroData.house11LabhaSign}, Lord ${astroData.house11LabhaLord} placed in House ${astroData.house11LabhaLordHouse}, Planets in 11th: ${astroData.house11Planets.join(", ") || "None"}
+- 12th House (Vyaya / Foreign Settlement & Moksha): Sign ${astroData.house12MokshaSign}, Lord ${astroData.house12MokshaLord} placed in House ${astroData.house12MokshaLordHouse}, Planets in 12th: ${astroData.house12Planets.join(", ") || "None"}
 - Current Running Dasha-Bhukti: ${currentDashaText}
 - Live Saturn (Shani) Gochara: House ${shaniTransitHouseFromMoon} from Moon (${shaniTransitNature})
 - Live Jupiter (Guru) Gochara: House ${guruTransitHouseFromMoon} from Moon (${guruTransitNature})
@@ -5256,20 +4165,23 @@ DEVOTEE WORDS / QUESTION:
 "${userQuestion}"
 ${doshaSectionPrompt}
 
-SACRED BEHAVIORAL PROTOCOL (THE 50+ YEAR EXPERIENCED GOKARNA MASTER ASTROLOGER - "DAIVA VACHANA"):
-1. "DAIVA VACHANA" (HOLY DIVINE WORDS & EMOTIONAL CONNECTION):
-   - Your words carry the spiritual aura, comfort, and solemn authority of divine oracle words (ದೈವ ವಚನ).
+SACRED BEHAVIORAL PROTOCOL (THE 100+ YEAR LINEAGE GOKARNA MASTER ASTROLOGER - "DAIVA VACHANA"):
+1. "DAIVA VACHANA" (BEAUTIFUL, NEAT & CLEAN SAGE NARRATION WITH RELATABLE EXAMPLES):
+   - Every response should read like a cherished spoken blessing from a 100+ year experienced lineage master in Sri Kshetra Gokarna: warm, poised, crystal-clear, free of clutter or dry bullet jargon, and effortlessly reassuring.
+   - BALANCED PARAGRAPH RHYTHM (NEITHER TOO SHORT NOR TOO LONG): Write each paragraph cleanly in 3 to 5 clear, digestible lines so the devotee can read effortlessly on mobile AND enjoy a crisp, noble Baggona Panchanga PDF report. Avoid 1-sentence abrupt stubs and avoid overwhelming walls of text.
+   - RELATABLE EVERYDAY EXAMPLES (HELP DEVOTEES SEE THE "WHY"): Whenever explaining why a planetary phase, delay, Saturn discipline, career friction, or 5th/7th house test is happening, include 1 brief, warm everyday analogy in simple spoken words (e.g., deepening a home's pillars during rain before raising upper floors, waiting for a mango to sweeten on the tree instead of plucking it raw, or gently nurturing a young sapling instead of tugging its stem). Keep analogies natural, vivid, and reassuring.
+   - Your words carry spiritual aura, solace, and calm authority (ದೈವ ವಚನ).
    - If the devotee is asking about frustration in career (ಉದ್ಯೋಗದಲ್ಲಿ ಕಿರಿಕಿರಿ / ಹತಾಶೆ), delay in marriage, or deep trouble:
-     * FIRST, emotionally connect with them. Validate their pain with fatherly love and warmth ("ಮಗುವೇ ${session.name}, ನಿಮ್ಮ ಮನಸ್ಸಿನ ಕಳವಳ ಮತ್ತು ಆತಂಕವನ್ನು ನಾನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಬಲ್ಲೆ...").
-     * Give the EXACT astrological reason why this is happening (10th house, Dasha, Shani Gochara transit).
-     * Clearly tell them what to do to come out of it and the timeline of relief.
-     * The devotee should feel a holy reverence, fatherly affection, and complete reassurance that their life is under divine protection.
+     * FIRST, emotionally connect with them. Validate their pain warmly using gentle parenting affection in ${targetLang} ("${PROMPT_VOCATIVE_BY_LANG[session.language || "kn"] || "Dear"} ${session.name}").
+     * Give the EXACT astrological reason why this is happening (specific Bhava, lord, Dasha-Bhukti, and Gochara transit).
+     * Clearly tell them what practical steps to take to come out of it and the reassuring timeline of relief.
+     * The devotee should feel holy reverence, paternal affection, and complete confidence in their path ahead.
 
 2. NATIVE'S INBORN CHARACTERISTIC & TEMPERAMENT MIRRORING (ಕನ್ನಡಿಯಂತಹ ಜನ್ಮ ಸ್ವಭಾವ):
 ${
   isSubsequent
     ? `   - STRICT PROHIBITION: Since this is question #${qNum}, DO NOT repeat the inborn character profiling or Tatva/Gana basics. Go straight into the specific Bhavas and planetary rulers governing "${userQuestion}".`
-    : `   - In Paragraph 1, dynamically reflect the native's true inborn character and temperament based on their Lagna Tatva (${astroData.characterProfile.tatva}) and Nakshatra Gana (${astroData.characterProfile.gana}).
+    : `   - In Paragraph 1, dynamically reflect the native's true inborn character and temperament based on their Lagna Tatva (${session.language === "kn" ? astroData.characterProfile.tatva : astroData.characterProfile.tatvaEn}) and Nakshatra Gana (${session.language === "kn" ? astroData.characterProfile.gana : astroData.characterProfile.ganaEn}).
    - The native must immediately sense that you are describing their exact inner soul and thought patterns ("ಕನ್ನಡಿಯಂತಹ ನಿಖರ ಸ್ವಭಾವ"), making them feel deeply understood and completely hooked.`
 }
 
@@ -5280,7 +4192,7 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
    - FOCUS EXCLUSIVELY ON:
      1) 4th House Vidya Sthana (${astroData.house4VidyaSign} ruled by ${astroData.house4VidyaLord}) and 5th House Buddhi (${astroData.house5SanthanaSign} ruled by ${astroData.house5SanthanaLord}): Learning, concentration, memory power, academic exams, and creative potential.
      2) Health, Immunity & Balarishta Protection: Protecting the child from evil eye (ದೃಷ್ಟಿ ದೋಷ), childhood ailments, and blessing them with Medha Sukta and Saraswati Mantra.
-     3) Parental Nurturing Guidance: Instruct the parents on how to handle the child's natural temperament (based on their ${astroData.characterProfile.tatva} and ${astroData.characterProfile.gana}) with loving patience rather than harsh scolding or academic pressure.
+     3) Parental Nurturing Guidance: Instruct the parents on how to handle the child's natural temperament (based on their ${session.language === "kn" ? astroData.characterProfile.tatva : astroData.characterProfile.tatvaEn} and ${session.language === "kn" ? astroData.characterProfile.gana : astroData.characterProfile.ganaEn}) with loving patience rather than harsh scolding or academic pressure.
    - STRICT PROHIBITION: NEVER discuss adult romance, love marriage, romantic partners, or adult career anxieties with or for a minor child!
 ` : `   - If an adult is asking about their minor child, follow the same parental guidance, education, and health rules without adult romantic content.`}
 
@@ -5311,10 +4223,10 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
    - Ground every statement in their actual chart data above (Lagna, Rashi, Bhavas, Dasha, Gochara).
    - Do NOT make generic guesses. Use the exact computed planetary positions.
 
-7. LANGUAGE & INSTITUTION INTEGRITY:
-   - Always acknowledge Sri Baggona Panchanga (ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ) and Sri Kshetra Gokarna (ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) as the sacred root of this astrological calculation.
-   - You MUST respond 100% EXCLUSIVELY in the ${targetLang} language, using its authentic native script (Kannada script for Kannada, Devanagari script for Hindi/Marathi, Telugu script for Telugu, Tamil script for Tamil, Malayalam script for Malayalam, English for English).
-   - Absolutely NO Latin transliteration or mixed English tokens when responding in Indian languages.
+7. LANGUAGE & INSTITUTION INTEGRITY (CRITICAL - ZERO SCRIPT MIXING):
+   - Always refer to our institution and sanctum purely in ${targetLang}: "${PROMPT_SANSTHANA_BY_LANG[session.language || "kn"] || "Sri Baggona Panchanga"}" and "${PROMPT_GOKARNA_BY_LANG[session.language || "kn"] || "Sri Kshetra Gokarna"}".
+   - Address the devotee affectionately in natural native ${targetLang} idioms ONLY (e.g. "${PROMPT_VOCATIVE_BY_LANG[session.language || "kn"] || "Dear"} ${session.name}"). NEVER invent corrupted words or borrow Kannada/Hindi/other script words!
+   - You MUST respond 100% EXCLUSIVELY in ${targetLang} script. Even one letter from another script is strictly forbidden.
 
 8. TONE & DELIVERY:
    - Warm, dignified, spiritually authoritative, compassionate, and deeply comforting.
@@ -5353,19 +4265,39 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
     );
   } else {
     try {
-      responseText = await askGemini(
+      const sanitizedPrompt = sanitizePromptForTargetLanguage(prompt, session.language || "kn");
+      const rawGeminiReply = await askGemini(
         userQuestion,
-        prompt,
+        sanitizedPrompt,
         effectiveApiKey,
         session.language,
         {
           raw: true,
-          temperature: 0.3,
+          temperature: 0.25,
           retries: 3,
           retryDelay: 2000,
           conversationHistory
         }
       );
+      const checked = guardAndCleanGeminiScript(rawGeminiReply, session.language || "kn");
+      if (checked.ok) {
+        responseText = checked.sanitized;
+      } else {
+        console.warn(`[consultationAIEngine] Rejecting off-language Gemini reply for ${session.language}, engaging pure deterministic fallback.`);
+        responseText = generateDeterministicFallbackReading(
+          session,
+          userQuestion,
+          lagnaName,
+          moonRashi,
+          nakshatra,
+          currentDashaText,
+          activeDosha,
+          astroData,
+          isSubsequent,
+          params.questionIndex,
+          conversationHistory
+        );
+      }
     } catch (err) {
       console.warn(
         "[consultationAIEngine] Gemini API notice, engaging deterministic fallback:",
@@ -5429,13 +4361,21 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
     userQuestion,
     candidateAnswer: cleaned,
     conversationHistory,
-    rulingsLedger: session.rulingsLedger
+    rulingsLedger: priorRulingsForUltaPalta
   });
   const finalFullText = verified.harmonizedText;
-  const finalParagraphs = finalFullText
+  const splitFinal = finalFullText
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
+  // Preserve merging short sacred invocation header (e.g. "॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥")
+  // into Paragraph 1 so direct verdict / front-loaded answer is always in paragraphs[0]
+  const finalParagraphs =
+    splitFinal.length >= 2 &&
+    splitFinal[0].startsWith("॥") &&
+    splitFinal[0].length <= 80
+      ? [`${splitFinal[0]}\n\n${splitFinal[1]}`, ...splitFinal.slice(2)]
+      : splitFinal;
 
   return {
     fullText: finalFullText,
@@ -5444,509 +4384,17 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
     doshaName: activeDosha.doshaName,
     doshaParihara: activeDosha.recommendedPooja,
     activeDoshaCard: shouldAttachCard ? activeDosha.cardData : undefined,
-    astrologicalHighlights: {
+    astrologicalHighlights: buildLocalizedAstroHighlights({
+      lang: session.language || "kn",
       lagna: lagnaName,
       moonSign: moonRashi,
-      nakshatra: `${nakshatra} (ಪಾದ ${pada})`,
+      nakshatra,
+      pada,
       currentDasha: currentDashaText,
-      keyInfluences: [
-        `${lagnaName} ಲಗ್ನ & ${moonRashi} ರಾಶಿ`,
-        `ಪ್ರಸ್ತುತ: ${currentDashaText}`,
-        activeDosha.hasDosha
-          ? `ದೋಷ ಪರಿಹಾರ: ${activeDosha.doshaName}`
-          : `ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷಣೆ`
-      ]
-    }
+      hasDosha: activeDosha.hasDosha,
+      doshaName: activeDosha.doshaName
+    })
   };
-}
-
-/**
- * Generates an authentic, focused 1-to-2 paragraph gemstone reading.
- * Strictly adheres to the 80/20 golden rule with the direct recommendation front-loaded in sentence 1.
- */
-export function buildDeterministicGemstoneReading(
-  session: ConsultationSession,
-  question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  rec: AstrologicalRecommendationProfile,
-  _isSubsequent: boolean,
-  conversationHistory?: AskGeminiChatTurn[]
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-  const gemName = rec.primaryGemstoneName[lang] || rec.primaryGemstoneName.kn;
-  const metal = rec.idealMetal[lang] || rec.idealMetal.kn;
-  const finger = rec.idealFinger[lang] || rec.idealFinger.kn;
-  const wearingDayAndTime = rec.wearingDayAndTime[lang] || rec.wearingDayAndTime.kn;
-  const mantra = rec.gemstoneMantra[lang] || rec.gemstoneMantra.kn;
-  const benefits = rec.gemstoneBenefits[lang] || rec.gemstoneBenefits.kn;
-  const substitute = rec.substituteGemstones[lang] || rec.substituteGemstones.kn;
-  const incompatibilities = rec.gemstoneIncompatibilities[lang] || rec.gemstoneIncompatibilities.kn;
-
-  const qLower = question.toLowerCase();
-
-  // Multi-turn context inspection
-  const historyText = conversationHistory
-    ? conversationHistory.map((t) => t.text.toLowerCase()).join(" ")
-    : "";
-  const hasDiamondInHistory = /diamond|heera|ವಜ್ರ|हीरा|वज्र|వజ్రం|వైరం|വൈരം/i.test(historyText);
-  const hasRejectedWhiteCoralInHistory = /white coral|safed moonga|ಬಿಳಿ ಹವಳ|white havala/i.test(historyText);
-
-  // 0. SPECIFIC TULA (LIBRA) PUSHPARAGA (YELLOW SAPPHIRE) STRICT PROHIBITION INQUIRY
-  const isTulaNative =
-    /ತುಲಾ|tula|libra/i.test(_astroData?.lagnaName || "") ||
-    /ತುಲಾ|tula|libra/i.test(_astroData?.moonRashi || "") ||
-    /ತುಲಾ|tula|libra/i.test(question) ||
-    /ತುಲಾ|tula|libra/i.test(session.place || "");
-
-  const isPushparagaQuery =
-    /ಪುಷ್ಯರಾಗ|ಪುಷ್ಯ|ಹಳದಿ ಪುಷ್ಯ|pushparaga|yellow sapphire|pukhraj|पुखराज|పుష్యరాగం|புஷ்பராகம்|പുഷ്യരാഗം/i.test(
-      qLower
-    );
-
-  if (isPushparagaQuery && isTulaNative) {
-    if (lang === "en") {
-      const p1 = `100% Authoritative Astrological Determination (Pushparaga for Tula Prohibited): For your Tula (Libra) Lagna / Rashi, Yellow Sapphire (Pushparaga / Pukhraj) will NOT work and is STRICTLY PROHIBITED! In classical Parashari Jyotisha, Jupiter (Guru) is the functional lord of your 3rd house (effort/strain) and the 6th house (Roga/disease, Rina/debts, Shatru/enemies, and litigation). Even if Jupiter is naturally a benefic, or placed in the 9th or 11th house, or whatever transit Jupiter is currently undergoing, functional lordship of the 6th house takes absolute precedence (Adhipatya Dosha). Wearing Yellow Sapphire will directly energize your 6th house, inviting digestive and liver ailments, unexpected financial liabilities/debts, and workplace hostility. Therefore, Yellow Sapphire must never be worn for Tula.`;
-      const p2 = `Your single scripture-approved benefic gemstone is Diamond (Vajra) or authentic natural White Zircon / White Opal in pure silver to empower your benefic Lagna Lord Venus. Setting White Zircon in silver and wearing it on a Friday morning will attract genuine wealth, marital harmony, and protective grace from Sri Kshetra Gokarna Mahabaleshwara.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "hi") {
-      const p1 = `१००% प्रामाणिक दैवज्ञ निर्णय (तुला लग्न/राशि के लिए पुखराज पूर्णतः वर्जित): आपकी तुला लग्न अथवा तुला राशि के लिए पीला पुखराज (Yellow Sapphire) कभी फलदायी नहीं होगा और पूरी तरह वर्जित है! महर्षि पराशर के सिद्धांत के अनुसार, तुला लग्न में देवगुरु बृहस्पति तृतीय (कठिन परिश्रम) तथा षष्ठ भाव (रोग, ऋण, शत्रु एवं कोर्ट-कचहरी विवाद) के स्वामी होते हैं। गुरु कुंडली में भले ही किसी भी भाव में स्थित हों या वर्तमान गोचर में हों, षष्ठ भाव का आधिपत्य दोष सर्वोच्च रहता है। पुखराज धारण करने से रोग, अनावश्यक कर्ज और मानसिक अशांति बढ़ती है।`;
-      const p2 = `तुला के लिए एकमात्र कल्याणकारी रत्न लग्नेश शुक्र का हीरा (Vajra) अथवा प्राकृतिक सफेद जरकन / ओपल है। इसे चांदी में बनवाकर शुक्रवार की सुबह धारण करने से सुख, ऐश्वर्य और श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा प्राप्त होगी।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    // Kannada Default
-    const p1 = `೧೦೦% ಖಚಿತ ಶಾಸ್ತ್ರೋಕ್ತ ತೀರ್ಮಾನ (ತುಲಾ ಲಗ್ನ/ರಾಶಿಗೆ ಪುಷ್ಯರಾಗ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಷೇಧ): ನಿಮ್ಮ ತುಲಾ ಲಗ್ನ ಅಥವಾ ತುಲಾ ರಾಶಿಗೆ ಹಳದಿ ಪುಷ್ಯರಾಗ (Yellow Sapphire / Pukhraj) ರತ್ನವು ಶತಸಿದ್ಧವಾಗಿ ನಿಷೇಧವಾಗಿದ್ದು, ಎಂದಿಗೂ ಫಲಿಸುವುದಿಲ್ಲ! ಪರಾಶರ ಮಹರ್ಷಿಗಳ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ತುಲಾ ಲಗ್ನಕ್ಕೆ ಗುರುವು ೩ನೇ (ಅತಿಯಾದ ಪ್ರಯಾಸ) ಹಾಗೂ ೬ನೇ (ರೋಗ, ಋಣ/ಸಾಲ, ಶತ್ರು ಹಾಗೂ ನ್ಯಾಯಾಲಯದ ವ್ಯಾಜ್ಯ) ದುಸ್ಥಾನಗಳ ಅಧಿಪತಿಯಾಗಿದ್ದಾನೆ. ಜಾತಕದಲ್ಲಿ ಗುರುವು ನೈಸರ್ಗಿಕ ಶುಭಗ್ರಹವಾಗಿದ್ದರೂ, ಅಥವಾ ೯/೧೧ನೇ ಮನೆಗಳಲ್ಲಿದ್ದರೂ, ಅಥವಾ ಪ್ರಸ್ತುತ ಯಾವುದೇ ಗೋಚಾರದಲ್ಲಿದ್ದರೂ, ೬ನೇ ಮನೆಯ ಅಧಿಪತ್ಯ ದೋಷವೇ ಪ್ರಮುಖವಾಗುತ್ತದೆ. ಇಂತಹ ಸ್ಥಿತಿಯಲ್ಲಿ ಪುಷ್ಯರಾಗ ಧರಿಸಿದರೆ ಹೊಟ್ಟೆ/ಯಕೃತ್ತಿನ ಕಾಯಿಲೆಗಳು, ತೀರಿಸಲಾಗದ ಸಾಲದ ಹೊರೆ ಹಾಗೂ ವಿವಾದಗಳು ಉಲ್ಬಣಗೊಳ್ಳುತ್ತವೆ.`;
-    const p2 = `ತುಲಾ ಲಗ್ನಕ್ಕೆ ಶುಭವನ್ನು ತರುವ ಏಕೈಕ ರತ್ನವೆಂದರೆ ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರನ ವಜ್ರ (Diamond) ಅಥವಾ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon / White Opal). ಇದನ್ನು ಶುದ್ಧ ಬೆಳ್ಳಿಯ ಉಂಗುರದಲ್ಲಿ ಮಾಡಿಸಿ ಶುಕ್ರವಾರದಂದು ಧರಿಸುವುದರಿಂದ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ, ದಾಂಪತ್ಯ ಸೌಖ್ಯ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ರಕ್ಷಣೆ ದೊರೆಯಲಿದೆ.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // 1. SPECIFIC WHITE CORAL INQUIRY (e.g. Can I wear white coral instead of diamond? / Is white coral good for me?)
-  const isWhiteCoralInquiry =
-    /ಬಿಳಿ\s*ಹವಳ|white\s*coral|safed\s*moonga|safed\s*munga|सफेद\s*मूंगा|తెల్ల\s*పగడం|வெள்ளை\s*பவளம்|വെളുത്ത\s*പവിഴം|पांढरा\s*पोवळा|white\s*havala/i.test(
-      qLower
-    ) ||
-    ((/ಹವಳ|coral|moonga|పగడం|பவளம்|പവിഴം|पोवळा/i.test(qLower) &&
-      /ವಜ್ರ|diamond|heera|ಶುಕ್ರ|venus|वज्र|हीरा|వజ్రం|వైరం|വൈരം/i.test(qLower)));
-
-  // 2. DIAMOND ALTERNATIVE / BUDGET INQUIRY (e.g. "I don't have money for diamond, alternative what do you suggest?")
-  const isDiamondAlternativeInquiry =
-    (!isWhiteCoralInquiry &&
-      (/diamond|ವಜ್ರ|heera|हीरा|वज्र|వజ్రం|వైరం|വൈരം/i.test(qLower) ||
-        (hasDiamondInHistory && !/ruby|emerald|sapphire|pearl|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ನೀಲ|ಮುತ್ತು/i.test(qLower))) &&
-      /alternative|substitute|expensive|money|cost|afford|budget|cheap|another|option|other|ಬೇರೆ|ಬದಲಿ|ಪರ್ಯಾಯ|ಹಣ|ಖರ್ಚು|ಕೈಗೆಟುಕುವ|ಬಜೆಟ್|बदला|सस्ता|पैसे|विकल्प|ఖర్చు|తక్కువ ధర|விலை|பட்ஜெட்|ചെലവ്|बजेट/i.test(
-        qLower
-      )) ||
-    (hasDiamondInHistory &&
-      hasRejectedWhiteCoralInHistory &&
-      /alternative|substitute|what do you suggest|what else|other|ಬೇರೆ|ಬದಲಿ|ಪರ್ಯಾಯ/i.test(qLower));
-
-  // --- WHITE CORAL INQUIRY RESOLUTION (TRUTH DIRECTLY UPFRONT) ---
-  if (isWhiteCoralInquiry) {
-    if (lang === "en") {
-      const p1 = `According to authentic Vedic Jyotisha, White Coral (Safed Moonga / ಬಿಳಿ ಹವಳ) is strictly NOT a substitute for Diamond or Venus (Shukra). Coral is governed entirely by Mars (Kuja/Mangala), and White Coral is prescribed specifically to cool high Pitta, bodily heat, and severe Martian afflictions. It carries Martian frequencies, not Venusian energies. Therefore, you should NOT buy or wear White Coral in place of Diamond. If Diamond is outside your budget, the authentic scripture-approved Vedic substitutes (Uparatnas) for Venus are Natural White Zircon (Shveta Zircon), Natural White Opal, or Pure Sphatika (Clear Quartz). Setting any of these in silver and wearing it on a Friday on the middle or little finger will bestow genuine Venusian blessings.`;
-      const p2 = `Always prioritize natural, untreated gemstones cleansed with sacred Vedic mantras. May the divine blessings of Sri Kshetra Gokarna Mahabaleshwara grant you enduring prosperity and joy.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "hi") {
-      const p1 = `वैदिक ज्योतिष शास्त्र के अनुसार, सफेद मूंगा (White Coral) शुक्र ग्रह अथवा हीरे का विकल्प नहीं है। मूंगा पूर्णतः मंगल ग्रह का रत्न है और सफेद मूंगा केवल मंगल के अत्यधिक पित्त, शारीरिक ताप एवं क्रोधाग्नि को शांत करने के लिए धारण किया जाता है। अतः हीरे के स्थान पर सफेद मूंगा कभी धारण न करें। यदि हीरे का बजट नहीं है, तो शुक्र के शास्त्रसम्मत शुद्ध उपरत्न प्राकृतिक सफेद जरकन (White Zircon), सफेद ओपल (White Opal) अथवा शुद्ध स्फटिक हैं। इन्हें चांदी में बनवाकर शुक्रवार की सुबह मध्यमा या कनिष्ठिका उंगली में धारण करने से हीरे के समान शुभ फल प्राप्त होते हैं।`;
-      const p2 = `श्री क्षेत्र गोकर्ण महाबलेश्वर के आशीर्वाद से यह शुद्ध उपरत्न आपके जीवन में ऐश्वर्य, शांति और सुख-समृद्धि प्रदान करेगा।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "te") {
-      const p1 = `వైదిక జ్యోతిష శాస్త్రం ప్రకారం, తెల్ల పగడం (White Coral) శుక్ర గ్రహానికి లేదా వజ్రానికి ప్రత్యామ్నాయ రత్నం కాదు. పగడం పూర్తిగా కుజ గ్రహానికి సంబంధించిన రత్నం. కుజుని అధిక వేడి, పిత్త దోషం మరియు రక్త సంబంధిత సమస్యలను తగ్గించడానికి మాత్రమే తెల్ల పగడం ధరిస్తారు. కాబట్టి వజ్రానికి బదులుగా తెల్ల పగడం ఎట్టి పరిస్థితుల్లోనూ ధరించరాదు. వజ్రానికి నిజమైన శాస్త్రోక్తమైన ఉపరత్నాలు సహజమైన వైట్ జిర్కాన్ (White Zircon), వైట్ ఓపల్ (White Opal) లేదా శుద్ధ స్ఫటికం. వీటిని వెండిలో చేయించి శుక్రవారం ఉదయం ధరించడం వల్ల వజ్రం లాంటి శుక్ర అనుగ్రహం లభిస్తుంది.`;
-      const p2 = `శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులతో మీకు సమస్త శుభాలు, శాంతి మరియు సంపదలు చేకూరుతాయి.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ta") {
-      const p1 = `வேத ஜோதிட சாஸ்திரப்படி, வெள்ளை பவளம் (White Coral) சுக்கிர கிரகத்திற்கோ அல்லது வைரத்திற்கோ மாற்றான ரத்தினம் அல்ல. பவளம் முற்றிலும் செவ்வாய் (குஜ) கிரகத்திற்குரியது; பித்த தோஷத்தையும் அதிக உஷ்ணத்தையும் தணிக்க மட்டுமே வெள்ளை பவளம் பரிந்துரைக்கப்படுகிறது. எனவே வைரத்திற்குப் பதிலாக வெள்ளை பவளத்தை அணியக்கூடாது. வைரத்திற்கு உண்மையான மற்றும் சாஸ்திரப்பூர்வமான உப ரத்தினங்கள் இயற்கை வெள்ளை ஜிர்கான் (White Zircon), வெள்ளை ஓபல் (White Opal) அல்லது தூய ஸ்படிகம் ஆகும். இவற்றை வெள்ளியில் பதித்து வெள்ளிக்கிழமை அணிவதால் சுக்கிரனின் முழு அருள் கிட்டும்.`;
-      const p2 = `ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியின் திருவருளால் சகல காரியங்களிலும் வெற்றி மற்றும் சுபிக்ஷம் உண்டாகும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ml") {
-      const p1 = `വേദ ജ്യോതിഷപ്രകാരം, വെളുത്ത പവിഴം (White Coral) ശുക്ര ഗ്രഹത്തിനോ വജ്രത്തിനോ പകരമുള്ള രത്നമല്ല. പവിഴം പൂർണ്ണമായും ചൊവ്വ (കുജ) ഗ്രഹത്തിന്റേതാണ്; അമിത പിത്തവും ഉഷ്ണവും ശമിപ്പിക്കാൻ മാത്രമാണ് വെളുത്ത പവിഴം ധരിക്കുന്നത്. അതിനാൽ വജ്രത്തിന് പകരം വെളുത്ത പവിഴം ധരിക്കരുത്. വജ്രത്തിന് ഏറ്റവും അനുയോജ്യമായ ഉപരത്നങ്ങൾ സ്വാഭാവിക വൈറ്റ് സിർക്കോൺ (White Zircon), വൈറ്റ് ഓപ്പൽ (White Opal) അല്ലെങ്കിൽ ശുദ്ധമായ സ്ഫടികം എന്നിവയാണ്. ഇവ വെള്ളിയിൽ തീർത്ത് വെള്ളിയാഴ്ച ധരിക്കുന്നത് ശുക്രന്റെ അനുഗ്രഹം നൽകും.`;
-      const p2 = `ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയുടെ അനുഗ്രഹത്താൽ ഐശ്വര്യവും സൗഭാഗ്യവും കൈവരും.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "mr") {
-      const p1 = `वैदिक ज्योतिष शास्त्रानुसार, पांढरा पोवळा (White Coral) हा शुक्र ग्रहाचा किंवा हिऱ्याचा पर्याय नाही. पोवळा पूर्णपणे मंगळ ग्रहाचे रत्न आहे आणि शरीरातील अतिरिक्त उष्णता व पित्त शांत करण्यासाठीच पांढरा पोवळा वापरला जातो. त्यामुळे हिऱ्याच्या जागी पांढरा पोवळा अजिबात घालू नये. हिऱ्याचे खरे आणि शास्त्रोक्त उपरत्न म्हणजे नैसर्गिक पांढरा जरकन (White Zircon), पांढरा ओपल (White Opal) किंवा शुद्ध स्फटिक आहेत. हे चांदीत बनवून शुक्रवारी धारण केल्यास शुक्राची पूर्ण कृपा लाभते.`;
-      const p2 = `श्री क्षेत्र गोकर्ण महाबळेश्वर यांच्या कृपेने तुमच्या जीवनात प्रगती, समाधान आणि यश लाभेल.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    // Kannada Default
-    const p1 = `ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಬಿಳಿ ಹವಳವು (White Coral / Safed Moonga) ಶುಕ್ರ ಗ್ರಹಕ್ಕೆ ಅಥವಾ ವಜ್ರಕ್ಕೆ ಪರ್ಯಾಯ ರತ್ನವಲ್ಲ. ಹವಳವು ಸಂಪೂರ್ಣವಾಗಿ ಮಂಗಳ (ಕುಜ) ಗ್ರಹಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ರತ್ನವಾಗಿದ್ದು, ಕುಜನ ಅಧಿಕ ಉಷ್ಣ, ಪಿತ್ತ ವಿಕಾರ ಮತ್ತು ರಕ್ತದೋಷವನ್ನು ಶಮನಗೊಳಿಸಲು ಮಾತ್ರ ಬಿಳಿ ಹವಳವನ್ನು ಧರಿಸಲಾಗುತ್ತದೆ. ಆದ್ದರಿಂದ ವಜ್ರದ ಬದಲು ಬಿಳಿ ಹವಳವನ್ನು ಎಂದಿಗೂ ಧರಿಸಬಾರದು. ವಜ್ರಕ್ಕೆ ನಿಜವಾದ ಮತ್ತು ಕೈಗೆಟುಕುವ ಶಾಸ್ತ್ರೋಕ್ತ ಉಪರತ್ನಗಳೆಂದರೆ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon), ನೈಸರ್ಗಿಕ ಬಿಳಿ ಓಪಲ್ (White Opal) ಅಥವಾ ಶುದ್ಧ ಸ್ಫಟಿಕ (Sphatika). ಇವುಗಳನ್ನು ಬೆಳ್ಳಿಯಲ್ಲಿ ಉಂಗುರ ಮಾಡಿಸಿ ಶುಕ್ರವಾರ ಧರಿಸುವುದರಿಂದ ವಜ್ರದಷ್ಟೇ ಪವಿತ್ರ ಶುಕ್ರಾನುಗ್ರಹ ಲಭಿಸುತ್ತದೆ.`;
-    const p2 = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ರತ್ನವನ್ನು ಪವಿತ್ರಗೊಳಿಸಿ ಧರಿಸುವುದರಿಂದ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಸೌಭಾಗ್ಯ ಮತ್ತು ಸಮೃದ್ಧಿ ನೆಲೆಸುತ್ತದೆ.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // --- DIAMOND ALTERNATIVE / BUDGET INQUIRY RESOLUTION ---
-  if (isDiamondAlternativeInquiry) {
-    if (lang === "en") {
-      const p1 = `If a natural Diamond is beyond your budget, Vedic astrology offers three authentic, highly potent, and affordable substitutes (Uparatnas) for Venus (Shukra): 1) Natural White Zircon (Shveta Zircon - closest optical and energetic frequency to Diamond), 2) Natural Australian White Opal, or 3) Pure Sphatika (Clear Quartz). Important reminder: Never substitute Diamond with White Coral, as Coral belongs strictly to Mars. Have your chosen substitute gemstone set in pure silver and wear it on your middle or little finger on a Friday morning during Shukla Paksha after chanting 'Om Shum Shukraya Namaha' 108 times.`;
-      const p2 = `These authentic Vedic Uparatnas channel the exact benefic Venusian grace, enhancing creativity, marital happiness, and financial prosperity. May Lord Mahabaleshwara of Sri Kshetra Gokarna bless you with complete fulfillment.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "hi") {
-      const p1 = `यदि हीरा आपके बजट से बाहर है, तो वैदिक ज्योतिष में शुक्र ग्रह के लिए तीन अत्यंत शुभ, शक्तिशाली एवं किफायती शास्त्रसम्मत उपरत्न बताए गए हैं: १) प्राकृतिक सफेद जरकन (White Zircon - हीरे का सर्वश्रेष्ठ विकल्प), २) प्राकृतिक सफेद ओपल (White Opal), अथवा ३) शुद्ध स्फटिक। ध्यान रहे कि हीरे के स्थान पर सफेद मूंगा कभी न पहनें, क्योंकि मूंगा मंगल का रत्न है। इनमें से किसी एक उपरत्न को शुद्ध चांदी में बनवाकर शुक्ल पक्ष के शुक्रवार की सुबह 'ॐ शुं शुक्राय नमः' मंत्र का १०८ बार जप करके मध्यमा या कनिष्ठिका उंगली में धारण करें।`;
-      const p2 = `यह शास्त्रोक्त उपरत्न आपको हीरे के समान ही सुख, ऐश्वर्य और पारिवारिक सौहार्द प्रदान करेगा। श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा आप पर सदैव बनी रहे।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "te") {
-      const p1 = `వజ్రం ఖరీదైనది కావడం వల్ల మీ బడ్జెట్‌కు అనుకూలంగా లేకపోతే, వైదిక జ్యోతిషంలో శుక్ర గ్రహానికి మూడు అత్యంత శుభప్రదమైన, చవకైన ఉపరత్నాలు సూచించబడ్డాయి: 1) సహజ వైట్ జిర్కాన్ (White Zircon), 2) సహజ వైట్ ఓపల్ (White Opal), లేదా 3) శుద్ధ స్ఫటికం. గమనించండి, వజ్రానికి బదులుగా తెల్ల పగడం ఎప్పుడూ ధరించకూడదు, ఎందుకంటే పగడం కుజుడి రత్నం. ఈ ఉపరత్నాలలో ఒకదానిని శుద్ధ వెండిలో చేయించి, శుక్ల పక్షం శుక్రవారం ఉదయం 'ఓం శుం శుక్రాయ నమః' మంత్రాన్ని 108 సార్లు జపించి మధ్య వేలు లేదా చిటికెన వేలుకు ధరించాలి.`;
-      const p2 = `ఈ దివ్య ఉపరత్నం వజ్రం లాంటి ఫలితాలను, దాంపత్య సుఖాన్ని మరియు ఆర్థిక శ్రేయస్సును అందిస్తుంది. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి అనుగ్రహం మీకు సదా ఉండాలని ప్రార్థిస్తున్నాను.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ta") {
-      const p1 = `வைரம் அதிக விலை கொண்டதாக இருந்து உங்கள் வசதிக்கு அப்பாற்பட்டதாக இருந்தால், வேத ஜோதிடத்தில் சுக்கிர கிரகத்திற்கு மூன்று சிறந்த மற்றும் மலிவான உப ரத்தினங்கள் பரிந்துரைக்கப்பட்டுள்ளன: 1) இயற்கை வெள்ளை ஜிர்கான் (White Zircon), 2) இயற்கை வெள்ளை ஓபல் (White Opal), அல்லது 3) தூய ஸ்படிகம். முக்கிய குறிப்பு: வைரத்திற்கு பதிலாக வெள்ளை பவளத்தை அணியக்கூடாது, ஏனெனில் பவளம் செவ்வாயின் ரத்தினம். இந்த உப ரத்தினத்தை சுத்தமான வெள்ளியில் பதித்து, சுக்கில பட்ச வெள்ளிக்கிழமை காலையில் 'ஓம் ஷும் சுக்ராய நமஹ' மந்திரத்தை 108 முறை ஜெபித்து நடுவிரல் அல்லது சுண்டுவிரலில் அணிய வேண்டும்.`;
-      const p2 = `இது வைரத்திற்கு இணையான நற்பலன்களையும், குடும்ப அமைதியையும், பொருளாதார மேன்மையையும் தரும். ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியின் ஆசிகள் உங்களுக்கு என்றும் துணை நிற்கும்.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "ml") {
-      const p1 = `വജ്രം വാങ്ങാൻ സാമ്പത്തിക ബുദ്ധിമുട്ടുണ്ടെങ്കിൽ, വേദ ജ്യോതിഷത്തിൽ ശുക്ര ഗ്രഹത്തിനായി മൂന്ന് വിശേഷപ്പെട്ടതും ചെലവ് കുറഞ്ഞതുമായ ഉപരത്നങ്ങൾ നിർദ്ദേശിച്ചിട്ടുണ്ട്: 1) സ്വാഭാവിക വൈറ്റ് സിർക്കോൺ (White Zircon), 2) സ്വാഭാവിക വൈറ്റ് ഓപ്പൽ (White Opal), അല്ലെങ്കിൽ 3) ശുദ്ധമായ സ്ഫടികം. ശ്രദ്ധിക്കുക, വജ്രത്തിന് പകരമായി വെളുത്ത പവിഴം ഒരിക്കലും ധരിക്കരുത്, കാരണം പവിഴം ചൊവ്വയുടെ രത്നമാണ്. ഈ ഉപരത്നം ശുദ്ധമായ വെള്ളിയിൽ മോതിരം തീർത്ത്, ശുക്ലപക്ഷത്തിലെ വെള്ളിയാഴ്ച 'ഓം ശും ശുക്രായ നമഃ' മന്ത്രം 108 തവണ ജപിച്ച് നടുവിരലിലോ ചെറുവിരലിലോ ധരിക്കുക.`;
-      const p2 = `ഇത് വജ്രത്തിന് തുല്യമായ ഗുണഫലങ്ങളും സാമ്പത്തിക അഭിവൃദ്ധിയും നൽകും. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയുടെ അനുഗ്രഹം ഉണ്ടാകട്ടെ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    if (lang === "mr") {
-      const p1 = `जर हिरा खरेदी करणे तुमच्या बजेटबाहेर असेल, तर वैदिक ज्योतिषात शुक्र ग्रहासाठी तीन अत्यंत प्रभावी आणि परवडणारे शास्त्रोक्त उपरत्न सांगितले आहेत: १) नैसर्गिक पांढरा जरकन (White Zircon), २) नैसर्गिक पांढरा ओपल (White Opal), किंवा ३) शुद्ध स्फटिक. लक्षात ठेवा, हिऱ्याच्या ऐवजी पांढरा पोवळा कधीही घालू नका, कारण पोवळा मंगळाचा आहे. यापैकी एक उपरत्न शुद्ध चांदीत बनवून, शुक्ल पक्षातील शुक्रवारी सकाळी 'ॐ शुं शुक्राय नमः' मंत्राचा १०८ वेळा जप करून मधल्या किंवा करंगळी बोटात धारण करावे.`;
-      const p2 = `हे शास्त्रोक्त उपरत्न हिऱ्याप्रमाणेच समृद्धी, कला आणि कौटुंबिक सौख्य प्रदान करेल. श्री क्षेत्र गोकर्ण महाबळेश्वर यांच्या कृपेने तुमचे सर्व कार्य सिद्ध होवो.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
-    }
-    // Kannada Default
-    const p1 = `ವಜ್ರದ ಬೆಲೆ ಹೆಚ್ಚಾಗಿದ್ದು ನಿಮ್ಮ ಬಜೆಟ್‌ಗೆ ಕೈಗೆಟುಕದಿದ್ದರೆ, ವೈದಿಕ ಶಾಸ್ತ್ರದಲ್ಲಿ ಶುಕ್ರ ಗ್ರಹಕ್ಕೆ ಮೂರು ಶ್ರೇಷ್ಠ ಮತ್ತು ಕೈಗೆಟುಕುವ ನೈಸರ್ಗಿಕ ಉಪರತ್ನಗಳನ್ನು (Substitutes) ವಿಧಿಸಲಾಗಿದೆ: ೧) ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon - ವಜ್ರಕ್ಕೆ ಅತ್ಯಂತ ಸಮೀಪವಾದ ರತ್ನ), ೨) ನೈಸರ್ಗಿಕ ಬಿಳಿ ಓಪಲ್ (White Opal), ೩) ಶುದ್ಧ ಸ್ಫಟಿಕ ಮಣಿ (Sphatika). ನೆನಪಿನಲ್ಲಿಡಿ, ಬಿಳಿ ಹವಳವನ್ನು ಎಂದಿಗೂ ವಜ್ರದ ಬದಲು ಧರಿಸಬಾರದು ಏಕೆಂದರೆ ಹವಳವು ಮಂಗಳನ ರತ್ನ. ಈ ಪರ್ಯಾಯ ಉಪರತ್ನಗಳನ್ನು ಶುದ್ಧ ಬೆಳ್ಳಿಯ (Silver) ಉಂಗುರದಲ್ಲಿ ಮಾಡಿಸಿ, ಶುಕ್ಲ ಪಕ್ಷದ ಶುಕ್ರವಾರದಂದು 'ಓಂ ಶುಂ ಶುಕ್ರಾಯ ನಮಃ' ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಜಪಿಸಿ ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳಿಗೆ ಧರಿಸಬೇಕು.`;
-    const p2 = `ಈ ಪವಿತ್ರ ಉಪರತ್ನವು ವಜ್ರದಷ್ಟೇ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯನ್ನು ನೀಡಿ ವೈವಾಹಿಕ ಸಾಮರಸ್ಯ, ಸೌಂದರ್ಯ ಮತ್ತು ಆರ್ಥಿಕ ಸಮೃದ್ಧಿಯನ್ನು ತರುತ್ತದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ನಿಮಗೆ ಸಕಲ ಸಿದ್ಧಿ ಲಭಿಸಲಿ.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // --- GENERAL GEMSTONE INQUIRY ---
-  const asksCoral = /ಹವಳ|havala|coral|ಮೂಂಗಾ|moonga|munga|मूंगा|పగడం|pagadam|பவளம்|pavalam|പവിഴം|pavizham|पोवळा/i.test(question);
-  const isCoralMatched = rec.isCoralMatched;
-
-  if (lang === "en") {
-    let coralLine = "";
-    if (asksCoral) {
-      if (isTulaNative) {
-        coralLine = "Regarding Red Coral (Moonga / Havala): For Tula (Libra) Lagna, Mars rules the 2nd and 7th houses, which are Maraka sthanas (critical transition/death-inflicting houses). Wearing Red Coral is strictly caution-advised and generally NOT recommended, as Martian fire intensifies marital friction, aggressive anger, and discord with your spouse. ";
-      } else {
-        coralLine = isCoralMatched
-          ? "The Red Coral (Havala / Moonga) you specifically inquired about is indeed an exceptional Yoga-Karaka gemstone that aligns superbly with your chart. "
-          : `Regarding Red Coral, your primary ascendant gem is ${gemName}, which will yield the most potent and balanced benefits for your chart. `;
-      }
-    } else if (isCoralMatched) {
-      coralLine = "In addition, Red Coral (Havala) serves as a potent secondary Yoga-Karaka gemstone for your chart. ";
-    }
-    const p1 = `For your birth chart, the most auspicious and empowering primary gemstone is ${gemName} to strengthen your ruling planet ${rec.gemstonePlanet}. ${coralLine}Authentic affordable substitutes (Uparatna) include ${substitute}. Note that incompatible stones to avoid are: ${incompatibilities}. This sacred gemstone should be set in ${metal} and worn on the ${finger} on ${wearingDayAndTime}. Before wearing, purify it in unboiled milk or holy water while chanting the sacred mantra '${mantra}' 108 times, which ${benefits}`;
-    const p2 = `Always ensure the gemstone is authentic, natural, and free from cracks or flaws before consecrating it. May the divine grace of Sri Kshetra Gokarna Mahabaleshwara bestow immense confidence, success, and prosperity upon your journey.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "hi") {
-    let coralLine = "";
-    if (asksCoral) {
-      coralLine = isCoralMatched
-        ? "आपके द्वारा पूछा गया लाल मूंगा (Red Coral) आपकी कुंडली के अनुसार अत्यंत शुभ और योगकारक रत्न है। "
-        : `लाल मूंगे की तुलना में आपकी कुंडली के लग्नेश का मुख्य रत्न ${gemName} धारण करना अधिक फलदायी रहेगा। `;
-    } else if (isCoralMatched) {
-      coralLine = "विशेष रूप से आपकी कुंडली में लाल मूंगा (Red Coral) भी उत्तम योगकारक बल प्रदान करता है। ";
-    }
-    const p1 = `आपकी जन्म कुंडली के अनुसार आपके लिए सबसे शुभ और भाग्यवर्धक मुख्य रत्न ${gemName} है, जो आपके ग्रह ${rec.gemstonePlanet} को विशेष बल प्रदान करता है। ${coralLine}किफायती शास्त्रोक्त उपरत्न: ${substitute}। वर्जित रत्न: ${incompatibilities}। इस पवित्र रत्न को ${metal} में बनवाकर ${wearingDayAndTime} ${finger} में धारण करें। धारण करने से पूर्व कच्चे दूध या गंगाजल से शुद्ध करके '${mantra}' मंत्र का १०८ बार जप करें। यह रत्न ${benefits}`;
-    const p2 = `ध्यान रहे कि रत्न सर्वथा प्राकृतिक, शुद्ध और दोषरहित होना चाहिए। श्री क्षेत्र गोकर्ण महाबलेश्वर के आशीर्वाद से यह रत्न आपके जीवन में स्थिरता, तेज और सफलता प्रदान करेगा।`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "te") {
-    let coralLine = "";
-    if (asksCoral) {
-      coralLine = isCoralMatched
-        ? "మీరు అడిగిన ఎరుపు పగడం (Red Coral) మీ జాతకానికి అత్యంత శుభప్రదమైన యోగకారక రత్నం. "
-        : `పగడం కంటే కూడా మీ లగ్నాధిపతి రత్నమైన ${gemName} ధరించడం విశేష ఫలితాన్నిస్తుంది. `;
-    } else if (isCoralMatched) {
-      coralLine = "విశేషించి మీ జాతకానికి ఎరుపు పగడం (Red Coral) కూడా అద్భుతమైన యోగకారక బలాన్ని ఇస్తుంది. ";
-    }
-    const p1 = `మీ జన్మ కుండలి ప్రకారం మీకు అత్యంత శుభప్రదమైన మరియు శక్తివంతమైన ప్రధాన రత్నం ${gemName}, ఇది మీ గ్రహమైన ${rec.gemstonePlanet}కు విశేష బలాన్ని చేకూరుస్తుంది. ${coralLine}సరసమైన ఉపరత్నాలు: ${substitute}। ధరించకూడని రత్నాలు: ${incompatibilities}। ఈ రత్నాన్ని ${metal}లో పొదిగించి, ${wearingDayAndTime} ${finger} ధరించాలి. ధరించడానికి ముందు శుద్ధ జలంతో లేదా ఆవు పాలతో శుద్ధి చేసి '${mantra}' మంత్రాన్ని 108 సార్లు జపించి ధరించడం వలన ${benefits}`;
-    const p2 = `రత్నం సహజమైనది మరియు దోషరహితమైనదిగా ఉండేలా చూసుకోండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులతో మీకు సర్వదా శుభం కలుగుతుంది.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "ta") {
-    let coralLine = "";
-    if (asksCoral) {
-      coralLine = isCoralMatched
-        ? "நீங்கள் கேட்ட பவளம் (Red Coral) உங்கள் ஜாதகத்திற்கு மிகச்சிறந்த யோககாரக ரத்தினமாகும். "
-        : `பவளத்தை விட உங்கள் லக்னாதிபதி ரத்தினமான ${gemName} அணிவதே அதிக நற்பலன்களைத் தரும். `;
-    } else if (isCoralMatched) {
-      coralLine = "குறிப்பாக உங்கள் ஜாதகத்திற்கு பவளமும் (Red Coral) சிறந்த யோக பலனைத் தரும். ";
-    }
-    const p1 = `உங்கள் ஜாதக அமைப்பின்படி உங்களுக்கு மிகவும் யோகமும் மங்களமும் தரும் முதன்மை நவரத்தினம் ${gemName} ஆகும். இது உங்கள் ${rec.gemstonePlanet} கிரகத்திற்கு அளப்பரிய பலத்தைத் தரும். ${coralLine}மலிவான உப ரத்தினங்கள்: ${substitute}। தவிர்க்க வேண்டிய ரத்தினங்கள்: ${incompatibilities}। இந்த ரத்தினத்தை ${metal}-ல் பதித்து, ${wearingDayAndTime} ${finger}-ல் அணிய வேண்டும். அணியும் முன் தூய பால் அல்லது கங்கை நீரால் சுத்தி செய்து '${mantra}' மந்திரத்தை 108 முறை ஜெபித்து அணிவதால் ${benefits}`;
-    const p2 = `ரத்தினம் இயற்கையானதாகவும் தரம் வாய்ந்ததாகவும் இருக்க வேண்டும். ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியின் திருவருளால் உங்களுக்கு சகல காரியங்களிலும் வெற்றி உண்டாகும்.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "ml") {
-    let coralLine = "";
-    if (asksCoral) {
-      coralLine = isCoralMatched
-        ? "നിങ്ങൾ ചോദിച്ച പവിഴം (Red Coral) നിങ്ങളുടെ ജാതകത്തിന് ഏറ്റവും ഉത്തമമായ യോഗകാരക രത്നമാണ്. "
-        : `പവിഴത്തേക്കാൾ നിങ്ങളുടെ ലഗ്നാധിപൻ്റെ രത്നമായ ${gemName} ധരിക്കുന്നതാണ് കൂടുതൽ ഗുണകരം. `;
-    } else if (isCoralMatched) {
-      coralLine = "പ്രത്യേകിച്ചും ചുവന്ന പവിഴവും (Red Coral) നിങ്ങളുടെ ജാതകത്തിന് യോഗബലം നൽകുന്നു. ";
-    }
-    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം ഏറ്റവും അനുകൂലവും ഐശ്വര്യപ്രദവുമായ പ്രധാന രത്നം ${gemName} ആണ്. ഇത് നിങ്ങളുടെ ${rec.gemstonePlanet} ഗ്രഹത്തിന് വിശേഷ ബലം നൽകുന്നു. ${coralLine}ചെലവ് കുറഞ്ഞ ഉപരത്നങ്ങൾ: ${substitute}। ധരിക്കാൻ പാടില്ലാത്ത രത്നങ്ങൾ: ${incompatibilities}। ഈ രത്നം ${metal}-ൽ പണിത് ${wearingDayAndTime} ${finger}-ൽ ധരിക്കണം. ധരിക്കുന്നതിന് മുമ്പ് പശുവിൻ പാലിലോ തീർത്ഥത്തിലോ ശുദ്ധിവരുത്തി '${mantra}' മന്ത്രം 108 തവണ ജപിച്ച് ധരിച്ചാൽ ${benefits}`;
-    const p2 = `സ്വാഭാവികവും കളങ്കമില്ലാത്തതുമായ രത്നം തിരഞ്ഞെടുക്കുക. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയുടെ അനുഗ്രഹത്താൽ ഐശ്വര്യവും സൗഭാഗ്യവും കൈവരും.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "mr") {
-    let coralLine = "";
-    if (asksCoral) {
-      coralLine = isCoralMatched
-        ? "तुम्ही विचारलेला लाल पोवळा (Red Coral) तुमच्या पत्रिकेनुसार अत्यंत शुभ आणि योगकारक रत्न आहे. "
-        : `पोवळ्यापेक्षा तुमच्या लग्नेशाचे मुख्य रत्न ${gemName} धारण करणे अधिक लाभदायक ठरेल. `;
-    } else if (isCoralMatched) {
-      coralLine = "विशेषतः तुमच्या कुंडलीत लाल पोवळा (Red Coral) देखील उत्तम योगकारक बल प्रदान करतो. ";
-    }
-    const p1 = `तुमच्या जन्म कुंडलीनुसार तुमच्यासाठी सर्वात शुभ आणि लाभदायक मुख्य रत्न ${gemName} आहे, जे तुमच्या ${rec.gemstonePlanet} ग्रहाला विशेष बल प्रदान करते. ${coralLine}परवडणारे शास्त्रोक्त उपरत्न: ${substitute}। टाळायची रत्ने: ${incompatibilities}। हे रत्न ${metal} मध्ये बनवून ${wearingDayAndTime} ${finger} मध्ये धारण करावे. धारण करण्यापूर्वी कच्चे दूध किंवा गंगाजलाने शुद्ध करून '${mantra}' मंत्राचा १०८ वेळा जप करावा. यामुळे ${benefits}`;
-    const p2 = `रत्न पूर्णपणे नैसर्गिक आणि दोषमुक्त असावे. श्री क्षेत्र गोकर्ण महाबळेश्वर यांच्या कृपेने तुमच्या जीवनात प्रगती आणि यश लाभेल.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // Default: Kannada
-  let coralLine = "";
-  if (asksCoral) {
-    if (isTulaNative) {
-      coralLine = "ನೀವು ಕೇಳಿರುವ ಕೆಂಪು ಹವಳದ (Red Coral / Moonga) ವಿಚಾರದಲ್ಲಿ: ತುಲಾ ಲಗ್ನಕ್ಕೆ ಮಂಗಳನು ೨ನೇ ಹಾಗೂ ೭ನೇ ಮಾರಕ ಸ್ಥಾನಗಳ ಅಧಿಪತಿಯಾಗಿದ್ದಾನೆ. ಹವಳ ಧರಿಸುವುದರಿಂದ ಕೋಪ, ದಾಂಪತ್ಯ ಕಲಹ ಹಾಗೂ ರಕ್ತದೊತ್ತಡ ಹೆಚ್ಚಾಗುವ ಸಾಧ್ಯತೆ ಇರುವುದರಿಂದ ತುಲಾ ಲಗ್ನದವರಿಗೆ ಹವಳವನ್ನು ಧರಿಸಲು ಶಿಫಾರಸು ಮಾಡುವುದಿಲ್ಲ. ";
-    } else {
-      coralLine = isCoralMatched
-        ? "ನೀವು ಕೇಳಿರುವ ಕೆಂಪು ಹವಳವು (Red Coral) ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ತ್ರಿಕೋಣಾಧಿಪತಿಯ ಬಲಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಯೋಗಕಾರಕ ರತ್ನವಾಗಿದೆ. "
-        : `ನೀವು ಕೇಳಿರುವ ಹವಳಕ್ಕಿಂತಲೂ ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನಾಧಿಪತಿಯಾದ ${gemName} ಧರಿಸುವುದು ಶ್ರೇಷ್ಠ ಫಲ ನೀಡುತ್ತದೆ. `;
-    }
-  } else if (isCoralMatched) {
-    coralLine = "ವಿಶೇಷವಾಗಿ ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಕೆಂಪು ಹವಳವು (Red Coral) ಸಹ ಅತ್ಯುತ್ತಮ ಯೋಗಕಾರಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ. ";
-  }
-  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಗೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಹಾಗೂ ಮಂಗಳಕರವಾದ ಮುಖ್ಯ ರತ್ನವೆಂದರೆ ${gemName} (ಗ್ರಹಾಧಿಪತಿ ${rec.gemstonePlanet} ಬಲಕ್ಕಾಗಿ). ${coralLine}ಕೈಗೆಟುಕುವ ಶಾಸ್ತ್ರೋಕ್ತ ಉಪರತ್ನಗಳು: ${substitute}। ಈ ರತ್ನದೊಂದಿಗೆ ಧರಿಸಬಾರದ ವಿರುದ್ಧ ರತ್ನಗಳು: ${incompatibilities}। ಈ ಪವಿತ್ರ ರತ್ನವನ್ನು ${metal}ದಲ್ಲಿ ಉಂಗುರ ಮಾಡಿಸಿ, ${finger}ಗೆ ${wearingDayAndTime} ಧರಿಸಬೇಕು. ಧರಿಸುವ ಮುನ್ನ ಹಸಿಹಾಲು ಅಥವಾ ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ '${mantra}' ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ ಧರಿಸುವುದರಿಂದ ${benefits}`;
-  const p2 = `ರತ್ನವನ್ನು ಆಯ್ಕೆಮಾಡುವಾಗ ಯಾವುದೇ ಬಿರುಕು ಅಥವಾ ಕೃತಕತೆಯಿಲ್ಲದ ನೈಸರ್ಗಿಕ ಹರಳನ್ನೇ ಧರಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹದಿಂದ ಈ ರತ್ನಧಾರಣೆಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಆತ್ಮವಿಶ್ವಾಸ, ಧೈರ್ಯ ಹಾಗೂ ಸಕಲ ಕಾರ್ಯಸಿದ್ಧಿಯನ್ನು ತರಲಿದೆ.`;
-  return deduplicateResponseText(`${p1}\n\n${p2}`);
-}
-
-export function buildDeterministicColorReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  rec: AstrologicalRecommendationProfile,
-  _isSubsequent: boolean
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-  const luckyColors = rec.luckyColors[lang] || rec.luckyColors.kn;
-  const colorsToAvoid = rec.colorsToAvoid[lang] || rec.colorsToAvoid.kn;
-
-  if (lang === "en") {
-    const p1 = `According to your birth chart, your most auspicious and fortunate colors are **${luckyColors}**. Wearing these colors during pivotal interviews, signing contracts, launching new ventures, or attending auspicious ceremonies greatly amplifies your confidence and cosmic favor. Meanwhile, it is beneficial to avoid or minimize wearing ${colorsToAvoid}.`;
-    const p2 = `Incorporating these harmonious colors into your daily wardrobe alongside heartfelt prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna will maintain serene mental clarity and invite steady prosperity.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "hi") {
-    const p1 = `आपकी जन्म कुंडली के अनुसार आपके लिए सबसे शुभ और भाग्यशाली रंग **${luckyColors}** हैं। महत्वपूर्ण साक्षात्कारों, नए अनुबंधों, परीक्षाओं या शुभ कार्यों के अवसर पर इन रंगों के वस्त्र धारण करने से आपका आत्मविश्वास और सफलता की संभावनाएं कई गुना बढ़ जाती हैं। साथ ही, ${colorsToAvoid} रंगों का अधिक उपयोग करने से बचना चाहिए।`;
-    const p2 = `दैनिक जीवन में इन अनुकूल रंगों का प्रयोग करने के साथ-साथ श्री क्षेत्र गोकर्ण महाबलेश्वर का स्मरण करने से मानसिक शांति और निरंतर प्रगति की प्राप्ति होगी।`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "te") {
-    const p1 = `మీ జన్మ కుండలి ప్రకారం మీకు అత్యంత శుభప్రదమైన మరియు అదృష్టాన్నిచ్చే రంగులు: **${luckyColors}**. కీలకమైన ఇంటర్వ్యూలు, వ్యాపార ఒప్పందాలు, పరీక్షలు లేదా శుభకార్యాల సమయంలో ఈ రంగుల దుస్తులను ధరించడం వలన మీ ఆత్మవిశ్వాసం మరియు గ్రహానుకూలత పెరుగుతుంది. అదే సమయంలో, ${colorsToAvoid} రంగులను వీలైనంత వరకు నివారించడం శ్రేయస్కరం.`;
-    const p2 = `ఈ శుభ రంగులను మీ దైనందిన జీవితంలో ఉపయోగిస్తూ, శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారిని స్మరించడం వలన మీకు మానసిక ప్రశాంతత మరియు నిరంతర కార్యజయం లభిస్తాయి.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "ta") {
-    const p1 = `உங்கள் ஜாதக அமைப்பின்படி உங்களுக்கு மிகவும் அதிர்ஷ்டமும் நன்மையும் தரும் நிறங்கள்: **${luckyColors}**. முக்கியமான நேர்காணல்கள், புதிய முயற்சிகள், தேர்வுகள் அல்லது மங்களகரமான நிகழ்வுகளின் போது இந்த வண்ண ஆடைகளை அணிவது உங்களுக்கு தன்னம்பிக்கையையும் வெற்றிகளையும் தரும். அதே வேளையில், ${colorsToAvoid} நிறங்களை அதிகமாகப் பயன்படுத்துவதைத் தவிர்ப்பது நல்லது.`;
-    const p2 = `இந்த மங்களகரமான வண்ணங்களை அன்றாட வாழ்வில் பயன்படுத்துவதோடு, ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியை தியானித்து வருவதால் மன அமைதியும் காரிய வெற்றியும் கிட்டும்.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "ml") {
-    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം ഏറ്റവും അനുകൂലവും ഭാഗ്യപ്രദവുമായ നിറങ്ങൾ: **${luckyColors}**. പ്രധാനപ്പെട്ട ഇന്റർവ്യൂകൾ, പുതിയ സംരംഭങ്ങൾ, പരീക്ഷകൾ, മംഗളകരമായ ചടങ്ങുകൾ എന്നിവയിൽ ഈ നിറങ്ങളിലുള്ള വസ്ത്രങ്ങൾ ധരിക്കുന്നത് ആത്മവിശ്വാസവും ഭാഗ്യവും നൽകും. അതേസമയം, ${colorsToAvoid} നിറങ്ങൾ പരമാവധി ഒഴിവാക്കുന്നത് നല്ലതാണ്.`;
-    const p2 = `ഈ ശുഭ നിറങ്ങൾ ദൈനംദിന ജീവിതത്തിൽ ഉപയോഗിക്കുന്നതിനൊപ്പം ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയെ ഭജിക്കുന്നത് മനസ്സമാധാനവും വിജയവും നേടിത്തരും.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "mr") {
-    const p1 = `तुमच्या जन्म पत्रिकेनुसार तुमच्यासाठी सर्वात शुभ आणि भाग्यशाली रंग **${luckyColors}** आहेत. महत्त्वाच्या मुलाखती, नवीन व्यवसाय करार, परीक्षा किंवा शुभ कार्यांच्या प्रसंगी या रंगांचे वस्त्र परिधान केल्याने तुमचा आत्मविश्वास आणि यश वाढेल. तसेच ${colorsToAvoid} रंगांचा अति वापर टाळणे योग्य ठरेल.`;
-    const p2 = `दैनंदिन जीवनात या अनुकूल रंगांचा वापर करण्यासोबतच श्री क्षेत्र गोकर्ण महाबळेश्वर यांचे स्मरण केल्याने मानसिक शांतता आणि प्रगती लाभेल.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // Kannada Default
-  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಪ್ರಕಾರ ನಿಮಗೆ ಅತ್ಯಂತ ಶುಭ ಮತ್ತು ಅದೃಷ್ಟ ತರುವ ಮುಖ್ಯ ಬಣ್ಣಗಳು: **${luckyColors}**. ಈ ಬಣ್ಣದ ವಸ್ತ್ರಗಳನ್ನು ಪ್ರಮುಖ ಸಂದರ್ಶನಗಳು, ನೂತನ ವ್ಯವಹಾರಗಳ ಆರಂಭ, ಪರೀಕ್ಷೆಗಳು ಅಥವಾ ಶುಭ ಕಾರ್ಯಗಳ ದಿನ ಧರಿಸುವುದರಿಂದ ನಿಮ್ಮ ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ಗ್ರಹಬಲದ ಧನಾತ್ಮಕ ಸ್ಪಂದನ ಹೆಚ್ಚುತ್ತದೆ. ಅದೇ ವೇಳೆ, ${colorsToAvoid} ಬಣ್ಣದ ಅತಿಯಾದ ಬಳಕೆಯನ್ನು ಕಡಿಮೆ ಮಾಡುವುದು ಜಾತಕ ರೀತ್ಯಾ ಹಿತಕರ.`;
-  const p2 = `ದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಈ ಶುಭ ಬಣ್ಣಗಳನ್ನು ಹೆಚ್ಚಾಗಿ ಬಳಸುವುದರೊಂದಿಗೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸ್ಮರಣೆ ಮಾಡುವುದರಿಂದ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಪ್ರಶಾಂತತೆ ಹಾಗೂ ಕಾರ್ಯಗಳಲ್ಲಿ ನಿರಂತರ ಜಯವು ಲಭಿಸಲಿದೆ.`;
-  return deduplicateResponseText(`${p1}\n\n${p2}`);
-}
-
-/**
- * Generates an authentic, focused 1-to-2 paragraph lucky number reading.
- */
-export function buildDeterministicNumberReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  rec: AstrologicalRecommendationProfile,
-  _isSubsequent: boolean
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-  const primaryNumber = rec.primaryNumber;
-  const luckyNumbersText = rec.luckyNumbersText[lang] || rec.luckyNumbersText.kn;
-
-  if (lang === "en") {
-    const p1 = `Based on your ascendant and planetary vibrations, your primary lucky number is **${primaryNumber}**, supported by the harmonious series **${luckyNumbersText}**. Selecting these auspicious digits for significant dates, bank registrations, vehicle numbers, or major negotiations brings aligned planetary support.`;
-    const p2 = `Before undertaking crucial decisions, synchronizing with these auspicious numbers while seeking the grace of Lord Mahaganapati at Sri Kshetra Gokarna ensures swift clearance of obstacles and enduring success.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "hi") {
-    const p1 = `आपकी जन्म कुंडली के अनुसार आपका मुख्य भाग्यशाली अंक **${primaryNumber}** है तथा शुभ अंकों की श्रृंखला **${luckyNumbersText}** है। महत्वपूर्ण तिथियों, वाहन संख्या, बैंकिंग कार्यों अथवा नए समझौतों के लिए इन अंकों का चयन आपके लिए ग्रहबल का अनुकूल सहयोग प्रदान करेगा।`;
-    const p2 = `किसी भी नए कार्य के आरंभ से पूर्व इन शुभ अंकों का ध्यान रखकर श्री क्षेत्र गोकर्ण महागणपति की प्रार्थना करने से समस्त विघ्न दूर होकर कार्य सिद्ध होगा।`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "te") {
-    const p1 = `మీ జన్మ కుండలి ప్రకారం మీ ప్రధాన అదృష్ట సంఖ్య **${primaryNumber}** మరియు అనుకూల సంఖ్యల శ్రేణి **${luckyNumbersText}**. ముఖ్యమైన తేదీలు, బ్యాంకింగ్ వ్యవహారాలు, వాహన నంబర్లు లేదా వ్యాపార ఒప్పందాలలో ఈ సంఖ్యలను ఎంచుకోవడం వలన గ్రహబలం అనుకూలిస్తుంది.`;
-    const p2 = `ఏదైనా కొత్త పనిని ప్రారంభించే ముందు ఈ శుభ సంఖ్యల అనుకూలతతో పాటు శ్రీ క్షేత్ర గోకర్ణ మహాగణపతిని ప్రార్థించడం వలన సకల విఘ్నాలు తొలగి విజయం చేకూరుతుంది.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "ta") {
-    const p1 = `உங்கள் ஜாதகப்படி உங்கள் முதன்மை அதிர்ஷ்ட எண் **${primaryNumber}** மற்றும் மங்களகரமான எண் வரிசை **${luckyNumbersText}** ஆகும். முக்கியமான தேதிகள், வங்கி கணக்குகள், வாகன எண்கள் அல்லது புதிய ஒப்பந்தங்களின் போது இந்த எண்களைப் பயன்படுத்துவது கிரக பலத்தைத் தரும்.`;
-    const p2 = `எந்தவொரு நல்ல காரியத்தைத் தொடங்கும் முன்பும் இந்த எண்களைத் தேர்ந்தெடுத்து ஸ்ரீ சேத்ர கோகர்ண மகா கணபதியை வழிபடுவது தடைகளை நீக்கி வெற்றியைத் தரும்.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "ml") {
-    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം പ്രധാന ഭാഗ്യ നമ്പർ **${primaryNumber}** ഉം ശുഭകരമായ സംഖ്യാ പരമ്പര **${luckyNumbersText}** ഉം ആണ്. പ്രധാനപ്പെട്ട തീയതികൾ, വാഹന രജിസ്ട്രേഷൻ, കരാറുകൾ എന്നിവയിൽ ഈ സംഖ്യകൾ തിരഞ്ഞെടുക്കുന്നത് ഗ്രഹാനുകൂല്യം നൽകും.`;
-    const p2 = `പുതിയ സംരംഭങ്ങൾ തുടങ്ങുമ്പോൾ ഈ ഭാഗ്യ നമ്പറുകൾ ശ്രദ്ധിക്കുന്നതിനൊപ്പം ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാഗണപതിയെ ഭജിക്കുന്നത് വിഘ്നങ്ങളെല്ലാം മാറ്റി വിജയം തരും.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "mr") {
-    const p1 = `तुमच्या जन्म कुंडलीनुसार तुमचा मुख्य भाग्यशाली अंक **${primaryNumber}** आणि शुभ अंकांचे समीकरण **${luckyNumbersText}** आहे. महत्त्वाच्या तारखा, वाहन क्रमांक, बँकिंग किंवा नवीन करारांसाठी या अंकांचा वापर केल्यास अनुकूल ग्रहबल लाभेल.`;
-    const p2 = `कोणत्याही नवीन कार्यास सुरुवात करताना या शुभ अंकांचा विचार करून श्री क्षेत्र गोकर्ण महागणपतीची प्रार्थना केल्यास सर्व विघ्न दूर होऊन यश लाभेल.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // Kannada Default
-  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಬಲದ ಪ್ರಕಾರ ನಿಮ್ಮ ಮುಖ್ಯ ಅದೃಷ್ಟ ಸಂಖ್ಯೆ **${primaryNumber}** ಹಾಗೂ ಅತ್ಯಂತ ಶುಭಕರ ಸಂಖ್ಯೆಗಳ ಸರಣಿ **${luckyNumbersText}**. ನಿಮ್ಮ ಪ್ರಮುಖ ಬ್ಯಾಂಕ್ ವ್ಯವಹಾರಗಳು, ವಾಹನ ನೋಂದಣಿ ಸಂಖ್ಯೆ, ಹೊಸ ಒಪ್ಪಂದಗಳ ದಿನಾಂಕ ಅಥವಾ ಮಹತ್ವದ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವಾಗ ಈ ಸಂಖ್ಯೆಗಳು ಬರುವಂತೆ ನೋಡಿಕೊಳ್ಳುವುದು ಗ್ರಹಬಲದ ಶುಭ ಸ್ಪಂದನವನ್ನು ನೀಡುತ್ತದೆ.`;
-  const p2 = `ಯಾವುದೇ ಹೊಸ ಕಾರ್ಯಕ್ಕೆ ತೊಡಗುವ ಮುನ್ನ ಈ ಅದೃಷ್ಟ ಸಂಖ್ಯೆಗಳ ಸಂಯೋಗ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿಯ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ.`;
-  return deduplicateResponseText(`${p1}\n\n${p2}`);
-}
-
-/**
- * Generates an authentic, focused 1-to-2 paragraph day & deity reading.
- */
-export function buildDeterministicDayDeityReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  rec: AstrologicalRecommendationProfile,
-  _isSubsequent: boolean
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-  const ishtaDevata = rec.ishtaDevata[lang] || rec.ishtaDevata.kn;
-  const sacredMantra = rec.sacredMantra[lang] || rec.sacredMantra.kn;
-  const auspiciousDay = rec.auspiciousDay[lang] || rec.auspiciousDay.kn;
-
-  if (lang === "en") {
-    const p1 = `For your birth chart, your supreme protective Ishta Devata is **${ishtaDevata}**, and your most auspicious weekday is **${auspiciousDay}**. Devoting time on every ${auspiciousDay} to chant the sacred mantra **'${sacredMantra}'** 108 times pacifies astrological tensions and invokes profound inner strength.`;
-    const p2 = `Before undertaking important journeys or tasks, remembering your Ishta Devata and offering prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna ensures divine grace and steady fulfillment.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "hi") {
-    const p1 = `आपकी जन्म कुंडली के अनुसार आपके परम कल्याणकारी इष्टदेव **${ishtaDevata}** हैं तथा आपका सबसे शुभ वार **${auspiciousDay}** है। प्रत्येक ${auspiciousDay} को प्रातःकाल स्नान के पश्चात पवित्र मन से **'${sacredMantra}'** मंत्र का १०८ बार जप करना आपके समस्त ग्रहदोषों को शांत कर आत्मविश्वास प्रदान करेगा।`;
-    const p2 = `किसी भी महत्वपूर्ण कार्य पर जाने से पूर्व अपने इष्टदेव का स्मरण और श्री क्षेत्र गोकर्ण महाबलेश्वर की प्रार्थना करने से आपके सभी संकल्प सिद्ध होंगे।`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "te") {
-    const p1 = `మీ జన్మ కుండలి ప్రకారం మీకు అత్యంత అనుగ్రహప్రదమైన ఇష్టదైవం **${ishtaDevata}** మరియు మీ వారపు అత్యంత శుభదినం **${auspiciousDay}**. ప్రతి ${auspiciousDay} ఉదయం స్నానానంతరం పవిత్ర మనస్సుతో **'${sacredMantra}'** మంత్రాన్ని 108 సార్లు జపించడం వలన గ్రహదోషాలు శాంతించి అద్భుతమైన మనోధైర్యం కలుగుతుంది।`;
-    const p2 = `ముఖ్యమైన పనులకు వెళ్లేముందు ఇష్టదైవాన్ని స్మరిస్తూ శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారిని ప్రార్థించడం వలన సంకల్పసిద్ధి కలుగుతుంది.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "ta") {
-    const p1 = `உங்கள் ஜாதகப்படி உங்களுக்கு அருள் புரியும் இஷ்ட தெய்வம் **${ishtaDevata}** மற்றும் உங்கள் வாராந்திர மங்களகரமான நாள் **${auspiciousDay}** ஆகும். ஒவ்வொரு ${auspiciousDay}-ம் காலையில் நீராடி தூய மனதுடன் **'${sacredMantra}'** மந்திரத்தை 108 முறை ஜெபித்து வந்தால் சகல கிரக தோஷங்களும் நீங்கி மனோபலம் பெருகும்.`;
-    const p2 = `முக்கியமான காரியங்களை மேற்கொள்ளும் முன் இஷ்ட தெய்வத்தை தியானித்து ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியை வழிபடுவது காரிய சித்தியை அளிக்கும்.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "ml") {
-    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം ഏറ്റവും അനുഗ്രഹപ്രദമായ ഇഷ്ടദേവത **${ishtaDevata}** യും ശുഭദിനം **${auspiciousDay}** യും ആണ്. എല്ലാ ${auspiciousDay} രാവിലെയും കുളിച്ച് ശുദ്ധിയോടെ **'${sacredMantra}'** മന്ത്രം 108 തവണ ജപിക്കുന്നത് ഗ്രഹദോഷങ്ങളെ ശമിപ്പിക്കുകയും ആത്മശക്തി നൽകുകയും ചെയ്യും.`;
-    const p2 = `പ്രധാന കാര്യങ്ങൾക്കായി പോകുമ്പോൾ ഇഷ്ടദേവതയെ സ്മരിക്കുന്നതും ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയെ പ്രാർത്ഥിക്കുന്നതും കാര്യവിജയം ഉറപ്പാക്കും.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  if (lang === "mr") {
-    const p1 = `तुमच्या जन्म पत्रिकेनुसार तुमचे परम कल्याणकारी इष्टदैवत **${ishtaDevata}** आणि सर्वात शुभ वार **${auspiciousDay}** आहे. प्रत्येक ${auspiciousDay} रोजी सकाळी स्नानानंतर शुद्ध अंतःकरणाने **'${sacredMantra}'** मंत्राचा १०८ वेळा जप केल्याने सर्व ग्रहदोष शांत होऊन मनोबल वाढेल.`;
-    const p2 = `कोणत्याही महत्त्वाच्या कार्याला जाताना इष्टदेवतेचे स्मरण करून श्री क्षेत्र गोकर्ण महाबळेश्वर यांची प्रार्थना केल्यास संकल्पांची पूर्तता होईल.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}`);
-  }
-
-  // Kannada Default
-  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಗೆ ಅತ್ಯಂತ ಪ್ರಬಲ ಹಾಗೂ ಅನುಗ್ರಹಕಾರಕ ಇಷ್ಟದೇವತೆ **${ishtaDevata}** ಹಾಗೂ ನಿಮ್ಮ ವಾರದ ಅತ್ಯಂತ ಶುಭದಿನ **${auspiciousDay}**. ಪ್ರತಿ ${auspiciousDay} ದಿನ ಪ್ರಾತಃಕಾಲ ಸ್ನಾನ ಮುಗಿಸಿ ಶುದ್ಧ ಮನಸ್ಸಿನಿಂದ **'${sacredMantra}'** ಮಂತ್ರವನ್ನು ಕನಿಷ್ಠ ೨೧ ಅಥವಾ ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸುವುದು ನಿಮ್ಮ ಜಾತಕದ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಿ ಅದ್ಭುತ ಆತ್ಮಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.`;
-  const p2 = `ವಿಶೇಷ ಕಾರ್ಯಗಳಿಗೆ ತೆರಳುವ ಮುನ್ನ ಇಷ್ಟದೇವತೆಯ ಸ್ಮರಣೆ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದರ್ಶನ/ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ಸಂಕಲ್ಪಗಳಿಗೆ ಜಯವನ್ನು ಕರುಣಿಸಲಿದೆ.`;
-  return deduplicateResponseText(`${p1}\n\n${p2}`);
-}
-
-/**
- * Generates a concise, single-paragraph follow-up clarification reading (e.g. finger, metal, wearing time).
- */
-export function buildDeterministicFollowUpClarificationReading(
-  session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
-  rec: AstrologicalRecommendationProfile,
-  _isSubsequent: boolean
-): string {
-  const lang = (session.language || "kn") as ConsultationLanguage;
-  const metal = rec.idealMetal[lang] || rec.idealMetal.kn;
-  const finger = rec.idealFinger[lang] || rec.idealFinger.kn;
-  const wearingDayAndTime = rec.wearingDayAndTime[lang] || rec.wearingDayAndTime.kn;
-
-  if (lang === "en") {
-    return deduplicateResponseText(
-      `Regarding your specific clarification: This gemstone must be crafted in **${metal}** and worn on the **${finger}** of your right (working) hand on **${wearingDayAndTime}**. Purify it briefly in unboiled milk or holy water with heartfelt prayer before wearing.`
-    );
-  }
-
-  if (lang === "hi") {
-    return deduplicateResponseText(
-      `रत्न धारण का शास्त्रोक्त नियम: इस रत्न को **${metal}** में बनवाकर दाहिने हाथ की **${finger}** में **${wearingDayAndTime}** धारण करना चाहिए। धारण करने से पूर्व कच्चे दूध अथवा गंगाजल से शुद्ध करके इष्टदेव की प्रार्थना करें।`
-    );
-  }
-
-  if (lang === "te") {
-    return deduplicateResponseText(
-      `రత్న ధారణ శాస్త్రోక్త నియమం: ఈ రత్నాన్ని **${metal}**లో చేయించి, కుడిచేతి **${finger}**కి **${wearingDayAndTime}** ధరించాలి. ధరించే ముందు ఆవు పాలు లేదా శుద్ధ జలంతో శుద్ధి చేసి ఇష్టదైవాన్ని ప్రార్థించండి.`
-    );
-  }
-
-  if (lang === "ta") {
-    return deduplicateResponseText(
-      `ரத்தினம் அணியும் சாஸ்திர விதிமுறை: இந்த ரத்தினத்தை **${metal}**-ல் பதித்து, வலது கையின் **${finger}**-ல் **${wearingDayAndTime}** அணிய வேண்டும். அணியும் முன் தூய பால் அல்லது தீர்த்தத்தால் சுத்தி செய்து இஷ்ட தெய்வத்தை பிரார்த்திக்கவும்.`
-    );
-  }
-
-  if (lang === "ml") {
-    return deduplicateResponseText(
-      `രത്നം ധരിക്കുന്നതിനുള്ള ശാസ്ത്രീയ വിധി: ഈ രത്നം **${metal}**-ൽ പണിത് വലതു കൈയിലെ **${finger}**-ൽ **${wearingDayAndTime}** ധരിക്കണം. ധരിക്കുന്നതിന് മുമ്പ് പശുവിൻ പാലിലോ തീർത്ഥത്തിലോ ശുദ്ധിവരുത്തി ഇഷ്ടദേവതയെ പ്രാർത്ഥിക്കുക.`
-    );
-  }
-
-  if (lang === "mr") {
-    return deduplicateResponseText(
-      `रत्न धारण करण्याचा शास्त्रीय नियम: हे रत्न **${metal}** मध्ये बनवून उजव्या हाताच्या **${finger}** मध्ये **${wearingDayAndTime}** धारण करावे. धारण करण्यापूर्वी कच्चे दूध किंवा गंगाजलाने शुद्ध करून इष्टदेवतेची प्रार्थना करावी.`
-    );
-  }
-
-  // Kannada Default
-  return deduplicateResponseText(
-    `ರತ್ನ ಧಾರಣೆಯ ಶಾಸ್ತ್ರೋಕ್ತ ನಿಯಮ: ಈ ರತ್ನವನ್ನು **${metal}**ದಲ್ಲಿ ಉಂಗುರ ಮಾಡಿಸಿ, ಬಲಗೈಯ **${finger}**ಗೆ **${wearingDayAndTime}** ಧರಿಸಬೇಕು. ಧರಿಸುವ ಮುನ್ನ ಹಸಿಹಾಲು ಅಥವಾ ಗಂಗಾಜಲದಿಂದ ಶುದ್ಧೀಕರಿಸಿ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ ಧರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`
-  );
 }
 
 /**
@@ -6271,1362 +4719,3 @@ function generateDeterministicFallbackReading(
   }
 }
 
-interface DeterministicFallbackContext {
-  session: ConsultationSession;
-  question: string;
-  lagna: string;
-  rashi: string;
-  nakshatra: string;
-  dasha: string;
-  activeDosha: ActiveDoshaContext;
-  isSubsequent: boolean;
-  convIntel: ReturnType<typeof detectConversationIntelligence>;
-  timeline?: AstrologicalTimelineResult;
-  includeFullDosha: boolean;
-  isGreeting: boolean;
-  isCareerFrustration: boolean;
-  isSanthana: boolean;
-  isSecretIntimate: boolean;
-  isMinorChild: boolean;
-  tatva: string;
-  tatvaEn: string;
-  gana: string;
-  ganaEn: string;
-  psychNature: string;
-  psychNatureEn: string;
-  house4Sign: string;
-  house4Lord: string;
-  house5Sign: string;
-  house5Lord: string;
-  shaniText: string;
-  karmaLord: string;
-  localizedDevoteeName: string;
-}
-
-function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): string {
-  const {
-    session,
-    question,
-    lagna,
-    rashi,
-    nakshatra,
-    dasha,
-    activeDosha,
-    isSubsequent,
-    convIntel,
-    timeline,
-    includeFullDosha,
-    isGreeting,
-    isCareerFrustration,
-    isSanthana,
-    isSecretIntimate,
-    isMinorChild,
-    tatvaEn,
-    ganaEn,
-    psychNatureEn,
-    house4Sign,
-    house4Lord,
-    house5Sign,
-    house5Lord,
-    shaniText,
-    karmaLord
-  } = ctx;
-  const q = question.toLowerCase();
-
-  if (isGreeting) {
-    if (isSubsequent) {
-      return deduplicateResponseText(`I am right here with you in this sacred consultation. Please continue with your question or life situation whenever you are ready.`);
-    }
-    return deduplicateResponseText(`Hari Om ${session.name}! May Lord Mahabaleshwara and Lord Ganapati of Sri Kshetra Gokarna bestow their divine grace and blessings upon you and your family.\n\nI am sitting with you here in this sacred 20-minute consultation. Please feel at complete peace. You can open your heart and ask any question regarding your life, career, marriage, health, or family dilemmas.`);
-  }
-
-  // Timing / Intelligent Follow-Up on Marriage, Career, Progeny, etc.
-  if (
-    timeline &&
-    (convIntel.isAskingTiming ||
-      (convIntel.isSameTopicFollowUp &&
-        /when|timing|which month|how long|how many months/i.test(q)))
-  ) {
-    const p1Timing =
-      convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-        ? `${convIntel.contextualBridge} Examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your chart, the cosmic timeline for your ${timeline.topicLabel} is now drawing close.`
-        : isSubsequent
-        ? `Regarding your inquiry on "${question}", with 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}. Examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`
-        : `100% Confident Astrological Prediction: With 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}! Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign, ${nakshatra} Nakshatra), examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`;
-    const p2Timing = `According to the authentic Vimshottari Dasha calculations of Baggona Panchanga, your current running ${timeline.currentMahaName}-${timeline.currentBhuktiName} transition matures in approximately ${timeline.monthsToDashaChange} months into ${timeline.nextBhuktiName} Antardasha. Furthermore, as benefic Jupiter (Guru) completes its 1-year transit cycle from one sign to the next, it will move into a position casting direct divine aspect (drishti) upon your Lagna and cardinal houses. This divine Guru Bala combined with the upcoming Dasha shift will completely dissolve the previous delays and obstacles.`;
-    const p3Timing = `Therefore, based on authentic astrological computation, with 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}. During this favorable window, negotiations and opportunities will bear fruitful results. To welcome this auspicious planetary window with positive energy, offering prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna and lighting a pure cow-ghee lamp on Mondays or Thursdays will ensure steady fulfillment and divine protection.`;
-
-    if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
-        activeDosha.doshaName || "Karmic Dosha"
-      } (${activeDosha.technicalWhy || "unfavorable placement in cardinal houses"}). To neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja || "Sri Kshetra Gokarna Shanti Pooja and Rudrabhisheka"
-      }. We reassure you with certainty that performing this sacred pooja will bring noticeable improvement. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
-      return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
-  }
-
-  // Minor Child (< 18 yrs) -> Address Parents Reverently
-  if (isMinorChild) {
-    const p1Child = isSubsequent
-      ? `Regarding your inquiry on "${question}", examining the child's 4th house of education (${house4Sign}) and 5th house of intellect (${house5Sign}) along with ruling planet ${house4Lord}, the chart reveals strong latent potential that will blossom wonderfully with patient, nurturing encouragement.`
-      : `Dear Parents, examining the sacred birth chart of your child (${session.name}) calculated with Baggona Panchanga, the child is born in ${lagna} Lagna and ${rashi} Moon sign with ${nakshatra} Nakshatra. The child's natural temperament is shaped by the ${tatvaEn} element and ${ganaEn} Gana: ${psychNatureEn || "curious, perceptive, and sensitive"}. Regarding your inquiry on "${question}", the child's 4th house of education (${house4Sign}) and 5th house of intellect (${house5Sign}) indicate tremendous latent potential that will blossom wonderfully with patient, nurturing encouragement.`;
-    const p2Child = `Looking into the child's cognitive focus and memory retention, ruling planet ${house4Lord} governs grasping power and foundational learning. Occasional restlessness, exam anxiety, or playful distraction is a natural expression of this astrological temperament. As mindful parents, avoiding comparative pressure or harsh discipline and instead creating an organized, peaceful study atmosphere will produce remarkable academic excellence. The prevailing period of ${dasha} actively supports cognitive growth.`;
-    const p3Child = `For physical immunity, academic sharpness, and protection against the evil eye (drishti dosha), lighting a pure cow-ghee lamp at study time and chanting the sacred Maha Saraswati Gayatri or Medha Sukta is highly auspicious. Offering prayers at Sri Kshetra Gokarna Mahaganapati for the child's well-being will bestow razor-sharp concentration, academic success, and long life.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nAs previously noted in the child's astrological analysis, the prevailing ${activeDosha.doshaName} is harmonized through sacred prayers and divine blessings at Sri Kshetra Gokarna.`);
-      }
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination reveals the presence of ${
-        activeDosha.doshaName || "Karmic Dosha"
-      }. This dosha arose because of specific planetary tensions in the child's chart (${
-        activeDosha.technicalWhy || "unfavorable aspect on cardinal houses"
-      }), which can manifest as occasional health vulnerability, stubbornness, or exam nervousness. To neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja ||
-        "Sri Kshetra Gokarna Medha Sukta & Maha Saraswati Vidya Pooja"
-      }. Performing this sacred pooja will bring peace of mind, sharp memory, and protective blessings to your child. Please directly call chief priest Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and perform this parihara.`;
-      return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
-  }
-
-  // Santhana / Progeny / Childbirth Query
-  if (isSanthana) {
-    const p1Santhana = isSubsequent
-      ? `Regarding your inquiry on progeny and conception ("${question}"), examining your 5th house of progeny (${house5Sign}) and Putrakaraka Jupiter (Guru), this phase indicates a temporary karmic transit delay that demands emotional calm and mutual harmony alongside medical care.`
-      : `My child ${session.name}, I understand the deep yearning, emotional anxiety, and societal questions surrounding progeny and conceiving a child in your marital life. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign with ${nakshatra} Nakshatra), your 5th house of progeny (${house5Sign}) and Putrakaraka Jupiter (Guru) are undergoing a karmic testing phase, which explains the temporary delay despite medical normalcy.`;
-    const p2Santhana = `Examining the 5th house lord (${house5Lord}) and the current Vimshottari period of ${dasha}, planetary tensions have created energetic friction in conceiving. In Vedic wisdom, conception requires the harmonious union of medical health and celestial grace (Daiva Bala). Shed all despondency and mutual blame. When the appropriate karmic remedies are conducted, the doors of parenthood will surely open wide.`;
-    const p3Santhana = `Upcoming planetary transits over the next lunar cycles indicate a fertile and auspicious turning point. Maintain physical vitality through pure sattvic nourishment and mutual affection. For divine blessings of noble progeny, chanting the Sri Santhana Gopala Mantra daily with devotion will dissolve all reproductive anxieties and herald joyous news.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nAs noted earlier, the energetic influences of ${activeDosha.doshaName} are completely addressed through sincere prayers and divine grace at Sri Kshetra Gokarna.`);
-      }
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
-        activeDosha.doshaName || "Santhana Obstacle & 5th House Progeny Constraint"
-      }. This dosha arose because of specific planetary tensions in your chart (${
-        activeDosha.technicalWhy || "unfavorable placement in 5th house"
-      }), which is actively manifesting in your life right now as persistent delays in childbirth. To permanently neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja ||
-        "Sri Kshetra Gokarna Santhana Gopala Maha Homa & Naga Pratishtha"
-      }. We reassure you with certainty that performing this sacred pooja with pure devotion will bring noticeable improvement and joyous progeny blessing. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
-      return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
-  }
-
-  // Secret Intimate / Sexuality Query
-  if (isSecretIntimate) {
-    const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|വേശ്യാव्यवसाय|देहविक्रय/i.test(question);
-    if (isSexWork) {
-      const p1SexWork = isSubsequent
-        ? `Regarding your path to liberation and dignity ("${question}"), in the sacred realm of Vedic Jyotisha and the holy feet of Lord Mahabaleshwara at Sri Kshetra Gokarna, no human soul is impure or forever condemned. The affliction of your 8th house (Guhya) and 7th house by Rahu and Mars under coercive debt will dissolve as the incoming Gochara Guru aspect restores your honor.`
-        : `100% Truthful Daivajna Assurance: In the divine presence of Lord Mahabaleshwara at Sri Kshetra Gokarna, no human soul is impure, forsaken, or permanently cursed; according to your birth chart, the incoming benefic transit of Jupiter will break the bonds of this dark circumstance and bless you with a respectable, dignified married life! My child ${session.name}, hearing your deep pain, I receive your truth with fatherly tenderness and zero moral judgment. In our Sanatana tradition, revered souls like Pingala and Amrapali proved that past karmic trials or worldly coercion do not diminish the radiant purity of the Atman.`;
-      const p2SexWork = `Examining your 8th house of secret vulnerabilities, 7th house of partnerships, and 6th house of debt entrapment (Rina), planetary calculations confirm that you were driven into this coercive environment by economic helplessness, not intrinsic evil. Astrological transits confirm that the forthcoming shift into benefic Jupiter's drishti and a favorable Dasha transition will break these coercive shackles. Take firm steps toward your physical health, undergo medical screenings without fear, and reach out to trusted women's shelter and legal aid organizations.`;
-      const p3SexWork = `To permanently dissolve the karmic bonds of debt and seek divine sanctuary, offer a sacred Rudrabhisheka to Lord Mahabaleshwara at Sri Kshetra Gokarna and chant the sacred Sri Mahagauri / Durga Stotra along with the Sri Runavimochana Stotra daily. Mother Mahagauri dispels all distress and envelops her daughters in divine protection, ensuring that you will step into a peaceful, dignified marriage and a blessed family life.`;
-      if (activeDosha.hasDosha && includeFullDosha) {
-        const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: An examination of your chart reveals karmic planetary tension (${activeDosha.doshaName || "Karmic Debt & Rina Dosha"}). To permanently neutralize these adverse vibrations and grant you a safe sanctuary, our scriptures prescribe the sacred ${activeDosha.recommendedPooja || "Sri Kshetra Gokarna Mahabaleshwara Rudrabhisheka and Chandi Shanti"}. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) for personal pastoral guidance.`;
-        return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
-      }
-      return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
-    }
-
-    const p1Intimate = isSubsequent
-      ? `Regarding this intimate matter ("${question}"), in Vedic Jyotisha, the placement of Shukra (Venus), the 7th house of harmony, and the 8th house govern these private vital energies. Approaching this with scientific calm rather than guilt is the key to restoration.`
-      : `Dear ${session.name}, in the Vedic worldview, Kama (vital desire, healthy intimacy, and conjugal pleasure) is revered as one of the four sacred Purusharthas. In our society, people often feel immense shyness, taboo, or guilt regarding sexual vitality and bedroom discord. Please be at total ease. As an experienced Vedic astrologer, I view this with fatherly compassion and scientific clarity. Your ${lagna} Lagna and the placement of Shukra (Venus) govern your emotional and vital responses.`;
-    const p2Intimate = `In your astrological chart, the 8th house governs reproductive vitality, the 7th house rules conjugal harmony, and the 12th house oversees bedroom tranquility (shayana sukha). Under the running period of ${dasha}, mental exhaustion, performance anxiety, and nervous fatigue are causing temporary fluctuation in Shukra Dhatu (vitality). This is strictly a temporary psychosomatic stress imbalance, not a permanent defect. Releasing toxic guilt and adopting an Ayurvedic regimen of Ashwagandha, milk, and pranayama will rejuvenate your vigor.`;
-    const p3Intimate = `Over the upcoming transit cycle, emotional bonding with your partner will deepen. Approach intimacy with calm affection rather than pressure. Offering sacred cow-milk prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna will harmonize hormonal balance, bestow peaceful sleep, and restore deep romantic harmony in your relationship.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nAs previously guided, honoring the sacred parihara for ${activeDosha.doshaName} will restore inner peace and tranquility.`);
-      }
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: An examination of your chart reveals the presence of ${
-        activeDosha.doshaName || "Karmic Dosha"
-      } (${activeDosha.technicalWhy || "planetary stress on cardinal houses"}). To restore tranquil intimacy and vitality, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja ||
-        "Sri Kshetra Gokarna Mahabaleshwara Rudrabhisheka"
-      }. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) for personal guidance.`;
-      return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}`);
-  }
-
-  if (isCareerFrustration) {
-    const p1Career = isSubsequent
-      ? `Regarding your career and workplace concerns ("${question}"), the active period of ${dasha} combined with ${shaniText} is currently demanding endurance and perseverance. Examining your 10th house of profession (governed by ${karmaLord}), temporary delays are testing your resolve rather than blocking your long-term success.`
-      : `My child ${session.name}, I understand the burden, anxiety, and frustration you are feeling in your career right now. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign with ${nakshatra} Nakshatra), your inborn nature is characterized by the ${tatvaEn} element and ${ganaEn} Gana: ${psychNatureEn || "deeply capable and hardworking"}. This difficult phase is a celestial churning. The active period of ${dasha} combined with ${shaniText} is testing your endurance, which explains why workplace recognition has been delayed despite your earnest efforts.`;
-    const p2Career = `Examining your 10th house of profession (ruled by ${karmaLord}) and the 6th house of obstacles, the cosmic energies are demanding patience rather than impulsive reactions. Avoid hasty resignations or heated workplace friction. Astrological calculations indicate that the forthcoming planetary movements favor stability, long-term investments, and collaborative harmony. Maintaining mental equilibrium during this cycle will unlock substantial prosperity.`;
-    const p3Career = `The planetary transits over the coming lunar cycles indicate a progressive turning point. When Jupiter casts its divine benefic aspect upon your key natal houses, the confusion that clouding your decisions will dissolve into crystalline clarity. Continue your earnest efforts with disciplined patience, for the cosmic timing is aligning to reward your dedication.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nAs noted in your chart, the obstacles of ${activeDosha.doshaName} are mitigated by maintaining patience and receiving the sacred blessings of Sri Kshetra Gokarna.`);
-      }
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
-        activeDosha.doshaName || "Karmic Dosha"
-      }. This dosha arose because of specific planetary tensions in your chart (${
-        activeDosha.technicalWhy || "unfavorable placement in cardinal houses"
-      }), which is actively manifesting in your life right now as persistent delays, unexpected obstacles, and emotional restlessness. To permanently neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja ||
-        "Sri Kshetra Gokarna Shanti Pooja and Rudrabhisheka"
-      }. We reassure you with certainty that performing this sacred pooja with pure devotion will bring noticeable improvement, peace, and auspicious results in your life. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
-      return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
-  }
-
-  const baseP1 =
-    convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-      ? `${convIntel.contextualBridge} Examining the planetary combinations and the running period governed by ${dasha}, the cosmic influences are directing steady progress in ${timeline?.topicLabel || "your situation"}. The ruling planet of your ascendant provides strong foundational resilience.`
-      : isSubsequent
-      ? `Regarding your inquiry on "${question}", planetary combinations indicate that the current period governed by ${dasha} is bringing pivotal transformations. The ruling planet of your ascendant provides strong foundational resilience, while transiting planetary aspects require calm patience in key decisions.`
-      : `Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga, you are born in ${lagna} Lagna and ${rashi} Moon Sign with ${nakshatra} Nakshatra (${tatvaEn} element, ${ganaEn} Gana). Regarding your question on "${question}", your planetary combinations indicate that the current period governed by ${dasha} is bringing significant pivotal transformations. The ruling planet of your ascendant provides strong foundational resilience, while transiting Jupiter and Saturn require patience in key negotiations.`;
-  const baseP2 = `In the realm of your personal and professional endeavors, your chart reveals gradual clearance of previous hurdles. Astrological calculations indicate that the forthcoming planetary movements favor stability, long-term investments, and collaborative harmony. Maintaining mental equilibrium and avoiding hasty impulsive commitments during this cycle will unlock substantial prosperity.`;
-  const baseP3 = `The planetary transits over the coming lunar cycles indicate a progressive turning point. When Jupiter casts its divine benefic aspect upon your key natal houses, the confusion that clouding your decisions will dissolve into crystalline clarity. Continue your earnest efforts with disciplined patience, for the cosmic timing is aligning to reward your dedication.`;
-
-  if (activeDosha.hasDosha) {
-    if (!includeFullDosha) {
-      return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\nAs noted in your horoscope, the karmic influences of ${activeDosha.doshaName} are neutralized through dedicated prayers at Sri Kshetra Gokarna.`);
-    }
-    const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
-      activeDosha.doshaName || "Kuja/Manglik Dosha"
-    }. This dosha arose because of specific planetary tensions in your chart (${
-      activeDosha.technicalWhy || "unfavorable placement in cardinal houses"
-    }), which is actively manifesting in your life right now as persistent delays, unexpected obstacles, and emotional restlessness. To permanently neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-      activeDosha.recommendedPooja ||
-      "Sri Kshetra Gokarna Shanti Pooja and Rudrabhisheka"
-    }. We reassure you with certainty that performing this sacred pooja with pure devotion will bring noticeable improvement, peace, and auspicious results in your life. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
-    return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\n${p4Dosha}`);
-  }
-
-  return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\nFor divine grace and obstacle removal, it is auspicious to offer prayers to Sri Mahabaleshwara and Lord Ganapati at Sri Kshetra Gokarna. Reciting the sacred Gayatri Mantra and lighting a pure cow-ghee lamp on Mondays or Saturdays will harmonize the prevailing planetary energies and bring peace and success.`);
-}
-
-function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): string {
-  const {
-    question,
-    lagna,
-    rashi,
-    nakshatra,
-    dasha,
-    activeDosha,
-    isSubsequent,
-    convIntel,
-    timeline,
-    includeFullDosha,
-    isGreeting,
-    isCareerFrustration,
-    isSanthana,
-    isSecretIntimate,
-    isMinorChild,
-    tatva,
-    gana,
-    psychNature,
-    house4Sign,
-    house4Lord,
-    house5Sign,
-    house5Lord,
-    shaniText,
-    karmaLord,
-    localizedDevoteeName
-  } = ctx;
-  const q = question.toLowerCase();
-
-  if (isGreeting) {
-    if (isSubsequent) {
-      return deduplicateResponseText(`ಹೌದು, ನಾನು ನಿಮ್ಮೊಂದಿಗೇ ಈ ಸಮಾಲೋಚನಾ ಕೊಠಡಿಯಲ್ಲಿದ್ದೇನೆ. ನಿಮ್ಮ ಮುಂದಿನ ಪ್ರಶ್ನೆ ಅಥವಾ ಗೊಂದಲವನ್ನು ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ.`);
-    }
-    return deduplicateResponseText(`ಹರಿ ಓಂ ${localizedDevoteeName} ಅವರೇ! ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸಕಲ ಕೃಪಾಕಟಾಕ್ಷ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಮತ್ತು ನಿಮ್ಮ ಕುಟುಂಬದ ಮೇಲೆ ಸದಾ ಇರಲಿ.\n\nನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಕೊಠಡಿಯಲ್ಲಿ ನಾನು ನಿಮ್ಮೊಂದಿಗಿದ್ದೇನೆ. ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಯಾವುದೇ ಗೊಂದಲ, ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ, ವಿವಾಹ, ಕೌಟುಂಬಿಕ ವಿಚಾರ ಅಥವಾ ದೋಷ ಪರಿಹಾರಗಳ ಕುರಿತು ಮುಕ್ತವಾಗಿ ಪ್ರಶ್ನಿಸಿ.`);
-  }
-
-  // Timing / Intelligent Follow-Up on Marriage, Career, Progeny, etc.
-  if (
-    timeline &&
-    (convIntel.isAskingTiming ||
-      (convIntel.isSameTopicFollowUp &&
-        /ಯಾವಾಗ|ಎಷ್ಟು ದಿನ|ಎಷ್ಟು ತಿಂಗಳು|ಕಾಲಾವಕಾಶ|ಯಾವ ವರ್ಷ|ಯಾವ ತಿಂಗಳು/i.test(q)))
-  ) {
-    const p1Timing =
-      convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-        ? `${convIntel.contextualBridge} ಜಾತಕದ ಸಪ್ತಮ/ಸಂಬಂಧಿತ ಭಾವಗಳು ಹಾಗೂ ಶುಭ ಗೋಚಾರ ಗ್ರಹಗಳ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ${timeline.topicLabel} ಕಾರ್ಯಕ್ಕೆ ಕಾಲಾನುಕೂಲವು ಈಗ ಸನ್ನಿಹಿತವಾಗುತ್ತಿದೆ.`
-        : isSubsequent
-        ? `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel}ವು ${timeline.rangeSummary} ಸಾಕಾರಗೊಳ್ಳಲಿದೆ. ಜಾತಕದಲ್ಲಿ ${timeline.topicYogaName} ಹಾಗೂ ಸಂಬಂಧಿತ ಭಾವಗಳ ಗೋಚಾರ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಕಾಲಾನುಕೂಲವು ಈಗ ಸನ್ನಿಹಿತವಾಗುತ್ತಿದೆ.`
-        : `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಶಾಸ್ತ್ರೋಕ್ತ ಲೆಕ್ಕಾಚಾರದಂತೆ, ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel}ವು ${timeline.rangeSummary} ನಿಶ್ಚಿತವಾಗಿ ನೆರವೇರಲಿದೆ! ಆತ್ಮೀಯ ${localizedDevoteeName} ಅವರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ್ದು, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿ ಮತ್ತು ${timeline.topicYogaName} ಯೋಗದ ಗೋಚಾರ ಸಂಚಾರವು ಈ ಶುಭ ಕಾಲಾವಧಿಯನ್ನು ಬಲವಾಗಿ ಸಮರ್ಥಿಸುತ್ತಿದೆ.`;
-    const p2Timing = `ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಗಣಿತದ ಪ್ರಕಾರ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${timeline.currentMahaName}-${timeline.currentBhuktiName} ಅವಧಿಯು ಇನ್ನು ${timeline.monthsToDashaChange} ತಿಂಗಳುಗಳಲ್ಲಿ ಮುಕ್ತಾಯವಾಗಿ ${timeline.nextBhuktiName} ಭುಕ್ತಿಯಾಗಿ ಪರಿವರ್ತನೆ ಹೊಂದಲಿದೆ. ಇದರೊಂದಿಗೆ, ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಸುಮಾರು ಒಂದು ವರ್ಷದ ಅವಧಿಯಲ್ಲಿ ಒಂದು ರಾಶಿಯಿಂದ ಮತ್ತೊಂದು ರಾಶಿಗೆ ಸಂಚರಿಸುವುದರಿಂದ, ಮುಂದಿನ ಒಂದು ವರ್ಷದೊಳಗೆ ಗುರು ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ತ್ರಿಕೋಣ/ಕೇಂದ್ರ ಸ್ಥಾನಗಳ ಮೇಲೆ ನೇರ ಶುಭ ದೃಷ್ಟಿಯನ್ನು ಬೀರಲಿದೆ. ಈ ಗುರುಬಲ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿ ಸಂಯೋಗವು ಹಿಂದಿದ್ದ ಸಮಸ್ತ ವಿಳಂಬಗಳನ್ನು ನಿವಾರಿಸಿ ಹೊಸ ಅವಕಾಶಗಳ ಮಾರ್ಗವನ್ನು ತೆರೆಯಲಿದೆ.`;
-    const p3Timing = `ಆದ್ದರಿಂದ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಶಾಸ್ತ್ರೋಕ್ತ ಲೆಕ್ಕಾಚಾರದಂತೆ ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರ ಸಂಭವನೀಯತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel}ವು ${timeline.rangeSummary} ನಿಶ್ಚಿತವಾಗಿ ನೆರವೇರುವ ಪ್ರಬಲ ಯೋಗವಿದೆ. ಈ ಶುಭ ಕಾಲಾವಧಿಯು ಸಾಕಾರಗೊಳ್ಳಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ, ಸೋಮವಾರದಂದು ಗೋಸೇವೆ ಅಥವಾ ದೀಪಾರಾಧನೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`;
-
-    if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
-      }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-        activeDosha.technicalWhy || "ಗ್ರಹಗಳ ಅಶುಭ ಸಂಯೋಜನೆ ಮತ್ತು ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
-      } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${
-        activeDosha.currentLifeProblems || "ಕಾರ್ಯವಿಳಂಬ, ಮಾನಸಿಕ ಅಶಾಂತಿ ಹಾಗೂ ವಿಪರೀತ ಅಡೆತಡೆಗಳು"
-      }" ಎದುರಾಗುತ್ತಿವೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ದೋಷ ಶಾಂತಿ ಹೋಮ"
-      }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಖಂಡಿತವಾಗಿಯೂ ಧನಾತ್ಮಕ ಸುಧಾರಣೆ ಮತ್ತು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳ ಸಿದ್ಧಿ ಗೋಚರಿಸುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
-      return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
-  }
-
-  // Minor Child (< 18 yrs) -> Address Parents Reverently
-  if (isMinorChild) {
-    const p1Child = isSubsequent
-      ? `ಮಗುವಿನ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದಲ್ಲಿ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ (${house4Sign}) ಹಾಗೂ ೫ನೇ ಬುದ್ಧಿ ಸ್ಥಾನಗಳನ್ನು (${house5Sign}) ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ವಿದ್ಯಾಧಿಪತಿಯಾದ ${house4Lord} ಗ್ರಹದ ಪ್ರಭಾವದಿಂದ ಮಗುವಿನಲ್ಲಿ ಉತ್ತಮ ಕಲಿಯುವ ಆಸಕ್ತಿಯಿದೆ. ತಾಳ್ಮೆಯಿಂದ ಪ್ರೋತ್ಸಾಹಿಸಿದರೆ ಮಗುವು ಶೈಕ್ಷಣಿಕವಾಗಿ ಉತ್ತಮ ಯಶಸ್ಸು ಸಾಧಿಸಲಿದೆ.`
-      : `ಆತ್ಮೀಯ ಪೋಷಕರೇ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಗಣಿತದ ಪ್ರಕಾರ ನಿಮ್ಮ ಮಗುವಿನ (${localizedDevoteeName}) ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಮಗುವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನ್ಮತಾಳಿದೆ. ಮಗುವಿನ ಲಗ್ನ ತತ್ವವಾದ ${tatva} ಹಾಗೂ ${gana} ಗಣದ ಪ್ರಭಾವದಿಂದಾಗಿ ಮಗುವಿನಲ್ಲಿ ${psychNature || "ಚುರುಕಾದ ಬುದ್ಧಿಶಕ್ತಿ, ಸಹಜ ಕುತೂಹಲ ಹಾಗೂ ಸೂಕ್ಷ್ಮ ಸಂವೇದನೆ"} ಎದ್ದು ಕಾಣುತ್ತದೆ. ನಿಮ್ಮ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ (${house4Sign}) ಹಾಗೂ ೫ನೇ ಬುದ್ಧಿ ಸ್ಥಾನಗಳು (${house5Sign}) ಅತ್ಯಂತ ಚೇತನವಾಗಿದ್ದು, ಮಗುವಿನ ಅಂತರಂಗದಲ್ಲಿ ಅಪಾರವಾದ ಸುಪ್ತ ಪ್ರತಿಭೆ ಅಡಗಿದೆ.`;
-    const p2Child = `ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ಗ್ರಹಣ ಶಕ್ತಿಯ ವಿಚಾರದಲ್ಲಿ ೪ನೇ ಮನೆಯ ಅಧಿಪತಿಯಾದ ${house4Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಮಗುವಿಗೆ ವಿಷಯಗಳನ್ನು ಬೇಗನೆ ಗ್ರಹಿಸುವ ಅದ್ಭುತ ಶಕ್ತಿಯಿದೆ. ಆದರೆ ಮನಸ್ಸು ಒಮ್ಮೊಮ್ಮೆ ಚಂಚಲಗೊಳ್ಳುವುದು, ಆಟದ ಕಡೆಗೆ ಆಕರ್ಷಿತವಾಗುವುದು ಹಾಗೂ ಪೋಷಕರ ಮಾತಿಗೆ ಹಠ ಮಾಡುವುದು ಈ ವಯಸ್ಸಿನ ಸಹಜ ಲಕ್ಷಣ. ಪೋಷಕರಾಗಿ ನೀವು ಮಗುವಿನ ಮೇಲೆ ಅನಗತ್ಯ ಶೈಕ್ಷಣಿಕ ಒತ್ತಡ ಅಥವಾ ಕಠಿಣ ಶಿಕ್ಷೆಗಳನ್ನು ಹೇರದೆ, ಪ್ರೀತಿ, ಸಮಾಧಾನ ಹಾಗೂ ನಿಗದಿತ ಸಮಯದ ದಿನಚರಿಯನ್ನು ರೂಢಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯು ಮಗುವಿನ ಬೌದ್ಧಿಕ ವಿಕಾಸಕ್ಕೆ ಉತ್ತಮ ತಳಹದಿ ಹಾಕಲಿದೆ.`;
-    const p3Child = `ಮಗುವಿನ ಆರೋಗ್ಯ ರಕ್ಷಣೆ, ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಏಕಾಗ್ರತೆಗಾಗಿ, ಪ್ರತಿದಿನ ಸಂಜೆ ಮನೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಮಹಾಸರಸ್ವತೀ ಸ್ತೋತ್ರ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಸಂಕಲ್ಪ ಮಾಡಿ ದೂರ್ವಾ ಅರ್ಚನೆ ಮಾಡಿಸುವುದರಿಂದ ಮಗುವಿನ ಜ್ಞಾಪಕ ಶಕ್ತಿ ವೃದ್ಧಿಸಿ, ಶೈಕ್ಷಣಿಕ ವಿಜಯ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿದೆ.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಮಗುವಿಗೆ ಉತ್ತಮ ಆರೋಗ್ಯ ಮತ್ತು ವಿದ್ಯಾಭ್ಯಾಸ ಲಭಿಸಲಿದೆ.`);
-      }
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nಮಗುವಿನ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಬಾಲ ಸಂಸ್ಕಾರ ಹಾಗೂ ವಿದ್ಯಾ ದೋಷ"
-      }" ಕಂಡುಬಂದಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-        activeDosha.technicalWhy || "ಗ್ರಹಗಳ ಅಶುಭ ಸ್ಥಾನ ಹಾಗೂ ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
-      } ಈ ಪ್ರಭಾವ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿ "${
-        activeDosha.currentLifeProblems || "ಓದಿನಲ್ಲಿ ಚಂಚಲತೆ ಹಾಗೂ ಪರೀಕ್ಷಾ ಆತಂಕ"
-      }" ಗೋಚರಿಸುತ್ತದೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಸರಸ್ವತೀ ಹಾಗೂ ಮೇಧಾ ಸೂಕ್ತ ಶಾಂತಿ ಪೂಜೆ"
-      }" ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಈ ಪೂಜೆಯಿಂದ ಮಗುವಿಗೆ ದೈವಿಕ ರಕ್ಷಣೆ ಹಾಗೂ ತೀಕ್ಷ್ಣ ಬುದ್ಧಿ ಲಭಿಸುವುದು ನಿಶ್ಚಿತ. ಹೆಚ್ಚಿನ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ಪುರೋಹಿತರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
-      return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
-  }
-
-  // Santhana / Progeny / Childbirth Query
-  if (isSanthana) {
-    const p1Santhana = isSubsequent
-      ? `ಸಂತಾನ ಭಾಗ್ಯದ ಕುರಿತಾದ ನಿಮ್ಮ "${question}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನವನ್ನು (${house5Sign}) ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಅವಲೋಕಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗೋಚಾರ ಗ್ರಹಗಳು ತಾತ್ಕಾಲಿಕ ವಿಳಂಬವನ್ನು ಉಂಟುಮಾಡುತ್ತಿವೆ. ವೈದ್ಯಕೀಯ ಪ್ರಯತ್ನಗಳ ಜೊತೆಗೆ ಸೂಕ್ತ ದೈವಾನುಗ್ರಹ ಸಿದ್ಧಿಸಿದಾಗ ಸಂತಾನ ಯೋಗವು ಖಂಡಿತ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`
-      : `ಮಗುವೇ ${localizedDevoteeName}, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ಪುತ್ರ ಪ್ರಾಪ್ತಿಯ ಕುರಿತು ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಆಳವಾದ ಕಳವಳ ಹಾಗೂ ನಿರೀಕ್ಷೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಜ್ಯೋತಿಷ್ಯ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ್ದು, ನಿಮ್ಮ ಸಹಜ ಸ್ವಭಾವವು ${tatva} ತತ್ವ ಹಾಗೂ ${gana} ಗಣದಿಂದ ಕೂಡಿದೆ. ನಿಮ್ಮ ಜಾತಕದ ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನವನ್ನು (${house5Sign}) ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಅವಲೋಕಿಸಿದಾಗ, ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ಕಾಲದ ತಾತ್ಕಾಲಿಕ ವಿಳಂಬ ಗೋಚರಿಸುತ್ತಿದೆ.`;
-    const p2Santhana = `ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಸ್ಥಿತಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗೋಚಾರ ಗ್ರಹಗಳ ಪರೀಕ್ಷೆಯು ತಾತ್ಕಾಲಿಕ ಅಡೆತಡೆಗಳನ್ನು ಉಂಟುಮಾಡಿದೆ. ವೈದ್ಯಕೀಯ ಪ್ರಯತ್ನಗಳ ಜೊತೆಗೆ ದೈವಬಲವು ಜೋಡಿಯಾದಾಗ ಮಾತ್ರವೇ ಸೃಷ್ಟಿಕಾರಕ ಶಕ್ತಿ ಜಾಗೃತಗೊಳ್ಳುತ್ತದೆ. ನಿಮ್ಮ ಅಥವಾ ನಿಮ್ಮ ಸಂಗಾತಿಯ ಮನಸ್ಸಿನಲ್ಲಿರುವ ನಕಾರಾತ್ಮಕ ನಿರಾಶೆಯನ್ನು ತಕ್ಷಣವೇ ದೂರಮಾಡಿ. ಜಾತಕದಲ್ಲಿರುವ ಕರ್ಮ ತಡೆಗಳನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ನಿವಾರಿಸಿದಾಗ ಸಂತಾನ ಭಾಗ್ಯದ ಬಾಗಿಲು ಖಂಡಿತವಾಗಿಯೂ ತೆರೆಯಲಿದೆ.`;
-    const p3Santhana = `ಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಸಂತಾನ ಸ್ಥಾನದ ಮೇಲೆ ಬೀಳುವ ಸಂದರ್ಭದಲ್ಲಿ ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸಂತಾನ ಯೋಗವು ಪ್ರಬಲವಾಗಿ ಸಿದ್ಧಿಸಲಿದೆ. ದಂಪತಿಗಳಿಬ್ಬರೂ ಪ್ರತಿ ಗುರುವಾರ ಶುದ್ಧ ಹಸುವಿನ ಹಾಲಿನಿಂದ ಮಾಡಿದ ನೈವೇದ್ಯವನ್ನು ಸಮರ್ಪಿಸಿ, ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಮನಸ್ಸಿನಲ್ಲಿ ಧನಾತ್ಮಕ ವಿಶ್ವಾಸವಿರಲಿ.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರವೇ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`);
-      }
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಸಂತಾನ ತಡೆ ಹಾಗೂ ಪಂಚಮ ಭಾವ ಕರ್ಮ ದೋಷ"
-      }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-        activeDosha.technicalWhy || "ಪಂಚಮ ಭಾವ ಹಾಗೂ ಗುರುವಿನ ಮೇಲಿನ ಪಾಪಗ್ರಹಗಳ ದೃಷ್ಟಿಯಿಂದ"
-      } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${
-        activeDosha.currentLifeProblems || "ಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ಅಡೆತಡೆ ಹಾಗೂ ತೀವ್ರ ಮಾನಸಿಕ ಚಿಂತೆ"
-      }" ಎದುರಾಗುತ್ತಿದೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja ||
-        "ಸಂತಾನ ಗೋಪಾಲ ಮಹಾಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಸಹಿತ ಮಹಾರುದ್ರಾಭಿಷೇಕ"
-      }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ದಾಂಪತ್ಯದಲ್ಲಿ ಶೀಘ್ರವೇ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
-      return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
-  }
-
-  // Secret Intimate / Sexuality Query
-  if (isSecretIntimate) {
-    const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|വേശ്യാव्यवसाय|देहविक्रय/i.test(question);
-    if (isSexWork) {
-      const p1SexWork = isSubsequent
-        ? `ವಿಮೋಚನೆ ಹಾಗೂ ಗೌರವಯುತ ಬದುಕಿನ ಈ ವಿಚಾರಣೆಗೆ ("${question}") ಸಂಬಂಧಿಸಿದಂತೆ, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಯಾವ ಜೀವವೂ ಅಶುದ್ಧವಲ್ಲ ಅಥವಾ ಎಂದಿಗೂ ಶಾಪಗ್ರಸ್ತವಲ್ಲ. ಜಾತಕದ ೮ನೇ ಗುಪ್ತಸ್ಥಾನ ಹಾಗೂ ೭ನೇ ಭಾವಗಳ ಮೇಲಿನ ರಾಹು-ಕುಜರ ಋಣಬಂಧನವು ಮುಂಬರುವ ಗುರು ಗೋಚಾರದಿಂದ ಕಳಚಿಕೊಂಡು ಗೌರವದ ಹಾದಿ ನಿರ್ಮಾಣವಾಗಲಿದೆ.`
-        : `೧೦೦% ಸತ್ಯನಿಷ್ಠ ದೈವಜ್ಞ ಅಭಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಯಾವ ಜೀವವೂ ಅಶುದ್ಧವಲ್ಲ, ಎಂದಿಗೂ ತಿರಸ್ಕೃತವಲ್ಲ; ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ ಮುಂಬರುವ ಗುರು ಗ್ರಹದ ಶುಭ ಸಂಚಾರವು ಈ ಸಂಕೋಲೆಗಳನ್ನು ಮುರಿದು ನಿಮಗೆ ಗೌರವಯುತ, ಶಾಂತಿಯುತ ವಿವಾಹ ಹಾಗೂ ಸಂಸಾರ ಭಾಗ್ಯವನ್ನು ಕರುಣಿಸಲಿದೆ! ಮಗುವೇ ${localizedDevoteeName}, ನಿಮ್ಮ ಮನಸ್ಸಿನ ತೀವ್ರ ವೇದನೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಅತೀವ ವಾತ್ಸಲ್ಯದಿಂದ, ಯಾವುದೇ ಲವಲೇಶದ ಕೀಳರಿಮೆ ಅಥವಾ ಸೋಗಲಾಡಿತನವಿಲ್ಲದೆ ಸ್ವೀಕರಿಸುತ್ತಿದ್ದೇನೆ. ಸನಾತನ ಪರಂಪರೆಯಲ್ಲಿ ಭಾಗವತದ ಪಿಂಗಳೆ ಹಾಗೂ ಆಮ್ರಪಾಲಿ ಅಂತಹ ಆತ್ಮಗಳು ಸಂಸಾರದ ಒತ್ತಡ-ಸಂಕಟಗಳನ್ನು ಮೀರಿ ಮುಕ್ತಿ ಮತ್ತು ದೈವ ಕೃಪೆ ಪಡೆದ ದೃಷ್ಟಾಂತಗಳಿವೆ.`;
-      const p2SexWork = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಜಾತಕದ ೮ನೇ ಗುಪ್ತ ರಹಸ್ಯ ಸ್ಥಾನ, ೭ನೇ ಕಾಮ-ವ್ಯಾಪಾರ ಸ್ಥಾನ ಹಾಗೂ ೬ನೇ ಋಣ-ಬಂಧನ ಸ್ಥಾನಗಳನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ಯಾವುದೇ ಆಂತರಿಕ ದುಷ್ಟತನದಿಂದಲ್ಲದೆ ಆರ್ಥಿಕ ಅಸಹಾಯಕತೆ ಮತ್ತು ಕುಟುಂಬದ ಋಣಭಾರದಿಂದ ಈ ವಿಷವರ್ತುಲಕ್ಕೆ ಸಿಲುಕಿದ್ದೀರಿ ಎಂಬುದು ಸ್ಪಷ್ಟವಾಗುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯ ನಂತರ ಬರುವ ಗುರು ದೃಷ್ಟಿಯು ನಿಮ್ಮನ್ನು ಈ ಕತ್ತಲೆಯಿಂದ ಮುಕ್ತಗೊಳಿಸಲಿದೆ. ಧೈರ್ಯದಿಂದ ಹೆಜ್ಜೆಯಿಡಿ, ನಿಮ್ಮ ಶಾರೀರಿಕ ಆರೋಗ್ಯದ ಬಗ್ಗೆ ನಿರ್ಲಕ್ಷ್ಯ ವಹಿಸದೆ ವೈದ್ಯಕೀಯ ತಪಾಸಣೆ ಮಾಡಿಸಿಕೊಳ್ಳಿ ಹಾಗೂ ಮಹಿಳಾ ರಕ್ಷಣಾ ಆಶ್ರಯ ಮತ್ತು ಕಾನೂನು ನೆರವನ್ನು ಪಡೆಯಿರಿ.`;
-      const p3SexWork = `ಋಣಬಂಧನ ಕಳಚಲು ಮತ್ತು ಆತ್ಮರಕ್ಷಣೆಗೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸಿ ಹಾಗೂ ಶ್ರೀ ಮಹಾಗೌರಿ/ದುರ್ಗಾ ಸ್ತೋತ್ರ ಮತ್ತು ಋಣವಿಮೋಚನಾ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಜಗನ್ಮಾತೆಯು ತನ್ನ ಹೆಣ್ಣುಮಕ್ಕಳನ್ನು ಸರ್ವ ಕಾಲದಲ್ಲೂ ರಕ್ಷಿಸುತ್ತಾಳೆ. ಶೀಘ್ರದಲ್ಲೇ ನಿಮಗೆ ಗೌರವಯುತ ಜೀವನ ಮತ್ತು ಉತ್ತಮ ಸಂಗಾತಿಯ ಆಸರೆ ಲಭಿಸಲಿದೆ.`;
-      if (activeDosha.hasDosha && includeFullDosha) {
-        const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${
-          activeDosha.doshaName || "ಋಣಬಂಧನ ಹಾಗೂ ಕರ್ಮ ದೋಷ"
-        }" ಕಂಡುಬಂದಿದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-          activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಚಂಡೀ ಶಾಂತಿ"
-        }" ನೆರವೇರಿಸುವುದರಿಂದ ಸರ್ವ ಬಂಧನಗಳೂ ಕಳಚಲಿವೆ. ವೈಯಕ್ತಿಕ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
-        return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
-      }
-      return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
-    }
-
-    const p1Intimate = isSubsequent
-      ? `ಅಂತರಂಗದ ಈ ವಿಚಾರಣೆಗೆ ("${question}") ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೮ನೇ ಗುಪ್ತಸ್ಥಾನ, ೭ನೇ ಭಾವ ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಇದು ನೈಸರ್ಗಿಕ ಶಾರೀರಿಕ ಮತ್ತು ಮಾನಸಿಕ ಸಂವೇದನೆಯ ವಿಷಯವಾಗಿದೆ. ಯಾವುದೇ ಅಪರಾಧಿ ಭಾವನೆಗೆ ಒಳಗಾಗದೆ, ಆಯುರ್ವೇದ ಪದ್ಧತಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯಿಂದ ಸಮತೋಲನ ಸಾಧಿಸುವುದು ಮುಖ್ಯ.`
-      : `ಆತ್ಮೀಯ ${localizedDevoteeName} ಅವರೇ, ಮನುಷ್ಯನ ಜೀವನದಲ್ಲಿ ಅಂತರಂಗದ ಕಾಮನೆ, ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಲೈಂಗಿಕ ತೃಪ್ತಿಯು ಅತ್ಯಂತ ನೈಸರ್ಗಿಕವಾದ ಸಂಗತಿಯಾಗಿದೆ. ಇದನ್ನು ಸಮಾಜದಲ್ಲಿ ಯಾರ ಬಳಿಯೂ ಮುಕ್ತವಾಗಿ ಹೇಳಿಕೊಳ್ಳಲಾಗದೆ, ನಾಚಿಕೆ ಅಥವಾ ಅಪರಾಧ ಭಾವನೆಯಿಂದ ಮನಸ್ಸಿನಲ್ಲೇ ಕೊರಗುವುದು ಸಹಜ. ಆದರೆ ನೆನಪಿಡಿ, ಸನಾತನ ವೈದಿಕ ಪರಂಪರೆಯಲ್ಲಿ ಧರ್ಮ-ಅರ್ಥ-ಕಾಮ-ಮೋಕ್ಷ ಎಂಬ ನಾಲ್ಕು ಪುರುಷಾರ್ಥಗಳಲ್ಲಿ ಕಾಮವು ಸೃಷ್ಟಿ ಮತ್ತು ಜೀವನೋತ್ಸಾಹದ ಪವಿತ್ರ ಅಂಗವಾಗಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagna} ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಅಂತರಂಗದ ಸಂವೇದನೆಯನ್ನು ನಿರ್ದೇಶಿಸುತ್ತಿದೆ.`;
-    const p2Intimate = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಜಾತಕದ ೮ನೇ ಮನೆಯಾದ ಗುಪ್ತಸ್ಥಾನ, ೭ನೇ ಕಾಮಸ್ಥಾನ ಹಾಗೂ ೧೨ನೇ ಶಯನ ಸುಖದ ಸ್ಥಾನಗಳನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯಲ್ಲಿ ಶಾರೀರಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಒತ್ತಡವು ಶುಕ್ರ ಧಾತುವಿನ ಸಮತೋಲನದ ಮೇಲೆ ತಾತ್ಕಾಲಿಕ ಪ್ರಭಾವ ಬೀರಿದೆ. ಅತಿಯಾದ ಮಾನಸಿಕ ಆತಂಕ, ಅಪರಾಧ ಭಾವ ಅಥವಾ ದಣಿವೇ ಲೈಂಗಿಕ ಶಕ್ತಿ ಕುಗ್ಗಲು ಮುಖ್ಯ ಕಾರಣವೇ ಹೊರತು ಯಾವುದೇ ಶಾಶ್ವತ ಕೊರತೆಯಲ್ಲ. ಆಯುರ್ವೇದ ಪದ್ಧತಿಯಂತೆ ಅಶ್ವಗಂಧ, ಶುದ್ಧ ಹಾಲು, ಸಾತ್ವಿಕ ಆಹಾರ ಮತ್ತು ಪ್ರಾಣಾಯಾಮವು ನಿಮ್ಮ ನರಮಂಡಲಕ್ಕೆ ಹೊಸ ಚೈತನ್ಯವನ್ನು ತುಂಬಲಿದೆ.`;
-    const p3Intimate = `ಮನಸ್ಸಿನ ಆತಂಕವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಕಳಚಿಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಧ್ಯಾನ ಹಾಗೂ ಸೋಮವಾರದ ರುದ್ರಾಭಿಷೇಕವು ಮನಸ್ಸಿಗೆ ಶಾಂತಿ ನೀಡಿ, ದೈಹಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಚೈತನ್ಯವನ್ನು ಮರಳಿ ತರಲಿದೆ. ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ, ಗೌರವ ಮತ್ತು ಮುಕ್ತ ಸಂವಹನವನ್ನು ಹೆಚ್ಚಿಸಿಕೊಳ್ಳಿ.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ಅಂತರಂಗದ ಕ್ಲೇಶಗಳೂ ನಿವಾರಣೆಯಾಗಿ ನೆಮ್ಮದಿ ಸಿಗಲಿದೆ.`);
-      }
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಶುಕ್ರ ಧಾತು ಹಾಗೂ ಅಂತರಂಗ ಕ್ಲೇಶ ದೋಷ"
-      }" ಕಂಡುಬಂದಿದೆ. ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ಶಾಂತಿ"
-      }" ನೆರವೇರಿಸುವುದರಿಂದ ನರಮಂಡಲವು ಬಲಗೊಂಡು ಮನಸ್ಸಿಗೆ ನಿರಾಳತೆ ಸಿಗಲಿದೆ. ಹೆಚ್ಚಿನ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
-      return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}`);
-  }
-
-  if (isCareerFrustration) {
-    const p1Career = isSubsequent
-      ? `ವೃತ್ತಿಜೀವನ ಹಾಗೂ ಉದ್ಯೋಗದ ಈ ಪ್ರಶ್ನೆಗೆ ("${question}") ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೧೦ನೇ ಕರ್ಮಸ್ಥಾನ (ಅಧಿಪತಿ: ${karmaLord}) ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯ ಸಂಯೋಗವನ್ನು ಗಮನಿಸಿದಾಗ, ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಒತ್ತಡ ಹಾಗೂ ಮಂಥನ ಕಂಡುಬರುತ್ತಿದೆ. ಇದು ನಿಮ್ಮ ಆಂತರಿಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಸಾಣೆ ಹಿಡಿಯುವ ಸಮಯವೇ ಹೊರತು ಶಾಶ್ವತ ಹಿನ್ನಡೆಯಲ್ಲ.`
-      : `ಮಗುವೇ ${localizedDevoteeName}, ನಿಮ್ಮ ಮನಸ್ಸಿನ ಕಳವಳ ಹಾಗೂ ವೃತ್ತಿಜೀವನದಲ್ಲಿ (ಉದ್ಯೋಗ/ವ್ಯಾಪಾರ) ಎದುರಾಗುತ್ತಿರುವ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಜೀವನದಲ್ಲಿ ಇಂತಹ ಮಂಥನದ ಹಂತಗಳು ಬಂದಾಗ ಎಂತಹ ಧೀರರೂ ವಿಚಲಿತರಾಗುವುದು ಸಹಜ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಜ್ಯೋತಿಷ್ಯ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ್ದು (${tatva} ತತ್ವ, ${gana} ಗಣ), ನಿಮ್ಮ ಸಹಜ ಗುಣವೇ ${psychNature || "ಶ್ರಮಜೀವಿ ಹಾಗೂ ಸ್ವಾಭಿಮಾನಿ"}. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಕಾಲಘಟ್ಟ ಹಾಗೂ ${shaniText}ಯು ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ಹೊಸ ಆತ್ಮಾವಲೋಕನವನ್ನು ಅಪೇಕ್ಷಿಸುತ್ತಿದೆ.`;
-    const p2Career = `ನಿಮ್ಮ ಜಾತಕದ ೧೦ನೇ ಮನೆಯಾದ ಕರ್ಮಸ್ಥಾನದ ಅಧಿಪತಿಯಾದ ${karmaLord} ಗ್ರಹದ ಸ್ಥಿತಿ ಹಾಗೂ ೬ನೇ ಮನೆಯ ಸ್ಥಿತಿಗತಿಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಅವಲೋಕಿಸಿದಾಗ, ಶನಿ ಹಾಗೂ ಗೋಚಾರ ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅತಿಯಾದ ಒತ್ತಡ, ಸಹೋದ್ಯೋಗಿಗಳಲ್ಲಿ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ ಹಾಗೂ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ತಡವಾಗುವ ವಾತಾವರಣ ನಿರ್ಮಾಣವಾಗಿದೆ. ಆದರೆ ನೆನಪಿಡಿ, ಈ ಪರೀಕ್ಷೆಯು ನಿಮ್ಮ ಒಳಗಿನ ಸಾಮರ್ಥ್ಯವನ್ನು ಸಾಣೆ ಹಿಡಿಯಲಿಕ್ಕಾಗಿಯೇ ಬಂದಿರುವುದೇ ಹೊರತು ನಿಮ್ಮ ಭವಿಷ್ಯವನ್ನು ಕುಗ್ಗಿಸುವುದಕ್ಕಲ್ಲ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಕೋಪ ಅಥವಾ ಆತುರದಲ್ಲಿ ರಾಜೀನಾಮೆಯಂತಹ ಅವಸರದ ಹೆಜ್ಜೆಗಳನ್ನು ಇಡಬೇಡಿ.`;
-    const p3Career = `ಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ಕತ್ತಲೆ ಕರಗಿ ನಿಧಾನವಾಗಿ ಹೊಸ ಅವಕಾಶಗಳ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ. ಅಲ್ಲಿಯವರೆಗೂ ಶಾಂತಚಿತ್ತದಿಂದ ನಿಮ್ಮ ಕಾರ್ಯವನ್ನು ನಿಷ್ಠೆಯಿಂದ ಮುಂದುವರಿಸಿ. ಪ್ರತಿದಿನ ಶಿವಪಂಚಾಕ್ಷರೀ ಸ್ತೋತ್ರ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ಪ್ರತಿ ಶನಿವಾರ ಅಥವಾ ಸೋಮವಾರ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸುವುದರಿಂದ ಮಾನಸಿಕ ಧೈರ್ಯ ಹೆಚ್ಚಿ, ಸಕಲ ವಿಘ್ನಗಳೂ ದೂರವಾಗಲಿವೆ.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಉದ್ಯೋಗ-ವೃತ್ತಿಯಲ್ಲಿ ಯಶಸ್ಸು ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.`);
-      }
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
-      }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-        activeDosha.technicalWhy ||
-        "ಗ್ರಹಗಳ ಅಶುಭ ಸಂಯೋಜನೆ ಮತ್ತು ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
-      } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${
-        activeDosha.currentLifeProblems ||
-        "ಕಾರ್ಯವಿಳಂಬ, ಮಾನಸಿಕ ಅಶಾಂತಿ ಹಾಗೂ ವಿಪರೀತ ಅಡೆತಡೆಗಳು"
-      }" ಎದುರಾಗುತ್ತಿವೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja ||
-        "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ದೋಷ ಶಾಂತಿ ಹೋಮ"
-      }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಖಂಡಿತವಾಗಿಯೂ ಧನಾತ್ಮಕ ಸುಧಾರಣೆ ಮತ್ತು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳ ಸಿದ್ಧಿ ಗೋಚರಿಸುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
-      return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
-  }
-
-  const p1 =
-    convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-      ? `${convIntel.contextualBridge} ಜಾತಕದ ಪ್ರಸ್ತುತ ${dasha} ಅವಧಿ ಹಾಗೂ ಸಂಬಂಧಿಸಿದ ಭಾವಾಧಿಪತಿಯ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಗ್ರಹಸ್ಥಿತಿಗಳು ಸಕಾರಾತ್ಮಕ ಬದಲಾವಣೆಗಳನ್ನು ಸೂಚಿಸುತ್ತಿವೆ. ಲಗ್ನಾಧಿಪತಿಯ ಬಲವು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ತಾಳ್ಮೆಯ ನಡೆಯಿಂದ ಉದ್ದೇಶಿತ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`
-      : isSubsequent
-      ? `ನೀವು ಕೇಳಿರುವ "${question}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ಪ್ರಸ್ತುತ ${dasha} ಅವಧಿ ಹಾಗೂ ಸಂಬಂಧಿಸಿದ ಭಾವಾಧಿಪತಿಯ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಗ್ರಹಸ್ಥಿತಿಗಳು ಸಕಾರಾತ್ಮಕ ಬದಲಾವಣೆಗಳನ್ನು ಸೂಚಿಸುತ್ತಿವೆ. ಲಗ್ನಾಧಿಪತಿಯ ಬಲವು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ತಾಳ್ಮೆಯ ನಡೆಯಿಂದ ಉದ್ದೇಶಿತ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`
-      : `ನಮಸ್ಕಾರ ${localizedDevoteeName} ಅವರೇ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನ್ಮತಾಳಿದ್ದೀರಿ (${tatva} ತತ್ವ, ${gana} ಗಣ). ನಿಮ್ಮ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಮಹತ್ವದ ತಿರುವು ಮತ್ತು ಹೊಸ ಅವಕಾಶಗಳನ್ನು ನಿರ್ದೇಶಿಸುತ್ತಿದೆ. ಲಗ್ನಾಧಿಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿ ಪ್ರಭಾವದಿಂದ ಹಂತ ಹಂತವಾಗಿ ಸಕಲ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`;
-
-  const p2 = `ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ಭಾವಗಳನ್ನು ಗಮನಿಸಿದಾಗ, ಈ ಹಿಂದೆ ಎದುರಾಗಿದ್ದ ಮಾನಸಿಕ ಆತಂಕಗಳು ಮತ್ತು ಕಾರ್ಯವಿಳಂಬಗಳು ಈಗ ನಿಧಾನವಾಗಿ ಪರಿಹಾರವಾಗುವ ಲಕ್ಷಣಗಳಿವೆ. ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ ಹಾಗೂ ಕುಟುಂಬ ಸೌಖ್ಯದ ವಿಚಾರದಲ್ಲಿ ಧನಾತ್ಮಕ ಫಲಗಳು ಗೋಚರಿಸುತ್ತಿದ್ದು, ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಹಾಗೂ ತಾಳ್ಮೆಯ ನಡೆ ನಿಮಗೆ ಹೆಚ್ಚಿನ ಯಶಸ್ಸನ್ನು ತಂದುಕೊಡುತ್ತದೆ. ಯಾವುದೇ ಅತಿ ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳದೆ, ಗ್ರಹಬಲಕ್ಕೆ ಅನುಗುಣವಾಗಿ ಹೆಜ್ಜೆ ಇಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`;
-
-  const p3 = `ಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳಿಗೆ ಬಲವನ್ನು ನೀಡಲಿದ್ದು, ಹೊಸ ಕಾರ್ಯಾರಂಭಕ್ಕೆ ಯೋಗ್ಯ ಕಾಲಾವಕಾಶ ಸೃಷ್ಟಿಯಾಗಲಿದೆ. ತಾಳ್ಮೆ ಮತ್ತು ಸತತ ಪ್ರಯತ್ನಗಳಿಂದ ನಿಮ್ಮ ನಿರೀಕ್ಷಿತ ಗುರಿಗಳನ್ನು ತಲುಪಲು ಸಾಧ್ಯವಾಗಲಿದ್ದು, ದೈವಾನುಗ್ರಹದಿಂದ ನಿಧಾನವಾಗಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ. ಯಾವುದೇ ನಕಾರಾತ್ಮಕ ಚಿಂತನೆಗಳಿಗೆ ಎಡೆಕೊಡದೆ ಶುಭ ಸಂಕಲ್ಪದೊಂದಿಗೆ ಹೆಜ್ಜೆಯಿಡಿ.`;
-
-  if (activeDosha.hasDosha) {
-    if (!includeFullDosha) {
-      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರವೇ ಶುಭ ಫಲಗಳು ಲಭಿಸಲಿವೆ.`);
-    }
-    const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
-      activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
-    }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-      activeDosha.technicalWhy || "ಗ್ರಹಗಳ ಅಶುಭ ಸಂಯೋಜನೆ ಮತ್ತು ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
-    } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${
-      activeDosha.currentLifeProblems ||
-      "ಕಾರ್ಯವಿಳಂಬ, ಮಾನಸಿಕ ಅಶಾಂತಿ ಹಾಗೂ ವಿಪರೀತ ಅಡೆತಡೆಗಳು"
-    }" ಎದುರಾಗುತ್ತಿವೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-      activeDosha.recommendedPooja ||
-      "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ದೋಷ ಶಾಂತಿ ಹೋಮ"
-    }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಖಂಡಿತವಾಗಿಯೂ ಧನಾತ್ಮಕ ಸುಧಾರಣೆ ಮತ್ತು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳ ಸಿದ್ಧಿ ಗೋಚರಿಸುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
-    return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p4Dosha}`);
-  }
-
-  const p3Normal = `ಗ್ರಹದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಸಕಲ ಕಾರ್ಯಜಯಕ್ಕಾಗಿ, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ. ಪ್ರತಿ ಸೋಮವಾರ ಅಥವಾ ಶನಿವಾರದಂದು ದೀಪಾರಾಧನೆ ಮಾಡಿ ಇಷ್ಟದೇವತಾ ಸ್ಮರಣೆ ಮಾಡುವುದರಿಂದ ನಿಮ್ಮ ಸಮಸ್ತ ಇಷ್ಟಾರ್ಥಗಳು ಶೀಘ್ರವಾಗಿ ಕೈಗೂಡಿ ಸಕಲ ಶುಭವಾಗುತ್ತದೆ.`;
-  return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3Normal}`);
-}
-
-function buildHindiFallbackReading(ctx: DeterministicFallbackContext): string {
-  const {
-    question,
-    lagna,
-    rashi,
-    nakshatra,
-    dasha,
-    activeDosha,
-    isSubsequent,
-    convIntel,
-    timeline,
-    includeFullDosha,
-    isGreeting,
-    isCareerFrustration,
-    isSanthana,
-    isSecretIntimate,
-    isMinorChild,
-    tatva,
-    gana,
-    psychNature,
-    house4Sign,
-    house4Lord,
-    house5Sign,
-    house5Lord,
-    shaniText,
-    karmaLord,
-    localizedDevoteeName
-  } = ctx;
-  const q = question.toLowerCase();
-
-  if (isGreeting) {
-    if (isSubsequent) {
-      return deduplicateResponseText(`जी हाँ, मैं इस पावन परामर्श कक्ष में आपके साथ ही उपस्थित हूँ। जब भी आप चाहें, अपना अगला प्रश्न या दुविधा निःसंकोच व्यक्त करें।`);
-    }
-    return deduplicateResponseText(`हरि ॐ ${localizedDevoteeName} जी! श्री क्षेत्र गोकर्ण के महागणपति एवं भगवान महाबलेश्वर का दिव्य आशीर्वाद आप और आपके परिवार पर सदा बना रहे।\n\nइस पावन २० मिनट के व्यक्तिगत परामर्श सत्र में मैं आपके समक्ष उपस्थित हूँ। कृपया पूर्ण शांत भाव से रहें। अपने जीवन, आजीविका, विवाह, स्वास्थ्य अथवा परिवार से जुड़ा कोई भी प्रश्न आप निःसंकोच पूछ सकते हैं।`);
-  }
-
-  // Timing / Intelligent Follow-Up
-  if (
-    timeline &&
-    (convIntel.isAskingTiming ||
-      (convIntel.isSameTopicFollowUp &&
-        /कब|कितने दिन|कितने महीने|समय सीमा|किस वर्ष|किस महीने|when|timing/i.test(q)))
-  ) {
-    const p1Timing =
-      convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-        ? `${convIntel.contextualBridge} कुंडली के संबंधित भावों एवं शुभ गोचर ग्रहों के संचरण का अवलोकन करने पर आपके ${timeline.topicLabel} कार्य हेतु अनुकूल समय अब अत्यंत सन्निकट आ रहा है।`
-        : isSubsequent
-        ? `१००% शास्त्रसम्मत ज्योतिषीय निर्णय: ९८% प्रामाणिक सटीकता के साथ आपका ${timeline.topicLabel} ${timeline.rangeSummary} अवश्य साकार होगा। कुंडली में ${timeline.topicYogaName} एवं संबंधित भावों के शुभ गोचर को देखने पर यह समय अत्यंत अनुकूल सिद्ध हो रहा है।`
-        : `१००% शास्त्रसम्मत ज्योतिषीय निर्णय: श्री बग्गोण पंचांग की वैदिक गणना के अनुसार, ९८% प्रामाणिक सटीकता के साथ आपका ${timeline.topicLabel} ${timeline.rangeSummary} अवश्य साकार होगा! प्रिय ${localizedDevoteeName} जी, आपकी जन्म कुंडली का सूक्ष्म अध्ययन करने पर आप ${lagna} लग्न, ${rashi} राशि तथा ${nakshatra} नक्षत्र में जन्मे हैं। वर्तमान में चल रही ${dasha} तथा ${timeline.topicYogaName} का शुभ गोचर इस मंगलकारी समय का दृढ़ता से समर्थन कर रहे हैं।`;
-    const p2Timing = `वैदिक ज्योतिष शास्त्र के गणित के अनुसार, वर्तमान में चल रही ${timeline.currentMahaName}-${timeline.currentBhuktiName} की अवधि आगामी ${timeline.monthsToDashaChange} महीनों में पूर्ण होकर ${timeline.nextBhuktiName} भुक्ति में परिवर्तित होगी। इसके साथ ही, देवगुरु बृहस्पति एक राशि से दूसरी राशि में गोचर करते हुए आगामी एक वर्ष के भीतर आपकी कुंडली के प्रमुख केंद्र एवं त्रिकोण भावों पर अपनी अमृतमयी दृष्टि डालेंगे। यह गुरु बल और दशा परिवर्तन पूर्व के समस्त अवरोधों को समाप्त कर नए अवसरों का मार्ग प्रशस्त करेंगे।`;
-    const p3Timing = `अतः श्री बग्गोण पंचांग की गणनानुसार पूर्ण विश्वास रखें कि ९८% सटीकता के साथ आपका ${timeline.topicLabel} ${timeline.rangeSummary} साकार होने का प्रबल योग है। इस शुभ अवसर को अनुकूल ऊर्जा के साथ प्राप्त करने हेतु श्री क्षेत्र गोकर्ण महाबलेश्वर स्वामी का स्मरण करें तथा सोमवार अथवा गुरुवार को गाय के शुद्ध घी का दीपक प्रज्वलित करें।`;
-
-    if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी जन्म पत्रिका के सूक्ष्म अध्ययन से "${
-        activeDosha.doshaName || "दोष"
-      }" की पुष्टि होती है। यह स्थिति ${
-        activeDosha.technicalWhy || "ग्रहों के प्रतिकूल प्रभाव"
-      } से उत्पन्न हुई है, जिसके कारण जीवन में "${
-        activeDosha.currentLifeProblems || "कार्यों में विलंब व मानसिक तनाव"
-      }" अनुभव हो रहा है। इसके निवारण हेतु श्री क्षेत्र गोकर्ण में "${
-        activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं शांति होम"
-      }" संपन्न करना परम आवश्यक है। इस पवित्र पूजा से निश्चित रूप से सकारात्मक सुधार होगा। इस दोष परिहार के संकल्प हेतु मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से सीधे संपर्क करें।`;
-      return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
-  }
-
-  // Minor Child (< 18 yrs)
-  if (isMinorChild) {
-    const p1Child = isSubsequent
-      ? `बच्चे के "${question}" से जुड़े प्रश्न के संदर्भ में, कुंडली के चतुर्थ विद्या भाव (${house4Sign}) और पंचम बुद्धि भाव (${house5Sign}) का अध्ययन करने पर, विद्याधिपति ${house4Lord} के प्रभाव से बच्चे में उत्तम सीखने की क्षमता है। स्नेह और धैर्य से मार्गदर्शन करने पर बच्चा शैक्षणिक क्षेत्र में उत्कृष्ट सफलता प्राप्त करेगा।`
-      : `आदरणीय माता-पिता, श्री बग्गोण पंचांग ज्योतिष के अनुसार आपके बच्चे (${localizedDevoteeName}) की जन्म कुंडली का अध्ययन करने पर, बच्चे का जन्म ${lagna} लग्न, ${rashi} राशि और ${nakshatra} नक्षत्र में हुआ है। बच्चे का स्वभाव तीक्ष्ण बुद्धि, स्वाभाविक जिज्ञासा और संवेदनशील मन से युक्त है। आपके प्रश्न "${question}" के संबंध में, कुंडली का चतुर्थ विद्या स्थान (${house4Sign}) और पंचम बुद्धि स्थान (${house5Sign}) अत्यंत जाग्रत हैं और बच्चे में अद्भुत प्रतिभा निहित है।`;
-    const p2Child = `बच्चे की पढ़ाई, एकाग्रता और स्मरण शक्ति के संदर्भ में चतुर्थेश ${house4Lord} की स्थिति को देखते हुए, बच्चा शीघ्रता से विषय समझ लेता है। कभी-कभी मन चंचल होना, खेलकूद में ध्यान जाना अथवा अपनी बात पर अड़ना इस आयु का स्वाभाविक लक्षण है। माता-पिता के रूप में आप बच्चे पर अनावश्यक तुलनात्मक दबाव न बनाएं, बल्कि प्रेम, शांत वातावरण और नियमित दिनचर्या का अभ्यास कराएं। वर्तमान ${dasha} काल बच्चे के बौद्धिक विकास हेतु उत्तम आधारशिला सिद्ध होगा।`;
-    const p3Child = `बच्चे के स्वास्थ्य, दृष्टि दोष निवारण और एकाग्रता हेतु प्रतिदिन संध्या समय घर में घी का दीपक जलाकर महासरस्वती स्तोत्र अथवा गायत्री मंत्र का पाठ करें। श्री क्षेत्र गोकर्ण महागणपति के नाम से संकल्प कर दूर्वा अर्चन कराने से बच्चे की स्मरण शक्ति तीव्र होगी और दीर्घायु का आशीर्वाद प्राप्त होगा।`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nजैसा कि बच्चे की कुंडली में पूर्व में बताया गया है, ${activeDosha.doshaName} का प्रभाव श्री क्षेत्र गोकर्ण के पवित्र संकल्प एवं पूजा से शांत होकर बच्चे को उत्तम स्वास्थ्य और विद्या प्रदान करेगा।`);
-      }
-      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nबच्चे की पत्रिका में "${
-        activeDosha.doshaName || "विद्या व बाल संस्कार दोष"
-      }" दिखाई देता है। ग्रहों के प्रतिकूल प्रभाव (${
-        activeDosha.technicalWhy || "चतुर्थ/पंचम भाव पर तनाव"
-      }) से "${
-        activeDosha.currentLifeProblems || "पढ़ाई में चंचलता व परीक्षा में घबराहट"
-      }" हो सकती है। शांति हेतु श्री क्षेत्र गोकर्ण में "${
-        activeDosha.recommendedPooja || "श्री महासरस्वती एवं मेधा सूक्त शांति पूजा"
-      }" कराना शुभ रहेगा। मुख्य पुरोहित श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से मार्गदर्शन प्राप्त करें।`;
-      return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
-  }
-
-  // Santhana / Progeny
-  if (isSanthana) {
-    const p1Santhana = isSubsequent
-      ? `संतान प्राप्ति के संबंध में आपके प्रश्न "${question}" पर, कुंडली के पंचम भाव (${house5Sign}) और पंचमेश ${house5Lord} की स्थिति का अवलोकन करने पर यह गोचर का सामयिक विलंब दर्शाता है। चिकित्सीय प्रयासों के साथ जब दैवीय कृपा जुड़ेगी, तो संतान योग अवश्य सिद्ध होगा।`
-      : `प्रिय वत्स ${localizedDevoteeName}, वैवाहिक जीवन में संतान सुख और वंश वृद्धि को लेकर आपके मन की गहरी चिंता और आकांक्षा को एक वरिष्ठ दैवज्ञ के रूप में मैं भली-भांति समझता हूँ। श्री बग्गोण पंचांग के अनुसार आपकी कुंडली में ${lagna} लग्न, ${rashi} राशि और ${nakshatra} नक्षत्र है। आपकी पत्रिका के पंचम भाव (${house5Sign}) और संतान कारक गुरु की स्थिति दर्शाती है कि यह समय एक परीक्षा काल है, जिसके कारण चिकित्सीय रूप से सब सामान्य होने पर भी सामयिक विलंब हो रहा है।`;
-    const p2Santhana = `पंचमेश ${house5Lord} और वर्तमान ${dasha} की स्थिति ने ऊर्जात्मक स्तर पर कुछ रुकावटें डाली हैं। वैदिक दृष्टि में संतान प्राप्ति के लिए चिकित्सा और दैव बल दोनों का सामंजस्य आवश्यक है। अपने मन से समस्त निराशा और दोषारोपण दूर करें। जब शास्त्रोक्त उपायों से पूर्वजन्म के कर्म दोष शांत होंगे, तो माता-पिता बनने का मार्ग प्रशस्त होगा।`;
-    const p3Santhana = `आगामी चंद्र चक्रों में गुरु की शुभ दृष्टि पंचम भाव पर पड़ने से अत्यंत अनुकूल समय आरंभ होगा। दोनों दंपत्ति परस्पर प्रेम बनाए रखें और नित्य श्रद्धा से श्री संतान गोपाल मंत्र का पाठ करें। गोकर्ण महाबलेश्वर के आशीर्वाद से शीघ्र ही मंगल समाचार प्राप्त होगा।`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nआपकी कुंडली में जैसा पहले बताया गया, ${activeDosha.doshaName} का निवारण श्री क्षेत्र गोकर्ण में कराने से शीघ्र संतान सुख प्राप्त होगा।`);
-      }
-      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी जन्म कुंडली में "${
-        activeDosha.doshaName || "संतान बाधा एवं पंचम भाव दोष"
-      }" परिलक्षित होता है। ग्रहों के प्रतिकूल प्रभाव (${
-        activeDosha.technicalWhy || "पंचम भाव पर पापदृष्टि"
-      }) से "${
-        activeDosha.currentLifeProblems || "संतान प्राप्ति में विलंब"
-      }" हो रहा है। इसके निवारण हेतु श्री क्षेत्र गोकर्ण में "${
-        activeDosha.recommendedPooja || "संतान गोपाल महाहोम एवं नाग प्रतिष्ठा"
-      }" संपन्न कराएं। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
-      return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
-  }
-
-  // Secret Intimate / Sexuality Query
-  if (isSecretIntimate) {
-    const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|वेश्याव्यवसाय|देहविक्रय/i.test(question);
-    if (isSexWork) {
-      const p1SexWork = isSubsequent
-        ? `मुक्ति एवं सम्मानपूर्ण जीवन के आपके प्रश्न ("${question}") के संबंध में, श्री क्षेत्र गोकर्ण महाबलेश्वर स्वामी के पावन सानिध्य में कोई भी आत्मा अशुद्ध अथवा शाश्वत शापित नहीं है। अष्टम एवं सप्तम भाव पर राहु-मंगल का ऋण बंधन आगामी गुरु गोचर से कट जाएगा और सम्मान का मार्ग बनेगा।`
-        : `१००% सत्यनिष्ठ दैवज्ञ आश्वासन: श्री क्षेत्र गोकर्ण के महाबलेश्वर स्वामी के पावन सानिध्य में कोई भी आत्मा अशुद्ध अथवा शाश्वत शापित नहीं है; आपकी जन्म कुंडली के अनुसार आगामी गुरु का शुभ गोचर इस परिस्थिति के बंधनों को काटकर आपको एक सम्मानित, गरिमापूर्ण वैवाहिक जीवन प्रदान करेगा! वत्स ${localizedDevoteeName}, आपके मन की अपार वेदना को मैं पिता के वात्सल्य और बिना किसी सामाजिक पूर्वाग्रह के स्वीकार करता हूँ। सनातन परंपरा में पिंगला और आम्रपाली जैसी पुण्यात्माओं ने सिद्ध किया है कि सांसारिक विवशताएं आत्मा की दिव्यता को मलिन नहीं कर सकतीं।`;
-      const p2SexWork = `कुंडली के अष्टम गुप्त स्थान, सप्तम संबंध स्थान और षष्ठ ऋण भाव का अध्ययन करने पर स्पष्ट है कि आप किसी आंतरिक दोष से नहीं, बल्कि आर्थिक विवशता और पारिवारिक ऋण के कारण इस चक्रव्यूह में घिरे हैं। वर्तमान ${dasha} के उपरांत गुरु दृष्टि आपको इस संकट से उबारेगी। अपने स्वास्थ्य की रक्षा हेतु बिना झिझक स्वास्थ्य परीक्षण कराएं और विश्वसनीय महिला आश्रय तथा विधिक सहायता का सहारा लें।`;
-      const p3SexWork = `ऋण से मुक्ति और सुरक्षा हेतु श्री क्षेत्र गोकर्ण महाबलेश्वर को रुद्राभिषेक कराएं तथा श्री महागौरी/दुर्गा स्तोत्र और ऋणमोचन स्तोत्र का पाठ करें। माता महागौरी अपनी संतानों की रक्षा करती हैं और शीघ्र ही आपको एक शांत, सम्मानित पारिवारिक जीवन प्राप्त होगा।`;
-      if (activeDosha.hasDosha && includeFullDosha) {
-        const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nकुंडली में "${activeDosha.doshaName || "ऋणबंधन व कर्म दोष"}" का निवारण श्री क्षेत्र गोकर्ण में "${activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं चंडी शांति"}" द्वारा होगा। व्यक्तिगत मार्गदर्शन हेतु मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
-        return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
-      }
-      return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
-    }
-
-    const p1Intimate = isSubsequent
-      ? `अंतरंग विषयों के इस प्रश्न ("${question}") के संबंध में, कुंडली के अष्टम भाव, सप्तम भाव और शुक्र की स्थिति से यह स्पष्ट है कि यह पूर्णतः प्राकृतिक शारीरिक और मानसिक अवस्था है। अपराधबोध से मुक्त होकर आयुर्वेद और सात्विक दिनचर्या अपनाएं।`
-      : `प्रिय ${localizedDevoteeName} जी, वैदिक जीवन दर्शन में काम (प्राकृतिक इच्छा, शारीरिक सामर्थ्य और दांपत्य सुख) को चार पुरुषार्थों में से एक पवित्र अंग माना गया है। समाज में संकोच या अपराधबोध के कारण इस विषय पर खुलकर बात नहीं हो पाती, परंतु एक अनुभवी दैवज्ञ के रूप में मैं इसे पूर्ण वैज्ञानिक स्पष्टता और वात्सल्य से देखता हूँ। आपका ${lagna} लग्न और शुक्र ग्रह की स्थिति आपकी शारीरिक ऊर्जा का संचालन करती है।`;
-    const p2Intimate = `कुंडली के अष्टम, सप्तम और द्वादश भावों के अध्ययन से ज्ञात होता है कि वर्तमान ${dasha} के कारण मानसिक तनाव और अत्यधिक थकान ने शुक्र धातु के संतुलन को सामयिक रूप से प्रभावित किया है। यह कोई स्थायी दोष नहीं है, बल्कि विशुद्ध रूप से तनावजनित अवस्था है। अपराधबोध त्यागें; आयुर्वेद सम्मत अश्वगंधा, शुद्ध दूध और प्राणायाम से आपकी ऊर्जा पुनः जाग्रत होगी।`;
-    const p3Intimate = `मन की चिंता को शांत करें। गोकर्ण महाबलेश्वर के दर्शन और सोमवार के रुद्राभिषेक से मन को अगाध शांति मिलेगी और दांपत्य जीवन में परस्पर प्रेम और विश्वास पुनः स्थापित होगा।`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nजैसा कि पूर्व में बताया गया, ${activeDosha.doshaName} के परिहार से मानसिक और शारीरिक संतुलन पुनः प्राप्त होगा।`);
-      }
-      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी पत्रिका में "${activeDosha.doshaName || "शुक्र धातु व अंतरंग क्लेश दोष"}" की शांति हेतु श्री क्षेत्र गोकर्ण में "${activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं स्वास्थ्य शांति"}" कराना उत्तम रहेगा। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362) से संपर्क करें।`;
-      return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}`);
-  }
-
-  // Career Frustration
-  if (isCareerFrustration) {
-    const p1Career = isSubsequent
-      ? `करियर और आजीविका के प्रश्न "${question}" के संदर्भ में, दशम कर्म भाव (स्वामी: ${karmaLord}) और वर्तमान ${dasha} के प्रभाव से कार्यक्षेत्र में सामयिक तनाव और मंथन दिखाई दे रहा है। यह आपकी आंतरिक क्षमता को तराशने का समय है, न कि कोई स्थायी रुकावट।`
-      : `प्रिय वत्स ${localizedDevoteeName}, आपकी आजीविका (नौकरी/व्यवसाय) में हो रही परेशानी और हताशा को मैं पूर्ण रूप से समझ सकता हूँ। श्री बग्गोण पंचांग के अनुसार आपका जन्म ${lagna} लग्न, ${rashi} राशि में हुआ है, और आपका मूल स्वभाव परिश्रमी एवं स्वाभिमानी है। वर्तमान ${dasha} और ${shaniText} आपके कार्यक्षेत्र में धैर्य और आत्मनिरीक्षण की मांग कर रहे हैं।` ;
-    const p2Career = `दशमेश ${karmaLord} और षष्ठ भाव की स्थिति को देखते हुए, गोचर के ग्रहों के प्रभाव से कार्यस्थल पर दबाव, सहकर्मियों से समन्वय की कमी और परिश्रम का उचित श्रेय मिलने में देरी हो रही है। परंतु स्मरण रहे, यह परीक्षा आपकी क्षमता को निखारने आई है। क्रोध अथवा अधीरता में आकर त्यागपत्र जैसा कोई जल्दबाजी का कदम न उठाएं।`;
-    const p3Career = `आगामी गोचर काल में ग्रहों की चाल आपके पक्ष में बदलेगी और धीरे-धीरे नए अवसरों के द्वार खुलेंगे। तब तक धैर्यपूर्वक अपने कर्तव्य का निर्वहन करें। नित्य शिव पंचाक्षरी स्तोत्र अथवा गायत्री मंत्र का जप करें और सोमवार या शनिवार को घी का दीपक प्रज्वलित करें।`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nआपकी कुंडली में ${activeDosha.doshaName} का निवारण श्री क्षेत्र गोकर्ण की पूजा से होकर करियर में स्थिरता आएगी।`);
-      }
-      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी कुंडली में "${
-        activeDosha.doshaName || "दोष"
-      }" की उपस्थिति से आजीविका में विघ्न आ रहे हैं। श्री क्षेत्र गोकर्ण में "${
-        activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं शांति होम"
-      }" संपन्न कराएं। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
-      return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
-  }
-
-  // Base Reading
-  const baseP1 =
-    convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-      ? `${convIntel.contextualBridge} वर्तमान ${dasha} अवधि एवं संबंधित भावेश के गोचर को देखते हुए ग्रह स्थितियां सकारात्मक परिवर्तनों की ओर संकेत कर रही हैं। लग्नेश का बल आपको आत्मविश्वास प्रदान कर रहा है।`
-      : isSubsequent
-      ? `आपके प्रश्न "${question}" के संदर्भ में, कुंडली की वर्तमान ${dasha} अवधि और संबंधित भावेश के गोचर को देखते हुए ग्रह स्थितियां सकारात्मक परिवर्तनों की ओर संकेत कर रही हैं। लग्नेश का बल आपको आत्मविश्वास प्रदान कर रहा है और धैर्यपूर्वक किए गए प्रयास सफल होंगे।`
-      : `नमस्ते ${localizedDevoteeName} जी। श्री बग्गोण पंचांग ज्योतिष की शास्त्रोक्त गणनानुसार आप ${lagna} लग्न, ${rashi} राशि तथा ${nakshatra} नक्षत्र में जन्मे हैं । आपके प्रश्न "${question}" के संबंध में, वर्तमान ${dasha} काल आपके जीवन में महत्वपूर्ण मोड़ और नए अवसरों का सृजन कर रहा है। लग्नेश की शुभ स्थिति आपको संबल दे रही है और गुरु व शनि के गोचर से धीरे-धीरे कार्य सिद्ध होंगे।`;
-  const baseP2 = `कुंडली के मुख्य भावों का अवलोकन करने पर पूर्व में रहे मानसिक तनाव और कार्यों में रुकावटें अब धीरे-धीरे दूर होने के संकेत हैं। करियर, व्यवसाय और पारिवारिक सुख के क्षेत्र में सकारात्मक परिणाम दिखाई देंगे। बड़ों का आशीर्वाद और संयमित आचरण आपको सफलता दिलाएगा। किसी भी प्रकार के जल्दबाजी वाले निर्णयों से बचें।`;
-  const baseP3 = `आगामी गोचर काल में देवगुरु बृहस्पति का शुभ प्रभाव आपके प्रमुख त्रिकोण स्थानों को बल प्रदान करेगा, जिससे नए कार्यों के शुभारंभ हेतु अनुकूल वातावरण बनेगा। सकारात्मक संकल्प के साथ आगे बढ़ें।`;
-
-  if (activeDosha.hasDosha) {
-    if (!includeFullDosha) {
-      return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\nआपकी कुंडली में ${activeDosha.doshaName} का निवारण श्री क्षेत्र गोकर्ण के संकल्प से होकर शुभ फल प्राप्त होंगे।`);
-    }
-    const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी जन्म पत्रिका में "${
-      activeDosha.doshaName || "दोष"
-    }" की उपस्थिति से विलंब हो रहा है। इसके निवारण हेतु श्री क्षेत्र गोकर्ण में "${
-      activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं शांति होम"
-    }" कराएं। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
-    return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\n${p4Dosha}`);
-  }
-
-  const p3Normal = `ग्रहदोष निवारण एवं सर्वकार्य सिद्धि हेतु श्री क्षेत्र गोकर्ण के महागणपति एवं महाबलेश्वर स्वामी की आराधना करें। प्रति सोमवार अथवा शनिवार को घी का दीपक जलाकर इष्टदेव का स्मरण करने से आपके सभी मनोरथ पूर्ण होंगे और जीवन में सुख-शांति का संचार होगा।`;
-  return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${p3Normal}`);
-}
-
-function buildTeluguFallbackReading(ctx: DeterministicFallbackContext): string {
-  const {
-    question,
-    lagna,
-    rashi,
-    nakshatra,
-    dasha,
-    activeDosha,
-    isSubsequent,
-    convIntel,
-    timeline,
-    includeFullDosha,
-    isGreeting,
-    isCareerFrustration,
-    isSanthana,
-    isSecretIntimate,
-    isMinorChild,
-    tatva,
-    gana,
-    psychNature,
-    house4Sign,
-    house4Lord,
-    house5Sign,
-    house5Lord,
-    shaniText,
-    karmaLord,
-    localizedDevoteeName
-  } = ctx;
-  const q = question.toLowerCase();
-
-  if (isGreeting) {
-    if (isSubsequent) {
-      return deduplicateResponseText(`అవును, నేను ఈ పవిత్ర సంభాషణ గదిలో మీతోనే ఉన్నాను. మీ తదుపరి ప్రశ్న లేదా సందేహాన్ని నిస్సంకోచంగా తెలియజేయండి.`);
-    }
-    return deduplicateResponseText(`హరి ఓం ${localizedDevoteeName} గారూ! శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి మరియు మహాగణపతి దివ్య ఆశీస్సులు మీపై, మీ కుటుంబంపై సదా ఉండుగాక.\n\nమీ కోసం కేటాయించిన ఈ 20 నిమిషాల ఏకాంత సంభాషణలో నేను మీతోనే ఉన్నాను. మీ మనస్సులోని ఉద్యోగం, వ్యాపారం, వివాహం, ఆరోగ్యం లేదా కుటుంబ సమస్యల గురించి నిస్సంకోచంగా అడగండి.`);
-  }
-
-  // Timing
-  if (
-    timeline &&
-    (convIntel.isAskingTiming ||
-      (convIntel.isSameTopicFollowUp &&
-        /ఎప్పుడు|ఎన్ని రోజులు|ఎన్ని నెలలు|సమయం|ఏ సంవత్సరం|ఏ నెల|when|timing/i.test(q)))
-  ) {
-    const p1Timing =
-      convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-        ? `${convIntel.contextualBridge} జాతకంలోని సంబంధిత భావాలు మరియు శుభ గోచార గ్రహాల సంచారాన్ని పరిశీలిస్తే, మీ ${timeline.topicLabel} కార్యానికి అనుకూల సమయం ఇప్పుడు సమీపిస్తోంది.`
-        : isSubsequent
-        ? `100% ఖచ్చిత జాతక నిర్ణయం: 98% ఖచ్చితత్వంతో మీ ${timeline.topicLabel} ${timeline.rangeSummary} సాకారం కానుంది. జాతకంలో ${timeline.topicYogaName} మరియు గోచార గ్రహాల సంచారం ఈ అనుకూల కాలాన్ని బలపరుస్తున్నాయి.`
-        : `100% ఖచ్చిత జాతక నిర్ణయం: శ్రీ బగ్గోణ పంచాంగ వేద జ్యోతిష గణన ప్రకారం, 98% ఖచ్చితత్వంతో మీ ${timeline.topicLabel} ${timeline.rangeSummary} ఖచ్చితంగా నెరవేరుతుంది! ఆత్మీయులైన ${localizedDevoteeName} గారూ, మీ జన్మ కుండలిని పరిశీలిస్తే మీరు ${lagna} లగ్నం, ${rashi} రాశి, ${nakshatra} నక్షత్రంలో జన్మించారు. ప్రస్తుతం జరుగుతున్న ${dasha} మరియు ${timeline.topicYogaName} యోగం ఈ శుభ కాలాన్ని సమర్థిస్తున్నాయి.`;
-    const p2Timing = `వేద జ్యోతిష శాస్త్ర గణితం ప్రకారం, ప్రస్తుతం జరుగుతున్న ${timeline.currentMahaName}-${timeline.currentBhuktiName} కాలం రాబోయే ${timeline.monthsToDashaChange} నెలల్లో ముగిసి ${timeline.nextBhuktiName} భుక్తిగా మారుతుంది. దేవగురు బృహస్పతి గోచారం మీ లగ్న కేంద్ర-త్రికోణ స్థానాలపై దివ్య దృష్టిని ప్రసరిస్తుంది. ఈ గురుబలం మరియు దశా మార్పు పూర్వపు అడ్డంకులను తొలగించి సరికొత్త అవకాశాలను తెస్తుంది.`;
-    const p3Timing = `కాబట్టి శ్రీ బగ్గోణ పంచాంగం ప్రకారం మీ ${timeline.topicLabel} ${timeline.rangeSummary} నెరవేరే బలమైన యోగం ఉంది. ఈ శుభ కాలాన్ని ఆహ్వానించడానికి శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారిని ప్రార్థించి, సోమవారం లేదా గురువారం ఆవు నేతితో దీపారాధన చేయడం శ్రేయస్కరం.`;
-
-    if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nమీ జాతకంలో "${
-        activeDosha.doshaName || "దోషం"
-      }" ఉంది. దీనివల్ల జీవితంలో "${
-        activeDosha.currentLifeProblems || "పనులలో ఆలస్యం మరియు మానసిక ఒత్తిడి"
-      }" ఎదురవుతున్నాయి. దీని నివారణకు శ్రీ క్షేత్ర గోకర్ణంలో "${
-        activeDosha.recommendedPooja || "మహాబలేశ్వర మహారుద్రాభిషేకం మరియు శాంతి హోమం"
-      }" జరిపించడం అవసరం. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362, శ్రీ క్షేత్ర గోకర్ణం) గారిని నేరుగా సంప్రదించండి.`;
-      return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
-  }
-
-  // Minor Child
-  if (isMinorChild) {
-    const p1Child = isSubsequent
-      ? `పిల్లల "${question}" ప్రశ్నకు సంబంధించి, కుండలిలోని 4వ విద్యా స్థానం (${house4Sign}) మరియు 5వ బుద్ధి స్థానాన్ని (${house5Sign}) పరిశీలిస్తే, విద్యాధిపతి ${house4Lord} అనుగ్రహంతో పిల్లలలో అద్భుతమైన గ్రహణ శక్తి ఉంది. ఓర్పుతో ప్రోత్సహిస్తే చదువులో మంచి విజయం సాధిస్తారు.`
-      : `గౌరవనీయులైన తల్లిదండ్రులారా, శ్రీ బగ్గోణ పంచాంగం ప్రకారం మీ బిడ్డ (${localizedDevoteeName}) జాతకాన్ని పరిశీలిస్తే, బిడ్డ ${lagna} లగ్నం, ${rashi} రాశి మరియు ${nakshatra} నక్షత్రంలో జన్మించారు. బిడ్డ సహజ స్వభావం చురుకైన బుద్ధి, సహజమైన జిజ్ఞాస కలిగి ఉంది. మీ "${question}" ప్రశ్నకు సంబంధించి, 4వ విద్యా స్థానం (${house4Sign}) మరియు 5వ బుద్ధి స్థానం (${house5Sign}) గొప్ప ప్రతిభను సూచిస్తున్నాయి.`;
-    const p2Child = `పిల్లల ఏకాగ్రత, జ్ఞాపకశక్తి విషయంలో 4వ స్థానాధిపతి ${house4Lord} స్థితిని గమనిస్తే విషయాలను త్వరగా నేర్చుకునే సామర్థ్యం ఉంది. అప్పుడప్పుడు చంచలత్వం, ఆటలపై మక్కువ చూపడం ఈ వయస్సు సహజ లక్షణం. తల్లిదండ్రులుగా అధిక ఒత్తిడి లేదా కఠిన శిక్షలు వేయకుండా, ప్రేమతో క్రమశిక్షణను అలవర్చడం మంచిది. ప్రస్తుత ${dasha} కాలం బౌద్ధిక వికాసానికి తోడ్పడుతుంది.`;
-    const p3Child = `ఆరోగ్యం, దృష్టి దోష నివారణ మరియు చదువులో ఏకాగ్రత కోసం సాయంత్రం వేళ నేతి దీపం వెలిగించి మహాసరస్వతీ స్తోత్రం లేదా గాయత్రీ మంత్రం పఠించండి. శ్రీ క్షేత్ర గోకర్ణ మహాగణపతికి దూర్వార్చన చేయించడం వల్ల అద్భుతమైన జ్ఞాపకశక్తి లభిస్తుంది.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nబిడ్డ జాతకంలో ${activeDosha.doshaName} ప్రభావం గోకర్ణ పూజతో తొలగిపోయి మంచి విద్య, ఆరోగ్యం లభిస్తాయి.`);
-      }
-      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nపిల్లల జాతకంలో "${
-        activeDosha.doshaName || "విద్యా దోషం"
-      }" ఉంది. శ్రీ క్షేత్ర గోకర్ణంలో "${
-        activeDosha.recommendedPooja || "శ్రీ మహాసరస్వతీ మరియు మేధా సూక్త శాంతి పూజ"
-      }" జరిపించడం ఉత్తమం. ముఖ్య పురోహితులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
-      return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
-  }
-
-  // Santhana
-  if (isSanthana) {
-    const p1Santhana = isSubsequent
-      ? `సంతాన భాగ్యం గురించిన మీ "${question}" ప్రశ్నకు సంబంధించి, 5వ పుత్ర స్థానం (${house5Sign}) మరియు పంచమాధిపతి ${house5Lord} పరిశీలిస్తే, ఇది తాత్కాలిక గోచార విళంబన మాత్రమే. వైద్య ప్రయత్నాలతో పాటు దైవబలం తోడైనప్పుడు సంతాన ప్రాప్తి ఖచ్చితంగా కలుగుతుంది.`
-      : `నాయనా ${localizedDevoteeName}, దాంపత్య జీవితంలో సంతాన ప్రాప్తి గురించిన మీ ఆందోళనను ఒక అనుభవజ్ఞుడైన దైవజ్ఞునిగా నేను అర్థం చేసుకోగలను. శ్రీ బగ్గోణ పంచాంగం ప్రకారం మీరు ${lagna} లగ్నం, ${rashi} రాశి, ${nakshatra} నక్షత్రంలో జన్మించారు. మీ జాతకంలో 5వ స్థానం (${house5Sign}) మరియు పుత్రకారక గురు గ్రహ స్థితి పరీక్షా కాలాన్ని సూచిస్తున్నాయి, అందుకే తాత్కాలిక ఆలస్యం జరుగుతోంది.`;
-    const p2Santhana = `పంచమాధిపతి ${house5Lord} మరియు ప్రస్తుత ${dasha} కాలంలో ఉన్న గ్రహ ఒత్తిడులు సంతాన విషయమై అడ్డంకులు సృష్టిస్తున్నాయి. వేద సంప్రదాయంలో వైద్యంతో పాటు దైవానుగ్రహం అవసరం. నిరాశను వీడి శాస్త్రోక్త పరిహారాలు ఆచరిస్తే సంతాన భాగ్య ద్వారాలు తెరుచుకుంటాయి.`;
-    const p3Santhana = `రాబోయే చంద్ర మాసాలలో గురు గ్రహ శుభ దృష్టి 5వ స్థానంపై పడటం వల్ల అనుకూల సమయం ప్రారంభమవుతుంది. దంపతులిద్దరూ భక్తితో శ్రీ సంతాన గోపాల మంత్రం జపించండి. గోకర్ణ మహాబలేశ్వరుని కృపతో త్వరలోనే శుభవార్త వింటారు.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nమీ జాతకంలో ${activeDosha.doshaName} పరిహారం శ్రీ క్షేత్ర గోకర్ణంలో జరిపిస్తే సంతాన ప్రాప్తి కలుగుతుంది.`);
-      }
-      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nమీ జాతకంలో "${
-        activeDosha.doshaName || "సంతాన దోషం"
-      }" ఉంది. శ్రీ క్షేత్ర గోకర్ణంలో "${
-        activeDosha.recommendedPooja || "సంతాన గోపాల మహాపూజ మరియు నాగ ప్రతిష్ట"
-      }" జరిపించండి. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
-      return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
-  }
-
-  // Secret Intimate
-  if (isSecretIntimate) {
-    const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|വേശ്യാव्यवसाय|देहविक्रय/i.test(question);
-    if (isSexWork) {
-      const p1SexWork = isSubsequent
-        ? `విముక్తి మరియు గౌరవప్రదమైన జీవితం గురించిన మీ ప్రశ్నకు ("${question}"), శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి సన్నిధిలో ఏ ఆత్మా అపవిత్రం కాదు. రాబోయే గురు గోచారం మిమ్మల్ని ఈ బంధనాల నుండి విముక్తి చేసి గౌరవప్రదమైన వైవాహిక జీవితాన్ని ప్రసాదిస్తుంది.`
-        : `100% సత్యనిష్ఠ దైవజ్ఞ అభయం: శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి సన్నిధిలో ఏ ఆత్మా అపవిత్రం కాదు, ఎన్నడూ తిరస్కరింపబడదు; మీ జాతకం ప్రకారం రాబోయే గురు గ్రహ శుభ సంచారం ఈ సంకెళ్ళను తెంచి మీకు గౌరవప్రదమైన వైవాహిక జీవితాన్ని ప్రసాదిస్తుంది! బిడ్డా ${localizedDevoteeName}, మీ మనస్సులోని వేదనను ఒక తండ్రి ప్రేమతో నేను స్వీకరిస్తున్నాను. సనాతన సంప్రదాయంలో పింగళ, ఆమ్రపాలి వంటి పుణ్యాత్ములు సంసార కష్టాలను దాటి దైవ కృప పొందిన చరిత్రలు ఉన్నాయి.`;
-      const p2SexWork = `జాతకంలోని 8, 7, 6వ భావాలను పరిశీలిస్తే మీరు ఆర్థిక నిస్సహాయత మరియు రుణభారంతో ఈ స్థితికి చేరారని స్పష్టమవుతోంది. ప్రస్తుత ${dasha} అనంతరం వచ్చే గురు దృష్టి మిమ్మల్ని కాపాడుతుంది. ధైర్యంగా అడుగు ముందుకు వేసి వైద్య పరీక్షలు చేయించుకోండి మరియు మహిళా ఆశ్రయాలు, చట్టపరమైన సహాయం పొందండి.`;
-      const p3SexWork = `శ్రీ క్షేత్ర గోకర్ణంలో మహాబలేశ్వరునికి రుద్రాభిషేకం చేయించండి మరియు శ్రీ మహాగౌరి/దుర్గా స్తోత్రం, ఋణవిమోచన స్తోత్రం పఠించండి. జగన్మాత తన బిడ్డలను సదా రక్షిస్తుంది.`;
-      if (activeDosha.hasDosha && includeFullDosha) {
-        const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nజాతకంలోని "${activeDosha.doshaName || "కర్మ దోషం"}" నివారణకు గోకర్ణంలో పూజ చేయించండి. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
-        return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
-      }
-      return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
-    }
-
-    const p1Intimate = isSubsequent
-      ? `అంతరంగిక విషయాల ఈ ప్రశ్నకు ("${question}"), కుండలిలోని 8వ స్థానం, 7వ స్థానం మరియు శుక్రుని స్థితి ఇది సహజమైన శారీరక-మానసిక స్థితి అని స్పష్టం చేస్తున్నాయి. అపరాధ భావన వీడి ఆయుర్వేదం, సాత్విక జీవనశైలిని అలవర్చుకోండి.`
-      : `ఆత్మీయులైన ${localizedDevoteeName} గారూ, వైదిక జీవనంలో కామం నాలుగు పురుషార్థాలలో పవిత్రమైన భాగం. సమాజంలో బిడియం లేదా అపరాధ భావనతో బాధపడటం సహజం, కానీ అనుభవజ్ఞుడైన దైవజ్ఞునిగా నేను దీన్ని శాస్త్రీయ స్పష్టతతో మరియు వాత్సల్యంతో చూస్తున్నాను. మీ ${lagna} లగ్నం మరియు శుక్ర గ్రహ స్థితి మీ శరీర శక్తిని నిర్దేశిస్తున్నాయి.`;
-    const p2Intimate = `8, 7, 12వ స్థానాల పరిశీలనలో ప్రస్తుత ${dasha} ఒత్తిడి వల్ల శుక్ర ధాతువు సమతుల్యతపై తాత్కాలిక ప్రభావం పడింది. ఇది శాశ్వత లోపం కాదు, కేవలం ఒత్తిడి వల్ల వచ్చిన తాత్కాలిక స్థితి. అశ్వగంధ, పాలు మరియు ప్రాణాయామం మీకు తిరిగి నూతన శక్తినిస్తాయి.`;
-    const p3Intimate = `ఆందోళన వీడండి. గోకర్ణ మహాబలేశ్వర స్వామి దర్శనం, సోమవారం రుద్రాభిషేకం మనశ్శాంతినిచ్చి దాంపత్యంలో పరస్పర ప్రేమను పెంపొందిస్తాయి.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${activeDosha.doshaName} పరిహారంతో మనశ్శాంతి లభిస్తుంది.`);
-      }
-      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nమీ జాతకంలో "${activeDosha.doshaName || "దోషం"}" శాంతి కోసం శ్రీ క్షేత్ర గోకర్ణంలో పూజ చేయించండి. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
-      return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}`);
-  }
-
-  // Career Frustration
-  if (isCareerFrustration) {
-    const p1Career = isSubsequent
-      ? `కెరీర్ మరియు ఉద్యోగానికి సంబంధించిన "${question}" ప్రశ్నకు, 10వ కర్మ స్థానం (${karmaLord}) మరియు ప్రస్తుత ${dasha} కలయిక తాత్కాలిక ఒత్తిడిని సూచిస్తోంది. ఇది మీ అంతర్గత సామర్థ్యాన్ని సానబెట్టే సమయం మాత్రమే.`
-      : `నాయనా ${localizedDevoteeName}, మీ ఉద్యోగ/వ్యాపార రంగంలో ఎదురవుతున్న ఒత్తిడి, నిరాశలను నేను అర్థం చేసుకోగలను. శ్రీ బగ్గోణ పంచాంగం ప్రకారం మీరు ${lagna} లగ్నం, ${rashi} రాశి లో జన్మించారు. మీ సహజ గుణం కష్టపడే తత్వం, ఆత్మగౌరవం. ప్రస్తుత ${dasha} మరియు ${shaniText} ఓర్పును కోరుతున్నాయి.`;
-    const p2Career = `10వ స్థానాధిపతి ${karmaLord} మరియు 6వ స్థానాన్ని పరిశీలిస్తే పని ప్రదేశంలో ఒత్తిడి, సహోద్యోగులతో సమన్వయ లోపం కనిపిస్తున్నాయి. అయితే ఆవేశంలో రాజీనామా వంటి తొందరపాటు నిర్ణయాలు తీసుకోవద్దు.`;
-    const p3Career = `రాబోయే గోచార కాలంలో గ్రహాలు మీకు అనుకూలంగా మారి కొత్త అవకాశాలు వస్తాయి. అప్పటివరకు నిబద్ధతతో పనిచేయండి. నిత్యం శివ పంచాక్షరీ లేదా గాయత్రీ మంత్రం జపించండి.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${activeDosha.doshaName} పరిహారంతో కెరీర్‌లో మంచి ఎదుగుదల వస్తుంది.`);
-      }
-      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nమీ జాతకంలో "${activeDosha.doshaName || "దోషం"}" ఉండటం వల్ల కెరీర్‌లో ఆటంకాలు వస్తున్నాయి. శ్రీ క్షేత్ర గోకర్ణంలో పూజ జరిపించండి. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
-      return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
-  }
-
-  // Base Reading
-  const baseP1 =
-    convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-      ? `${convIntel.contextualBridge} ప్రస్తుతం జరుగుతున్న ${dasha} కాలం మరియు సంబంధిత భావాధిపతి గోచారం సానుకూల మార్పులను సూచిస్తున్నాయి.`
-      : isSubsequent
-      ? `మీరు అడిగిన "${question}" ప్రశ్నకు సంబంధించి, ప్రస్తుతం జరుగుతున్న ${dasha} కాలం మరియు సంబంధిత భావాధిపతి గోచారం సానుకూల మార్పులను సూచిస్తున్నాయి. లగ్నాధిపతి బలం మీకు ఆత్మవిశ్వాసాన్ని ఇస్తోంది.`
-      : `నమస్కారం ${localizedDevoteeName} గారూ. శ్రీ బగ్గోణ పంచాంగ వేద జ్యోతిష గణన ప్రకారం మీరు ${lagna} లగ్నం, ${rashi} రాశి, ${nakshatra} నక్షత్రంలో జన్మించారు . మీ "${question}" ప్రశ్నకు సంబంధించి, ప్రస్తుతం జరుగుతున్న ${dasha} కాలం మీ జీవితంలో కీలకమైన మలుపులను తెస్తోంది.`;
-  const baseP2 = `కుండలిలోని ప్రధాన భావాలను గమనిస్తే గతంలో ఉన్న మానసిక ఆందోళనలు ఇప్పుడు నెమ్మదిగా తొలగిపోతాయి. ఉద్యోగం, వ్యాపారం మరియు కుటుంబంలో సానుకూల ఫలితాలు కనిపిస్తాయి. పెద్దల ఆశీస్సులు మరియు సంయమనం మీకు విజయాన్నిస్తాయి.`;
-  const baseP3 = `రాబోయే కాలంలో దేవగురు బృహస్పతి గోచారం మీ త్రికోణ స్థానాలకు బలాన్నిస్తుంది. సకల శుభాలు కలుగుతాయి.`;
-
-  if (activeDosha.hasDosha) {
-    if (!includeFullDosha) {
-      return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\n${activeDosha.doshaName} నివారణతో శుభ ఫలితాలు కలుగుతాయి.`);
-    }
-    const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nమీ జాతకంలో "${activeDosha.doshaName || "దోషం"}" ఉంది. దీని నివారణకు శ్రీ క్షేత్ర గోకర్ణంలో పూజ చేయించండి. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
-    return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\n${p4Dosha}`);
-  }
-
-  const p3Normal = `గ్రహదోష నివారణకు శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి, మహాబలేశ్వర స్వామిని ప్రార్థించండి. సోమవారం లేదా శనివారం నేతి దీపం వెలిగించండి.`;
-  return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${p3Normal}`);
-}
-
-function buildTamilFallbackReading(ctx: DeterministicFallbackContext): string {
-  const {
-    question,
-    lagna,
-    rashi,
-    nakshatra,
-    dasha,
-    activeDosha,
-    isSubsequent,
-    convIntel,
-    timeline,
-    includeFullDosha,
-    isGreeting,
-    isCareerFrustration,
-    isSanthana,
-    isSecretIntimate,
-    isMinorChild,
-    tatva,
-    gana,
-    psychNature,
-    house4Sign,
-    house4Lord,
-    house5Sign,
-    house5Lord,
-    shaniText,
-    karmaLord,
-    localizedDevoteeName
-  } = ctx;
-  const q = question.toLowerCase();
-
-  if (isGreeting) {
-    if (isSubsequent) {
-      return deduplicateResponseText(`ஆம், நான் உங்களுடனேயே இந்த புனித உரையாடலில் இருக்கிறேன். உங்கள் அடுத்த கேள்வியை தயங்காமல் கேளுங்கள்.`);
-    }
-    return deduplicateResponseText(`ஹரி ஓம் ${localizedDevoteeName}! ஸ்ரீ க்ஷேத்ர கோகர்ணம் மகாபலேஸ்வரர் மற்றும் விநாயகப் பெருமானின் அருள் உங்கள் குடும்பத்திற்கு சதா கிடைக்கட்டும்.\n\nஉங்களுக்காக ஒதுக்கப்பட்ட இந்த 20 நிமிட கலந்துரையாடலில் நான் உங்களுடன் இருக்கிறேன். உங்கள் வேலை, தொழில், திருமணம், ஆரோக்கியம் அல்லது குடும்பம் பற்றிய எந்தக் கேள்வியையும் தயங்காமல் கேட்கலாம்.`);
-  }
-
-  // Timing
-  if (
-    timeline &&
-    (convIntel.isAskingTiming ||
-      (convIntel.isSameTopicFollowUp &&
-        /எப்போது|எத்தனை நாள்|எத்தனை மாதம்|காலம்|எந்த வருடம்|எந்த மாதம்|when|timing/i.test(q)))
-  ) {
-    const p1Timing =
-      convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-        ? `${convIntel.contextualBridge} ஜாதகத்தின் சம்பந்தப்பட்ட பாவங்களையும் சுப கிரகங்களின் சஞ்சாரத்தையும் பார்க்கும்போது, உங்கள் ${timeline.topicLabel} காரியத்திற்கான காலம் இப்போது கைகூடி வருகிறது.`
-        : isSubsequent
-        ? `100% உறுதியான ஜோதிட கணிப்பு: 98% துல்லியத்துடன் உங்கள் ${timeline.topicLabel} ${timeline.rangeSummary} நிச்சயமாக நிறைவேறும். ஜாதகத்தில் ${timeline.topicYogaName} மற்றும் கிரகங்களின் சுப சஞ்சாரம் இந்த காலத்தை உறுதிப்படுத்துகிறது.`
-        : `100% உறுதியான ஜோதிட கணிப்பு: ஸ்ரீ பக்கோண பஞ்சாங்க கணிதப்படி, 98% துல்லியத்துடன் உங்கள் ${timeline.topicLabel} ${timeline.rangeSummary} கைகூடும்! அன்பரே ${localizedDevoteeName}, உங்கள் ஜாதகத்தை ஆராயும்போது நீங்கள் ${lagna} லக்னம், ${rashi} ராசி, ${nakshatra} நட்சத்திரத்தில் பிறந்துள்ளீர்கள். தற்போது நடக்கும் ${dasha} மற்றும் ${timeline.topicYogaName} யோகம் இதற்கு வலுசேர்க்கிறது.`;
-    const p2Timing = `வேத ஜோதிட சாஸ்திரப்படி, தற்போது நடக்கும் ${timeline.currentMahaName}-${timeline.currentBhuktiName} காலம் இன்னும் ${timeline.monthsToDashaChange} மாதங்களில் முடிந்து ${timeline.nextBhuktiName} புக்தியாக மாறும். குரு பகவானின் சுப பார்வை லக்ன கேந்திர-திரிகோண ஸ்தானங்களில் விழுவதால் முந்தைய தடைகள் விலகி புதிய வாய்ப்புகள் பிறக்கும்.`;
-    const p3Timing = `எனவே உங்கள் ${timeline.topicLabel} ${timeline.rangeSummary} நிறைவேறும் பிரகாசமான யோகம் உள்ளது. ஸ்ரீ க்ஷேத்ர கோகர்ணம் மகாபலேஸ்வரரை வழிபட்டு, திங்கட்கிழமை அல்லது வியாழக்கிழமை பசு நெய் தீபம் ஏற்றுவது நன்மை தரும்.`;
-
-    if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ வைதிக தோஷ நிவர்த்தி மற்றும் கோகர்ண பரிகார அத்தியாயம் ॥\nஉங்கள் ஜாதகத்தில் "${
-        activeDosha.doshaName || "தோஷம்"
-      }" உள்ளது. இதனால் "${
-        activeDosha.currentLifeProblems || "காரிய தாமதம் மற்றும் மன உளைச்சல்"
-      }" ஏற்படுகிறது. இதற்கு ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் "${
-        activeDosha.recommendedPooja || "மகாபலேஸ்வரர் ருத்ராபிஷேகம் மற்றும் சாந்தி ஹோமம்"
-      }" செய்வது அவசியம். தலைமை ஜோதிடர் ஸ்ரீராம் பண்டித் (தொலைபேசி: 9972339362, கோகர்ணம்) அவர்களைத் தொடர்பு கொள்ளுங்கள்.`;
-      return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
-  }
-
-  // Minor Child
-  if (isMinorChild) {
-    const p1Child = isSubsequent
-      ? `குழந்தையின் "${question}" கேள்விக்கு, 4-ஆம் கல்வி ஸ்தானம் (${house4Sign}) மற்றும் 5-ஆம் புத்தி ஸ்தானத்தை (${house5Sign}) பார்க்கும்போது, கல்வி அதிபதி ${house4Lord} அருளால் நல்ல கற்கும் திறன் உள்ளது. பொறுமையுடன் ஊக்கப்படுத்தினால் கல்வியில் சிறந்து விளங்குவார்கள்.`
-      : `அன்பார்ந்த பெற்றோர்களே, ஸ்ரீ பக்கோண பஞ்சாங்கப்படி உங்கள் குழந்தையின் (${localizedDevoteeName}) ஜாதகத்தை பார்க்கும்போது, குழந்தை ${lagna} லக்னம், ${rashi} ராசி, ${nakshatra} நட்சத்திரத்தில் பிறந்துள்ளது. குழந்தையின் இயல்பு கூர்மையான புத்தி மற்றும் இயல்பான சுட்டித்தனம் கொண்டது. உங்கள் "${question}" கேள்விக்கு, 4-ஆம் வீடும் (${house4Sign}) 5-ஆம் வீடும் (${house5Sign}) மிகுந்த ஆற்றலை வெளிப்படுத்துகின்றன.`;
-    const p2Child = `குழந்தையின் கல்வி, நினைவாற்றல் விஷயத்தில் 4-ஆம் அதிபதி ${house4Lord} நல்ல நிலையில் உள்ளார். விளையாட்டில் ஆர்வம் காட்டுவது இந்த வயதில் இயல்பானது. பெற்றோர்கள் அதீத அழுத்தம் கொடுக்காமல் அன்புடன் வழிகாட்ட வேண்டும். நடப்பு ${dasha} காலம் குழந்தையின் அறிவு வளர்ச்சிக்கு உதவும்.`;
-    const p3Child = `ஆரோக்கியம் மற்றும் கல்வி மேன்மைக்காக மாலையில் நெய் தீபம் ஏற்றி சரஸ்வதி ஸ்தோத்திரம் சொல்லுங்கள். கோகர்ண மகா கணபதிக்கு அர்ச்சனை செய்வது நினைவாற்றலை பெருக்கும்.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nகுழந்தையின் ஜாதக தோஷம் கோகர்ண வழிபாட்டால் நீங்கி நலம் உண்டாகும்.`);
-      }
-      const p4Dosha = `॥ வைதிக தோஷ நிவர்த்தி மற்றும் கோகர்ண பரிகார அத்தியாயம் ॥\nகுழந்தையின் ஜாதகத்தில் "${activeDosha.doshaName || "கல்வி தோஷம்"}" உள்ளது. கோகர்ணத்தில் சாந்தி பூஜை செய்ய தலைமை ஜோதிடர் ஸ்ரீராம் பண்டித் (9972339362) அவர்களை அணுகவும்.`;
-      return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
-  }
-
-  // Santhana
-  if (isSanthana) {
-    const p1Santhana = isSubsequent
-      ? `சந்தான பாக்கியம் பற்றிய உங்கள் "${question}" கேள்விக்கு, 5-ஆம் வீடு (${house5Sign}) மற்றும் 5-ஆம் அதிபதி ${house5Lord} நிலையைப் பார்க்கும்போது, இது தற்காலிக கிரக தாமதமே. மருத்துவ முயற்சிகளுடன் தெய்வ அருளும் சேரும்போது குழந்தை பாக்கியம் நிச்சயம் கிட்டும்.`
-      : `அன்புக் குழந்தாய் ${localizedDevoteeName}, இல்லறத்தில் குழந்தை பாக்கியம் குறித்த உங்கள் எதிர்பார்ப்பையும் கவலையையும் நான் உணர்கிறேன். பக்கோண பஞ்சாங்கப்படி நீங்கள் ${lagna} லக்னம், ${rashi} ராசியில் பிறந்துள்ளீர்கள். 5-ஆம் வீடு (${house5Sign}) மற்றும் குருவின் நிலை ஒரு சோதனைக் காலத்தை காட்டுகிறது; எனவே தற்காலிக தாமதம் ஏற்படுகிறது.`;
-    const p2Santhana = `5-ஆம் அதிபதி ${house5Lord} மற்றும் நடப்பு ${dasha} காலத்தில் உள்ள கிரக அழுத்தம் விலகும். நம்பிக்கையுடன் இருங்கள்; தெய்வ பலமும் மருத்துவமும் இணையும்போது சுபயோகம் உண்டாகும்.`;
-    const p3Santhana = `அடுத்த சில மாதங்களில் குரு பார்வை 5-ஆம் வீட்டில் படும்போது சுப நேரம் தொடங்கும். தம்பதியினர் சந்தான கோபால மந்திரம் சொல்லி வாருங்கள். கோகர்ண ஈசனின் அருளால் நல்ல செய்தி வரும்.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${activeDosha.doshaName} நிவர்த்தியால் சந்தான பலன் உண்டாகும்.`);
-      }
-      const p4Dosha = `॥ வைதிக தோஷ நிவர்த்தி மற்றும் கோகர்ண பரிகார அத்தியாயம் ॥\nஜாதகத்தில் "${activeDosha.doshaName || "சந்தான தோஷம்"}" உள்ளது. கோகர்ணத்தில் சந்தான கோபால ஹோமம் செய்ய ஸ்ரீராம் பண்டித் (9972339362) அவர்களைத் தொடர்பு கொள்ளவும்.`;
-      return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
-  }
-
-  // Secret Intimate
-  if (isSecretIntimate) {
-    const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|വേശ്യാव्यवसाय|देहविक्रय/i.test(question);
-    if (isSexWork) {
-      const p1SexWork = isSubsequent
-        ? `விடுதலை மற்றும் கௌரவ வாழ்வு பற்றிய உங்கள் கேள்விக்கு ("${question}"), கோகர்ண மகாபலேஸ்வரர் சன்னதியில் எந்த ஆன்மாவும் தீட்டானது அல்ல. வரவிருக்கும் குரு பெயர்ச்சி இந்த தளைகளை உடைத்து உங்களுக்கு நல்ல வாழ்வை தரும்.`
-        : `100% ஜோதிடரின் அருள்வாக்கு: கோகர்ண மகாபலேஸ்வரரின் சன்னதியில் எந்த ஆன்மாவும் சபிக்கப்பட்டதல்ல; உங்கள் ஜாதகப்படி வரவிருக்கும் குருவின் சுப பார்வை இந்த இக்கட்டான சூழ்நிலையை மாற்றி உங்களுக்கு மரியாதையான திருமண வாழ்வை அருளும்! குழந்தாய் ${localizedDevoteeName}, உங்கள் வலியை தந்தையின் பாசத்தோடு உணர்கிறேன். பிங்கலை, ஆமிரபாலி போன்ற ஆன்மாக்கள் இறைவனின் அருளைப் பெற்ற வரலாறுகள் நம்மிடம் உள்ளன.`;
-      const p2SexWork = `ஜாதகத்தில் 8, 7, 6-ஆம் வீடுகளைப் பார்க்கும்போது நீங்கள் பொருளாதார நெருக்கடியால் இதில் சிக்கியுள்ளீர்கள் என்று தெரிகிறது. நடப்பு ${dasha} முடிவில் விடிவு காலம் பிறக்கும். தைரியமாக சட்ட மற்றும் மருத்துவ உதவிகளை நாடுங்கள்.`;
-      const p3SexWork = `கோகர்ணத்தில் ருத்ராபிஷேகம் செய்வித்து துர்க்கா ஸ்தோத்திரம், ருணவிமோசன ஸ்தோத்திரம் படியுங்கள். அம்பிகை உங்களை காப்பார்.`;
-      if (activeDosha.hasDosha && includeFullDosha) {
-        const p4Dosha = `॥ வைதிக தோஷ நிவர்த்தி மற்றும் கோகர்ண பரிகார அத்தியாயம் ॥\nதோஷ நிவர்த்திக்கு ஸ்ரீராம் பண்டித் (9972339362) அவர்களைத் தொடர்பு கொள்ளவும்.`;
-        return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
-      }
-      return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
-    }
-
-    const p1Intimate = isSubsequent
-      ? `அந்தரங்க விஷயம் குறித்த உங்கள் கேள்விக்கு ("${question}"), 8-ஆம் வீடு, 7-ஆம் வீடு மற்றும் சுக்கிரனின் நிலை இது இயல்பான உடல்-மன நிலையே என்று காட்டுகிறது. குற்ற உணர்வை விடுத்து நல்வாழ்வு முறையைக் கடைபிடிக்கவும்.`
-      : `அன்பரே ${localizedDevoteeName}, காமம் என்பது மனித வாழ்வில் நான்கு புருஷார்த்தங்களில் ஒன்றாகும். இதில் குற்ற உணர்வு கொள்ள தேவையில்லை. உங்கள் ${lagna} லக்னம் மற்றும் சுக்கிரன் நிலையை வைத்துப் பார்க்கும்போது இது தற்காலிக மன அழுத்தத்தால் ஏற்பட்டதே.`;
-    const p2Intimate = `நடப்பு ${dasha} காலத்தில் ஏற்பட்ட வேலைப்பளுவால் சுக்கிர தாதுவில் தற்காலிக குறைபாடு ஏற்பட்டுள்ளது. அசுவகந்தி, பால் மற்றும் பிராணாயாமம் உங்களுக்கு புத்துணர்ச்சி தரும்.`;
-    const p3Intimate = `மன கவலையை விடுங்கள். கோகர்ண வழிபாடு மன அமைதியை தந்து தம்பதியரிடையே அன்பை பெருக்கும்.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nபரிகாரத்தால் நலம் உண்டாகும்.`);
-      }
-      const p4Dosha = `॥ வைதிக தோஷ நிவர்த்தி மற்றும் கோகர்ண பரிகார அத்தியாயம் ॥\nதோஷ சாந்திக்கு தலைமை ஜோதிடர் ஸ்ரீராம் பண்டித் (9972339362) அவர்களை அணுகவும்.`;
-      return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}`);
-  }
-
-  // Career Frustration
-  if (isCareerFrustration) {
-    const p1Career = isSubsequent
-      ? `தொழில் மற்றும் உத்தியோகம் பற்றிய உங்கள் கேள்விக்கு ("${question}"), 10-ஆம் வீடு (${karmaLord}) மற்றும் நடப்பு ${dasha} தற்காலிக சவால்களை காட்டுகின்றன. இது உங்கள் திறமையை வளர்க்கும் நேரமே தவிர நிரந்தர பின்னடைவல்ல.`
-      : `அன்புக் குழந்தாய் ${localizedDevoteeName}, உங்கள் உத்தியோகத்தில் ஏற்படும் சலிப்பும் குழப்பமும் எனக்கு புரிகிறது. நீங்கள் ${lagna} லக்னம், ${rashi} ராசியில் பிறந்த உழைப்பாளி. நடப்பு ${dasha} மற்றும் ${shaniText} பொறுமையை சோதிக்கின்றன.`;
-    const p2Career = `10-ஆம் அதிபதி ${karmaLord} நிலையை பார்க்கும்போது மேலதிகாரிகள் அல்லது சக ஊழியர்களால் அழுத்தம் இருக்கலாம். கோபத்தில் வேலையை விடும் அவசர முடிவுகளை எடுக்க வேண்டாம்.`;
-    const p3Career = `விரைவில் கிரக நிலைகள் சாதகமாக மாறி நல்ல வாய்ப்புகள் வரும். சிவ பஞ்சாட்சரம் சொல்லுங்கள்; நன்மைகள் பெருகும்.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nதோஷ நிவர்த்தியால் தொழிலில் மேன்மை உண்டாகும்.`);
-      }
-      const p4Dosha = `॥ வைதிக தோஷ நிவர்த்தி மற்றும் கோகர்ண பரிகார அத்தியாயம் ॥\nதொழில் தடைகள் நீங்க கோகர்ணத்தில் பூஜை செய்ய ஸ்ரீராம் பண்டித் (9972339362) அவர்களை அணுகவும்.`;
-      return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
-  }
-
-  // Base Reading
-  const baseP1 =
-    convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-      ? `${convIntel.contextualBridge} நடப்பு ${dasha} காலம் மற்றும் கிரக சஞ்சாரம் நல்ல மாற்றங்களை சுட்டிக்காட்டுகின்றன.`
-      : isSubsequent
-      ? `நீங்கள் கேட்ட "${question}" கேள்விக்கு, நடப்பு ${dasha} காலம் சுப மாற்றங்களை தருகிறது. லக்னாதிபதி பலம் உங்களுக்கு துணை நிற்கிறது.`
-      : `வணக்கம் ${localizedDevoteeName}. ஸ்ரீ பக்கோண பஞ்சாங்கப்படி நீங்கள் ${lagna} லக்னம், ${rashi} ராசி, ${nakshatra} நட்சத்திரத்தில் பிறந்துள்ளீர்கள் . உங்கள் "${question}" கேள்விக்கு, நடப்பு ${dasha} காலம் வாழ்வில் நல்ல திருப்பங்களை தர உள்ளது.`;
-  const baseP2 = `ஜாதக அமைப்பின்படி கடந்த கால மனக்கவலைகள் நீங்கி தொழில், குடும்பத்தில் சுபிட்சம் உண்டாகும். பெரியவர்களின் ஆசியுடன் நிதானமாக செயல்படுங்கள்.`;
-  const baseP3 = `குரு பகவானின் அருள் பார்வை உங்கள் நிலையை உயர்த்தும்.`;
-
-  if (activeDosha.hasDosha) {
-    if (!includeFullDosha) {
-      return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\nதோஷ நிவர்த்தியால் சுப பலன் கிடைக்கும்.`);
-    }
-    const p4Dosha = `॥ வைதிக தோஷ நிவர்த்தி மற்றும் கோகர்ண பரிகார அத்தியாயம் ॥\nஜாதக தோஷ சாந்திக்கு ஸ்ரீ க்ஷேத்ர கோகர்ணம் ஸ்ரீராம் பண்டித் (9972339362) அவர்களைத் தொடர்பு கொள்ளவும்.`;
-    return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\n${p4Dosha}`);
-  }
-
-  const p3Normal = `கிரக தோஷங்கள் நீங்கி வெற்றி பெற கோகர்ணம் விநாயகரையும் மகாபலேஸ்வரரையும் வணங்கி நெய் தீபம் ஏற்றுங்கள்.`;
-  return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${p3Normal}`);
-}
-
-function buildMalayalamFallbackReading(ctx: DeterministicFallbackContext): string {
-  const {
-    question,
-    lagna,
-    rashi,
-    nakshatra,
-    dasha,
-    activeDosha,
-    isSubsequent,
-    convIntel,
-    timeline,
-    includeFullDosha,
-    isGreeting,
-    isCareerFrustration,
-    isSanthana,
-    isSecretIntimate,
-    isMinorChild,
-    tatva,
-    gana,
-    psychNature,
-    house4Sign,
-    house4Lord,
-    house5Sign,
-    house5Lord,
-    shaniText,
-    karmaLord,
-    localizedDevoteeName
-  } = ctx;
-  const q = question.toLowerCase();
-
-  if (isGreeting) {
-    if (isSubsequent) {
-      return deduplicateResponseText(`അതെ, ഞാൻ ഈ പുണ്യ സംഭാഷണ മുറിയിൽ നിങ്ങളുടെ കൂടെത്തന്നെയുണ്ട്. അടുത്ത ചോദ്യമോ സംശയമോ സന്തോഷത്തോടെ ചോദിക്കാം.`);
-    }
-    return deduplicateResponseText(`ഹരി ഓം ${localizedDevoteeName}! ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വരന്റെയും മഹാഗണപതിയുടെയും അനുഗ്രഹം നിങ്ങൾക്കും കുടുംബത്തിനും സദാ ഉണ്ടാകട്ടെ.\n\nഈ 20 മിനിറ്റ് വ്യക്തിഗത സംഭാഷണത്തിൽ ഞാൻ നിങ്ങളുടെ കൂടെയുണ്ട്. തൊഴിൽ, വിവാഹം, ആരോഗ്യം, കുടുംബകാര്യങ്ങൾ എന്നിവയെക്കുറിച്ചുള്ള ചോദ്യങ്ങൾ മനസ്സ് തുറന്ന് ചോദിക്കാം.`);
-  }
-
-  // Timing
-  if (
-    timeline &&
-    (convIntel.isAskingTiming ||
-      (convIntel.isSameTopicFollowUp &&
-        /എപ്പോൾ|എത്ര ദിവസം|എത്ര മാസം|സമയം|ഏത് വർഷം|ഏത് മാസം|when|timing/i.test(q)))
-  ) {
-    const p1Timing =
-      convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-        ? `${convIntel.contextualBridge} ജാതകത്തിലെ ഭാവങ്ങളും ശുഭ ഗ്രഹങ്ങളുടെ സഞ്ചാരവും പരിശോധിക്കുമ്പോൾ നിങ്ങളുടെ ${timeline.topicLabel} കാര്യത്തിനുള്ള സമയം അടുത്തുവരികയാണ്.`
-        : isSubsequent
-        ? `100% ഉറപ്പുള്ള ജ്യോതിഷ പ്രവചനം: 98% കൃത്യതയോടെ നിങ്ങളുടെ ${timeline.topicLabel} ${timeline.rangeSummary} സഫലമാകും. ജാതകത്തിലെ ${timeline.topicYogaName} യോഗവും ഗ്രഹസഞ്ചാരവും ഇത് വ്യക്തമാക്കുന്നു.`
-        : `100% ഉറപ്പുള്ള ജ്യോതിഷ പ്രവചനം: ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ ഗണിതപ്രകാരം, 98% കൃത്യതയോടെ നിങ്ങളുടെ ${timeline.topicLabel} ${timeline.rangeSummary} സഫലമാകും! പ്രിയ ${localizedDevoteeName}, ജാതകപ്രകാരം നിങ്ങൾ ${lagna} ലഗ്നം, ${rashi} രാശി, ${nakshatra} നക്ഷത്രത്തിൽ ജനിച്ചു. നിലവിലെ ${dasha} കാലവും ${timeline.topicYogaName} യോഗവും ഈ ശുഭസമയത്തെ തുണയ്ക്കുന്നു.`;
-    const p2Timing = `വേദ ജ്യോതിഷ ഗണിതപ്രകാരം, നിലവിലെ ${timeline.currentMahaName}-${timeline.currentBhuktiName} കാലം ${timeline.monthsToDashaChange} മാസത്തിനുള്ളിൽ പൂർത്തിയായി ${timeline.nextBhuktiName} ഭുക്തിയായി മാറും. വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടി ലഗ്ന ഭാവങ്ങളിൽ പതിയുന്നതോടെ മുൻപുണ്ടായിരുന്ന തടസ്സങ്ങൾ നീങ്ങി പുതിയ അവസരങ്ങൾ വരും.`;
-    const p3Timing = `അതിനാൽ നിങ്ങളുടെ ${timeline.topicLabel} ${timeline.rangeSummary} സഫലമാകും. ഗോകർണ്ണ മഹാബലേശ്വരനെ പ്രാർത്ഥിച്ച് തിങ്കളാഴ്ച നെയ്‌വിളക്ക് കൊളുത്തുന്നത് അതീവ ശുഭകരമാണ്.`;
-
-    if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ വൈദിക ദോഷ നിവാരണവും ഗോകർണ്ണ പരിഹാര അധ്യായവും ॥\nജാതകത്തിൽ "${
-        activeDosha.doshaName || "ദോഷം"
-      }" കാണുന്നു. ഇത് "${
-        activeDosha.currentLifeProblems || "തടസ്സങ്ങളും മാനസിക സമ്മർദ്ദവും"
-      }" ഉണ്ടാക്കുന്നു. ഗോകർണ്ണത്ത് "${
-        activeDosha.recommendedPooja || "മഹാബലേശ്വര രുദ്രാഭിഷേകവും ശാന്തി ഹോമവും"
-      }" നടത്തുക. മുഖ്യ ജ്യോതിഷി ശ്രീരാം പണ്ഡിറ്റുമായി (ഫോൺ: 9972339362) ബന്ധപ്പെടുക.`;
-      return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
-  }
-
-  // Minor Child
-  if (isMinorChild) {
-    const p1Child = isSubsequent
-      ? `കുട്ടിയുടെ "${question}" ചോദ്യത്തിന്, 4-ാം വിദ്യാ ഭാവവും (${house4Sign}) 5-ാം ബുദ്ധി ഭാവവും (${house5Sign}) പരിശോധിച്ചാൽ വിദ്യാധിപനായ ${house4Lord} ഗ്രഹത്തിന്റെ കൃപയാൽ നല്ല കഴിവ് കാണുന്നു. സ്നേഹത്തോടെ പ്രോത്സാഹിപ്പിക്കുക.`
-      : `ബഹുമാനപ്പെട്ട മാതാപിതാക്കളെ, നിങ്ങളുടെ കുട്ടിയുടെ (${localizedDevoteeName}) ജാതകം പരിശോധിക്കുമ്പോൾ കുട്ടി ${lagna} ലഗ്നം, ${rashi} രാശി, ${nakshatra} നക്ഷത്രത്തിൽ ജനിച്ചു. കുട്ടിയുടെ സ്വഭാവം ബുദ്ധിശക്തിയും സ്വാഭാവിക കൗതുകവുമുള്ളതാണ്. കുട്ടിയുടെ 4-ാം ഭാവവും (${house4Sign}) 5-ാം ഭാവവും (${house5Sign}) ഉയർന്ന പ്രതിഭയെ വ്യക്തമാക്കുന്നു.`;
-    const p2Child = `പഠന കാര്യത്തിൽ 4-ാം അധിപൻ ${house4Lord} നല്ല നിലയിലാണ്. കുട്ടിക്കാലത്തെ വികൃതികൾ സ്വാഭാവികമാണ്. കഠിനമായ ശിക്ഷകൾ നൽകാതെ സ്നേഹത്തോടെ പഠനരീതി ശീലിപ്പിക്കുക. നിലവിലെ ${dasha} കാലം ബുദ്ധിവികാസത്തിന് നല്ലതാണ്.`;
-    const p3Child = `ആരോഗ്യത്തിനും ശ്രദ്ധയ്ക്കും സന്ധ്യക്ക് നെയ്‌വിളക്ക് വെച്ച് സരസ്വതീ സ്തോത്രം ജപിക്കുക. ഗോകർണ്ണത്ത് മഹാഗണപതി പൂജ നടത്തുന്നത് ബുദ്ധിശക്തി വർദ്ധിപ്പിക്കും.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nദോഷ നിവാരണത്താൽ കുട്ടിക്ക് നല്ല പുരോഗതി ഉണ്ടാകും.`);
-      }
-      const p4Dosha = `॥ വൈദിക ദോഷ നിവാരണവും ഗോകർണ്ണ പരിഹാര അധ്യായവും ॥\nകുട്ടിയുടെ ജാതക ദോഷ പരിഹാരത്തിന് ഗോകർണ്ണത്ത് ശാന്തി പൂജ നടത്താൻ ശ്രീരാം പണ്ഡിറ്റുമായി (9972339362) ബന്ധപ്പെടുക.`;
-      return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
-  }
-
-  // Santhana
-  if (isSanthana) {
-    const p1Santhana = isSubsequent
-      ? `സന്താന ഭാഗ്യത്തെക്കുറിച്ചുള്ള "${question}" ചോദ്യത്തിന്, 5-ാം ഭാവവും (${house5Sign}) പഞ്ചമാധിപൻ ${house5Lord} നിലയും പരിശോധിച്ചാൽ ഇത് താൽക്കാലിക ഗ്രഹതടസ്സം മാത്രമാണ്. ചികിത്സയോടൊപ്പം ഈശ്വരാനുഗ്രഹം ചേരുമ്പോൾ സന്താനയോഗം ഉണ്ടാകും.`
-      : `മക്കളേ ${localizedDevoteeName}, ദാമ്പത്യത്തിലെ സന്താന ഭാഗ്യത്തെക്കുറിച്ചുള്ള നിങ്ങളുടെ ഉത്കണ്ഠ ഞാൻ മനസ്സിലാക്കുന്നു. നിങ്ങൾ ${lagna} ലഗ്നം, ${rashi} രാശിയിലാണ് ജനിച്ചത്. 5-ാം ഭാവവും (${house5Sign}) വ്യാഴത്തിന്റെ സ്ഥിതിയും ഒരു പരീക്ഷണ കാലഘട്ടത്തെ സൂചിപ്പിക്കുന്നു; അതുകൊണ്ടാണ് താൽക്കാലിക കാലതാമസം.`;
-    const p2Santhana = `5-ാം അധിപൻ ${house5Lord} സ്ഥിതിയും ${dasha} കാലവും സൃഷ്ടിച്ച ഗ്രഹസമ്മർദ്ദം മാറേണ്ടതുണ്ട്. ആത്മവിശ്വാസം കൈവിടാതെ ഈശ്വര പ്രാർത്ഥന നടത്തുക.`;
-    const p3Santhana = `വരുന്ന മാസങ്ങളിൽ വ്യാഴദൃഷ്ടി പതിയുമ്പോൾ അനുകൂല സമയം തെളിയും. ദമ്പതികൾ സന്താനഗോപാല മന്ത്രം ജപിക്കുക. ഗോകർണ്ണേശന്റെ കൃപയാൽ ശുഭവാർത്ത ഉണ്ടാകും.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nപരിഹാരത്താൽ സന്താനഭാഗ്യം കൈവരും.`);
-      }
-      const p4Dosha = `॥ വൈദിക ദോഷ നിവാരണവും ഗോകർണ്ണ പരിഹാര അധ്യായവും ॥\nജാതകത്തിലെ "${activeDosha.doshaName || "സന്താന ദോഷം"}" മാറ്റാൻ ഗോകർണ്ണത്ത് പൂജ നടത്താൻ ശ്രീരാം പണ്ഡിറ്റുമായി (9972339362) സംസാരിക്കുക.`;
-      return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
-  }
-
-  // Secret Intimate
-  if (isSecretIntimate) {
-    const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|വേശ്യാव्यवसाय|देहविक्रय/i.test(question);
-    if (isSexWork) {
-      const p1SexWork = isSubsequent
-        ? `മോചനത്തെക്കുറിച്ചുള്ള ചോദ്യത്തിന് ("${question}"), ഗോകർണ്ണ മഹാബലേശ്വരന്റെ സന്നിധിയിൽ ഒരു ആത്മാവും അശുദ്ധമല്ല. വരുന്ന വ്യാഴമാറ്റം ഈ ബന്ധനങ്ങൾ തകർത്ത് മാന്യമായ വിവാഹജീവിതം നൽകും.`
-        : `100% ജ്യോതിഷിയുടെ ഉറപ്പ്: ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ ഒരു ജീവനും തള്ളിക്കളയപ്പെടേണ്ടതല്ല; ജാതകപ്രകാരം വരുന്ന വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടി ഈ വിഷമഘട്ടത്തിൽ നിന്ന് നിങ്ങളെ മോചിപ്പിച്ച് മാന്യമായ ജീവിതം നൽകും! മക്കളേ ${localizedDevoteeName}, നിങ്ങളുടെ ദുഃഖം പിതൃവാത്സല്യത്തോടെ ഞാൻ കേൾക്കുന്നു. പിംഗളയെപ്പോലുള്ള പുണ്യാത്മാക്കൾ മോക്ഷം നേടിയ ചരിത്രങ്ങൾ നമുക്കുണ്ട്.`;
-      const p2SexWork = `8, 7, 6 ഭാവങ്ങൾ കാണിക്കുന്നത് സാമ്പത്തിക ബാധ്യതകളാൽ നിങ്ങൾ ഇതിൽ അകപ്പെട്ടുപോയതാണെന്നാണ്. നിലവിലെ ${dasha} കഴിയുമ്പോൾ മോചനം ലഭിക്കും. ധൈര്യത്തോടെ നിയമ-വൈദ്യ സഹായങ്ങൾ തേടുക.`;
-      const p3SexWork = `ഗോകർണ്ണത്ത് രുദ്രാഭിഷേകം നടത്തുകയും ദുർഗ്ഗാ സ്തോത്രം, ഋണവിമോചന സ്തോത്രം ജപിക്കുകയും ചെയ്യുക. ജഗദംബിക നിങ്ങളെ സംരക്ഷിക്കും.`;
-      if (activeDosha.hasDosha && includeFullDosha) {
-        const p4Dosha = `॥ വൈദിക ദോഷ നിവാരണവും ഗോകർണ്ണ പരിഹാര അധ്യായവും ॥\nദോഷ നിവാരണത്തിന് ശ്രീരാം പണ്ഡിറ്റുമായി (9972339362) ബന്ധപ്പെടുക.`;
-        return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
-      }
-      return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
-    }
-
-    const p1Intimate = isSubsequent
-      ? `സ്വകാര്യ പ്രശ്നത്തെക്കുറിച്ചുള്ള ചോദ്യത്തിന് ("${question}"), 8-ാം ഭാവവും ശുക്രന്റെ സ്ഥിതിയും ഇത് സ്വാഭാവിക ശാരീരിക-മാനസികാവസ്ഥയാണെന്ന് വ്യക്തമാക്കുന്നു. കുറ്റബോധം വെടിഞ്ഞ് ആയുർവേദ ജീവിതരീതി ശീലിക്കുക.`
-      : `പ്രിയ ${localizedDevoteeName}, മനുഷ്യജീവിതത്തിൽ കാമം പവിത്രമായ പുരുഷാർത്ഥങ്ങളിലൊന്നാണ്. കുറ്റബോധം തോന്നേണ്ടതില്ല. നിങ്ങളുടെ ${lagna} ലഗ്നവും ശുക്രന്റെ സ്ഥിതിയും ഇത് വ്യക്തമാക്കുന്നു.`;
-    const p2Intimate = `നിലവിലെ ${dasha} കാലത്തെ മാനസിക സമ്മർദ്ദം ശുക്ര ധാതുവിൽ താൽക്കാലിക വ്യതിയാനം വരുത്തിയതാണ്. അശ്വഗന്ധ, പാൽ, പ്രാണായാമം എന്നിവ ഗുണം ചെയ്യും.`;
-    const p3Intimate = `ആശങ്കകൾ വെടിയുക. ഗോകർണ്ണ മഹാബലേശ്വര പ്രാർത്ഥന മനസ്സമാധാനവും ദാമ്പത്യത്തിൽ സ്നേഹവും നൽകും.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nപരിഹാരത്താൽ സ്വസ്ഥത കൈവരും.`);
-      }
-      const p4Dosha = `॥ വൈദിക ദോഷ നിവാരണവും ഗോകർണ്ണ പരിഹാര അധ്യായവും ॥\nദോഷ പരിഹാരത്തിന് ശ്രീരാം പണ്ഡിറ്റുമായി (9972339362) ബന്ധപ്പെടുക.`;
-      return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}`);
-  }
-
-  // Career Frustration
-  if (isCareerFrustration) {
-    const p1Career = isSubsequent
-      ? `തൊഴിൽപരമായ "${question}" ചോദ്യത്തിന്, 10-ാം ഭാവവും (${karmaLord}) ${dasha} കാലവും താൽക്കാലിക സമ്മർദ്ദം കാണിക്കുന്നു. ഇത് നിങ്ങളുടെ കഴിവുകൾ മിനുക്കിയെടുക്കാനുള്ള സമയമാണ്.`
-      : `മക്കളേ ${localizedDevoteeName}, ജോലിസ്ഥലത്തെ ബുദ്ധിമുട്ടുകൾ ഞാൻ മനസ്സിലാക്കുന്നു. നിങ്ങൾ ${lagna} ലഗ്നം, ${rashi} രാശിയിൽ ജനിച്ച അധ്വാനശീലനാണ്. നിലവിലെ ${dasha} കാലവും ${shaniText} സ്വാധീനവും ക്ഷമ ആവശ്യപ്പെടുന്നു.`;
-    const p2Career = `10-ാം അധിപൻ ${karmaLord} സ്ഥിതി പ്രകാരം ജോലിസ്ഥലത്ത് തർക്കങ്ങളോ അംഗീകാരക്കുറവോ ഉണ്ടാകാം. ദേഷ്യത്തിൽ രാജി വെക്കരുത്.`;
-    const p3Career = `വരുന്ന ഗ്രഹമാറ്റങ്ങൾ അനുകൂലമായി പുതിയ വാതിലുകൾ തുറക്കും. ശിവപഞ്ചാക്ഷരി ജപിക്കുക.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nദോഷ നിവാരണത്താൽ തൊഴിൽ വിജയം ഉണ്ടാകും.`);
-      }
-      const p4Dosha = `॥ വൈദിക ദോഷ നിവാരണവും ഗോകർണ്ണ പരിഹാര അധ്യായവും ॥\nതൊഴിൽ തടസ്സങ്ങൾ മാറാൻ ഗോകർണ്ണത്ത് പൂജ നടത്താൻ ശ്രീരാം പണ്ഡിറ്റുമായി (9972339362) സംസാരിക്കുക.`;
-      return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
-  }
-
-  // Base Reading
-  const baseP1 =
-    convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-      ? `${convIntel.contextualBridge} നിലവിലെ ${dasha} കാലവും ഗ്രഹനിലയും അനുകൂല മാറ്റങ്ങൾ കാണിക്കുന്നു.`
-      : isSubsequent
-      ? `നിങ്ങൾ ചോദിച്ച "${question}" ചോദ്യത്തിന്, നിലവിലെ ${dasha} കാലം ശുഭകരമായ മാറ്റങ്ങൾ കൊണ്ടുവരും.`
-      : `നമസ്കാരം ${localizedDevoteeName}. ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ പ്രകാരം നിങ്ങൾ ${lagna} ലഗ്നം, ${rashi} രാശി, ${nakshatra} നക്ഷത്രത്തിൽ ജനിച്ചു . നിങ്ങളുടെ "${question}" ചോദ്യത്തിന്, നിലവിലെ ${dasha} കാലം നല്ല മാറ്റങ്ങൾ തരും.`;
-  const baseP2 = `മുൻപുണ്ടായിരുന്ന വിഷമങ്ങൾ മാറി തൊഴിലിലും കുടുംബത്തിലും നന്മകൾ ഉണ്ടാകും. മുതിർന്നവരുടെ അനുഗ്രഹത്തോടെ മുന്നോട്ട് പോകുക.`;
-  const baseP3 = `വ്യാഴത്തിന്റെ അനുഗ്രഹം സകല കാര്യങ്ങളും ശുഭമാക്കും.`;
-
-  if (activeDosha.hasDosha) {
-    if (!includeFullDosha) {
-      return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\nദോഷ പരിഹാരത്താൽ നന്മകൾ ഉണ്ടാകും.`);
-    }
-    const p4Dosha = `॥ വൈദിക ദോഷ നിവാരണവും ഗോകർണ്ണ പരിഹാര അധ്യായവും ॥\nജാതക ദോഷ ശാന്തിക്ക് ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം ശ്രീരാം പണ്ഡിറ്റുമായി (9972339362) ബന്ധപ്പെടുക.`;
-    return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\n${p4Dosha}`);
-  }
-
-  const p3Normal = `ഗ്രഹദോഷ ശാന്തിക്ക് ഗോകർണ്ണ ഗണപതിയെയും മഹാബലേശ്വരനെയും പ്രാർത്ഥിച്ച് നെയ്‌വിളക്ക് കൊളുത്തുക.`;
-  return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${p3Normal}`);
-}
-
-function buildMarathiFallbackReading(ctx: DeterministicFallbackContext): string {
-  const {
-    question,
-    lagna,
-    rashi,
-    nakshatra,
-    dasha,
-    activeDosha,
-    isSubsequent,
-    convIntel,
-    timeline,
-    includeFullDosha,
-    isGreeting,
-    isCareerFrustration,
-    isSanthana,
-    isSecretIntimate,
-    isMinorChild,
-    tatva,
-    gana,
-    psychNature,
-    house4Sign,
-    house4Lord,
-    house5Sign,
-    house5Lord,
-    shaniText,
-    karmaLord,
-    localizedDevoteeName
-  } = ctx;
-  const q = question.toLowerCase();
-
-  if (isGreeting) {
-    if (isSubsequent) {
-      return deduplicateResponseText(`होय, मी या पवित्र सल्लामसलत दालनात आपल्यासोबतच आहे. आपला पुढचा प्रश्न किंवा शंका मोकळेपणाने विचारा.`);
-    }
-    return deduplicateResponseText(`हरि ॐ ${localizedDevoteeName}! श्री क्षेत्र गोकर्णचे महागणपती आणि भगवान महाबळेश्वर यांचे आशीर्वाद आपल्यावर व कुटुंबावर सदैव राहो.\n\nया २० मिनिटांच्या खाजगी संभाषणात मी आपल्या सोबत आहे. नोकरी, व्यवसाय, विवाह, आरोग्य किंवा कौटुंबिक बाबींविषयी कोणताही प्रश्न आपण निःसंकोचपणे विचारू शकता.`);
-  }
-
-  // Timing
-  if (
-    timeline &&
-    (convIntel.isAskingTiming ||
-      (convIntel.isSameTopicFollowUp &&
-        /केव्हा|कधी|किती दिवस|किती महिने|वेळ|कोणत्या वर्षी|कोणत्या महिन्यात|when|timing/i.test(q)))
-  ) {
-    const p1Timing =
-      convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-        ? `${convIntel.contextualBridge} पत्रिकेतील संबंधित भाव आणि शुभ ग्रहांचे भ्रमण पाहता आपल्या ${timeline.topicLabel} कार्याची अनुकूल वेळ आता जवळ येत आहे.`
-        : isSubsequent
-        ? `१००% शास्त्रोक्त ज्योतिषीय निर्णय: ९८% अचूकतेने आपले ${timeline.topicLabel} ${timeline.rangeSummary} नक्कीच पूर्ण होईल. पत्रिकेत ${timeline.topicYogaName} आणि संबंधित भावांचे शुभ गोचर यास पुष्टी देत आहे.`
-        : `१००% शास्त्रोक्त ज्योतिषीय निर्णय: श्री बग्गोण पंचांगाच्या वैदिक गणितानुसार, ९८% अचूकतेने आपले ${timeline.topicLabel} ${timeline.rangeSummary} निश्चितपणे पूर्ण होईल! प्रिय ${localizedDevoteeName}, आपल्या पत्रिकेचा अभ्यास करता आपला जन्म ${lagna} लग्न, ${rashi} रास आणि ${nakshatra} नक्षत्रात झाला आहे. सध्याची ${dasha} आणि ${timeline.topicYogaName} योग या शुभ काळाला बळ देत आहेत.`;
-    const p2Timing = `वैदिक ज्योतिष शास्त्रानुसार, सध्या चालणारा ${timeline.currentMahaName}-${timeline.currentBhuktiName} काळ पुढील ${timeline.monthsToDashaChange} महिन्यांत पूर्ण होऊन ${timeline.nextBhuktiName} भुक्ती सुरू होईल. देवगुरु बृहस्पतीचे भ्रमण आपल्या केंद्र व त्रिकोण भावांवर शुभ दृष्टी टाकेल. यामुळे जुने अडथळे दूर होऊन नवीन मार्ग खुले होतील.`;
-    const p3Timing = `म्हणून पूर्ण विश्वास ठेवा की ९८% अचूकतेने आपले ${timeline.topicLabel} ${timeline.rangeSummary} पूर्ण होण्याचे प्रबळ योग आहेत. यासाठी श्री क्षेत्र गोकर्ण महाबळेश्वराचे स्मरण करा आणि सोमवारी किंवा गुरुवारी गाईच्या तुपाचा दिवा लावा.`;
-
-    if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ वैदिक दोष निवारण आणि गोकर्ण परिहार अध्याय ॥\nआपल्या जन्मपत्रिकेत "${
-        activeDosha.doshaName || "दोष"
-      }" दिसून येतो. यामुळे "${
-        activeDosha.currentLifeProblems || "कार्यात विलंब आणि मानसिक ताण"
-      }" जाणवत आहे. याच्या शांतीसाठी श्री क्षेत्र गोकर्ण येथे "${
-        activeDosha.recommendedPooja || "महाबळेश्वर महारुद्राभिषेक व शांती होम"
-      }" करणे आवश्यक आहे. मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, गोकर्ण) यांच्याशी थेट संपर्क साधा.`;
-      return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
-  }
-
-  // Minor Child
-  if (isMinorChild) {
-    const p1Child = isSubsequent
-      ? `मुलाच्या "${question}" या प्रश्नाबाबत, पत्रिकेतील चतुर्थ विद्या भाव (${house4Sign}) आणि पंचम बुद्धी भाव (${house5Sign}) पाहता, विद्यापती ${house4Lord} च्या कृपेने मुलामध्ये उत्तम आकलनशक्ती आहे. प्रेमाने प्रोत्साहन दिल्यास मूल अभ्यासात उत्तम प्रगती करेल.`
-      : `आदरणीय पालकवर्ग, श्री बग्गोण पंचांगानुसार आपल्या पाल्याची (${localizedDevoteeName}) पत्रिका पाहता, मूल ${lagna} लग्न, ${rashi} रास आणि ${nakshatra} नक्षत्रात जन्मले आहे. मुलाचा स्वभाव कुशाग्र बुद्धी व जिज्ञासू आहे. आपल्या "${question}" प्रश्नाबाबत, चतुर्थ विद्या स्थान (${house4Sign}) व पंचम स्थान (${house5Sign}) मुलामधील सुप्त क्षमता दर्शवतात.`;
-    const p2Child = `अभ्यासाच्या दृष्टीने चतुर्थेश ${house4Lord} चांगल्या स्थितीत आहे. खेळात मन जाणे हे या वयातील मुलांचे स्वाभाविक लक्षण आहे. पालकांनी अवाजवी दबाव न आणता प्रेमाने अभ्यासाची सवय लावावी. सध्याची ${dasha} बुद्धीविकासासाठी अनुकूल आहे.`;
-    const p3Child = `आरोग्य व एकाग्रतेसाठी संध्याकाळी घरात तुपाचा दिवा लावून सरस्वती स्तोत्र किंवा गायत्री मंत्राचा जप करा. गोकर्ण महागणपतीची पूजा केल्याने स्मरणशक्ती वाढेल.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nगोकर्ण पूजेने मुलाचे दोष दूर होऊन उत्तम विद्या लाभेल.`);
-      }
-      const p4Dosha = `॥ वैदिक दोष निवारण आणि गोकर्ण परिहार अध्याय ॥\nमुलाच्या पत्रिकेतील दोषांच्या निवारणासाठी गोकर्णात शांती पूजा करण्यासाठी मुख्य पुरोहित श्रीराम पंडित (9972339362) यांच्याशी संपर्क साधा.`;
-      return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
-  }
-
-  // Santhana
-  if (isSanthana) {
-    const p1Santhana = isSubsequent
-      ? `संतान प्राप्तीबाबतच्या आपल्या "${question}" प्रश्नावर, पंचम भाव (${house5Sign}) आणि पंचमेश ${house5Lord} पाहता हा केवळ तात्पुरता ग्रहांचा विलंब आहे. वैद्यकीय उपायांसोबत दैवी कृपा लाभताच संतानयोग नक्कीच जुळून येईल.`
-      : `बाळा ${localizedDevoteeName}, वैवाहिक जीवनात संतान सुखाविषयी आपल्या मनातील काळजी मी समजू शकतो. पत्रिकेत आपण ${lagna} लग्न, ${rashi} राशीत जन्मला आहात. पंचम भाव (${house5Sign}) आणि गुरूची स्थिती एक परीक्षा काळ दर्शवते, म्हणूनच हा तात्पुरता विलंब होत आहे.`;
-    const p2Santhana = `पंचमेश ${house5Lord} व सध्याची ${dasha} स्थिती यामुळे अडथळे येत आहेत. नकारात्मक विचार सोडून द्या; योग्य शांती उपायांनंतर मातृ-पितृ सुखाचे दार नक्की उघडेल.`;
-    const p3Santhana = `पुढील काळात गुरु दृष्टी पंचम भावावर पडताच अनुकूल वेळ सुरू होईल. उभयतांनी संतान गोपाळ मंत्राचा जप करावा. गोकर्ण महाबळेश्वराच्या कृपेने गोड बातमी नक्की मिळेल.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nदोष निवारणाने संतान सुख लाभेल.`);
-      }
-      const p4Dosha = `॥ वैदिक दोष निवारण आणि गोकर्ण परिहार अध्याय ॥\nपत्रिकेतील "${activeDosha.doshaName || "संतान दोष"}" निवारणासाठी गोकर्णात पूजा करण्यासाठी श्रीराम पंडित (9972339362) यांच्याशी संपर्क साधा.`;
-      return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
-  }
-
-  // Secret Intimate
-  if (isSecretIntimate) {
-    const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|വേശ്യാव्यवसाय|देहविक्रय/i.test(question);
-    if (isSexWork) {
-      const p1SexWork = isSubsequent
-        ? `मुक्ती व सन्मान्य जीवनाबाबतच्या आपल्या प्रश्नावर ("${question}"), गोकर्ण महाबळेश्वराच्या दरबारात कोणताही जीव अपवित्र नाही. आगामी गुरु भ्रमण आपल्याला या परिस्थितीतून बाहेर काढून सन्मानाचे वैवाहिक जीवन देईल.`
-        : `१००% शास्त्रोक्त अभय: गोकर्ण महाबळेश्वराच्या सानिध्यात कोणताही आत्मा शापित नाही; पत्रिकेनुसार आगामी गुरु भ्रमण आपल्याला सन्मानाचे जीवन देईल! बाळा ${localizedDevoteeName}, आपले दुःख मी पितृवात्सल्याने स्वीकारतो. पिंगळा, आम्रपालीसारख्या पुण्यात्म्यांनी मुक्ती मिळवल्याचे दाखले आपल्याकडे आहेत.`;
-      const p2SexWork = `पत्रिकेतील ८, ७ आणि ६ वे भाव आर्थिक विवशतेमुळे हे संकट ओढवल्याचे सांगतात. सध्याची ${dasha} संपताच सुटकेचा मार्ग दिसेल. धीराने वैद्यकीय व कायदेशीर मदत घ्या.`;
-      const p3SexWork = `गोकर्णात रुद्राभिषेक करा व दुर्गा स्तोत्र, ऋणमोचन स्तोत्र वाचा. कुलदेवता आपले रक्षण करेल.`;
-      if (activeDosha.hasDosha && includeFullDosha) {
-        const p4Dosha = `॥ वैदिक दोष निवारण आणि गोकर्ण परिहार अध्याय ॥\nदोष शांतीसाठी श्रीराम पंडित (9972339362) यांच्याशी संपर्क साधा.`;
-        return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
-      }
-      return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
-    }
-
-    const p1Intimate = isSubsequent
-      ? `अंतरंग प्रश्नाबाबत ("${question}"), ८ वा भाव आणि शुक्राची स्थिती ही एक नैसर्गिक स्थिती असल्याचे दर्शवते. अपराधी भावना सोडून आयुर्वेद व सात्विक जीवनशैली अवलंबा.`
-      : `प्रिय ${localizedDevoteeName}, वैदिक जीवनात काम हा चार पुरुषार्थांपैकी एक पवित्र भाग मानला गेला आहे. यात संकोच वाटण्याचे कारण नाही. आपले ${lagna} लग्न आणि शुक्राची स्थिती ही ऊर्जा नियंत्रित करते.`;
-    const p2Intimate = `सध्याच्या ${dasha} काळातील ताणामुळे शुक्र धातूवर तात्पुरता परिणाम झाला आहे. अश्वगंधा, दूध आणि प्राणायाम आपल्याला नवचैतन्य देईल.`;
-    const p3Intimate = `चिंता सोडा. गोकर्ण महाबळेश्वर पूजा मनःशांती देऊन दांपत्य जीवन सुखी करेल.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nशांततेने सर्व ठीक होईल.`);
-      }
-      const p4Dosha = `॥ वैदिक दोष निवारण आणि गोकर्ण परिहार अध्याय ॥\nदोष शांतीसाठी श्रीराम पंडित (9972339362) यांच्याशी बोला.`;
-      return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}`);
-  }
-
-  // Career Frustration
-  if (isCareerFrustration) {
-    const p1Career = isSubsequent
-      ? `करिअर आणि नोकरीच्या प्रश्नाबाबत ("${question}"), १० वा भाव (${karmaLord}) आणि सध्याची ${dasha} तात्पुरता ताण दाखवत आहे. ही आपली क्षमता वाढवणारी वेळ आहे.`
-      : `बाळा ${localizedDevoteeName}, नोकरी-व्यवसायातील आपल्या अडचणी मी समजू शकतो. आपण ${lagna} लग्न, ${rashi} राशीत जन्मलेले कष्टाळू आहात. सध्याची ${dasha} आणि ${shaniText} संयमाची परीक्षा घेत आहेत.`;
-    const p2Career = `१० वे भाव पाहता कामाच्या ठिकाणी ताण किंवा श्रेय न मिळणे संभवते. रागाच्या भरात राजीनामा देण्यासारखे टोकाचे पाऊल उचलू नका.`;
-    const p3Career = `पुढील काळात ग्रहांची साथ मिळून नवीन संधी मिळतील. शिवपंचाक्षरी मंत्राचा जप करा.`;
-
-    if (activeDosha.hasDosha) {
-      if (!includeFullDosha) {
-        return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nदोष निवारणाने करिअरमध्ये यश लाभेल.`);
-      }
-      const p4Dosha = `॥ वैदिक दोष निवारण आणि गोकर्ण परिहार अध्याय ॥\nअडथळे दूर करण्यासाठी गोकर्णात पूजा करण्यासाठी श्रीराम पंडित (9972339362) यांच्याशी संपर्क साधा.`;
-      return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
-    }
-    return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
-  }
-
-  // Base Reading
-  const baseP1 =
-    convIntel.isSameTopicFollowUp && convIntel.contextualBridge
-      ? `${convIntel.contextualBridge} सध्याची ${dasha} आणि ग्रहांचे भ्रमण सकारात्मक बदलांचे संकेत देत आहे.`
-      : isSubsequent
-      ? `आपल्या "${question}" प्रश्नाबाबत, सध्याची ${dasha} वेळ सकारात्मक बदल घडवून आणेल. लग्नेशाचे बळ आपल्या पाठीशी आहे.`
-      : `नमस्ते ${localizedDevoteeName}. श्री बग्गोण पंचांगानुसार आपला जन्म ${lagna} लग्न, ${rashi} रास, ${nakshatra} नक्षत्रात झाला आहे . आपल्या "${question}" प्रश्नाबाबत, सध्याचा काळ महत्त्वाचे सकारात्मक वळण आणत आहे.`;
-  const baseP2 = `पत्रिकेनुसार जुने मानसिक ताण हळूहळू दूर होऊन व्यवसाय व कुटुंबात सुख-शांती नांदेल. मोठ्यांचे आशीर्वाद घेऊन संयमाने पावले टाका.`;
-  const baseP3 = `गुरुचे भ्रमण आपल्या सर्व प्रयत्नांना यश देईल.`;
-
-  if (activeDosha.hasDosha) {
-    if (!includeFullDosha) {
-      return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\nदोष शांतीने शुभ फळ मिळेल.`);
-    }
-    const p4Dosha = `॥ वैदिक दोष निवारण आणि गोकर्ण परिहार अध्याय ॥\nपत्रिकेतील दोषांच्या शांतीसाठी श्री क्षेत्र गोकर्ण येथे संपर्क साधा (श्रीराम पंडित: 9972339362).`;
-    return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\n${p4Dosha}`);
-  }
-
-  const p3Normal = `ग्रहदोष शांतीसाठी गोकर्ण महागणपती व महाबळेश्वराची उपासना करा आणि तुपाचा दिवा लावा.`;
-  return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${p3Normal}`);
-}

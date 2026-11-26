@@ -69,6 +69,8 @@ import {
   synthesizeAndPlayClonedVoice,
   stopClonedAudio
 } from "../audio/aiVoiceCloneEngine";
+import { ConsultationSessionPdfTemplate } from "../../components/consultation/ConsultationSessionPdfTemplate";
+import { captureConsultationSessionPdf } from "./consultationPdfService";
 import { useAppStore } from "../../stores/appStore";
 
 interface Props {
@@ -95,6 +97,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
   // Timer State
   const [remainingSeconds, setRemainingSeconds] = useState<number>(1200); // 20 mins default
+  const [readGraceSeconds, setReadGraceSeconds] = useState<number>(0); // 6-hour read & PDF download window after expiry
   const [showContactModal, setShowContactModal] = useState<boolean>(false);
   const [showTimerModal, setShowTimerModal] = useState<boolean>(false);
   const [startingTimer, setStartingTimer] = useState<boolean>(false);
@@ -180,6 +183,11 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   const [ratingComment, setRatingComment] = useState<string>("");
   const [isSubmittingRating, setIsSubmittingRating] = useState<boolean>(false);
   const [ratingToast, setRatingToast] = useState<boolean>(false);
+
+  // Branded Baggona Panchanga PDF Download State
+  const consultationPdfRef = useRef<HTMLDivElement | null>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState<boolean>(false);
+  const [pdfToast, setPdfToast] = useState<boolean>(false);
 
   const geminiApiKey = useAppStore((state) => state.geminiApiKey);
 
@@ -368,10 +376,18 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         if (!isMounted) return;
 
         if (!data) {
-          setSessionError("ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಸೂಪರ್ ಅಡ್ಮಿನ್ ನೀಡಿದ ಅಧಿಕೃತ ಲಿಂಕ್ ಬಳಸಿ ಅಥವಾ ಮರುಪ್ರಯತ್ನಿಸಿ. (Consultation session not found in database. Please verify your link or retry).");
+          setSessionError(CONSULTATION_CHAT_UI_I18N.kn.sessionNotFoundMsg);
           setSession(null);
         } else if (data.status === "deleted") {
-          setSessionError("ಈ ಸಮಾಲೋಚನೆ ಅವಧಿ ಮುಕ್ತಾಯಗೊಂಡು ಡೇಟಾಬೇಸ್‌ನಿಂದ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ತೆರವುಗೊಂಡಿದೆ. (This consultation link has expired and has been purged from database).");
+          try {
+            if (typeof localStorage !== "undefined") localStorage.removeItem(`${LOCAL_CHAT_BACKUP_PREFIX}${activeSessionId}`);
+            if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(`${LOCAL_CHAT_BACKUP_PREFIX}${activeSessionId}`);
+          } catch {
+            // Ignore storage clear errors
+          }
+          const delUi = CONSULTATION_CHAT_UI_I18N[data.language] || CONSULTATION_CHAT_UI_I18N.kn;
+          setSessionError(delUi.sessionDeletedMsg);
+          setMessages([]);
           setSession(null);
         } else {
           setResolvedId(activeSessionId);
@@ -402,6 +418,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           try {
             const profile = await computeDevoteePanchangaProfile(data);
             if (isMounted) setPanchangaProfile(profile);
+            // Pre-warm full 12-house Kundli cache in background so first question answers faster
+            void computeDevoteeKundli(data).catch(() => {});
           } catch (pErr) {
             console.warn("[ConsultationChatPage] Panchanga profile notice:", pErr);
           }
@@ -426,6 +444,10 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             setShowContactModal(false);
             setShowTimerModal(false);
             setRemainingSeconds(0);
+            const deleteMs = data.deleteAt
+              ? new Date(data.deleteAt).getTime()
+              : (data.expiresAt ? new Date(data.expiresAt).getTime() : Date.now()) + 360 * 60 * 1000;
+            setReadGraceSeconds(Math.max(0, Math.floor((deleteMs - Date.now()) / 1000)));
           }
         }
       } catch (err: any) {
@@ -451,6 +473,25 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
   // Synchronize fresh database session across all devices/browsers
   const applyFreshSessionState = useCallback((fresh: ConsultationSession) => {
+    const now = Date.now();
+    const deleteAtMs = fresh.deleteAt ? new Date(fresh.deleteAt).getTime() : null;
+    if (fresh.status === "deleted" || (deleteAtMs && now >= deleteAtMs && fresh.status !== "pending")) {
+      try {
+        if (typeof localStorage !== "undefined") localStorage.removeItem(`${LOCAL_CHAT_BACKUP_PREFIX}${fresh.id}`);
+        if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(`${LOCAL_CHAT_BACKUP_PREFIX}${fresh.id}`);
+      } catch {
+        // Ignore storage errors
+      }
+      const delUi = CONSULTATION_CHAT_UI_I18N[fresh.language] || CONSULTATION_CHAT_UI_I18N.kn;
+      setSession(null);
+      sessionRef.current = null;
+      setMessages([]);
+      setRemainingSeconds(0);
+      setReadGraceSeconds(0);
+      setSessionError(delUi.sessionDeletedMsg);
+      return;
+    }
+
     setSession(fresh);
     sessionRef.current = fresh;
     setMessages((prev) => {
@@ -467,12 +508,15 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       // The devotee may have clicked "Start Consultation" and is actively typing their phone number.
       setShowTimerModal(false);
       setRemainingSeconds((fresh.durationMinutes || 20) * 60);
+      setReadGraceSeconds(0);
     } else if (fresh.status === "active" && fresh.expiresAt) {
       setShowContactModal(false);
       setShowTimerModal(false);
-      const left = Math.max(0, Math.floor((new Date(fresh.expiresAt).getTime() - Date.now()) / 1000));
+      const left = Math.max(0, Math.floor((new Date(fresh.expiresAt).getTime() - now) / 1000));
       setRemainingSeconds(left);
       if (left <= 0) {
+        const effDeleteMs = deleteAtMs || new Date(fresh.expiresAt).getTime() + 360 * 60 * 1000;
+        setReadGraceSeconds(Math.max(0, Math.floor((effDeleteMs - now) / 1000)));
         setSession((prev) => (prev ? { ...prev, status: "expired" } : null));
         setRemainingSeconds(0);
         void expireConsultationSession(fresh.id);
@@ -481,6 +525,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       setShowContactModal(false);
       setShowTimerModal(false);
       setRemainingSeconds(0);
+      const effDeleteMs = deleteAtMs || (fresh.expiresAt ? new Date(fresh.expiresAt).getTime() : now) + 360 * 60 * 1000;
+      setReadGraceSeconds(Math.max(0, Math.floor((effDeleteMs - now) / 1000)));
     }
   }, []);
 
@@ -502,6 +548,20 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             if (snap.exists()) {
               const fresh = snap.data() as ConsultationSession;
               applyFreshSessionState(fresh);
+            } else if (sessionRef.current) {
+              const prevLang = sessionRef.current.language;
+              try {
+                if (typeof localStorage !== "undefined") localStorage.removeItem(`${LOCAL_CHAT_BACKUP_PREFIX}${resolvedId}`);
+                if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(`${LOCAL_CHAT_BACKUP_PREFIX}${resolvedId}`);
+              } catch {
+                // Ignore storage errors
+              }
+              setSession(null);
+              sessionRef.current = null;
+              setMessages([]);
+              setRemainingSeconds(0);
+              setReadGraceSeconds(0);
+              setSessionError((CONSULTATION_CHAT_UI_I18N[prevLang] || CONSULTATION_CHAT_UI_I18N.kn).sessionDeletedMsg);
             }
           },
           (err) => {
@@ -513,32 +573,63 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       }
     }
 
-    // 1-second local tick directly checking current session expiresAt
+    // 1-second local tick checking 20-min Q&A timer AND 6-hour read/PDF window expiry
     const tickInterval = setInterval(() => {
       const current = sessionRef.current;
-      if (!current || current.status !== "active" || !current.expiresAt) return;
+      if (!current || current.status === "pending" || current.status === "deleted") return;
 
       const now = Date.now();
-      const exp = new Date(current.expiresAt).getTime();
-      const diffSecs = Math.max(0, Math.floor((exp - now) / 1000));
+      const deleteMs = current.deleteAt
+        ? new Date(current.deleteAt).getTime()
+        : (current.expiresAt ? new Date(current.expiresAt).getTime() + 360 * 60 * 1000 : null);
 
-      setRemainingSeconds(diffSecs);
-
-      // Show bonus banner if remaining <= 60s and bonus not yet claimed
-      if (diffSecs > 0 && diffSecs <= 60 && !current.bonusMinuteClaimed) {
-        setShowBonusBanner(true);
-      } else {
+      if (deleteMs && now >= deleteMs) {
+        try {
+          if (typeof localStorage !== "undefined") localStorage.removeItem(`${LOCAL_CHAT_BACKUP_PREFIX}${current.id}`);
+          if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(`${LOCAL_CHAT_BACKUP_PREFIX}${current.id}`);
+        } catch {
+          // Ignore storage errors
+        }
+        const delUi = CONSULTATION_CHAT_UI_I18N[current.language] || CONSULTATION_CHAT_UI_I18N.kn;
+        setSession(null);
+        sessionRef.current = null;
+        setMessages([]);
+        setRemainingSeconds(0);
+        setReadGraceSeconds(0);
         setShowBonusBanner(false);
+        setSessionError(delUi.sessionDeletedMsg);
+        void getConsultationSession(current.id);
+        return;
       }
 
-      if (diffSecs <= 0) {
-        setSession((prev) => (prev ? { ...prev, status: "expired" } : null));
-        setRemainingSeconds(0);
-        void expireConsultationSession(current.id);
+      if (current.status === "active" && current.expiresAt) {
+        const exp = new Date(current.expiresAt).getTime();
+        const diffSecs = Math.max(0, Math.floor((exp - now) / 1000));
+
+        setRemainingSeconds(diffSecs);
+
+        // Show bonus banner if remaining <= 60s and bonus not yet claimed
+        if (diffSecs > 0 && diffSecs <= 60 && !current.bonusMinuteClaimed) {
+          setShowBonusBanner(true);
+        } else {
+          setShowBonusBanner(false);
+        }
+
+        if (diffSecs <= 0) {
+          const graceSecs = deleteMs ? Math.max(0, Math.floor((deleteMs - now) / 1000)) : 360 * 60;
+          setReadGraceSeconds(graceSecs);
+          setSession((prev) => (prev ? { ...prev, status: "expired" } : null));
+          setRemainingSeconds(0);
+          void expireConsultationSession(current.id);
+        }
+      } else if (current.status === "expired" && deleteMs) {
+        setShowBonusBanner(false);
+        setReadGraceSeconds(Math.max(0, Math.floor((deleteMs - now) / 1000)));
       }
     }, 1000);
 
-    // Periodic 3-second database sync to guarantee cross-browser parity if onSnapshot is unavailable
+    // Lightweight fallback sync (15s when Firestore real-time onSnapshot is active, 4s otherwise)
+    const syncIntervalMs = firestore ? 15000 : 4000;
     const syncInterval = setInterval(async () => {
       try {
         const fresh = await getConsultationSession(resolvedId);
@@ -548,7 +639,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       } catch {
         // Ignore background sync errors
       }
-    }, 3000);
+    }, syncIntervalMs);
 
     return () => {
       isSubscribed = false;
@@ -1018,7 +1109,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           : currentLang === "hi"
             ? `नमस्ते ${session.name} जी। आपकी जन्मकुंडली और वर्तमान दशा का विश्लेषण किया जा रहा है। कृपया अपना प्रश्न पुनः पूछें या सीधे श्री क्षेत्र गोकर्ण के मुख्य पुरोहित से संपर्क करें: 9972339362.`
             : currentLang === "te"
-              ? `నమస్కారం ${session.name} గారు. మీ జాతక లగ్నం మరియు దశా భుక్తుల పరిశీలన జరుగుతోంది. దయచేసి మళ్లీ ప్రశ్నించండి లేదా నేరుగా శ్రీ క్షేత్ర గోకర్ణ పండితులను సంಪ್ರదించండి: 9972339362.`
+              ? `నమస్కారం ${session.name} గారు. మీ జాతక లగ్నం మరియు దశా భుక్తుల పరిశీలన జరుగుతోంది. దయచేసి మళ్లీ ప్రశ్నించండి లేదా నేరుగా శ్రీ క్షేత్ర గోకర్ణ పండితులను సంప్రదించండి: 9972339362.`
               : currentLang === "ta"
                 ? `வணக்கம் ${session.name}. உங்கள் ஜாதக தசைகள் கணிக்கப்படுகின்றன. தயவுசெய்து மீண்டும் கேளுங்கள் அல்லது நேரடியாக கோகர்ணா பண்டிதரை தொடர்பு கொள்ளவும்: 9972339362.`
                 : currentLang === "ml"
@@ -1138,6 +1229,40 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     setShowRatingModal(false);
   };
 
+  // Export Personalized Baggona Panchanga PDF (Premium PDF V1 / Sampoorna 25 Style)
+  const handleDownloadConsultationPdf = async () => {
+    if (!session || isDownloadingPdf) return;
+    setIsDownloadingPdf(true);
+    try {
+      let profileToUse = panchangaProfile;
+      if (!profileToUse) {
+        profileToUse = await computeDevoteePanchangaProfile(session);
+        setPanchangaProfile(profileToUse);
+      }
+      const containerEl =
+        consultationPdfRef.current ||
+        document.getElementById("consultation-session-pdf-container");
+      if (!containerEl) {
+        throw new Error("PDF container not mounted");
+      }
+      const cleanDevotee =
+        (session.name || "Devotee")
+          .replace(/[^a-zA-Z0-9\u0900-\u0DFF]+/g, "_")
+          .replace(/^_+|_+$/g, "") || "Devotee";
+      const fileName = `${cleanDevotee}_Baggona_Panchanga_Consultation.pdf`;
+      await captureConsultationSessionPdf(containerEl, fileName, true);
+      setPdfToast(true);
+      setTimeout(() => setPdfToast(false), 3500);
+    } catch (err) {
+      console.error("[ConsultationChatPage] Failed to export consultation PDF:", err);
+      if (typeof window !== "undefined") {
+        window.print();
+      }
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   // Format MM:SS
   const formatTimer = (totalSeconds: number): string => {
     const mins = Math.floor(totalSeconds / 60);
@@ -1154,6 +1279,11 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   const totalDurationSeconds = (session?.durationMinutes || 20) * 60;
   const timerPercentage = Math.min(100, Math.max(0, (remainingSeconds / totalDurationSeconds) * 100));
   const isExpired = session?.status === "expired" || remainingSeconds <= 0;
+  const graceHours = Math.floor(readGraceSeconds / 3600);
+  const graceMins = Math.floor((readGraceSeconds % 3600) / 60);
+  const graceRemainingLabel = readGraceSeconds > 0
+    ? (graceHours > 0 ? `${graceHours}h ${graceMins}m` : `${graceMins}m`)
+    : "";
 
   // Clock SVG circumference (radius 40, circum = 2 * pi * 40 ≈ 251.32)
   const clockCircumference = 2 * Math.PI * 40;
@@ -1178,8 +1308,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </p>
 
             <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900">
-              <p className="font-bold">ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ</p>
-              <p className="mt-1">ಪಂಡಿತರು: {DEFAULT_PRIEST_CONTACT.name}</p>
+              <p className="font-bold">{currentChatUi.brandOrgName}</p>
+              <p className="mt-1">{currentChatUi.chiefPriestRoleLabel} {DEFAULT_PRIEST_CONTACT.name}</p>
             </div>
             <a
               href={DEFAULT_PRIEST_CONTACT.callUri}
@@ -1200,9 +1330,9 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="w-16 h-16 rounded-2xl border-4 border-amber-500 border-t-transparent animate-spin mb-4" />
           <h2 className="font-serif text-lg font-bold text-amber-900">
-            ॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಗೋಕರ್ಣ ॥
+            ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥
           </h2>
-          <p className="text-xs text-amber-700 mt-1">ದೈವಜ್ಞ ಸಮಾಲೋಚನೆ ಲೋಡ್ ಆಗುತ್ತಿದೆ...</p>
+          <p className="text-xs text-amber-700 mt-1">{currentChatUi.loadingStatusMsg}</p>
         </div>
       </div>
     );
@@ -1219,16 +1349,16 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </div>
             <h2 className="text-xl font-bold font-serif text-amber-950">
               {noTokenProvided
-                ? "॥ ಬಗ್ಗೋಣ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಅಗತ್ಯವಿದೆ ॥"
+                ? currentChatUi.noTokenTitle
                 : isTampered
                   ? currentI18n.tamperedLinkTitle
                   : sessionError
-                    ? "ಸಮಾಲೋಚನೆ ಸ್ಥಿತಿ (Consultation Status)"
+                    ? currentChatUi.sessionStatusHeading
                     : currentI18n.sessionEndedTitle}
             </h2>
             <p className="text-sm text-stone-700 leading-relaxed">
               {noTokenProvided
-                ? "೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಗೆ ಪ್ರವೇಶಿಸಲು ಮುಖ್ಯ ಅರ್ಚಕರು ನೀಡಿದ ಅಧಿಕೃತ ಲಿಂಕ್ ಬಳಸಿ."
+                ? currentChatUi.noTokenMsg
                 : sessionError || currentI18n.sessionEndedMsg}
             </p>
 
@@ -1239,14 +1369,14 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   onClick={() => window.location.reload()}
                   className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs text-xs transition"
                 >
-                  🔄 ಮರುಪ್ರಯತ್ನಿಸಿ (Retry Loading)
+                  {currentChatUi.retryLoadingBtn}
                 </button>
               )}
             </div>
 
             <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 mt-2">
-              <p className="font-bold">ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ</p>
-              <p className="mt-1">ಪಂಡಿತರು: {DEFAULT_PRIEST_CONTACT.name}</p>
+              <p className="font-bold">{currentChatUi.brandOrgName}</p>
+              <p className="mt-1">{currentChatUi.chiefPriestRoleLabel} {DEFAULT_PRIEST_CONTACT.name}</p>
             </div>
             <a
               href={DEFAULT_PRIEST_CONTACT.callUri}
@@ -1268,27 +1398,27 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       <header className="w-full bg-[#FAF6EE] border-b-2 border-amber-300/80 sticky top-0 z-30 shadow-xs backdrop-blur-md">
         <div className="max-w-2xl mx-auto px-3 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2">
           {/* LEFT: Branding & Emblem */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white flex items-center justify-center font-serif text-sm sm:text-base font-bold shadow-xs border border-amber-300 shrink-0">
               🕉️
             </div>
-            <div>
-              <div className="flex items-center gap-1">
-                <h1 className="font-serif font-black text-amber-950 text-xs sm:text-base leading-tight tracking-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 min-w-0">
+                <h1 className="font-serif font-black text-amber-950 text-xs sm:text-base leading-tight tracking-tight truncate">
                   ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥
                 </h1>
-                <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-sm border border-amber-300">
+                <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-sm border border-amber-300 shrink-0">
                   {currentChatUi.gokarnaTown || "ಗೋಕರ್ಣ"}
                 </span>
               </div>
-              <p className="hidden sm:block text-[10px] sm:text-[11px] text-amber-800 font-medium">
+              <p className="hidden sm:block text-[10px] sm:text-[11px] text-amber-800 font-medium truncate">
                 {currentChatUi.headerSubtitle || "ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಸಮಾಲೋಚನೆ"}
               </p>
             </div>
           </div>
 
           {/* RIGHT: Compact Sandglass Clock & Controls */}
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {/* 20-Minute Timer Badge (Pending: 20:00, Active: countdown, Last 1 min: flashing red) */}
             {session.status === "pending" ? (
               <div
@@ -1336,15 +1466,38 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               </div>
             ) : (session.status === "expired" || isExpired) ? (
               <div
-                className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-xl border text-xs font-mono font-bold bg-red-950 text-red-200 border-red-500 select-none shadow-xs"
-                title="Consultation Session Expired (20 Minutes Completed)"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-xl border text-xs font-mono font-bold bg-amber-950 text-amber-100 border-amber-400 select-none shadow-xs"
+                title={currentChatUi.readPdfWindowBanner}
               >
-                <span className="text-xs">⏱️</span>
-                <span className="text-xs sm:text-sm tracking-tight text-red-100 font-black">
-                  00:00 (Expired)
+                <span className="text-xs">📥</span>
+                <span className="text-[11px] sm:text-xs tracking-tight text-amber-100 font-black whitespace-nowrap">
+                  {graceRemainingLabel ? `${currentChatUi.readPdfWindowBadge} • ${graceRemainingLabel}` : "00:00 (PDF Only)"}
                 </span>
               </div>
             ) : null}
+
+            {session.status !== "pending" && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => void handleDownloadConsultationPdf()}
+                  disabled={isDownloadingPdf}
+                  className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white border border-amber-400 text-[11px] sm:text-xs px-2 sm:px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 shadow-2xs transition disabled:opacity-50 active:scale-95"
+                  title={currentChatUi.downloadPdfBtn}
+                >
+                  <span>{isDownloadingPdf ? "⏳" : "📥"}</span>
+                  <span>{currentChatUi.downloadPdfShortBtn}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowFamilyBookingModal(true)}
+                  className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[11px] sm:text-xs px-2 py-1 rounded-lg font-bold flex items-center gap-1 shadow-2xs transition active:scale-95"
+                  title={currentChatUi.bookForFamilyBtn}
+                >
+                  <span>🎁</span>
+                </button>
+              </>
+            )}
 
             <button
               type="button"
@@ -1360,6 +1513,25 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </span>
           </div>
         </div>
+
+        {/* PDF Ready Success Toast */}
+        {pdfToast && (
+          <div className="bg-gradient-to-r from-emerald-700 to-emerald-800 text-white px-4 py-1.5 border-b border-emerald-300 flex items-center justify-between text-xs font-serif font-bold shadow-md animate-fadeIn">
+            <div className="max-w-2xl mx-auto w-full flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-base">📥</span>
+                <span>{currentChatUi.pdfReadyToast}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPdfToast(false)}
+                className="text-emerald-200 hover:text-white text-sm font-bold px-1"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 5-Star Rating Success Toast */}
         {ratingToast && (
@@ -1433,9 +1605,9 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </p>
           </div>
           <div className="w-full bg-white/90 border-2 border-amber-300 rounded-2xl p-4 shadow-xs text-xs text-amber-950 space-y-1.5 font-serif">
-            <div className="font-bold text-sm text-amber-900">॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥</div>
-            <div className="text-stone-600">ಮುಖ್ಯ ದೈವಜ್ಞರು: {DEFAULT_PRIEST_CONTACT.name}</div>
-            <div className="text-stone-500">{DEFAULT_PRIEST_CONTACT.gokarnaLocation}</div>
+            <div className="font-bold text-sm text-amber-900">{currentChatUi.brandOrgName}</div>
+            <div className="text-stone-600">{currentChatUi.chiefPriestRoleLabel} {DEFAULT_PRIEST_CONTACT.name}</div>
+            <div className="text-stone-500">{currentChatUi.gokarnaLocationLabel}</div>
           </div>
           <div className="w-full space-y-3 pt-2">
             <a
@@ -1445,6 +1617,23 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               <span>📞</span>
               <span>{currentI18n.callPriestBtn}</span>
             </a>
+            <button
+              type="button"
+              disabled={isDownloadingPdf}
+              onClick={() => void handleDownloadConsultationPdf()}
+              className="w-full bg-white hover:bg-amber-50 text-amber-950 font-sans font-bold text-xs sm:text-sm py-3 px-5 rounded-2xl border-2 border-amber-400 shadow-sm transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+            >
+              <span>📥</span>
+              <span>{isDownloadingPdf ? currentChatUi.downloadingPdfBtn : currentChatUi.downloadPdfBtn}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFamilyBookingModal(true)}
+              className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-sans font-bold text-xs py-3 px-5 rounded-2xl border border-amber-400 shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>🎁</span>
+              <span>{currentChatUi.bookForFamilyBtn}</span>
+            </button>
           </div>
         </div>
       ) : (
@@ -1485,7 +1674,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
                   {/* Message Bubble: User is right-aligned bubble, Astrologer is FULL WIDTH (w-full) Card */}
                   <div
-                    className={`transition-all break-words ${isUser
+                    className={`transition-all break-words [overflow-wrap:anywhere] overflow-hidden ${isUser
                       ? "max-w-[85%] rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white rounded-br-xs font-medium shadow-xs"
                       : "w-full max-w-full rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm bg-white border-2 border-amber-400 text-amber-950 font-serif shadow-md space-y-3"
                       }`}
@@ -1559,13 +1748,32 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                           </button>
                         </div>
 
-                        {/* Flowing Sacred Guidance Paragraphs (Warm paternal tone, zero robotic AI boxes) */}
-                        <div className="pt-1 space-y-2.5">
-                          {paragraphs.map((para, pIdx) => (
-                            <p key={pIdx} className="whitespace-pre-line text-xs sm:text-sm text-stone-900 leading-relaxed font-serif">
-                              {para}
-                            </p>
-                          ))}
+                        {/* Flowing Sacred Guidance Paragraphs (Centenary Sage readability with neat verdict highlight) */}
+                        <div className="pt-1 space-y-3">
+                          {paragraphs.map((para, pIdx) => {
+                            const isLeadAnswer = pIdx === 0 && msg.id !== "msg_welcome" && paragraphs.length > 1;
+                            if (isLeadAnswer) {
+                              return (
+                                <div
+                                  key={pIdx}
+                                  className="bg-gradient-to-r from-amber-50/90 to-orange-50/40 border-l-4 border-amber-600 rounded-r-xl px-3 py-2.5 shadow-2xs"
+                                >
+                                  <div className="inline-flex items-center gap-1 text-[10px] font-sans font-bold uppercase tracking-wide text-amber-800 mb-1">
+                                    <span>✨</span>
+                                    <span>{currentChatUi.directAnswerTag}</span>
+                                  </div>
+                                  <p className="whitespace-pre-line text-xs sm:text-sm text-amber-950 font-medium leading-relaxed font-serif">
+                                    {para}
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return (
+                              <p key={pIdx} className="whitespace-pre-line text-xs sm:text-sm text-stone-900 leading-relaxed font-serif px-0.5">
+                                {para}
+                              </p>
+                            );
+                          })}
                         </div>
                       </>
                     )}
@@ -1709,12 +1917,18 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                     {currentI18n.sessionEndedTitle || "॥ ಸಮಾಲೋಚನೆ ಸಂಪನ್ನಗೊಂಡಿದೆ ॥"}
                   </h3>
                   <p className="text-xs text-amber-900 leading-relaxed max-w-md mx-auto font-sans">
-                    {currentI18n.sessionEndedMsg || "ನಿಮ್ಮ ೨೦ ನಿಮಿಷಗಳ ನಿಗದಿತ ಸಮಾಲೋಚನೆ ಸಂಪನ್ನಗೊಂಡಿದೆ. ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ಮಾರ್ಗದರ್ಶನ ಹಾಗೂ ಪರಿಹಾರಗಳನ್ನು ಮೇಲೆ ಪರಿಶೀಲಿಸಬಹುದು."}
+                    {currentI18n.sessionEndedMsg}
                   </p>
+                  {graceRemainingLabel && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950 text-amber-100 border border-amber-400 text-[11px] font-bold font-sans shadow-2xs">
+                      <span>⏳</span>
+                      <span>{currentChatUi.readPdfWindowBanner} {graceRemainingLabel}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="w-full bg-white/90 border border-amber-300 rounded-xl p-3 text-xs text-amber-950 font-serif">
-                  <div className="font-bold text-amber-900">॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥</div>
-                  <div className="text-stone-600">ಮುಖ್ಯ ದೈವಜ್ಞರು: {DEFAULT_PRIEST_CONTACT.name} (ಗೋಕರ್ಣ)</div>
+                  <div className="font-bold text-amber-900">{currentChatUi.brandOrgName}</div>
+                  <div className="text-stone-600">{currentChatUi.chiefPriestRoleLabel} {DEFAULT_PRIEST_CONTACT.name} ({currentChatUi.gokarnaTown})</div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
                   <a
@@ -1726,13 +1940,12 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   </a>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (typeof window !== "undefined") window.print();
-                    }}
-                    className="w-full sm:w-auto bg-white hover:bg-stone-100 text-stone-800 font-sans font-bold text-xs py-3 px-4 rounded-xl border border-stone-300 shadow-2xs transition flex items-center justify-center gap-1.5"
+                    disabled={isDownloadingPdf}
+                    onClick={() => void handleDownloadConsultationPdf()}
+                    className="w-full sm:w-auto bg-white hover:bg-amber-50 text-amber-950 font-sans font-bold text-xs py-3 px-4 rounded-xl border-2 border-amber-400 shadow-2xs transition flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95"
                   >
-                    <span>📄</span>
-                    <span>{currentChatUi.savePrintBtn}</span>
+                    <span>📥</span>
+                    <span>{isDownloadingPdf ? currentChatUi.downloadingPdfBtn : currentChatUi.savePrintBtn}</span>
                   </button>
                   <button
                     type="button"
@@ -1817,6 +2030,12 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   <p className="text-[11px] text-amber-900 leading-relaxed font-sans max-w-lg mx-auto">
                     {currentI18n.sessionEndedMsg}
                   </p>
+                  {graceRemainingLabel && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-900 text-amber-50 border border-amber-400 text-[10px] font-bold font-sans">
+                      <span>⏳</span>
+                      <span>{currentChatUi.readPdfWindowBanner} {graceRemainingLabel}</span>
+                    </div>
+                  )}
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
                     <a
                       href={DEFAULT_PRIEST_CONTACT.callUri}
@@ -1827,13 +2046,12 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                     </a>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (typeof window !== "undefined") window.print();
-                      }}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs py-2.5 px-4 rounded-xl border border-stone-300 shadow-2xs transition"
+                      disabled={isDownloadingPdf}
+                      onClick={() => void handleDownloadConsultationPdf()}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-white hover:bg-amber-50 text-amber-950 font-bold text-xs py-2.5 px-4 rounded-xl border-2 border-amber-400 shadow-2xs transition disabled:opacity-50 active:scale-95"
                     >
-                      <span>📄</span>
-                      <span>{currentChatUi.savePrintBtn}</span>
+                      <span>📥</span>
+                      <span>{isDownloadingPdf ? currentChatUi.downloadingPdfBtn : currentChatUi.savePrintBtn}</span>
                     </button>
                   <button
                     type="button"
@@ -2270,7 +2488,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                     {currentChatUi.bookForFamilyModalTitle}
                   </h3>
                   <p className="text-[11px] text-amber-800 font-sans">
-                    {session.language === "en" ? "Chief Priest Sri Shreeram Pandit (9972339362)" : "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಪ್ರಧಾನ ಅರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (೯೯೭೨೩೩೯೩೬೨)"}
+                    {currentChatUi.familyPriestHeader}
                   </p>
                 </div>
               </div>
@@ -2290,20 +2508,22 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
             <div className="bg-white border border-amber-300 rounded-2xl p-3.5 space-y-2 text-xs">
               <p className="font-bold text-amber-950 font-sans">
-                {session.language === "en" ? "Information Required for New Dedicated Link:" : "ಹೊಸ ಪ್ರತ್ಯೇಕ ಲಿಂಕ್‌ಗಾಗಿ ಅಗತ್ಯವಿರುವ ವಿವರಗಳು:"}
+                {currentChatUi.familyReqFieldsHeader}
               </p>
               <div className="space-y-1 font-mono text-[11px] text-stone-700 bg-stone-50 p-2.5 rounded-xl border border-stone-200">
                 <p>• {currentChatUi.devoteeNameLabel} _________</p>
-                <p>• {session.language === "en" ? "Date of Birth (DOB):" : "ಹುಟ್ಟಿದ ದಿನಾಂಕ (DOB):"} DD/MM/YYYY</p>
-                <p>• {session.language === "en" ? "Time of Birth (TOB):" : "ಹುಟ್ಟಿದ ಸಮಯ (TOB):"} HH:MM AM/PM</p>
-                <p>• {session.language === "en" ? "Place of Birth (POB):" : "ಹುಟ್ಟಿದ ಸ್ಥಳ (POB):"} City, State</p>
+                <p>• {currentChatUi.familyFieldDob} DD/MM/YYYY</p>
+                <p>• {currentChatUi.familyFieldTob} HH:MM AM/PM</p>
+                <p>• {currentChatUi.familyFieldPob} City, State</p>
               </div>
             </div>
 
             <div className="space-y-2 pt-1">
               <a
                 href={`https://wa.me/919972339362?text=${encodeURIComponent(
-                  `॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n\nನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರೇ (9972339362),\nನನ್ನ ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಪ್ರತ್ಯೇಕ ೨೦ ನಿಮಿಷಗಳ ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಬೇಕಾಗಿದೆ.\n\nಕುಟುಂಬ ಸದಸ್ಯರ ಹೆಸರು: \nಹುಟ್ಟಿದ ದಿನಾಂಕ: \nಸಮಯ: \nಸ್ಥಳ: \n\nದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಹೊಸ ಖಾಸಗಿ ಲಿಂಕ್ ನೀಡಿ.\n(ರೆಫರೆನ್ಸ್: ${session.name} ಅವರ ಸಮಾಲೋಚನೆ)`
+                  currentLang === "kn"
+                    ? `॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n\nನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರೇ (9972339362),\nನನ್ನ ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಪ್ರತ್ಯೇಕ ೨೦ ನಿಮಿಷಗಳ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಬೇಕಾಗಿದೆ.\n\nಕುಟುಂಬ ಸದಸ್ಯರ ಹೆಸರು: \nಹುಟ್ಟಿದ ದಿನಾಂಕ: \nಸಮಯ: \nಸ್ಥಳ: \n\nದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಹೊಸ ಖಾಸಗಿ ಲಿಂಕ್ ನೀಡಿ.\n(ರೆಫರೆನ್ಸ್: ${session.name})`
+                    : `Baggona Panchanga Astrology — Sri Kshetra Gokarna\n\nNamaskara Chief Priest Sri Shreeram Pandit (9972339362),\nPlease share a dedicated 20-minute private Baggona Panchanga consultation link for my family member:\n\nName: \nDate of Birth: \nTime of Birth: \nPlace of Birth: \nLanguage: ${currentLangMeta.nativeName}\n(Referred by: ${session.name})`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -2440,6 +2660,29 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           </div>
         </div>
       )}
+
+      {/* Hidden A4 Branded Baggona Panchanga PDF Renderer Container */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          width: "900px",
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -1,
+          overflow: "hidden",
+          height: 0
+        }}
+      >
+        <ConsultationSessionPdfTemplate
+          ref={consultationPdfRef}
+          session={session}
+          panchangaProfile={panchangaProfile}
+          messages={messages}
+        />
+      </div>
     </div>
   );
 };

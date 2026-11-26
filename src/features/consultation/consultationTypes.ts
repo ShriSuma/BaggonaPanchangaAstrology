@@ -154,14 +154,14 @@ export interface ConsultationSession {
   status: ConsultationStatus;
   startedAt?: string | null; // ISO string when user clicks Start
   expiresAt?: string | null; // startedAt + 20 minutes (or +21 minutes with bonus)
-  deleteAt?: string | null; // startedAt + 40 minutes (20 min after expiry)
+  deleteAt?: string | null; // expiresAt + 6 hours (read-only & PDF window after 20-min Q&A ends)
   userPhone?: string; // Captured before 20-min timer
   userEmail?: string; // Captured before 20-min timer
   hasProvidedContact?: boolean; // Flag to show contact modal only once
   bonusMinuteClaimed?: boolean; // Max 1 bonus minute allowed (21m total)
   messages: ConsultationChatMessage[];
   durationMinutes?: number; // 20 (or 21)
-  graceDeleteMinutes?: number; // 20
+  graceDeleteMinutes?: number; // 360 (6 hours after Q&A ends)
   priestName?: string; // "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
   priestPhone?: string; // "9972339362"
   kundliSnapshot?: {
@@ -300,13 +300,13 @@ export const CONSULTATION_MODAL_I18N: Record<
     oneRequiredError: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸುವುದು ಕಡ್ಡಾಯವಾಗಿದೆ.",
     timerModalTitle: "೨೦ ನಿಮಿಷಗಳ ನಿಖರ ಸಮಾಲೋಚನೆ",
     timerModalWarning: "ಮುಂದಿನ ೨೦ ನಿಮಿಷಗಳ ಕಾಲ ನೀವು ಸಂಪೂರ್ಣ ಮುಕ್ತರಾಗಿದ್ದರೆ ಮಾತ್ರ 'ಸಮಾಲೋಚನೆ ಪ್ರಾರಂಭಿಸಿ' ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ.",
-    timerModalStrictCondition: "ಒಮ್ಮೆ ಪ್ರಾರಂಭಿಸಿದ ನಂತರ, ಸಮಯವು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ನಿರಂತರವಾಗಿ ಚಲಿಸುತ್ತದೆ ಮತ್ತು ೨೦ ನಿಮಿಷಗಳ ನಂತರ ಈ ಲಿಂಕ್ ಶಾಶ್ವತವಾಗಿ ನಿಷ್ಕ್ರಿಯಗೊಳ್ಳುತ್ತದೆ. ಮರು-ಪ್ರವೇಶ ಸಾಧ್ಯವಿಲ್ಲ.",
+    timerModalStrictCondition: "ಒಮ್ಮೆ ಪ್ರಾರಂಭಿಸಿದ ನಂತರ, ಸಮಯವು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ನಿರಂತರವಾಗಿ ಚಲಿಸುತ್ತದೆ. ೨೦ ನಿಮಿಷಗಳ ನಂತರ ಹೊಸ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಲು ಸಾಧ್ಯವಾಗುವುದಿಲ್ಲ; ಆದರೆ ಮುಂದಿನ ೬ ಗಂಟೆಗಳವರೆಗೆ ಉತ್ತರಗಳನ್ನು ಓದಲು ಮತ್ತು PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಮಾತ್ರ ಈ ಲಿಂಕ್ ಲಭ್ಯವಿರುತ್ತದೆ.",
     startTimerBtn: "ಸಮಾಲೋಚನೆ ಪ್ರಾರಂಭಿಸಿ (೨೦ ನಿಮಿಷ)",
     bonusBannerTitle: "ಕೊನೆಯ ಕ್ಷಣದ ಬೋನಸ್ ಸಮಯ!",
     bonusBannerSubtitle: "ಸಮಾಲೋಚನೆ ಮುಕ್ತಾಯಗೊಳಿಸಲು ಹೆಚ್ಚುವರಿ +೧ ನಿಮಿಷ ಸೇರಿಸಬೇಕೆ?",
     addBonusBtn: "ಬೋನಸ್ +೧ ನಿಮಿಷ ಸೇರಿಸಿ",
     sessionEndedTitle: "ಸಮಾಲೋಚನಾ ಅವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ",
-    sessionEndedMsg: "ನಿಮ್ಮ ೨೦ ನಿಮಿಷಗಳ ವೈದಿಕ ಸಮಾಲೋಚನಾ ಲಿಂಕ್ ಕಾಲಾವಧಿ ಮೀರಿದೆ. ಮುಂದಿನ ವಿವರಗಳಿಗೆ ದಯವಿಟ್ಟು ಪಂಡಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+    sessionEndedMsg: "ನಿಮ್ಮ ೨೦ ನಿಮಿಷಗಳ ಪ್ರಶ್ನೋತ್ತರ ಸಮಯ ಮುಕ್ತಾಯಗೊಂಡಿದೆ (ಹೊಸ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಲು ಸಾಧ್ಯವಿಲ್ಲ). ಆದರೆ ನಿಮ್ಮ ಉತ್ತರಗಳನ್ನು ವೀಕ್ಷಿಸಲು ಮತ್ತು ಬಗ್ಗೋಣ ಪಂಚಾಂಗ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಮುಂದಿನ ೬ ಗಂಟೆಗಳವರೆಗೆ ಈ ಲಿಂಕ್ ಲಭ್ಯವಿರುತ್ತದೆ.",
     callPriestBtn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ (9972339362)",
     tamperedLinkTitle: "॥ ಅಮಾನ್ಯ ಅಥವಾ ಬದಲಾಯಿಸಲಾದ ಲಿಂಕ್ ॥",
     tamperedLinkMsg: "ಈ ಸಮಾಲೋಚನಾ ಲಿಂಕ್ ಅನ್ನು ಮಾರ್ಪಡಿಸಲಾಗಿದೆ ಅಥವಾ ಅಮಾನ್ಯವಾಗಿದೆ. ಭದ್ರತಾ ತಪಾಸಣೆ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಪಂಡಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ.",
@@ -335,13 +335,13 @@ export const CONSULTATION_MODAL_I18N: Record<
     oneRequiredError: "Mobile number is mandatory.",
     timerModalTitle: "20-Minute Vedic Astrological Consultation",
     timerModalWarning: "Please click 'Start Consultation' only if you are completely free for the next 20 minutes.",
-    timerModalStrictCondition: "Once started, the countdown runs continuously in the background and this link will expire in exactly 20 minutes, after which it cannot be accessed again.",
+    timerModalStrictCondition: "Once started, the countdown runs continuously. After 20 minutes, asking new questions stops; however, you can read all replies and download your PDF for the next 6 hours before the link closes permanently.",
     startTimerBtn: "Start Consultation (20 Min)",
     bonusBannerTitle: "Final Moment Bonus Time!",
     bonusBannerSubtitle: "Would you like to add a bonus +1 minute to conclude your consultation?",
     addBonusBtn: "Add Bonus +1 Minute",
     sessionEndedTitle: "Consultation Session Ended",
-    sessionEndedMsg: "Your 20-minute consultation link has expired. For further astrological guidance, please contact our chief astrologer.",
+    sessionEndedMsg: "Your 20-minute Q&A window has ended (new questions are now disabled). This link remains open in read-only mode for the next 6 hours so you can review your answers and download the Baggona Panchanga PDF.",
     callPriestBtn: "Call Shreeram Pandit (9972339362)",
     tamperedLinkTitle: "Invalid or Tampered Link",
     tamperedLinkMsg: "This consultation link is corrupted or has been altered. Integrity verification failed. Please contact the priest.",
@@ -370,13 +370,13 @@ export const CONSULTATION_MODAL_I18N: Record<
     oneRequiredError: "मोबाइल नंबर प्रदान करना अनिवार्य है।",
     timerModalTitle: "२० मिनट का सटीक वैदिक परामर्श",
     timerModalWarning: "यदि आप अगले २० मिनट के लिए पूरी तरह से स्वतंत्र हैं, तभी 'परामर्श प्रारंभ करें' पर क्लिक करें।",
-    timerModalStrictCondition: "एक बार शुरू होने के बाद, टाइमर पृष्ठभूमि में निरंतर चलता रहेगा और ठीक २० मिनट बाद यह लिंक स्थायी रूप से निष्क्रिय हो जाएगा।",
+    timerModalStrictCondition: "एक बार शुरू होने के बाद, समय निरंतर चलता रहेगा। २० मिनट के बाद नए प्रश्न पूछना बंद हो जाएगा, परंतु अगले ६ घंटे तक आप उत्तर पढ़ सकते हैं और अपना PDF डाउनलोड कर सकते हैं।",
     startTimerBtn: "परामर्श प्रारंभ करें (२० मिनट)",
     bonusBannerTitle: "अंतिम क्षण बोनस समय!",
     bonusBannerSubtitle: "क्या आप परामर्श संपन्न करने के लिए अतिरिक्त +१ मिनट जोड़ना चाहते हैं?",
     addBonusBtn: "बोनस +१ मिनट जोड़ें",
     sessionEndedTitle: "परामर्श सत्र समाप्त",
-    sessionEndedMsg: "आपका २० मिनट का वैदिक परामर्श लिंक समाप्त हो चुका है। आगे की जानकारी हेतु कृपया पंडित जी से संपर्क करें।",
+    sessionEndedMsg: "आपका २० मिनट का प्रश्नोत्तर सत्र समाप्त हो गया है (नए प्रश्न पूछना बंद है)। आप अगले ६ घंटे तक इस लिंक से सभी उत्तर पढ़ सकते हैं और बग्गोण पंचांग PDF डाउनलोड कर सकते हैं।",
     callPriestBtn: "श्रीराम पंडित जी को कॉल करें (9972339362)",
     tamperedLinkTitle: "अमान्य अथवा संशोधित लिंक",
     tamperedLinkMsg: "यह परामर्श लिंक संशोधित या अमान्य पाया गया है। सुरक्षा जांच विफल रही। कृपया पंडित जी से संपर्क करें।",
@@ -405,16 +405,16 @@ export const CONSULTATION_MODAL_I18N: Record<
     oneRequiredError: "మొబైల్ నంబర్ తప్పనిసరి.",
     timerModalTitle: "20 నిమిషాల వేద జ్యోతిష్య సంప్రదింపులు",
     timerModalWarning: "వచ్చే 20 నిమిషాలు మీరు పూర్తిగా అందుబాటులో ఉంటే మాత్రమే 'సంప్రదింపులు ప్రారంభించండి' బటన్‌పై క్లిక్ చేయండి.",
-    timerModalStrictCondition: "ఒక్కసారి ప్రారంభించిన తర్వాత, సమయం నిరంతరం నడుస్తూనే ఉంటుంది మరియు 20 నిమిషాల తర్వాత ఈ లింక్ పూర్తిగా నిష్క్రియం చేయబడుతుంది.",
+    timerModalStrictCondition: "ఒక్కసారి ప్రారంభించిన తర్వాత సమయం నిరంతరం నడుస్తుంది. 20 నిమిషాల తర్వాత కొత్త ప్రశ్నలు అడగడం నిలిచిపోతుంది; కానీ తదుపరి 6 గంటల వరకు సమాధానాలు చదవడానికి మరియు PDF డౌన్‌లోడ్ చేసుకోవడానికి ఈ లింక్ అందుబాటులో ఉంటుంది.",
     startTimerBtn: "సంప్రదింపులు ప్రారంభించండి (20 నిమిషాలు)",
     bonusBannerTitle: "చివరి క్షణాల బోనస్ సమయం!",
     bonusBannerSubtitle: "మీ సంప్రదింపులను ముగించడానికి అదనపు +1 నిమిషం జోడించాలనుకుంటున్నారా?",
     addBonusBtn: "బోనస్ +1 నిమిషం జోడించండి",
     sessionEndedTitle: "సంప్రదింపుల సమయం ముగిసింది",
-    sessionEndedMsg: "మీ 20 నిమిషాల జ్యోతిష్య సంప్రదింపుల లింక్ గడువు ముగిసింది. దయచేసి ప్రధాన జ్యోతిష్యులను సంప్రదించండి.",
+    sessionEndedMsg: "మీ 20 నిమిషాల ప్రశ్నోత్తర సమయం ముగిసింది (కొత్త ప్రశ్నలు అడగడం సాధ్యం కాదు). కానీ తదుపరి 6 గంటల వరకు మీరు సమాధానాలను చూడటానికి మరియు బగ్గోణ పంచాంగం PDF డౌన్‌లోడ్ చేసుకోవడానికి ఈ లింక్ అందుబాటులో ఉంటుంది.",
     callPriestBtn: "శ్రీరామ్ పండిట్‌గారికి కాల్ చేయండి (9972339362)",
     tamperedLinkTitle: "చెల్లని లేదా మార్చబడిన లింక్",
-    tamperedLinkMsg: "ఈ సంప్రదింపుల లింక్ మార్చబడింది లేదా చెల్లదు. భద్రతా తనిఖీ విಫలమైంది. దయచేసి పండితులను సంప్రదించండి.",
+    tamperedLinkMsg: "ఈ సంప్రదింపుల లింక్ మార్చబడింది లేదా చెల్లదు. భద్రతా తనిఖీ విఫలమైంది. దయచేసి పండితులను సంప్రదించండి.",
     ratingModalTitle: "మీ సంప్రదింపు అనుభవానికి రేటింగ్ ఇవ్వండి",
     ratingModalSubtitle: "మీ అభిప్రాయం మా జ్యోతిష్య సేవలను మరింత మెరుగుపరచడానికి సహాయపడుతుంది.",
     ratingStarsLabel: "స్టార్ రేటింగ్ ఎంచుకోండి (1 నుండి 5)",
@@ -440,13 +440,13 @@ export const CONSULTATION_MODAL_I18N: Record<
     oneRequiredError: "மொபைல் எண் கட்டாயமானது.",
     timerModalTitle: "20 நிமிட வேத ஜோதிட ஆலோசனை",
     timerModalWarning: "அடுத்த 20 நிமிடங்களுக்கு நீங்கள் முற்றிலும் ஓய்வாக இருந்தால் மட்டுமே 'ஆலோசனையைத் தொடங்கு' பொத்தானைக் கிளிக் செய்யவும்.",
-    timerModalStrictCondition: "தொடங்கியவுடன், நேரம் பின்னணியில் தொடர்ந்து இயங்கும், சரியாக 20 நிமிடங்களுக்குப் பிறகு இந்த இணைப்பு நிரந்தரமாக முடக்கப்படும்.",
+    timerModalStrictCondition: "தொடங்கியவுடன் நேரம் தொடர்ந்து இயங்கும். 20 நிமிடங்களுக்குப் பிறகு புதிய கேள்விகள் கேட்பது நிறுத்தப்படும்; ஆனால் அடுத்த 6 மணி நேரம் வரை பதில்களைப் படிக்கவும் PDF பதிவிறக்கவும் இந்த இணைப்பு பயன்படும்.",
     startTimerBtn: "ஆலோசனையைத் தொடங்கு (20 நிமிடம்)",
     bonusBannerTitle: "இறுதி நிமிட போனஸ் நேரம்!",
     bonusBannerSubtitle: "உங்கள் ஆலோசனையை முடிக்க கூடுதல் +1 நிமிடம் சேர்க்க விரும்புகிறீர்களா?",
     addBonusBtn: "போனஸ் +1 நிமிடம் சேர்",
     sessionEndedTitle: "ஆலோசனை அமர்வு முடிந்தது",
-    sessionEndedMsg: "உங்கள் 20 நிமிட ஜோதிட ஆலோசனை இணைப்பு காலாவதியாகிவிட்டது. தயவுசெய்து பண்டிதரைத் தொடர்பு கொள்ளவும்.",
+    sessionEndedMsg: "உங்கள் 20 நிமிட கேள்வி-பதில் நேரம் முடிந்துவிட்டது (புதிய கேள்விகள் அனுமதிக்கப்படாது). ஆனால் அடுத்த 6 மணி நேரம் வரை உங்கள் பதில்களைப் பார்க்கவும் பக்கவணா பஞ்சாங்கம் PDF பதிவிறக்கவும் இந்த இணைப்பு பயன்படும்.",
     callPriestBtn: "ஸ்ரீராம் பண்டிதரை அழைக்கவும் (9972339362)",
     tamperedLinkTitle: "செல்லாத அல்லது மாற்றப்பட்ட இணைப்பு",
     tamperedLinkMsg: "இந்த ஆலோசனை இணைப்பு மாற்றப்பட்டுள்ளது அல்லது செல்லாது. பாதுகாப்பு சரிபார்ப்பு தோல்வியடைந்தது. பண்டிதரை அழைக்கவும்.",
@@ -475,13 +475,13 @@ export const CONSULTATION_MODAL_I18N: Record<
     oneRequiredError: "മൊബൈൽ നമ്പർ നിർബന്ധമാണ്.",
     timerModalTitle: "20 മിനിറ്റ് കൃത്യമായ ജ്യോതിഷ കൺസൾട്ടേഷൻ",
     timerModalWarning: "അടുത്ത 20 മിനിറ്റ് നിങ്ങൾ പൂർണ്ണമായും ഒഴിവുള്ളവരാണെങ്കിൽ മാത്രം 'കൺസൾട്ടേഷൻ ആരംഭിക്കുക' ക്ലിക്ക് ചെയ്യുക.",
-    timerModalStrictCondition: "ആരംഭിച്ചുകഴിഞ്ഞാൽ സമയം പശ്ചാത്തലത്തിൽ പ്രവർത്തിച്ചുകൊണ്ടിരിക്കും, കൃത്യം 20 മിനിറ്റിനുശേഷം ഈ ലിങ്ക് പൂർണ്ണമായും അസാധുവാകും.",
+    timerModalStrictCondition: "ആരംഭിച്ചുകഴിഞ്ഞാൽ സമയം തുടർച്ചയായി പ്രവർത്തിക്കും. 20 മിനിറ്റിനുശേഷം പുതിയ ചോദ്യങ്ങൾ ചോദിക്കുന്നത് നിർത്തും; എങ്കിലും അടുത്ത 6 മണിക്കൂർ വരെ ഉത്തരങ്ങൾ വായിക്കാനും PDF ഡൗൺലോഡ് ചെയ്യാനും ഈ ലിങ്ക് ലഭ്യമായിരിക്കും.",
     startTimerBtn: "കൺസൾട്ടേഷൻ ആരംഭിക്കുക (20 മിനിറ്റ്)",
     bonusBannerTitle: "അവസാന നിമിഷ ബോണസ് സമയം!",
     bonusBannerSubtitle: "കൺസൾട്ടേഷൻ പൂർത്തിയാക്കാൻ അധികമായി +1 മിനിറ്റ് ചേർക്കണോ?",
     addBonusBtn: "ബോണസ് +1 മിനിറ്റ് ചേർക്കുക",
     sessionEndedTitle: "കൺസൾട്ടേഷൻ സമയം കഴിഞ്ഞു",
-    sessionEndedMsg: "നിങ്ങളുടെ 20 മിനിറ്റ് ജ്യോതിഷ കൺസൾട്ടേഷൻ ലിങ്ക് കാലഹരണപ്പെട്ടു. തുടർവിവരങ്ങൾക്ക് പണ്ഡിറ്റുമായി ബന്ധപ്പെടുക.",
+    sessionEndedMsg: "നിങ്ങളുടെ 20 മിനിറ്റ് ചോദ്യോത്തര സമയം അവസാനിച്ചു (പുതിയ ചോദ്യങ്ങൾ ചോദിക്കാൻ കഴിയില്ല). എന്നാൽ അടുത്ത 6 മണിക്കൂർ വരെ ഉത്തരങ്ങൾ കാണാനും ബഗ്ഗോണ പഞ്ചാംഗം PDF ഡൗൺലോഡ് ചെയ്യാനും ഈ ലിങ്ക് ലഭ്യമായിരിക്കും.",
     callPriestBtn: "ശ്രീറാം പണ്ഡിറ്റിനെ വിളിക്കുക (9972339362)",
     tamperedLinkTitle: "അസാധുവായ അല്ലെങ്കിൽ മാറ്റംവരുത്തിയ ലിങ്ക്",
     tamperedLinkMsg: "ഈ ലിങ്കിൽ മാറ്റം വരുത്തിയതായി കണ്ടെത്തി. സുരക്ഷാ പരിശോധന പരാജയപ്പെട്ടു. ദയവായി പണ്ഡിറ്റുമായി ബന്ധപ്പെടുക.",
@@ -510,13 +510,13 @@ export const CONSULTATION_MODAL_I18N: Record<
     oneRequiredError: "मोबाईल नंबर अनिवार्य आहे.",
     timerModalTitle: "२० मिनिटांची अचूक वैदिक सल्लामसलत",
     timerModalWarning: "पुढील २० मिनिटे आपण पूर्णपणे मोकळे असाल तरच 'सल्लामसलत सुरू करा' बटणावर क्लिक करा.",
-    timerModalStrictCondition: "एकदा सुरू झाल्यानंतर टाइमर पार्श्वभूमीत सतत चालू राहील आणि २० मिनिटांनंतर ही लिंक कायमची निष्क्रिय होईल. पुन्हा प्रवेश मिळणार नाही.",
+    timerModalStrictCondition: "एकदा सुरू झाल्यानंतर टाइमर सतत चालू राहील. २० मिनिटांनंतर नवीन प्रश्न विचारणे बंद होईल; परंतु पुढील ६ तासांपर्यंत सर्व उत्तरे वाचण्यासाठी आणि PDF डाउनलोड करण्यासाठी ही लिंक उपलब्ध राहील.",
     startTimerBtn: "सल्लामसलत सुरू करा (२० मिनिटे)",
     bonusBannerTitle: "शेवटच्या क्षणाची बोनस वेळ!",
     bonusBannerSubtitle: "सल्लामसलत पूर्ण करण्यासाठी अतिरिक्त +१ मिनिट जोडायचे आहे का?",
     addBonusBtn: "बोनस +१ मिनिट जोडा",
     sessionEndedTitle: "सल्लामसलत सत्र संपले",
-    sessionEndedMsg: "आपली २० मिनिटांची सल्लामसलत लिंक कालबाह्य झाली आहे. पुढील माहितीसाठी कृपया मुख्य ज्योतिषींशी संपर्क साधा.",
+    sessionEndedMsg: "आपला २० मिनिटांचा प्रश्नोत्तर कालावधी संपला आहे (नवीन प्रश्न विचारता येणार नाहीत). मात्र पुढील ६ तासांपर्यंत उत्तरे पाहण्यासाठी आणि बग्गोण पंचांग PDF डाउनलोड करण्यासाठी ही लिंक उपलब्ध राहील.",
     callPriestBtn: "श्रीराम पंडित यांना कॉल करा (9972339362)",
     tamperedLinkTitle: "अवैध किंवा बदललेली लिंक",
     tamperedLinkMsg: "ही सल्लामसलत लिंक बदललेली किंवा अवैध आढळली आहे. सुरक्षा तपासणी अयशस्वी झाली. कृपया पंडितांशी संपर्क साधा.",
@@ -635,6 +635,10 @@ export interface ConsultationChatUiI18n {
 
   // Print & save
   savePrintBtn: string;
+  downloadPdfBtn: string;
+  downloadingPdfBtn: string;
+  downloadPdfShortBtn: string;
+  pdfReadyToast: string;
 
   // Contact form badges
   mandatoryPhoneBadge: string;
@@ -651,6 +655,24 @@ export interface ConsultationChatUiI18n {
   bookForFamilyModalDesc: string;
   bookForFamilyWhatsAppBtn: string;
   bookForFamilyCallBtn: string;
+  familyPriestHeader: string;
+  familyReqFieldsHeader: string;
+  familyFieldDob: string;
+  familyFieldTob: string;
+  familyFieldPob: string;
+
+  // Loading & Session status localization
+  brandOrgName: string;
+  loadingStatusMsg: string;
+  noTokenTitle: string;
+  noTokenMsg: string;
+  sessionStatusHeading: string;
+  sessionNotFoundMsg: string;
+  sessionDeletedMsg: string;
+  readPdfWindowBadge: string;
+  readPdfWindowBanner: string;
+  retryLoadingBtn: string;
+  chiefPriestRoleLabel: string;
 }
 
 export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, ConsultationChatUiI18n> = {
@@ -714,7 +736,11 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     cancelBtn: "✕ ರದ್ದುಗೊಳಿಸಿ",
     refiningBtn: "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
     sendRecordedQuestionBtn: "➤ ಪ್ರಶ್ನೆ ಕಳುಹಿಸಿ",
-    savePrintBtn: "📄 ಸಮಾಲೋಚನೆ ಉಳಿಸಿ / ಪ್ರಿಂಟ್",
+    savePrintBtn: "📥 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ PDF ಡೌನ್‌ಲೋಡ್",
+    downloadPdfBtn: "📥 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ PDF ಡೌನ್‌ಲೋಡ್",
+    downloadingPdfBtn: "⏳ PDF ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ...",
+    downloadPdfShortBtn: "PDF",
+    pdfReadyToast: "ನಿಮ್ಮ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸಮಾಲೋಚನೆ PDF ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ!",
     mandatoryPhoneBadge: "* ಕಡ್ಡಾಯ (೧೦ ಅಂಕಿ)",
     optionalBadge: "ಐಚ್ಛಿಕ",
     kalaChakraModalTitle: "॥ ಕಾಲಚಕ್ರ ೪ ಪಾದಗಳ ಕಾಲಾವಧಿ ವಿವರ ॥",
@@ -724,7 +750,23 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     bookForFamilyModalTitle: "॥ ಕುಟುಂಬ ಸದಸ್ಯರಿಗೆ ಪ್ರತ್ಯೇಕ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ॥",
     bookForFamilyModalDesc: "ಶಾಸ್ತ್ರೋಕ್ತ ನಿಯಮ: ಪ್ರತಿಯೊಬ್ಬ ವ್ಯಕ್ತಿಯ ಜಾತಕ, ಲಗ್ನ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿಗಳು ಸಂಪೂರ್ಣ ವಿಭಿನ್ನವಾಗಿರುತ್ತವೆ. ಆದ್ದರಿಂದ ೧೦೦% ನಿಖರತೆಗಾಗಿ ಪ್ರತಿ ವ್ಯಕ್ತಿಗೂ ಪ್ರತ್ಯೇಕ ಲಿಂಕ್ ಅಗತ್ಯವಿರುತ್ತದೆ. ನಿಮ್ಮ ಕುಟುಂಬ ಸದಸ್ಯರ ವಿವರಗಳನ್ನು ಶ್ರೀರಾಮ್ ಪಂಡಿತರಿಗೆ ಕಳುಹಿಸಿ, ಹೊಸ ಲಿಂಕ್ ಪಡೆದುಕೊಳ್ಳಿ.",
     bookForFamilyWhatsAppBtn: "📲 ಶ್ರೀರಾಮ್ ಪಂಡಿತರಿಗೆ ವಾಟ್ಸಾಪ್ ಸಂದೇಶ ಕಳುಹಿಸಿ",
-    bookForFamilyCallBtn: "📞 ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362"
+    bookForFamilyCallBtn: "📞 ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362",
+    familyPriestHeader: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಪ್ರಧಾನ ಅರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362)",
+    familyReqFieldsHeader: "ಹೊಸ ಪ್ರತ್ಯೇಕ ಲಿಂಕ್‌ಗಾಗಿ ಅಗತ್ಯವಿರುವ ವಿವರಗಳು:",
+    familyFieldDob: "ಹುಟ್ಟಿದ ದಿನಾಂಕ (DOB):",
+    familyFieldTob: "ಹುಟ್ಟಿದ ಸಮಯ (TOB):",
+    familyFieldPob: "ಹುಟ್ಟಿದ ಸ್ಥಳ (POB):",
+    brandOrgName: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ",
+    loadingStatusMsg: "ದೈವಜ್ಞ ಸಮಾಲೋಚನೆ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    noTokenTitle: "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಅಗತ್ಯವಿದೆ ॥",
+    noTokenMsg: "೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಗೆ ಪ್ರವೇಶಿಸಲು ಮುಖ್ಯ ಅರ್ಚಕರು ನೀಡಿದ ಅಧಿಕೃತ ಲಿಂಕ್ ಬಳಸಿ.",
+    sessionStatusHeading: "ಸಮಾಲೋಚನೆ ಸ್ಥಿತಿ (Consultation Status)",
+    sessionNotFoundMsg: "ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಅಧಿಕೃತ ಲಿಂಕ್ ಪರಿಶೀಲಿಸಿ ಅಥವಾ ಮರುಪ್ರಯತ್ನಿಸಿ.",
+    sessionDeletedMsg: "ಈ ಸಮಾಲೋಚನೆ ಮತ್ತು ೬ ಗಂಟೆಗಳ PDF ವೀಕ್ಷಣಾ ಅವಧಿ ಮುಕ್ತಾಯಗೊಂಡು ಡೇಟಾಬೇಸ್‌ನಿಂದ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ತೆರವುಗೊಂಡಿದೆ.",
+    readPdfWindowBadge: "PDF ವೀಕ್ಷಣೆ",
+    readPdfWindowBanner: "ಪ್ರಶ್ನೆಗಳು ಸ್ಥಗಿತ • ೬ ಗಂಟೆಗಳ PDF ಡೌನ್‌ಲೋಡ್ ಬಾಕಿ:",
+    retryLoadingBtn: "🔄 ಮರುಪ್ರಯತ್ನಿಸಿ",
+    chiefPriestRoleLabel: "ಮುಖ್ಯ ದೈವಜ್ಞರು:"
   },
   en: {
     headerSubtitle: "Vedic Astrology Live Interactive Consultation",
@@ -786,7 +828,11 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     cancelBtn: "✕ Cancel",
     refiningBtn: "Refining...",
     sendRecordedQuestionBtn: "➤ Send Question",
-    savePrintBtn: "📄 Save / Print Advice",
+    savePrintBtn: "📥 Download Baggona Panchanga PDF",
+    downloadPdfBtn: "📥 Download Baggona Panchanga PDF",
+    downloadingPdfBtn: "⏳ Preparing PDF...",
+    downloadPdfShortBtn: "PDF",
+    pdfReadyToast: "Your Baggona Panchanga Consultation PDF is downloaded!",
     mandatoryPhoneBadge: "* Mandatory (10 Digits)",
     optionalBadge: "Optional",
     kalaChakraModalTitle: "॥ Kala Chakra 4-Pada Breakdown ॥",
@@ -796,7 +842,23 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     bookForFamilyModalTitle: "॥ Dedicated Consultation for Family Member ॥",
     bookForFamilyModalDesc: "Vedic Rule: Every individual has a unique Lagna, planetary positions, and Dasha periods. For 100% astrological accuracy, each family member requires a dedicated consultation link. Send their details to Chief Priest Shreeram Pandit to receive a new link.",
     bookForFamilyWhatsAppBtn: "📲 Request Dedicated Link via WhatsApp",
-    bookForFamilyCallBtn: "📞 Call Priest Shreeram Pandit: 9972339362"
+    bookForFamilyCallBtn: "📞 Call Priest Shreeram Pandit: 9972339362",
+    familyPriestHeader: "Chief Priest Sri Shreeram Pandit (9972339362)",
+    familyReqFieldsHeader: "Information Required for New Dedicated Link:",
+    familyFieldDob: "Date of Birth (DOB):",
+    familyFieldTob: "Time of Birth (TOB):",
+    familyFieldPob: "Place of Birth (POB):",
+    brandOrgName: "Sri Kshetra Gokarna Baggona Panchanga Astrology",
+    loadingStatusMsg: "Loading your private Vedic consultation...",
+    noTokenTitle: "॥ Official Consultation Link Required ॥",
+    noTokenMsg: "Please open the dedicated 20-minute private consultation link shared by the Chief Priest.",
+    sessionStatusHeading: "Consultation Status",
+    sessionNotFoundMsg: "Consultation session was not found. Please verify your link or retry.",
+    sessionDeletedMsg: "Your 20-minute consultation and 6-hour PDF download window have ended. This link has been permanently removed from our database.",
+    readPdfWindowBadge: "PDF Window",
+    readPdfWindowBanner: "Q&A Closed • Read & PDF Access Remaining:",
+    retryLoadingBtn: "🔄 Retry Loading",
+    chiefPriestRoleLabel: "Chief Astrologer:"
   },
   hi: {
     headerSubtitle: "वैदिक ज्योतिष दैवज्ञ प्रत्यक्ष परामर्श",
@@ -858,7 +920,11 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     cancelBtn: "✕ रद्द करें",
     refiningBtn: "समीक्षा हो रही है...",
     sendRecordedQuestionBtn: "➤ प्रश्न भेजें",
-    savePrintBtn: "📄 परामर्श सहेजें / प्रिंट करें",
+    savePrintBtn: "📥 बग्गोण पंचांग PDF डाउनलोड करें",
+    downloadPdfBtn: "📥 बग्गोण पंचांग PDF डाउनलोड करें",
+    downloadingPdfBtn: "⏳ PDF तैयार हो रहा है...",
+    downloadPdfShortBtn: "PDF",
+    pdfReadyToast: "आपका बग्गोण पंचांग परामर्श PDF डाउनलोड हो गया है!",
     mandatoryPhoneBadge: "* अनिवार्य (१० अंक)",
     optionalBadge: "ऐच्छिक",
     kalaChakraModalTitle: "॥ कालचक्र ४ पाद समयावधि विवरण ॥",
@@ -868,7 +934,23 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     bookForFamilyModalTitle: "॥ परिवार के सदस्य के लिए समर्पित परामर्श लिंक ॥",
     bookForFamilyModalDesc: "शास्त्रोक्त नियम: प्रत्येक व्यक्ति का लग्न, ग्रह स्थिति और दशा-भुक्ति पूर्णतः भिन्न होती है। १००% सटीकता के लिए प्रत्येक सदस्य हेतु अलग लिंक आवश्यक है। अपने परिवार के सदस्य का विवरण मुख्य पुरोहित श्रीराम पंडित जी को भेजकर नया लिंक प्राप्त करें।",
     bookForFamilyWhatsAppBtn: "📲 श्रीराम पंडित जी को व्हाट्सएप पर विवरण भेजें",
-    bookForFamilyCallBtn: "📞 श्रीराम पंडित जी को कॉल करें: 9972339362"
+    bookForFamilyCallBtn: "📞 श्रीराम पंडित जी को कॉल करें: 9972339362",
+    familyPriestHeader: "श्री क्षेत्र गोकर्ण मुख्य पुरोहित: श्रीराम पंडित (9972339362)",
+    familyReqFieldsHeader: "नए समर्पित लिंक के लिए आवश्यक विवरण:",
+    familyFieldDob: "जन्म तिथि (DOB):",
+    familyFieldTob: "जन्म समय (TOB):",
+    familyFieldPob: "जन्म स्थान (POB):",
+    brandOrgName: "श्री क्षेत्र गोकर्ण बग्गोण पंचांग ज्योतिष",
+    loadingStatusMsg: "आपका वैदिक परामर्श कक्ष लोड हो रहा है...",
+    noTokenTitle: "॥ आधिकारिक परामर्श लिंक आवश्यक है ॥",
+    noTokenMsg: "कृपया मुख्य पुरोहित द्वारा प्रदत्त आधिकारिक २०-मिनट परामर्श लिंक का उपयोग करें।",
+    sessionStatusHeading: "परामर्श स्थिति",
+    sessionNotFoundMsg: "परामर्श सत्र डेटाबेस में नहीं मिला। कृपया अपने लिंक की पुष्टि करें या पुनः प्रयास करें।",
+    sessionDeletedMsg: "आपका २० मिनट का परामर्श एवं ६ घंटे की PDF डाउनलोड अवधि पूर्ण हो चुकी है। यह लिंक डेटाबेस से स्थायी रूप से हटा दिया गया है।",
+    readPdfWindowBadge: "PDF अवधि",
+    readPdfWindowBanner: "प्रश्न बंद • ६ घंटे PDF डाउनलोड शेष:",
+    retryLoadingBtn: "🔄 पुनः प्रयास करें",
+    chiefPriestRoleLabel: "मुख्य दैवज्ञ:"
   },
   te: {
     headerSubtitle: "వైదిక జ్యోతిష దైవజ్ఞ ప్రత్యక్ష సంభాషణ",
@@ -930,7 +1012,11 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     cancelBtn: "✕ రద్దు చేయండి",
     refiningBtn: "సమీక్షిస్తోంది...",
     sendRecordedQuestionBtn: "➤ ప్రశ్న పంపండి",
-    savePrintBtn: "📄 సలహా భద్రపరచండి / ప్రింట్",
+    savePrintBtn: "📥 బగ్గోణ పంచాంగం PDF డౌన్‌లోడ్",
+    downloadPdfBtn: "📥 బగ్గోణ పంచాంగం PDF డౌన్‌లోడ్",
+    downloadingPdfBtn: "⏳ PDF సిద్ధమవుతోంది...",
+    downloadPdfShortBtn: "PDF",
+    pdfReadyToast: "మీ బగ్గోణ పంచాంగం సంప్రదింపు PDF డౌన్‌లోడ్ చేయబడింది!",
     mandatoryPhoneBadge: "* తప్పనిసరి (10 అంకెలు)",
     optionalBadge: "ఐచ్ఛికం",
     kalaChakraModalTitle: "॥ కాలచక్ర 4 పాదాల వ్యవధి వివరాలు ॥",
@@ -940,7 +1026,23 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     bookForFamilyModalTitle: "॥ కుటుంబ సభ్యునికి ప్రత్యేక సంప్రదింపు లింక్ ॥",
     bookForFamilyModalDesc: "శాస్త్రోక్త నియమం: ప్రతి వ్యక్తి జాతకం, లగ్నం మరియు దశా భుక్తులు భిన్నంగా ఉంటాయి. 100% ఖచ్చితత్వం కోసం ప్రతి కుటుంబ సభ్యునికి ప్రత్యేక లింక్ అవసరం. మీ కుటుంబ సభ్యుల వివరాలను శ్రీరామ్ పండితులకు పంపి కొత్త లింక్ పొందండి.",
     bookForFamilyWhatsAppBtn: "📲 శ్రీరామ్ పండితులకు వాట్సాప్‌లో వివరాలు పంపండి",
-    bookForFamilyCallBtn: "📞 శ్రీరామ్ పండితుల వారిని సంప్రదించండి: 9972339362"
+    bookForFamilyCallBtn: "📞 శ్రీరామ్ పండితుల వారిని సంప్రదించండి: 9972339362",
+    familyPriestHeader: "శ్రీ క్షేత్ర గోకర్ణ ప్రధాన అర్చకులు: శ్రీరామ్ పండిత్ (9972339362)",
+    familyReqFieldsHeader: "కొత్త ప్రత్యేక లింక్ కోసం కావాల్సిన వివరాలు:",
+    familyFieldDob: "పుట్టిన తేదీ (DOB):",
+    familyFieldTob: "పుట్టిన సమయం (TOB):",
+    familyFieldPob: "పుట్టిన స్థలం (POB):",
+    brandOrgName: "శ్రీ క్షేత్ర గోకర్ణ బగ్గోణ పంచాంగ జ్యోతిష్యం",
+    loadingStatusMsg: "మీ వైదిక సంప్రదింపు గది లోడ్ అవుతోంది...",
+    noTokenTitle: "॥ అధికారిక సంప్రదింపు లింక్ అవసరం ॥",
+    noTokenMsg: "దయచేసి ప్రధాన అర్చకులు అందించిన అధికారిక 20 నిమిషాల సంప్రదింపు లింక్ ఉపయోగించండి.",
+    sessionStatusHeading: "సంప్రదింపు స్థితి",
+    sessionNotFoundMsg: "ఈ సంప్రదింపు లింక్ డేటాబేస్‌లో కనుగొనబడలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    sessionDeletedMsg: "మీ 20 నిమిషాల సంప్రదింపు మరియు 6 గంటల PDF డౌన్‌లోడ్ గడువు ముగిసింది. ఈ లింక్ డేటాబేస్ నుండి శాశ్వతంగా తొలగించబడింది.",
+    readPdfWindowBadge: "PDF సమయం",
+    readPdfWindowBanner: "ప్రశ్నలు ముగిశాయి • 6 గంటల PDF అందుబాటు:",
+    retryLoadingBtn: "🔄 మళ్లీ ప్రయత్నించండి",
+    chiefPriestRoleLabel: "ప్రధాన దైవజ్ఞులు:"
   },
   ta: {
     headerSubtitle: "வேத ஜோதிட நேரடி ஆலோசனை அரங்கம்",
@@ -1002,7 +1104,11 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     cancelBtn: "✕ ரத்து செய்",
     refiningBtn: "சரிபார்க்கப்படுகிறது...",
     sendRecordedQuestionBtn: "➤ கேள்வி அனுப்பவும்",
-    savePrintBtn: "📄 ஆலோசனையை சேமி / அச்சிடுக",
+    savePrintBtn: "📥 பக்கவணா பஞ்சாங்கம் PDF பதிவிறக்கம்",
+    downloadPdfBtn: "📥 பக்கவணா பஞ்சாங்கம் PDF பதிவிறக்கம்",
+    downloadingPdfBtn: "⏳ PDF தயாராகிறது...",
+    downloadPdfShortBtn: "PDF",
+    pdfReadyToast: "உங்கள் பக்கவணா பஞ்சாங்கம் ஆலோசனை PDF பதிவிறக்கம் செய்யப்பட்டது!",
     mandatoryPhoneBadge: "* கட்டாயம் (10 இலக்கங்கள்)",
     optionalBadge: "விருப்பமானது",
     kalaChakraModalTitle: "॥ காலசக்கர 4 பாத கால அட்டவணை ॥",
@@ -1012,7 +1118,23 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     bookForFamilyModalTitle: "॥ குடும்ப உறுப்பினருக்கான பிரத்யேக ஆலோசனை லிங்க் ॥",
     bookForFamilyModalDesc: "சாஸ்திர விதி: ஒவ்வொரு நபரின் ஜாதகம், லக்னம் மற்றும் தசா-புக்திகள் முற்றிலும் மாறுபட்டவை. 100% துல்லியத்திற்காக ஒவ்வொரு குடும்ப உறுப்பினருக்கும் தனி லிங்க் தேவை. விவரங்களை ஸ்ரீராம் பண்டிதருக்கு அனுப்பி புதிய லிங்க் பெறவும்.",
     bookForFamilyWhatsAppBtn: "📲 ஸ்ரீராம் பண்டிதருக்கு வாட்ஸ்அப்பில் விவரம் அனுப்புக",
-    bookForFamilyCallBtn: "📞 ஸ்ரீராம் பண்டிதரை அழைக்கவும்: 9972339362"
+    bookForFamilyCallBtn: "📞 ஸ்ரீராம் பண்டிதரை அழைக்கவும்: 9972339362",
+    familyPriestHeader: "ஸ்ரீ க்ஷேத்ர கோகர்ணம் தலைமை அர்ச்சகர்: ஸ்ரீராம் பண்டிட் (9972339362)",
+    familyReqFieldsHeader: "புதிய பிரத்யேக லிங்கிற்கு தேவையான விவரங்கள்:",
+    familyFieldDob: "பிறந்த தேதி (DOB):",
+    familyFieldTob: "பிறந்த நேரம் (TOB):",
+    familyFieldPob: "பிறந்த இடம் (POB):",
+    brandOrgName: "ஸ்ரீ க்ஷேத்ர கோகர்ணம் பக்கவணா பஞ்சாங்க ஜோதிடம்",
+    loadingStatusMsg: "உங்கள் வேத ஆலோசனை அறை திறக்கப்படுகிறது...",
+    noTokenTitle: "॥ அதிகாரப்பூர்வ ஆலோசனை லிங்க் தேவை ॥",
+    noTokenMsg: "தயவுசெய்து தலைமை அர்ச்சகர் வழங்கிய 20 நிமிட பிரத்யேக லிங்கைப் பயன்படுத்தவும்.",
+    sessionStatusHeading: "ஆலோசனை நிலை",
+    sessionNotFoundMsg: "ஆலோசனை அமர்வு கிடைக்கவில்லை. லிங்கைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
+    sessionDeletedMsg: "உங்கள் 20 நிமிட ஆலோசனை மற்றும் 6 மணி நேர PDF பதிவிறக்க அவகாசம் முடிந்துவிட்டது. இந்த இணைப்பு தரவுத்தளத்திலிருந்து நிரந்தரமாக நீக்கப்பட்டது.",
+    readPdfWindowBadge: "PDF நேரம்",
+    readPdfWindowBanner: "கேள்விகள் முடிவு • 6 மணி PDF அவகாசம்:",
+    retryLoadingBtn: "🔄 மீண்டும் முயற்சிக்கவும்",
+    chiefPriestRoleLabel: "தலைமை ஜோதிடர்:"
   },
   ml: {
     headerSubtitle: "വൈദിക ജ്യോതിഷ ലൈവ് മുഖാമുഖം കൺസൾട്ടേഷൻ",
@@ -1074,7 +1196,11 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     cancelBtn: "✕ റദ്ദാക്കുക",
     refiningBtn: "പരിശോധിക്കുന്നു...",
     sendRecordedQuestionBtn: "➤ ചോദ്യം അയക്കുക",
-    savePrintBtn: "📄 ഉപദേശം സംരക്ഷിക്കുക / പ്രിന്റ്",
+    savePrintBtn: "📥 ബഗ്ഗോണ പഞ്ചാംഗം PDF ഡൗൺലോഡ്",
+    downloadPdfBtn: "📥 ബഗ്ഗോണ പഞ്ചാംഗം PDF ഡൗൺലോഡ്",
+    downloadingPdfBtn: "⏳ PDF തയ്യാറാകുന്നു...",
+    downloadPdfShortBtn: "PDF",
+    pdfReadyToast: "നിങ്ങളുടെ ബഗ്ഗോണ പഞ്ചാംഗം കൺസൾട്ടേഷൻ PDF ഡൗൺലോഡ് ചെയ്തു!",
     mandatoryPhoneBadge: "* നിർബന്ധം (10 അക്കങ്ങൾ)",
     optionalBadge: "ഐച്ഛികം",
     kalaChakraModalTitle: "॥ കാലചക്ര 4 പാദ സമയക്രമം ॥",
@@ -1084,7 +1210,23 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     bookForFamilyModalTitle: "॥ കുടുംബാംഗങ്ങൾക്ക് പ്രത്യേക കൺസൾട്ടേഷൻ ലിങ്ക് ॥",
     bookForFamilyModalDesc: "ശാസ്ത്രീയ നിയമം: ഓരോ വ്യക്തിയുടെയും ലഗ്നവും ഗ്രഹനിലയും ദശാ-ഭുക്തികളും വ്യത്യസ്തമാണ്. 100% കൃത്യതയ്ക്കായി ഓരോ അംഗത്തിനും പ്രത്യേക ലിങ്ക് ആവശ്യമാണ്. വിശദാംശങ്ങൾ ശ്രീറാം പണ്ഡിറ്റിന് അയച്ച് പുതിയ ലിങ്ക് നേടുക.",
     bookForFamilyWhatsAppBtn: "📲 ശ്രീറാം പണ്ഡിറ്റിന് വാട്സാപ്പിൽ വിവരങ്ങൾ അയക്കുക",
-    bookForFamilyCallBtn: "📞 ശ്രീറാം പണ്ഡിറ്റിനെ വിളിക്കുക: 9972339362"
+    bookForFamilyCallBtn: "📞 ശ്രീറാം പണ്ഡിറ്റിനെ വിളിക്കുക: 9972339362",
+    familyPriestHeader: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം മുഖ്യ പുരോഹിതൻ: ശ്രീറാം പണ്ഡിറ്റ് (9972339362)",
+    familyReqFieldsHeader: "പുതിയ പ്രത്യേക ലിങ്കിന് ആവശ്യമായ വിവരങ്ങൾ:",
+    familyFieldDob: "ജനന തീയതി (DOB):",
+    familyFieldTob: "ജനന സമയം (TOB):",
+    familyFieldPob: "ജനന സ്ഥലം (POB):",
+    brandOrgName: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം ബഗ്ഗോണ പഞ്ചാംഗം ജ്യോതിഷം",
+    loadingStatusMsg: "നിങ്ങളുടെ വൈദിക കൺസൾട്ടേഷൻ മുറി ലോഡ് ചെയ്യുന്നു...",
+    noTokenTitle: "॥ ഔദ്യോഗിക കൺസൾട്ടേഷൻ ലിങ്ക് ആവശ്യമാണ് ॥",
+    noTokenMsg: "മുഖ്യ പുരോഹിതൻ നൽകിയ 20 മിനിറ്റ് സ്വകാര്യ കൺസൾട്ടേഷൻ ലിങ്ക് ഉപയോഗിക്കുക.",
+    sessionStatusHeading: "കൺസൾട്ടേഷൻ നില",
+    sessionNotFoundMsg: "കൺസൾട്ടേഷൻ വിവരങ്ങൾ കണ്ടെത്താനായില്ല. ലിങ്ക് പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.",
+    sessionDeletedMsg: "നിങ്ങളുടെ 20 മിനിറ്റ് കൺസൾട്ടേഷനും 6 മണിക്കൂർ PDF ഡൗൺലോഡ് സമയവും അവസാനിച്ചു. ഈ ലിങ്ക് ഡാറ്റാബേസിൽ നിന്ന് സ്ഥിരമായി നീക്കം ചെയ്തു.",
+    readPdfWindowBadge: "PDF സമയം",
+    readPdfWindowBanner: "ചോദ്യങ്ങൾ അവസാനിച്ചു • 6 മണിക്കൂർ PDF:",
+    retryLoadingBtn: "🔄 വീണ്ടും ശ്രമിക്കുക",
+    chiefPriestRoleLabel: "മുഖ്യ ജ്യോതിഷി:"
   },
   mr: {
     headerSubtitle: "वैदिक ज्योतिष दैवज्ञ थेट संवाद व मार्गदर्शन",
@@ -1146,7 +1288,11 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     cancelBtn: "✕ रद्द करा",
     refiningBtn: "तपासणी सुरू आहे...",
     sendRecordedQuestionBtn: "➤ प्रश्न पाठवा",
-    savePrintBtn: "📄 सल्ला जतन करा / प्रिंट करा",
+    savePrintBtn: "📥 बग्गोण पंचांग PDF डाउनलोड करा",
+    downloadPdfBtn: "📥 बग्गोण पंचांग PDF डाउनलोड करा",
+    downloadingPdfBtn: "⏳ PDF तयार होत आहे...",
+    downloadPdfShortBtn: "PDF",
+    pdfReadyToast: "तुमचे बग्गोण पंचांग सल्लामसलत PDF डाउनलोड झाले आहे!",
     mandatoryPhoneBadge: "* अनिवार्य (१० अंक)",
     optionalBadge: "ऐच्छिक",
     kalaChakraModalTitle: "॥ कालचक्र ४ पाद कालावधी तपशील ॥",
@@ -1156,7 +1302,23 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     bookForFamilyModalTitle: "॥ कुटुंबातील सदस्यांसाठी स्वतंत्र सल्लामसलत लिंक ॥",
     bookForFamilyModalDesc: "शास्त्रोक्त नियम: प्रत्येक व्यक्तीची पत्रिका, लग्न आणि दशा-भुक्ती भिन्न असते. १००% अचूकतेसाठी प्रत्येक सदस्यासाठी स्वतंत्र लिंक आवश्यक आहे. आपल्या कुटुंबातील सदस्यांची माहिती मुख्य पुरोहित श्रीराम पंडित यांना पाठवून नवीन लिंक मिळवा.",
     bookForFamilyWhatsAppBtn: "📲 श्रीराम पंडित यांना व्हॉट्सअॅपवर माहिती पाठवा",
-    bookForFamilyCallBtn: "📞 श्रीराम पंडित यांना कॉल करा: 9972339362"
+    bookForFamilyCallBtn: "📞 श्रीराम पंडित यांना कॉल करा: 9972339362",
+    familyPriestHeader: "श्री क्षेत्र गोकर्ण मुख्य पुरोहित: श्रीराम पंडित (9972339362)",
+    familyReqFieldsHeader: "नवीन स्वतंत्र लिंकसाठी आवश्यक माहिती:",
+    familyFieldDob: "जन्म तारीख (DOB):",
+    familyFieldTob: "जन्म वेळ (TOB):",
+    familyFieldPob: "जन्म ठिकाण (POB):",
+    brandOrgName: "श्री क्षेत्र गोकर्ण बग्गोण पंचांग ज्योतिष",
+    loadingStatusMsg: "आपले वैदिक सल्लामसलत सत्र लोड होत आहे...",
+    noTokenTitle: "॥ अधिकृत सल्लामसलत लिंक आवश्यक आहे ॥",
+    noTokenMsg: "कृपया मुख्य पुरोहितांनी दिलेली अधिकृत २० मिनिटांची खाजगी सल्लामसलत लिंक वापरा.",
+    sessionStatusHeading: "सल्लामसलत स्थिती",
+    sessionNotFoundMsg: "सल्लामसलत सत्र सापडले नाही. कृपया लिंक तपासा किंवा पुन्हा प्रयत्न करा.",
+    sessionDeletedMsg: "आपली २० मिनिटांची सल्लामसलत आणि ६ तासांचा PDF डाउनलोड कालावधी पूर्ण झाला आहे. ही लिंक डेटाबेसमधून कायमची काढली गेली आहे.",
+    readPdfWindowBadge: "PDF कालावधी",
+    readPdfWindowBanner: "प्रश्न बंद • ६ तास PDF डाउनलोड शिल्लक:",
+    retryLoadingBtn: "🔄 पुन्हा प्रयत्न करा",
+    chiefPriestRoleLabel: "मुख्य दैवज्ञ:"
   }
 };
 

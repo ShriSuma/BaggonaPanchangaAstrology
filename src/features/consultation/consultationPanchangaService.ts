@@ -605,43 +605,44 @@ export async function computeDevoteePanchangaProfile(
   // Approximate UTC instant based on timezone offset
   const localMinutes = hr * 60 + mn;
   const utcMinutes = localMinutes - timezoneOffsetMinutes;
-  const birthUtc = new Date(Date.UTC(y, m - 1, d, Math.floor(utcMinutes / 60), (utcMinutes % 60 + 60) % 60));
+  const birthUtc = new Date(Date.UTC(y, m - 1, d, 0, 0, 0) + utcMinutes * 60 * 1000);
 
-  // Local civil calendar day
-  const civilDate = new Date(y, m - 1, d, 12, 0, 0);
+  // Birthplace calendar noon in UTC (completely independent of user's browser timezone!)
+  const birthPlaceNoonMs = Date.UTC(y, m - 1, d, 12, 0, 0) - timezoneOffsetMinutes * 60 * 1000;
+  const civilDate = new Date(birthPlaceNoonMs);
 
   // 3. SunCalc Sun Times to determine true Vedic Vaara (Ahargana: sunrise to sunrise) and Janma Hora
-  let birthSunrise = civilDate;
-  let birthSunset = new Date(civilDate.getTime() + 12 * 3600 * 1000);
-  let nextSunrise = new Date(civilDate.getTime() + 24 * 3600 * 1000);
+  let birthSunrise = new Date(civilDate.getTime() - 6 * 3600 * 1000);
+  let birthSunset = new Date(civilDate.getTime() + 6 * 3600 * 1000);
+  let nextSunrise = new Date(birthSunrise.getTime() + 24 * 3600 * 1000);
 
   try {
     const sunTimesToday = SunCalc.getTimes(civilDate, lat, lng);
-    if (sunTimesToday && sunTimesToday.sunrise) {
+    if (sunTimesToday && sunTimesToday.sunrise && !isNaN(sunTimesToday.sunrise.getTime())) {
       birthSunrise = sunTimesToday.sunrise;
     }
-    if (sunTimesToday && sunTimesToday.sunset) {
+    if (sunTimesToday && sunTimesToday.sunset && !isNaN(sunTimesToday.sunset.getTime())) {
       birthSunset = sunTimesToday.sunset;
     }
   } catch {
     // Keep fallback
   }
 
-  // Vedic Vaara: If birth occurred before local sunrise, it belongs to the previous civil day's weekday
-  const civilDayIdx = civilDate.getDay(); // 0 = Sunday, 1 = Monday ...
+  // Vedic Vaara: Gregorian weekday of birthplace calendar date; if birth occurred before local sunrise, belongs to previous Vedic weekday
+  const civilDayIdx = new Date(Date.UTC(y, m - 1, d, 12, 0, 0)).getUTCDay(); // 0 = Sunday, 1 = Monday ...
   let vedicVaaraIdx = civilDayIdx;
   let vedicSunrise = birthSunrise;
   let vedicSunset = birthSunset;
 
   if (birthUtc.getTime() < birthSunrise.getTime()) {
     vedicVaaraIdx = (civilDayIdx + 6) % 7;
-    const yesterdayDate = new Date(y, m - 1, d - 1, 12, 0, 0);
+    const yesterdayDate = new Date(birthPlaceNoonMs - 24 * 3600 * 1000);
     try {
       const yesterdayTimes = SunCalc.getTimes(yesterdayDate, lat, lng);
-      if (yesterdayTimes && yesterdayTimes.sunrise) {
+      if (yesterdayTimes && yesterdayTimes.sunrise && !isNaN(yesterdayTimes.sunrise.getTime())) {
         vedicSunrise = yesterdayTimes.sunrise;
       }
-      if (yesterdayTimes && yesterdayTimes.sunset) {
+      if (yesterdayTimes && yesterdayTimes.sunset && !isNaN(yesterdayTimes.sunset.getTime())) {
         vedicSunset = yesterdayTimes.sunset;
       }
     } catch {
@@ -650,10 +651,10 @@ export async function computeDevoteePanchangaProfile(
     }
     nextSunrise = birthSunrise;
   } else {
-    const tomorrowDate = new Date(y, m - 1, d + 1, 12, 0, 0);
+    const tomorrowDate = new Date(birthPlaceNoonMs + 24 * 3600 * 1000);
     try {
       const tomorrowTimes = SunCalc.getTimes(tomorrowDate, lat, lng);
-      if (tomorrowTimes && tomorrowTimes.sunrise) {
+      if (tomorrowTimes && tomorrowTimes.sunrise && !isNaN(tomorrowTimes.sunrise.getTime())) {
         nextSunrise = tomorrowTimes.sunrise;
       }
     } catch {
@@ -768,13 +769,47 @@ export async function computeDevoteePanchangaProfile(
     // Keep name
   }
 
+  // Clean localized DOB & TOB display formatting
+  const MONTHS_SHORT_I18N: Record<ConsultationLanguage, string[]> = {
+    en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    kn: ["ಜನವರಿ", "ಫೆಬ್ರವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್", "ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"],
+    hi: ["जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"],
+    te: ["జనవరి", "ఫిబ్రవరి", "మార్చి", "ఏప్రిల్", "మే", "జూన్", "జులై", "ఆగస్టు", "సెప్టెంబర్", "అక్టోబర్", "నవంబర్", "డిసెంబర్"],
+    ta: ["ஜனவரி", "பிப்ரவரி", "மார்ச்", "ஏப்ரல்", "மே", "ஜூன்", "ஜூலை", "ஆகஸ்ட்", "செப்டம்பர்", "அக்டோபர்", "நவம்பர்", "டிசம்பர்"],
+    ml: ["ജനുവരി", "ഫെബ്രുവരി", "മാർച്ച്", "ഏപ്രിൽ", "മേയ്", "ജൂൺ", "ജൂലൈ", "ഓഗസ്റ്റ്", "സെപ്റ്റംബർ", "ഒക്ടോബർ", "നവംബർ", "ഡിസംബർ"],
+    mr: ["जानेवारी", "फेब्रुवारी", "मार्च", "एप्रिल", "मे", "जून", "जुलै", "ऑगस्ट", "सप्टेंबर", "ऑक्टोबर", "नोव्हेंबर", "डिसेंबर"]
+  };
+  const dobMonthName = !isNaN(m) && m >= 1 && m <= 12 ? (MONTHS_SHORT_I18N[lang] || MONTHS_SHORT_I18N.en)[m - 1] : "";
+  const dobFormatted = !isNaN(y) && !isNaN(d) && dobMonthName ? `${String(d).padStart(2, "0")} ${dobMonthName} ${y}` : session.dob;
+
+  const h12 = !isNaN(hr) ? ((hr % 12) || 12) : 12;
+  const minPad = !isNaN(mn) ? String(mn).padStart(2, "0") : "00";
+  const periodLabel = !isNaN(hr)
+    ? lang === "kn"
+      ? hr < 12 ? "ಬೆಳಗ್ಗೆ" : hr < 16 ? "ಮಧ್ಯಾಹ್ನ" : hr < 20 ? "ಸಂಜೆ" : "ರಾತ್ರಿ"
+      : lang === "hi"
+      ? hr < 12 ? "प्रातः" : hr < 17 ? "दोपहर" : hr < 20 ? "सायं" : "रात्रि"
+      : lang === "te"
+      ? hr < 12 ? "ఉదయం" : hr < 16 ? "మధ్యాహ్నం" : hr < 20 ? "సాయంత్రం" : "రాత్రి"
+      : lang === "ta"
+      ? hr < 12 ? "காலை" : hr < 16 ? "மதியம்" : hr < 20 ? "மாலை" : "இரவு"
+      : lang === "ml"
+      ? hr < 12 ? "രാവിലെ" : hr < 16 ? "ഉച്ചയ്ക്ക്" : hr < 20 ? "വൈകുന്നേരം" : "രാത്രി"
+      : lang === "mr"
+      ? hr < 12 ? "सकाळी" : hr < 16 ? "दुपारी" : hr < 20 ? "संध्याकाळी" : "रात्री"
+      : hr < 12 ? "AM" : "PM"
+    : "AM";
+  const tobFormatted = !isNaN(hr) && !isNaN(mn)
+    ? (lang === "en" ? `${String(h12).padStart(2, "0")}:${minPad} ${periodLabel}` : `${String(h12).padStart(2, "0")}:${minPad} ${periodLabel} (${String(hr).padStart(2, "0")}:${minPad})`)
+    : (session.tob || "12:00");
+
   return {
     name: session.name,
     devoteeName: localizedDevoteeName,
     dob: session.dob,
-    dobFormatted: session.dob,
+    dobFormatted,
     tob: session.tob || "12:00",
-    tobFormatted: session.tob || "12:00",
+    tobFormatted,
     place: session.place,
     vaara: vaaraStr,
     vaaraRaw: rawWeekdays[vedicVaaraIdx],
