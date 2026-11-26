@@ -803,4 +803,74 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     );
     expect(mlPayload.targetLanguage).toBe("en");
   });
+
+  it("18. Guarantees zero duplicate sentences, zero repeated hooks/closings, unique yearly questions, and 25 distinct theme badges across all 6 languages", async () => {
+    const langs = ["kn", "mr", "hi", "te", "ta", "en"] as const;
+    const splitSentences = (text: string) =>
+      text
+        .split(/(?<=[.!?।॥])\s+|\s*\n\s*/)
+        .map((s) => s.replace(/\s+/g, " ").trim())
+        .filter((s) => s.length >= 20);
+    const normalizeSkeleton = (s: string) =>
+      s
+        .replace(/[\d೦-೯०-९౦-౯௦-௯]+/g, "#")
+        .replace(/['"“”‘’()❖✦•—–\-:,.!?।॥]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+
+    for (const lang of langs) {
+      const payload = await prepareSampoornaMaster25Data(
+        { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka (581326)" },
+        lang
+      );
+      expect(payload.chapters.length).toBe(25);
+
+      const seenExact = new Map<string, string>();
+      const seenSkeletons = new Map<string, string>();
+      const hookSet = new Set<string>();
+      const badgeSet = new Set<string>();
+      const closingP2Set = new Set<string>();
+      const closingP3Set = new Set<string>();
+
+      for (const ch of payload.chapters) {
+        if (ch.storyHook) hookSet.add(ch.storyHook.trim());
+        if (ch.visualSummary?.themeBadge) badgeSet.add(ch.visualSummary.themeBadge.trim());
+
+        const p2Sents = splitSentences(ch.paragraphs[1] || "");
+        const p3Sents = splitSentences(ch.paragraphs[2] || "");
+        if (p2Sents.length > 0) closingP2Set.add(p2Sents[p2Sents.length - 1]);
+        if (p3Sents.length > 0) closingP3Set.add(p3Sents[p3Sents.length - 1]);
+
+        if (ch.chapterNumber !== 4) {
+          const chBody = [ch.question, ...ch.paragraphs, ch.practicalGuidance || ""].join(" ");
+          expect(chBody).not.toMatch(/(99%|೯೯%|९९%|௯௯%)/);
+        }
+
+        const fields: Array<[string, string]> = [
+          ["q", ch.question],
+          ["p1", ch.paragraphs[0] || ""],
+          ["p2", ch.paragraphs[1] || ""],
+          ["p3", ch.paragraphs[2] || ""],
+          ["guidance", ch.practicalGuidance || ""],
+        ];
+        for (const [field, txt] of fields) {
+          for (const sent of splitSentences(txt)) {
+            const loc = `Ch${ch.chapterNumber}.${field}`;
+            expect(seenExact.has(sent), `[${lang}] Exact duplicate at ${loc} & ${seenExact.get(sent)}: "${sent}"`).toBe(false);
+            seenExact.set(sent, loc);
+
+            const skel = normalizeSkeleton(sent);
+            expect(seenSkeletons.has(skel), `[${lang}] Skeleton duplicate at ${loc} & ${seenSkeletons.get(skel)}: "${sent}"`).toBe(false);
+            seenSkeletons.set(skel, loc);
+          }
+        }
+      }
+
+      expect(hookSet.size).toBe(25);
+      expect(badgeSet.size).toBe(25);
+      expect(closingP2Set.size).toBe(25);
+      expect(closingP3Set.size).toBe(25);
+    }
+  });
 });

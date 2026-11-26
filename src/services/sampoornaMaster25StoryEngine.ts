@@ -762,6 +762,7 @@ function buildChapterThemeAndNarrativeLayer(args: {
   isChildOrInfant: boolean;
   taraScore: number;
   taraWord: string;
+  chapterBadge?: string;
 }): {
   storyHook: string;
   extP1: string;
@@ -779,6 +780,7 @@ function buildChapterThemeAndNarrativeLayer(args: {
     isChildOrInfant,
     taraScore,
     taraWord,
+    chapterBadge,
   } = args;
 
   const {
@@ -804,7 +806,12 @@ function buildChapterThemeAndNarrativeLayer(args: {
     bhuktiEndDate,
     dominantElement,
     detectedYogasSummary,
+    house2Info,
+    house5Info,
     house6Info,
+    house7Info,
+    house10Info,
+    house11Info,
     heroPlanetName,
     heroPlanetHouse,
     heroPlanetRashi,
@@ -818,188 +825,726 @@ function buildChapterThemeAndNarrativeLayer(args: {
   const n = (v: number | string) => digits(v, lang);
   const bucket = getChapterBucket(chNum);
 
-  const themeBadge =
+  const themeAnchorShort =
     themeKey === "cinema"
-      ? pick6({ kn: `👑 ನಾನು ನಿನ್ನ '${heroPlanetName}' ನಾಯಕ`, mr: `👑 मी तुझा '${heroPlanetName}' नायक`, hi: `👑 मैं तुम्हारा '${heroPlanetName}' नायक`, te: `👑 నేను నీ '${heroPlanetName}' నాయకుడు`, ta: `👑 நான் உன் '${heroPlanetName}' நாயகன்`, en: `👑 I Am Your Hero: ${heroPlanetName}` }, lang)
+      ? heroPlanetName
       : themeKey === "nakshatra"
-      ? pick6({ kn: `⭐ ನಾನು ನಿನ್ನ ${nakshatraName}`, mr: `⭐ मी तुझे ${nakshatraName}`, hi: `⭐ मैं तुम्हारा ${nakshatraName}`, te: `⭐ నేను నీ ${nakshatraName}`, ta: `⭐ நான் உன் ${nakshatraName}`, en: `⭐ I Am ${nakshatraName} Star` }, lang)
+      ? nakshatraName
       : themeKey === "yoga_karana"
-      ? pick6({ kn: `⚡ ನಾನು ನಿನ್ನ '${yogaName}' • '${karanaName}'`, mr: `⚡ मी तुझा '${yogaName}' • '${karanaName}'`, hi: `⚡ मैं तुम्हारा '${yogaName}' • '${karanaName}'`, te: `⚡ నేను నీ '${yogaName}' • '${karanaName}'`, ta: `⚡ நான் உன் '${yogaName}' • '${karanaName}'`, en: `⚡ I Am ${yogaName} & ${karanaName}` }, lang)
+      ? yogaName
       : themeKey === "near_far"
-      ? pick6({ kn: `🧭 ನಾನು ನಿನ್ನ '${lagnaRashiName}' ಲಗ್ನ`, mr: `🧭 मी तुझे '${lagnaRashiName}' लग्न`, hi: `🧭 मैं तुम्हारा '${lagnaRashiName}' लग्न`, te: `🧭 నేను నీ '${lagnaRashiName}' లగ్నం`, ta: `🧭 நான் உன் '${lagnaRashiName}' லக்னம்`, en: `🧭 I Am ${lagnaRashiName} Ascendant` }, lang)
-      : pick6({ kn: `⛵ ನಾನು ನಿನ್ನ ಯೋಗಿ '${yogiPlanetName}'`, mr: `⛵ मी तुझा योगी '${yogiPlanetName}'`, hi: `⛵ मैं तुम्हारा योगी '${yogiPlanetName}'`, te: `⛵ నేను నీ యోగి '${yogiPlanetName}'`, ta: `⛵ நான் உன் யோகி '${yogiPlanetName}'`, en: `⛵ I Am Your Yogi ${yogiPlanetName}` }, lang);
+      ? lagnaRashiName
+      : yogiPlanetName;
+  const themeEmoji =
+    themeKey === "cinema"
+      ? "👑"
+      : themeKey === "nakshatra"
+      ? "⭐"
+      : themeKey === "yoga_karana"
+      ? "⚡"
+      : themeKey === "near_far"
+      ? "🧭"
+      : "⛵";
+  const themeBadge = chapterBadge
+    ? `${themeEmoji} ${chapterBadge} • ${themeAnchorShort}`
+    : `${themeEmoji} ${themeAnchorShort}`;
 
-  // Authentic First-Person Hero Voice introducing real neighboring colleagues inside THIS devotee's Kundali
+  // Chapter-unique opening hook map (ZERO shared phrases across Chapters 1–25!)
   const rawHook = (): string => {
-    if (isChildOrInfant && (chNum === 12 || chNum === 13 || chNum === 14)) {
-      if (themeKey === "cinema" || themeKey === "yoga_karana") {
+    if (isChildOrInfant) {
+      if (chNum === 12) {
         return pick6({
-          kn: `ನಮಸ್ಕಾರ, ನಾನು ಈ ಪುಟ್ಟ ಕಂದಮ್ಮನ ಕುಂಡಲಿಯ ನಾಯಕ '${heroPlanetName}' (${n(heroPlanetHouse)}ನೇ ಮನೆ) ಹಾಗೂ ಜನ್ಮ ಯೋಗ '${yogaName}' ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ನನ್ನ ಪಕ್ಕದಲ್ಲೇ ಸಹೋದ್ಯೋಗಿ '${nearestColleagueName}' ನಿಂತಿದ್ದು, ಮಗುವಿನ ನೈಸರ್ಗಿಕ ಕುತೂಹಲ ಮತ್ತು ಸುರಕ್ಷತೆಯನ್ನು ನಾವು ಇಬ್ಬರೂ ಕಾಯುತ್ತಿದ್ದೇವೆ.`,
-          mr: `नमस्कार, मी या चिमुकल्याच्या पत्रिकेतील प्रमुख नायक '${heroPlanetName}' (स्थान ${n(heroPlanetHouse)}) आणि जन्म योग '${yogaName}' बोलत आहे! माझ्या अगदी शेजारी '${nearestColleagueName}' उभा असून आम्ही दोघे या बाळाच्या आनंदाचे रक्षण करत आहोत.`,
-          hi: `नमस्ते, मैं इस बालक की कुंडली का प्रमुख नायक '${heroPlanetName}' (भाव ${n(heroPlanetHouse)}) तथा जन्म योग '${yogaName}' बोल रहा हूं! मेरे ठीक पास सहकर्मी '${nearestColleagueName}' स्थित है और हम दोनों इस बच्चे की मुस्कान की रक्षा कर रहे हैं।`,
-          te: `నమస్కారం, నేను ఈ చిన్నారి జాతకంలో ప్రధాన నాయకుడైన '${heroPlanetName}' (${n(heroPlanetHouse)}వ స్థానం) మరియు '${yogaName}' మాట్లాడుతున్నాను! నా పక్కనే ఉన్న '${nearestColleagueName}' తో కలిసి మేము ఈ చిన్నారి ఆనందాన్ని కాపాడుతున్నాము.`,
-          ta: `வணக்கம், நான் இந்தக் குழந்தையின் ஜாதக நாயகன் '${heroPlanetName}' (${n(heroPlanetHouse)}-ம் வீடு) மற்றும் '${yogaName}' பேசுகிறேன்! என் அருகில் நிற்கும் '${nearestColleagueName}' உடன் சேர்ந்து இந்தக் குழந்தையின் மகிழ்ச்சியைக் காத்து வருகிறோம்.`,
-          en: `Hello parents—I am ${heroPlanetName} in House ${heroPlanetHouse}, paired with ${yogaName} Yoga as the protecting hero of this child's chart! Standing right beside me is ${nearestColleagueName}, and together we nurture this child's bright curiosity in safety.`,
+          kn: `ಈ ಕಂದಮ್ಮನ ಜನ್ಮ ಕುಂಡಲಿಯ '${heroPlanetName}' (${n(heroPlanetHouse)}ನೇ ಮನೆ) ಹಾಗೂ '${yogaName}' ಯೋಗದ ಬೆಳಕು ಇಂದೇ ಸುಂದರ ಕಲಿಕೆಯ ಕಿಡಿ ಹೊತ್ತಿಸುತ್ತಿದೆ.`,
+          mr: `या बाळाच्या कुंडलीतील '${heroPlanetName}' (स्थान ${n(heroPlanetHouse)}) आणि '${yogaName}' योगाचा प्रकाश आजपासूनच सुंदर कुतूहल जागवत आहे.`,
+          hi: `इस बालक की पत्रिका के '${heroPlanetName}' (भाव ${n(heroPlanetHouse)}) एवं '${yogaName}' योग का उजाला बचपन से ही सीखने की प्यारी चमक बिखेर रहा है।`,
+          te: `ఈ చిన్నారి జాతకంలోని '${heroPlanetName}' (${n(heroPlanetHouse)}వ స్థానం) మరియు '${yogaName}' యోగ కాంతి ఇప్పుడే చురుకైన జిజ్ఞాసను వెలిగిస్తోంది.`,
+          ta: `இந்தக் குழந்தையின் ஜாதகத்தில் '${heroPlanetName}' (${n(heroPlanetHouse)}-ம் வீடு) மற்றும் '${yogaName}' யோக ஒளி இயல்பான அறிவுத் தீப்பொறியை ஏற்றுகிறது.`,
+          en: `Seated in House ${heroPlanetHouse}, ${heroPlanetName} blends with ${yogaName} Yoga to light an unmistakable spark of early curiosity around this child.`,
         }, lang);
       }
-      if (themeKey === "nakshatra") {
+      if (chNum === 13) {
         return pick6({
-          kn: `ನಾನು ಈ ಕಂದಮ್ಮನ ಜನ್ಮ ನಕ್ಷತ್ರ ${nakshatraName} (${n(nakshatraPada)}ನೇ ಪಾದ) ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ${weekdayName}ದಿಂದ ನಾನು ಈ ಮಗುವಿನ ಮೃದು ಮನಸ್ಸನ್ನು ಕಾಯುತ್ತಿದ್ದೇನೆ — ಪ್ರೀತಿಯ ಮಾತು ಮತ್ತು ಶಾಂತ ವಾತಾವರಣವೇ ಇದಕ್ಕೆ ಅತಿ ದೊಡ್ಡ ಕವಚ.`,
-          mr: `मी या बाळाचे जन्म नक्षत्र ${nakshatraName} (चरण ${n(nakshatraPada)}) बोलत आहे! जन्म दिवसापासूनच मी या चिमुकल्याचे संरक्षण करत आहे — घरची शांतता आणि प्रेमाची ऊब हेच याचे खरे बळ आहे.`,
-          hi: `मैं इस बालक का जन्म नक्षत्र ${nakshatraName} (पाद ${n(nakshatraPada)}) बोल रहा हूं! पहले दिन से ही मैं इसकी कोमल ऊर्जा की रक्षा कर रहा हूं—घर की मिठास और धैर्य ही इसकी सबसे बड़ी ताकत बनेंगे।`,
-          te: `నేను ఈ చిన్నారి జన్మ నక్షత్రం ${nakshatraName} (పాదం ${n(nakshatraPada)}) మాట్లాడుతున్నాను! మొదటి శ్వాస నుండి ఈ బిడ్డను కాపాడుతున్నాను—ఇంటి ప్రేమ, ప్రశాంతతే దీనికి అసలైన కవచం.`,
-          ta: `நான் இந்தக் குழந்தையின் ஜென்ம நட்சத்திரம் ${nakshatraName} (பாதம் ${n(nakshatraPada)}) பேசுகிறேன்! முதல் நாளிலிருந்தே இந்தக் குழந்தையைக் காத்து வருகிறேன்—அன்பான வீட்டுச் சூழலே இதன் பெரும் பலம்.`,
-          en: `I am this child's birth star ${nakshatraName} (Pada ${nakshatraPada}), watching silently since ${weekdayName}! Every gentle encouragement spoken at home right now becomes an invisible lifelong shield around this bright young mind.`,
+          kn: `ಮನೆಯ ಹೊಸ ಹೂದೋಟದಲ್ಲಿ ಬೀಜ ಬಿತ್ತಿದಂತೆ, '${lagnaRashiName}' ಲಗ್ನದ ಈ ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಶಾಂತ ಐಶ್ವರ್ಯದ ಬೇರು ಆಳವಾಗಿ ಇಳಿಯುತ್ತಿದೆ.`,
+          mr: `घराच्या अंगणात लावलेल्या सुदृढ रोपट्याप्रमाणे, '${lagnaRashiName}' लग्नाच्या या चिमुकल्याच्या नावाने शांत समृद्धीची मुळे घट्ट होत आहेत.`,
+          hi: `घर के आंगन में रोपे गए मजबूत पौधे की तरह, '${lagnaRashiName}' लग्न के इस बालक के नाम पर शांत पारिवारिक समृद्धि की जड़ें गहरी हो रही हैं।`,
+          te: `ఇంటి పెరట్లో నాటిన బలమైన మొక్కలా, '${lagnaRashiName}' లగ్నంలోని ఈ చిన్నారి పేరుతో కుటుంబ శ్రేయస్సు వేర్లు బలపడుతున్నాయి.`,
+          ta: `வீட்டு முற்றத்தில் நட்ட ஆரோக்கியமான செடி போல, '${lagnaRashiName}' லக்ன இந்தக் குழந்தையின் பெயரால் குடும்ப வளமை வேரூன்றுகிறது.`,
+          en: `Like a quiet sapling planted beside a warm courtyard, lasting household stability takes root gently under this ${lagnaRashiName} birth star.`,
         }, lang);
       }
-      return pick6({
-        kn: `ನಾನು ಜನ್ಮ ಲಗ್ನ '${lagnaRashiName}' ನಾಯಕ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ: ಈ ಕಂದನಿಗೆ ಕುತೂಹಲ ಮತ್ತು ಮನೆಯ ಪ್ರೀತಿ ಕೈಗೆಟುಕುವಷ್ಟು ಹತ್ತಿರದಲ್ಲಿವೆ; ಆದರೆ ಭಯ ಮತ್ತು ಬಾಲಾರಿಷ್ಟ ಆತಂಕಗಳು ಇದರಿಂದ ಬಹುದೂರ ಸರಿದಿವೆ.`,
-        mr: `मी जन्म लग्न '${lagnaRashiName}' नायक बोलत आहे: या बाळाच्या हाताशी अद्भुत कुतूहल व घरचे प्रेम आहे, तर कोणत्याही भीतीचे सावट यापासून खूप दूर सरले आहे.`,
-        hi: `मैं जन्म लग्न '${lagnaRashiName}' नायक बोल रहा हूं: इस बच्चे के बिल्कुल पास अद्भुत जिज्ञासा और पारिवारिक सुरक्षा है, जबकि अनावश्यक चिंता इससे कोसों दूर हट चुकी है।`,
-        te: `నేను జన్మ లగ్నం '${lagnaRashiName}' నాయకుడిగా మాట్లాడుతున్నాను: ఈ చిన్నారికి ఆనందం, ఇంటి రక్షణ చాలా దగ్గరలో ఉన్నాయి—అనవసర భయాలన్నీ దూరంగా తొలగిపోయాయి.`,
-        ta: `நான் ஜென்ம லக்னம் '${lagnaRashiName}' நாயகனாகப் பேசுகிறேன்: இக்குழந்தையின் அருகே ஆர்வமும் பாதுகாப்பும் நிறைந்துள்ளன; தேவையற்ற அச்சங்கள் வெகு தொலைவில் விலகிவிட்டன.`,
-        en: `I am ${lagnaRashiName}, guardian captain of this child's chart: joyful curiosity and family warmth stand inches near today, while early worries drift far behind.`,
-      }, lang);
-    }
-
-    if (themeKey === "cinema") {
-      if (bucket === "mirror") {
+      if (chNum === 14) {
         return pick6({
-          kn: `ನಮಸ್ಕಾರ ${devoteeName}, ನಾನು ನಿಮ್ಮ ಕುಂಡಲಿಯ ${n(heroPlanetHouse)}ನೇ ಮನೆಯ (${heroPlanetRashi}) ಪ್ರಬಲ ನಾಯಕ '${heroPlanetName}' ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ನನ್ನ ಪಕ್ಕದಲ್ಲೇ ನನ್ನ ಸಹೋದ್ಯೋಗಿ '${nearestColleagueName}' (${n(nearestColleagueHouse)}ನೇ ಮನೆ) ನಿಂತಿರುವುದನ್ನು ನಾನು ನೋಡುತ್ತಿದ್ದೇನೆ. ನಿಮ್ಮ ಬದುಕನ್ನು ಸಿನಿಮಾದಂತೆ ನೋಡಿದರೆ ಈಗ 'ಮಧ್ಯಂತರದ ಹಿಂದಿನ ನಿಗೂಢ ದೃಶ್ಯ' ನಡೆಯುತ್ತಿದೆ — ನಾವೆಲ್ಲರೂ ಒಳಗೊಳಗೇ ನಿಮ್ಮ ಮುಂದಿನ ದೊಡ್ಡ ಗೆಲುವಿಗೆ ವೇದಿಕೆ ಸಜ್ಜುಗೊಳಿಸುತ್ತಿದ್ದೇವೆ.`,
-          mr: `नमस्कार ${devoteeName}, मी तुमच्या पत्रिकेतील ${n(heroPlanetHouse)}व्या भावाचा (${heroPlanetRashi}) सर्वात बलवान नायक '${heroPlanetName}' बोलत आहे! माझ्या अगदी शेजारी माझा सहकारी '${nearestColleagueName}' (${n(nearestColleagueHouse)}वे स्थान) कसा काम करतोय ते पहा — तुमच्या आयुष्याचा हा सिनेमा आता मोठ्या वळणावर आला आहे आणि आम्ही पडद्यामागे तुमच्या विजयाची स्क्रिप्ट पक्की करत आहोत.`,
-          hi: `नमस्ते ${devoteeName}, मैं आपकी कुंडली के ${n(heroPlanetHouse)}वें भाव (${heroPlanetRashi}) का सबसे सशक्त नायक '${heroPlanetName}' बोल रहा हूं! मेरे ठीक बगल में मेरा सहकर्मी '${nearestColleagueName}' (${n(nearestColleagueHouse)}वां भाव) खड़ा है। यदि आपका जीवन एक फिल्म हो, तो अभी इंटरवल से ठीक पहले का रोमांचक दृश्य चल रहा है—भीतर ही भीतर आपकी अगली बड़ी जीत की पटकथा तैयार हो चुकी है।`,
-          te: `నమస్కారం ${devoteeName}, నేను మీ జాతకంలోని ${n(heroPlanetHouse)}వ స్థాన (${heroPlanetRashi}) ప్రధాన నాయకుడు '${heroPlanetName}' మాట్లాడుతున్నాను! నా పక్కనే ఉన్న నా సహోద్యోగి '${nearestColleagueName}' (${n(nearestColleagueHouse)}వ స్థానం) ఎలా పనిచేస్తున్నాడో చూడండి. మీ జీవితాన్ని సినిమాగా చూస్తే ఇప్పుడు ఇంటర్వెల్ ముందు కీలక సన్నివేశం నడుస్తోంది—మీ తర్వాతి విజయం కోసం తెరవెనుక మేమంతా సిద్ధమవుతున్నాము.`,
-          ta: `வணக்கம் ${devoteeName}, நான் உங்கள் ஜாதகத்தில் ${n(heroPlanetHouse)}-ம் வீட்டில் (${heroPlanetRashi}) அமர்ந்திருக்கும் வலிமையான நாயகன் '${heroPlanetName}' பேசுகிறேன்! என் அருகிலிருக்கும் சகா '${nearestColleagueName}' (${n(nearestColleagueHouse)}-ம் வீடு) எவ்வாறு செயல்படுகிறார் பாருங்கள். உங்கள் வாழ்க்கை ஒரு திரைப்படமென்றால், இப்போது இடைவேளைக்கு முந்தைய முக்கிய காட்சி ஓடுகிறது.`,
-          en: `Listen directly to me, ${devoteeName}: I am ${heroPlanetName}, seated powerfully in House ${heroPlanetHouse} (${heroPlanetRashi}) as the strongest hero of your Kundali! Standing nearest beside me in House ${nearestColleagueHouse} (${nearestColleagueRashi}) is my colleague ${nearestColleagueName}. Watch how we are directing this pre-interval film scene behind the curtain to swing the next act toward you.`,
+          kn: `ಮನೆಯ ಹಿರಿಯರ ನಗು ಹಾಗೂ '${moonRashiName}' ಚಂದ್ರನ ಮೃದು ಭಾವನೆಗಳು ಒಟ್ಟಾಗಿ ಈ ಕಂದನ ಹೃದಯದಲ್ಲಿ ಅಜೇಯ ಭದ್ರತೆಯನ್ನು ಕಟ್ಟುತ್ತಿವೆ.`,
+          mr: `घरातील प्रेमळ हास्य आणि '${moonRashiName}' चंद्राची संवेदनशील ऊब एकत्र येऊन या बाळाच्या मनाला अतुट सुरक्षा देत आहेत.`,
+          hi: `घर की स्नेहभरी हंसी और '${moonRashiName}' चंद्र की कोमल संवेदना मिलकर इस बच्चे के मन में अटूट सुरक्षा गढ़ रही हैं।`,
+          te: `ఇంట్లోని ఆప్యాయత మరియు '${moonRashiName}' చంద్రుని మృదుత్వం కలిసి ఈ చిన్నారి హృదయంలో అచంచలమైన భరోసాను నింపుతున్నాయి.`,
+          ta: `வீட்டின் அன்பான சிரிப்பும் '${moonRashiName}' சந்திரனின் மென்மையும் இணைந்து இக்குழந்தையின் உள்ளத்தில் நீங்காத பாதுகாப்பைக் கட்டுகின்றன.`,
+          en: `Warm voices echoing across the family room wrap this sensitive ${moonRashiName} Moon child in lifelong emotional safety.`,
         }, lang);
       }
-      if (bucket === "pivot" || bucket === "transit") {
-        return pick6({
-          kn: `ನಾನು ನಿಮ್ಮ ಜಾತಕದ ನಾಯಕ '${heroPlanetName}' ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ${devoteeName}! ನನ್ನ ಸಹೋದ್ಯೋಗಿ '${nearestColleagueName}' (${n(nearestColleagueHouse)}ನೇ ಮನೆ) ಹಾಗೂ ${shaniTransitRashi}ನ ಶನಿ ಒಟ್ಟಾಗಿ ಆಡುತ್ತಿರುವ ರೋಚಕ ದೃಶ್ಯವಿದು: ಹೀರೋ ೯೯% ಹಂತದಲ್ಲಿ ನಿಂತಾಗ ಬಾಗಿಲು ತಡೆದದ್ದು ನಿಮಗೆ ಶಿಕ್ಷೆಯಲ್ಲ — ಆ ಬಾಗಿಲ ಹಿಂದಿದ್ದ ದೊಡ್ಡ ನಷ್ಟದಿಂದ ನಿಮ್ಮನ್ನು ತಪ್ಪಿಸಲು ನಾವು ಹಾಕಿದ ಸಿನಿಮಾ ಬ್ರೇಕ್ ಅಷ್ಟೇ!`,
-          mr: `मी तुमच्या कुंडलीचा नायक '${heroPlanetName}' बोलत आहे ${devoteeName}! माझा सहकारी '${nearestColleagueName}' आणि ${shaniTransitRashi} मधील शनी एकत्र काम करून तुमचे रक्षण करत आहेत — ९९% वर आलेले काम कधी अडले असेल तर ते अपयश नव्हते, तर मोठ्या धोक्यातून तुम्हाला वाचवणारे आमचे रक्षण होते!`,
-          hi: `मैं आपकी कुंडली का नायक '${heroPlanetName}' बोल रहा हूं ${devoteeName}! मेरे साथ खड़ा सहकर्मी '${nearestColleagueName}' और ${shaniTransitRashi} के शनि मिलकर आपकी रक्षा कर रहे हैं—जब काम ९९% पर अटका तो वह हार नहीं थी, बल्कि आगे छिपे बड़े नुकसान से बचाने के लिए हमने लगाया हुआ सुरक्षा-ब्रेक था!`,
-          te: `నేను మీ జాతక నాయకుడు '${heroPlanetName}' మాట్లాడుతున్నాను ${devoteeName}! నా పక్కనున్న '${nearestColleagueName}' మరియు ${shaniTransitRashi} శని కలిసి మిమ్మల్ని కాపాడుతున్నారు—99% వద్ద ఆగిన ప్రతి అడ్డంకి ఓటమి కాదు, పెద్ద ప్రమాదం నుండి తప్పించిన మా రక్షణ కవచం!`,
-          ta: `நான் உங்கள் ஜாதக நாயகன் '${heroPlanetName}' பேசுகிறேன் ${devoteeName}! என் அருகிலுள்ள '${nearestColleagueName}' மற்றும் ${shaniTransitRashi} சனி இணைந்து உங்களைப் பாதுகாக்கிறார்கள்—99%-ல் நின்ற தாமதம் தோல்வியல்ல, பெரிய இழப்பிலிருந்து உங்களைக் காத்த கவசம்!`,
-          en: `I am your chart hero ${heroPlanetName} speaking directly to you, ${devoteeName}! Together with my close colleague ${nearestColleagueName} in House ${nearestColleagueHouse} and Saturn tracking ${shaniTransitRashi}, whenever a deal froze at 99% on your screen, it was our deliberate safety brake saving you from an unseen trap ahead.`,
-        }, lang);
-      }
-      return pick6({
-        kn: `ನಾನು ನಿಮ್ಮ ಕುಂಡಲಿಯ ಶಕ್ತಿಶಾಲಿ ನಾಯಕ '${heroPlanetName}' (${heroPlanetRashi}) ಹೇಳುತ್ತಿದ್ದೇನೆ ${devoteeName}: ನನ್ನ ಸಹೋದ್ಯೋಗಿ '${nearestColleagueName}' ಹಾಗೂ '${yogiPlanetName}' ಈಗ ಒಂದೇ ದಿಕ್ಕಿನಲ್ಲಿ ತಿರುಗುತ್ತಿದ್ದಾರೆ! ಸಿನಿಮಾದ ಕ್ಲೈಮ್ಯಾಕ್ಸ್ ಹತ್ತಿರ ಬರುತ್ತಿದೆ — '${n(nowYear + 2)}–${n(nowYear + 4)}'ರ ಗೆಲುವಿನ ದೃಶ್ಯದಲ್ಲಿ ಪ್ರೇಕ್ಷಕರೇ ಎದ್ದು ಚಪ್ಪಾಳೆ ತಟ್ಟಲಿದ್ದಾರೆ.`,
-        mr: `मी तुमच्या कुंडलीचा मुख्य नायक '${heroPlanetName}' (${heroPlanetRashi}) सांगत आहे ${devoteeName}: माझा सहकारी '${nearestColleagueName}' व '${yogiPlanetName}' आता एकाच दिशेने तुमची साथ देत आहेत! '${n(nowYear + 2)}–${n(nowYear + 4)}' चा विजयी टप्पा तुमच्या आयुष्याची सर्वोत्तम कामगिरी ठरणार आहे.`,
-        hi: `मैं आपकी कुंडली का प्रमुख नायक '${heroPlanetName}' (${heroPlanetRashi}) कह रहा हूं ${devoteeName}: मेरा सहकर्मी '${nearestColleagueName}' और '${yogiPlanetName}' अब एक ही दिशा में आपके पक्ष में आ गए हैं! '${n(nowYear + 2)}–${n(nowYear + 4)}' का स्वर्णिम चरण आपके जीवन का सबसे शानदार अध्याय बनेगा।`,
-        te: `నేను మీ జాతక ప్రధాన నాయకుడు '${heroPlanetName}' (${heroPlanetRashi}) చెబుతున్నాను ${devoteeName}: నా పక్కనున్న '${nearestColleagueName}' మరియు '${yogiPlanetName}' ఇప్పుడు మీకు అనుకూలంగా కదులుతున్నారు! '${n(nowYear + 2)}–${n(nowYear + 4)}' మధ్య రాబోయే స్వర్ణయుగం మిమ్మల్ని ఉన్నత స్థానంలో నిలబెడుతుంది.`,
-        ta: `நான் உங்கள் ஜாதக நாயகன் '${heroPlanetName}' (${heroPlanetRashi}) சொல்கிறேன் ${devoteeName}: என் சகா '${nearestColleagueName}' மற்றும் '${yogiPlanetName}' இப்போது உங்கள் வெற்றிக்காக ஒருங்கிணைந்துள்ளனர்! '${n(nowYear + 2)}–${n(nowYear + 4)}' காலம் உங்களுக்கு மாபெரும் திருப்பமாகும்.`,
-        en: `I am your chart champion ${heroPlanetName} in ${heroPlanetRashi}, speaking with my colleague ${nearestColleagueName} right beside me: Act 2 is accelerating fast, ${devoteeName}, and every scene ahead locks into the rising peak of ${nowYear + 2}–${nowYear + 4}!`,
-      }, lang);
     }
 
-    if (themeKey === "nakshatra") {
-      return pick6({
-        kn: `ನಾನು ನಿನ್ನ ಜನ್ಮ ನಕ್ಷತ್ರ '${nakshatraName}' (${n(nakshatraPada)}ನೇ ಪಾದ) ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ${devoteeName}! ಹುಟ್ಟಿದ ${weekdayName}ದಿಂದ ನಿನ್ನ ಹೃದಯದ ಬಡಿತವನ್ನು ಕೇಳುತ್ತಿದ್ದೇನೆ; ನನ್ನ ಮಿತ್ರ '${yogiPlanetName}' ಹಾಗೂ ನಾಯಕ '${heroPlanetName}' ನಿನ್ನ ಬೆನ್ನಿಗೆ ನಿಂತಿರುವಾಗ ಸುತ್ತಲಿನವರ ಅನ್ಯಾಯದ ಮಾತುಗಳಿಗೆ ನೀನೇಕೆ ಹೆದರಬೇಕು?`,
-        mr: `मी तुझे जन्म नक्षत्र '${nakshatraName}' (चरण ${n(nakshatraPada)}) बोलत आहे ${devoteeName}! जन्माच्या ${weekdayName} पासून तुझ्यासोबत राहून मी तुझा मूक संघर्ष पाहिला आहे; तुझा मित्र '${yogiPlanetName}' आणि नायक '${heroPlanetName}' तुझ्या पाठीशी ठाम आहेत.`,
-        hi: `मैं तुम्हारा जन्म नक्षत्र '${nakshatraName}' (पाद ${n(nakshatraPada)}) बोल रहा हूं ${devoteeName}! जन्म के ${weekdayName} से आज तक मैंने तुम्हारे भीतर के हर तूफ़ान को देखा है; तुम्हारा रक्षक '${yogiPlanetName}' और नायक '${heroPlanetName}' तुम्हारे साथ हैं।`,
-        te: `నేను నీ జన్మ నక్షత్రం '${nakshatraName}' (పాదం ${n(nakshatraPada)}) మాట్లాడుతున్నాను ${devoteeName}! నీ పుట్టిన ${weekdayName} నుండి అన్నీ గమనిస్తున్నాను; నీ మిత్రుడు '${yogiPlanetName}' మరియు నాయకుడు '${heroPlanetName}' నీ వెన్నంటే ఉన్నారు.`,
-        ta: `நான் உன் ஜென்ம நட்சத்திரம் '${nakshatraName}' (பாதம் ${n(nakshatraPada)}) பேசுகிறேன் ${devoteeName}! பிறந்த ${weekdayName} முதல் உன்னுடன் இருக்கிறேன்; உன் நண்பன் '${yogiPlanetName}' மற்றும் நாயகன் '${heroPlanetName}' எப்போதும் துணை நிற்கிறார்கள்.`,
-        en: `Listen closely, ${devoteeName}: I am your birth star ${nakshatraName} (Pada ${nakshatraPada}), watching beside you since ${weekdayName}! Joined by your ally ${yogiPlanetName} and chart hero ${heroPlanetName}, I guard the silent conviction others keep underestimating.`,
-      }, lang);
-    }
+    const hookMap: Record<number, Record<SixLang, string>> = {
+      1: {
+        kn: `ನಮಸ್ಕಾರ ${devoteeName} — ನಿಮ್ಮ ಕುಂಡಲಿಯ ${n(heroPlanetHouse)}ನೇ ಮನೆಯ (${heroPlanetRashi}) ಪ್ರಬಲ ನಾಯಕ '${heroPlanetName}' ಹಾಗೂ ಪಕ್ಕದಲ್ಲೇ ನಿಂತಿರುವ '${nearestColleagueName}' ಈ ಅಧ್ಯಾಯದ ಪರದೆಯನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇವೆ.`,
+        mr: `नमस्कार ${devoteeName} — तुमच्या पत्रिकेतील ${n(heroPlanetHouse)}व्या भावाचा (${heroPlanetRashi}) मुख्य नायक '${heroPlanetName}' आणि शेजारी उभा '${nearestColleagueName}' आज या पहिल्या अंकाचा पडदा उघडत आहोत.`,
+        hi: `नमस्ते ${devoteeName} — आपकी कुंडली के ${n(heroPlanetHouse)}वें भाव (${heroPlanetRashi}) का प्रमुख नायक '${heroPlanetName}' और साथ खड़ा '${nearestColleagueName}' मिलकर आज इस जीवन-पुस्तिका का पहला परदा उठाते हैं।`,
+        te: `నమస్కారం ${devoteeName} — మీ కుండలిలోని ${n(heroPlanetHouse)}వ స్థాన (${heroPlanetRashi}) ప్రధాన నాయకుడు '${heroPlanetName}' మరియు పక్కనున్న '${nearestColleagueName}' ఈ తొలి పుటను ప్రారంభిస్తున్నాము.`,
+        ta: `வணக்கம் ${devoteeName} — உங்கள் ஜாதகத்தின் ${n(heroPlanetHouse)}-ம் இட (${heroPlanetRashi}) வலிமையான நாயகன் '${heroPlanetName}' மற்றும் அருகிலுள்ள '${nearestColleagueName}' இணைந்து இந்த முதல் அத்தியாயத்தைத் திறக்கிறோம்.`,
+        en: `Welcome inside, ${devoteeName}: speaking straight from House ${heroPlanetHouse} (${heroPlanetRashi}), I am ${heroPlanetName}, standing beside ${nearestColleagueName} in House ${nearestColleagueHouse} as we pull back the opening curtain on this exact hour.`,
+      },
+      2: {
+        kn: `ಬಾಹ್ಯ ನಗುವಿನ ಹಿಂದೆ ಅಡಗಿರುವ ನಿಜವಾದ ತೂಕವನ್ನು ಗಮನಿಸೋಣ: ${lagnaRashiName} ಸ್ವಭಾವದವರು ತಾವಾಗಿ ದೂರು ಹೇಳದೆ ಇಡೀ ಮನೆಯ ಗೌರವವನ್ನು ಭುಜದ ಮೇಲೆ ಹೊರುತ್ತಾರೆ.`,
+        mr: `चेहऱ्यावरील शांत हास्यामागील न बोललेले ओझे पहा: ${lagnaRashiName} प्रवृत्तीची माणसे तक्रार न करता संपूर्ण परिवाराची मर्यादा सांभाळून घेतात.`,
+        hi: `चेहरे की सहज मुस्कान के भीतर छिपे मौन भार को देखिए: ${lagnaRashiName} प्रकृति के लोग बिना शिकायत किए सबकी मर्यादा अपने कंधों पर संभाल लेते हैं।`,
+        te: `బయటి చిరునవ్వు వెనుక ఉన్న నిశ్శబ్ద భారాన్ని చూడండి: ${lagnaRashiName} స్వభావం కలవారు ఫిర్యాదు చేయకుండా అందరి బాధ్యతలను భుజాన మోస్తారు.`,
+        ta: `வெளிப் புன்னகைக்குப் பின்னால் மறைந்திருக்கும் சுமையைக் காணுங்கள்: ${lagnaRashiName} இயல்புடையவர்கள் குறை சொல்லாமல் குடும்ப மரியாதையைத் தாங்கி நிற்பார்கள்.`,
+        en: `Look quietly behind your calm exterior: those shaped by ${lagnaRashiName} grit rarely complain aloud—they simply absorb household pressure so everyone else sleeps easier.`,
+      },
+      3: {
+        kn: `ಜ್ಯೋತಿಷ್ಯವು ಭವಿಷ್ಯ ಹೇಳುವ ಮೊದಲು ನಿಮ್ಮ ಗತಕಾಲದ ಲೆಕ್ಕವನ್ನು ಸರಿತೂಗಿಸಬೇಕು; ${shaniTransitRashi} ಸಂಚಾರವು ಕಳೆದ ಎರಡು ವರ್ಷಗಳಲ್ಲಿ ನಿಮ್ಮ ತಾಳ್ಮೆಯ ಒಂದೊಂದು ಹಂತವನ್ನೂ ಪರೀಕ್ಷಿಸಿ ದಾಖಲಿಸಿದೆ.`,
+        mr: `पुढील दिशा सांगण्यापूर्वी मागील हिशोब तपासून घेऊया; ${shaniTransitRashi} गोचराने गेल्या दोन वर्षांत तुमच्या संयमाची प्रत्येक कसोटी नोंदवून ठेवली आहे.`,
+        hi: `आगे की राह दिखाने से पहले बीते समय की सत्यता परखनी आवश्यक है; ${shaniTransitRashi} भ्रमण ने पिछले दो वर्षों में आपके धैर्य की हर परत को तौला है।`,
+        te: `భవిష్యత్తు చెప్పే ముందు గతాన్ని ఖచ్చితంగా సరిచూద్దాం; ${shaniTransitRashi} సంచారం గత రెండేళ్ళలో మీ ఓర్పును ప్రతి మలుపులోనూ పరీక్షించి నిరూపించింది.`,
+        ta: `வருங்காலத்தைச் சொல்லும் முன் கடந்த காலக் கணக்கைச் சரிபார்ப்போம்; ${shaniTransitRashi} சஞ்சாரம் கடந்த இரண்டு ஆண்டுகளில் உங்கள் பொறுமையின் ஒவ்வொரு படியையும் அளந்துவிட்டது.`,
+        en: `Before predicting tomorrow, real astrology proves yesterday: planetary motion through ${shaniTransitRashi} audited your patience ledger line by line over the past two years.`,
+      },
+      4: {
+        kn: `ಗಡಿಯಾರದ ಮುಳ್ಳು ೯೯ನೇ ಸೆಕೆಂಡಿಗೆ ಬಂದು ನಿಂತಂತೆ, ನಿಮ್ಮ ${n(maandiHouse)}ನೇ ಮನೆಯ ಮಾಂದಿ ಪ್ರಭಾವವು ಯಶಸ್ಸಿನ ಕೊನೆಯ ಕೊಂಡಿಯ ಬಳಿ ಸೂಕ್ಷ್ಮ ತಪಾಸಣೆ ನಡೆಸುತ್ತದೆ.`,
+        mr: `घड्याळाचा काटा ९९व्या क्षणावर थांबावा तशी तुमच्या ${n(maandiHouse)}व्या स्थानातील मांदी शक्ती अगदी शेवटच्या पायरीवर सूक्ष्म तपासणी करते.`,
+        hi: `जैसे घड़ी की सुई ९९वें पड़ाव पर आकर थम जाए, ठीक वैसे ही आपके ${n(maandiHouse)}वें भाव की मांदी सफलता के अंतिम द्वार पर बारीक जांच करती है।`,
+        te: `గడియారపు ముల్లు 99వ క్షణం దగ్గర ఆగినట్లుగా, మీ ${n(maandiHouse)}వ స్థానంలోని మాంది విజయం తలుపు వద్ద చివరి క్షణం పరిశీలన పెడుతుంది.`,
+        ta: `கடிகார முள் 99-வது விநாடியில் நிற்பது போல், உங்கள் ${n(maandiHouse)}-ம் இட மாந்தி வெற்றியின் கடைசிப் படியில் நுணுக்கமான சோதனை வைக்கிறது.`,
+        en: `Like a vault door pausing at ninety-nine percent turn, Maandi sitting quietly inside House ${maandiHouse} triggers an unusual inspection right at the threshold.`,
+      },
+      5: {
+        kn: `ನಿಮ್ಮ ಹುಟ್ಟು ಕ್ಷಣದ '${yogaName}' ಯೋಗ ಹಾಗೂ '${karanaName}' ಕರಣದ ಆಳದೊಳಗೆ ಇಣುಕಿ ನೋಡಿದಾಗ, ಯಾರಿಗೂ ತೋರಿಸದ ನಿಮ್ಮ ಆಂತರಿಕ ನಿಯಮಾವಳಿ ಸ್ಪಷ್ಟವಾಗಿ ಕಾಣಿಸುತ್ತದೆ.`,
+        mr: `तुमच्या जन्माच्या '${yogaName}' योग व '${karanaName}' करणाच्या गाभ्यात डोकावून पाहता, तुम्ही कोणालाही न सांगितलेली तत्त्वे स्पष्ट दिसतात.`,
+        hi: `आपके जन्म के '${yogaName}' योग और '${karanaName}' करण के भीतर झांकने पर वे अनकहे सिद्धांत साफ़ उभरते हैं जिन पर आपका मन चलता है।`,
+        te: `మీ జన్మ '${yogaName}' యోగం మరియు '${karanaName}' కరణం లోతుల్లోకి చూస్తే, ఎవరికీ కనిపించని మీ అంతర్గత నియమావళి స్పష్టమవుతుంది.`,
+        ta: `உங்கள் பிறப்பு '${yogaName}' யோகம் மற்றும் '${karanaName}' கரணத்தின் ஆழத்தைப் பார்க்கும்போது, வெளியுலகுக்குத் தெரியாத உங்கள் உள் விதிகள் புலப்படுகின்றன.`,
+        en: `Look beneath daily habits into the engine room of ${yogaName} Yoga and ${karanaName} Karana—here sit the quiet internal standards nobody sees yet everything obeys.`,
+      },
+      6: {
+        kn: `ಸಮುದ್ರಯಾನದಲ್ಲಿ ಗಾಳಿಯ ದಿಕ್ಕು ತಿಳಿದ ನಾವಿಕ ಅರ್ಧ ಶ್ರಮದಲ್ಲಿ ತೀರ ಸೇರುತ್ತಾನೆ; ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಅಂಥ ಅನುಕೂಲಕರ ದಿಕ್ಕು ಯೋಗಿ '${yogiPlanetName}' ರೂಪದಲ್ಲಿ ಹರಿಯುತ್ತಿದೆ.`,
+        mr: `वाऱ्याची अनुकूल दिशा ओळखणारा नाविक निम्म्या श्रमात किनारा गाठतो; तुमच्या पत्रिकेत तोच मदतीचा प्रवाह योगी '${yogiPlanetName}' कडून येतो.`,
+        hi: `हवा का अनुकूल रुख पहचानने वाला नाविक आधे परिश्रम में तट तक पहुंचता है; आपकी पत्रिका में वही सहायक धारा योगी '${yogiPlanetName}' से बहती है।`,
+        te: `అనుకూల గాలి దిశను పసిగట్టిన నావికుడు సగం శ్రమతోనే తీరం చేరతాడు; మీ జాతకంలో ఆ సహాయ ప్రవాహం యోగి '${yogiPlanetName}' ద్వారా సాగుతోంది.`,
+        ta: `காற்றின் போக்கை அறிந்த மாலுமி பாதி முயற்சியில் கரை சேர்வான்; உங்கள் ஜாதகத்தில் அந்த அனுகூல நீரோட்டம் யோகி '${yogiPlanetName}' வழியே ஓடுகிறது.`,
+        en: `A seasoned sailor wastes zero muscle rowing against harbor wind—inside your chart, natural tailwinds gather wherever Yogi ${yogiPlanetName} points your stride.`,
+      },
+      7: {
+        kn: `ಮನುಷ್ಯನ ಬದುಕು ಒಂದೇ ವೇಗದಲ್ಲಿ ಓಡುವುದಿಲ್ಲ; ಕಾಲಚಕ್ರವು ಹೊಸ ಋತುವನ್ನು ತೆರೆದಾಗ ಹಳೆಯ ತಂತ್ರಗಳು ತಾವಾಗಿಯೇ ಹಳೆಯದಾಗಿ ಹೊಸ ಅಧ್ಯಾಯ ಬೇಡುತ್ತವೆ.`,
+        mr: `आयुष्य एकाच वेगाने कधीच चालत नाही; काळाचे चक्र नवे पर्व सुरू करते तेव्हा जुन्या पद्धती आपोआप अपुऱ्या ठरून नवी चाल मागतात.`,
+        hi: `मनुष्य का समय एक ही गति से नहीं चलता; जब कालचक्र नई ऋतु खोलता है तो पुराने ढर्रे स्वतः छोटे पड़कर नया अध्याय मांगते हैं।`,
+        te: `జీవితం ఎప్పుడూ ఒకే వేగంతో సాగదు; కాలచక్రం కొత్త కాలాన్ని తెరిచినప్పుడు పాత పద్ధతులు మారి కొత్త దృక్కోణం అవసరమవుతుంది.`,
+        ta: `வாழ்க்கை ஒரே வேகத்தில் நகர்வதில்லை; காலச் சக்கரம் புதிய பருவத்தைத் திறக்கும்போது பழைய வழிகள் விலகிப் புதிய அணுகுமுறை பிறக்கிறது.`,
+        en: `Human seasons never stay static on one track—when cosmic gears click into a fresh chapter, old routines naturally feel cramped because bigger scope arrived.`,
+      },
+      8: {
+        kn: `ಕಮ್ಮಾರನ ಕುಲುಮೆಯಲ್ಲಿ ಕಬ್ಬಿಣ ಬಿಸಿ ತಟ್ಟಿದಷ್ಟು ಉಕ್ಕಾಗಿ ಗಟ್ಟಿಯಾಗುವಂತೆ, ಗೋಚಾರದ ಶನಿ ಪ್ರಭಾವವು ನಿಮ್ಮೊಳಗಿನ ಅಸ್ಥಿರತೆಯನ್ನು ಸುಟ್ಟು ಶುದ್ಧ ದೃಢತೆಯನ್ನು ಕಟ್ಟುತ್ತಿದೆ.`,
+        mr: `लोहाराच्या भट्टीत तावून लोखंडाचे पोलाद व्हावे, तशी शनीची सावली तुमच्यातील अस्थिर सवयी जाळून अढळ खंबीरपणा घडवत आहे.`,
+        hi: `जैसे भट्ठी में तपकर कच्चा लोहा फ़ौलाद बनता है, वैसे ही कर्मफलदाता का यह चरण अस्थिर आदतों को गलाकर अटूट दृढ़ता गढ़ रहा है।`,
+        te: `కొలిమిలో కాలిన ఇనుము ఉక్కుగా మారినట్లుగా, శని ప్రభావం మీలోని అస్థిరతను తొలగించి కదిలించలేని దృఢత్వాన్ని నిర్మిస్తోంది.`,
+        ta: `உலையில் வெந்த இரும்பு உறுதியான எஃகாக மாறுவது போல், சனியின் சஞ்சாரம் சலனங்களை நீக்கி அசைக்க முடியாத மனவுறுதியை வடிவமைக்கிறது.`,
+        en: `Iron only discovers its backbone after meeting the anvil: slow celestial discipline has been stripping weak habits away so real endurance can take charge.`,
+      },
+      9: {
+        kn: `ಗಾಢ ಮಂಜಿನ ನಡುವೆ ಮುಂಜಾನೆಯ ಕಿರಣ ದಾರಿ ತೋರಿದಂತೆ, ಜ್ಞಾನಕಾರಕ ಗುರು ಗ್ರಹದ ಸಂಚಾರವು ಮುಚ್ಚಿಹೋಗಿದ್ದ ಹಳೆಯ ಮಾತುಕತೆಗಳಲ್ಲಿ ಹೊಸ ಆಶಾವಾದವನ್ನು ತುಂಬುತ್ತಿದೆ.`,
+        mr: `दाट धुक्यातून सकाळच्या किरणांनी वाट दाखवावी, तसा ज्ञानाचा कारक गुरु आता अडलेल्या संवादांमध्ये नवी आशा आणि स्पष्टता आणत आहे.`,
+        hi: `घने कोहरे के बीच प्रातः की किरण जैसे राह दिखाती है, वैसे ही देवगुरु का गोचर ठहरे हुए संवादों में नई आशा और सूझ भर रहा है।`,
+        te: `దట్టమైన పొగమంచు మధ్య ఉదయపు వెలుగు దారి చూపినట్లుగా, గురు సంచారం నిలిచిపోయిన ప్రయత్నాల్లో కొత్త ఆశను నింపుతోంది.`,
+        ta: `அடர்ந்த பனிக்கு நடுவே காலைக் கதிரவன் வழி காட்டுவது போல், குரு பகவானின் நகர்வு தேங்கியிருந்த உரையாடல்களில் புதிய நம்பிக்கையை ஊற்றுகிறது.`,
+        en: `Just as clean morning light parts valley fog without noise, expansive Jupiter brings fresh air, wise counsel, and human warmth into cramped corners.`,
+      },
+      10: {
+        kn: `ಮರುಭೂಮಿಯಲ್ಲಿ ದೂರದ ನೀರಿನಂತೆ ತೋರುವ ಮರೀಚಿಕೆ ಹಾಗೂ ದಿಕ್ಸೂಚಿಯ ನಿಖರ ಮುಳ್ಳಿನ ನಡುವಿನ ವ್ಯತ್ಯಾಸವನ್ನು ತಿಳಿಸುವ ಅಧ್ಯಾಯವಿದು — ನಿಜಕ್ಕೂ ಗಟ್ಟಿ ಯಾವುದು ನೋಡಿ.`,
+        mr: `वाळवंटातील मृगजळ आणि हातातील अचूक होकायंत्र यांतील फरक ओळखण्याचा हा अध्याय आहे — आभासी भीतीमागील खरा आधार काय ते पहा.`,
+        hi: `मरुस्थल की मृगतृष्णा और दिशासूचक यंत्र की अटल सुई के बीच का अंतर पहचानने का यह अध्याय है—छाया और सत्य को अलग करके देखें।`,
+        te: `ఎడారిలోని ఎండమావికి, నిజమైన దిక్సూచికి మధ్య తేడాను చూపే అధ్యాయమిది—భ్రమల వెనుక ఉన్న వాస్తవ బలాన్ని గుర్తించండి.`,
+        ta: `பாலைவனக் கானல்நீருக்கும் உண்மையான திசைக்காட்டி முள்ளுக்கும் உள்ள வேறுபாட்டை உணர்த்தும் அத்தியாயம் இது—மாயையைத் தாண்டி உண்மையைப் பாருங்கள்.`,
+        en: `Standing between a desert mirage and a true brass compass takes one disciplined glance—step inside how shadow nodes blur urgency before truth settles.`,
+      },
+      11: {
+        kn: `ಬೂದಿಯ ಕೆಳಗೆ ಮುಚ್ಚಿಟ್ಟ ಕೆಂಡವೂ ಸರಿಯಾದ ಗಾಳಿ ಸಿಕ್ಕ ಕ್ಷಣ ಜ್ವಾಲೆಯಾಗುವಂತೆ, ನಿಮ್ಮ ${lagnaRashiName} ಕುಂಡಲಿಯ ಸುಪ್ತ ರಾಜಯೋಗಗಳು ಗೌರವದ ವೇದಿಕೆಯನ್ನು ಕಟ್ಟುತ್ತಿವೆ.`,
+        mr: `राखेखाली दडलेली ठिणगी वाऱ्याची झुळूक मिळताच प्रज्वलित व्हावी, तसे तुमच्या ${lagnaRashiName} पत्रिकेतील सुप्त राजयोग आता मानाचे व्यासपीठ उभारत आहेत.`,
+        hi: `राख के नीचे दबी चिंगारी जैसे सही हवा पाते ही दमक उठती है, वैसे ही आपके ${lagnaRashiName} लग्न के राजयोग अब सम्मान का मंच सजा रहे हैं।`,
+        te: `బూడిద కింద దాగిన నిప్పుకణిక సరైన గాలి తగలగానే ప్రకాశించినట్లుగా, మీ ${lagnaRashiName} జాతకంలోని రాజయోగాలు ఉన్నత స్థానాన్ని అందిస్తున్నాయి.`,
+        ta: `சாம்பலுக்குள் மறைந்திருந்த நெருப்பு தக்க காற்றில் சுடர்விடுவது போல், உங்கள் ${lagnaRashiName} ஜாதகத்தின் ராஜயோகங்கள் பெருமைமிகு மேடையை உருவாக்குகின்றன.`,
+        en: `Embers resting quietly beneath cool ash ignite instantly once clean oxygen arrives—inside your ${lagnaRashiName} sky sit dormant royal combinations ready for earned recognition.`,
+      },
+      12: {
+        kn: `ಬೇರೆಯವರ ನಕ್ಷೆ ಹಿಡಿದು ಓಡುವುದಕ್ಕಿಂತ ಸ್ವಂತ ಸಾಮರ್ಥ್ಯದ ಸಾರಥ್ಯ ವಹಿಸಿದಾಗ ವೃತ್ತಿರಂಗದಲ್ಲಿ ಬದಲಾವಣೆ ಆಗುತ್ತದೆ; '${house10Info.lordName}' ಕರ್ಮಾಧಿಪತಿ ಆ ಸ್ಥಾನದತ್ತಲೇ ಕೈತೋರಿಸುತ್ತಿದೆ.`,
+        mr: `दुसऱ्यांच्या आदेशांमागे धावण्यापेक्षा स्वतःच्या कौशल्याची सूत्रे हातात घेतल्यावर प्रगती होते; कर्मेश '${house10Info.lordName}' तुम्हाला त्याच नेतृत्वाकडे नेत आहे.`,
+        hi: `दूसरों की लकीर पर चलने से आगे बढ़कर जब आप स्वयं कार्यक्षेत्र की कमान संभालते हैं, तभी असली उछाल आता है; दशमेश '${house10Info.lordName}' यही संकेत दे रहे हैं।`,
+        te: `ఇతరుల దారిలో నడవడం కంటే స్వంత సామర్థ్యానికి నాయకత్వం వహించినప్పుడే వృత్తిలో వెలుగు వస్తుంది; దశమాధిపతి '${house10Info.lordName}' అదే దిశను చూపుతున్నారు.`,
+        ta: `பிறருடைய திட்டங்களுக்குத் துணை நிற்பதைத் தாண்டி உங்கள் சொந்தத் திறமைக்குத் தலைமை ஏற்கும்போது உயர்வு பிறக்கிறது; கர்மாதிபதி '${house10Info.lordName}' அதைத் தூண்டுகிறார்.`,
+        en: `Stepping out from reliable background execution into true ownership shifts everything—career lord ${house10Info.lordName} points squarely toward claiming larger stewardship.`,
+      },
+      13: {
+        kn: `ನೀರು ಹರಿಯುವ ಕಾಲುವೆಯಲ್ಲಿ ಸಣ್ಣ ಬಿರುಕುಗಳಿದ್ದರೆ ಎಷ್ಟೇ ತುಂಬಿದರೂ ಕೆರೆ ತುಂಬುವುದಿಲ್ಲ; '${house2Info.lordName}' ಹಾಗೂ '${house11Info.lordName}' ಆರ್ಥಿಕ ಸೋರಿಕೆಯ ಮೂಲವನ್ನು ತೋರಿಸುತ್ತಿವೆ.`,
+        mr: `पाण्याच्या कालव्यातील छोटी गळती न रोखल्यास तलाव भरत नाही; '${house2Info.lordName}' आणि '${house11Info.lordName}' तुमची आर्थिक गळती नेमकी कुठे आहे ते दाखवतात.`,
+        hi: `यदि सरोवर की दीवार में सूक्ष्म रिसाव हो तो कितना भी जल आए, वह टिकता नहीं; धनेश '${house2Info.lordName}' व लाभेश '${house11Info.lordName}' वही रिसाव दिखाते हैं।`,
+        te: `కాలువలో చిన్న రంధ్రం ఉంటే ఎంత నీరు వచ్చినా నిలవదు; మీ జాతకంలోని '${house2Info.lordName}' మరియు '${house11Info.lordName}' ఆ ఆర్థిక రహస్యాన్ని చూపుతున్నాయి.`,
+        ta: `நீர்க்கால்வாயில் சிறு கசிவு இருந்தால் எவ்வளவு நீர் வந்தாலும் குளம் நிரம்பாது; '${house2Info.lordName}' மற்றும் '${house11Info.lordName}' அந்தப் பணக் கசிவைக் காட்டுகின்றன.`,
+        en: `Pouring faster water into a leaking channel never fills the reservoir—your 2nd and 11th houses (${house2Info.lordName} & ${house11Info.lordName}) reveal exactly how cash slips out unseen.`,
+      },
+      14: {
+        kn: `ಮಾತು ಕಡಿಮೆಯಾದಾಗ ಹೃದಯಗಳು ಪರಸ್ಪರ ಊಹೆಗಳ ಗೋಡೆ ಕಟ್ಟಿಕೊಳ್ಳುತ್ತವೆ; '${house7Info.lordName}' ಪ್ರಭಾವವು ಆಪ್ತ ಬಾಂಧವ್ಯದೊಳಗಿನ ಆ ಮೌನ ಭಾಷೆಯನ್ನು ಬಿಡಿಸಿ ತೋರಿಸುತ್ತದೆ.`,
+        mr: `संवाद खुंटला की मनात गैरसमजाच्या भिंती उभ्या राहतात; '${house7Info.lordName}' सप्तमेशाची चाल जवळच्या नात्यातील तीच अव्यक्त भाषा उलगडते.`,
+        hi: `जब संवाद रुकता है तो दो हृदयों के बीच अनकही दीवारें उठने लगती हैं; सप्तमेश '${house7Info.lordName}' निकट संबंधों की उसी मौन भाषा को खोलते हैं।`,
+        te: `మాటలు తగ్గినప్పుడు రెండు హృదయాల మధ్య అపార్థపు గోడలు పెరుగుతాయి; సప్తమాధిపతి '${house7Info.lordName}' మీ బంధాలలోని ఆ నిశ్శబ్ద భాషను వివరిస్తోంది.`,
+        ta: `பேச்சு குறையும்போது நெருங்கிய இதயங்களுக்கு நடுவே மௌனச் சுவர் எழுகிறது; '${house7Info.lordName}' உங்கள் உறவுகளுக்குள் ஒளிந்திருக்கும் அந்த உணர்வை வெளிப்படுத்துகிறது.`,
+        en: `Silence rarely stays empty—it quickly fills with guesswork between two loyal hearts; 7th-lord ${house7Info.lordName} decodes what affection looks like behind closed doors.`,
+      },
+      15: {
+        kn: `ನಿತ್ಯದ ಕರ್ತವ್ಯಗಳ ಭಾರದಲ್ಲಿ ಮಸುಕಾಗಿದ್ದ ಕಲಾತ್ಮಕ ಕಿಡಿಯನ್ನು ಮತ್ತೆ ಹೊತ್ತಿಸುವ ಅಧ್ಯಾಯವಿದು; ಪಂಚಮಾಧಿಪತಿ '${house5Info.lordName}' ಸಂತೋಷ ಮತ್ತು ಸೃಜನಶೀಲ ಬುದ್ಧಿಗೆ ದಾರಿ ಬಿಡುತ್ತಿದೆ.`,
+        mr: `रोजच्या कर्तव्यांच्या गर्दीत दबलेली कलात्मक ठिणगी पुन्हा फुलवण्याचा हा अध्याय आहे; पंचमेश '${house5Info.lordName}' बुद्धीला नवा आनंद देत आहे.`,
+        hi: `दैनिक जिम्मेदारियों की भीड़ में दबी रचनात्मक चिंगारी को फिर से जगाने का यह अध्याय है; पंचमेश '${house5Info.lordName}' बौद्धिक आनंद का द्वार खोलते हैं।`,
+        te: `నిత్య బాధ్యతల ఒత్తిడిలో మరుగున పడిన సృజనాత్మక కాంతిని మళ్ళీ వెలిగించే అధ్యాయమిది; పంచమాధిపతి '${house5Info.lordName}' నూతన ఉత్సాహాన్ని ఇస్తున్నారు.`,
+        ta: `அன்றாடக் கடமைகளுக்கு நடுவே மங்கிப்போன படைப்பாற்றல் சுடரை மீண்டும் ஏற்றும் அத்தியாயம் இது; ஐந்தாம் அதிபதி '${house5Info.lordName}' புதிய உத்வேகத்தைத் தருகிறார்.`,
+        en: `Somewhere beneath duty spreadsheets lives your brightest joyful spark—5th-lord ${house5Info.lordName} reawakens original creation, intelligence, and lasting legacy.`,
+      },
+      16: {
+        kn: `ವಾಹನದ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಮೇಲೆ ಸಣ್ಣ ಹಳದಿ ದೀಪ ಮಿಂಚಿದಂತೆ, ನಿಮ್ಮ ದೇಹದ ${house6Info.lordName} ನಿಯಂತ್ರಣವು ದೊಡ್ಡ ಆಯಾಸ ಬರುವ ಮೊದಲೇ ಸೂಕ್ಷ್ಮ ಎಚ್ಚರಿಕೆ ನೀಡುತ್ತದೆ.`,
+        mr: `प्रवासापूर्वी यंत्रावर छोटा पिवळा दिवा लागावा, तसे शरीरातील '${house6Info.lordName}' शक्ती मोठ्या थकव्यापूर्वीच सूक्ष्म इशारे देऊन सावध करते.`,
+        hi: `बड़ी खराबी से पहले जैसे वाहन के डैशबोर्ड पर हल्की चेतावनी चमकती है, वैसे ही षष्ठेश '${house6Info.lordName}' मानसिक थकान के शुरुआती संकेत देते हैं।`,
+        te: `పెద్ద సమస్య రాకముందే డ్యాష్‌బోర్డుపై చిన్న లైటు వెలిగినట్లుగా, '${house6Info.lordName}' శక్తి మీ ఆరోగ్య అలసటను ముందే హెచ్చరిస్తోంది.`,
+        ta: `பெரிய பழுதுக்கு முன்பே சிறிய எச்சரிக்கை விளக்கு எரிவது போல், ஆறாம் அதிபதி '${house6Info.lordName}' உடல் சோர்வை முன்கூட்டியே சுட்டிக்காட்டுகிறது.`,
+        en: `Before burnout ever breaks engine seals, dashboard lights flicker gently—your health governor (${house6Info.lordName}) tracks quiet signals well ahead of fatigue.`,
+      },
+      17: {
+        kn: `ವಿರಾಮದ ನಂತರ ಮತ್ತೆ ಶುರುವಾಗುವ ಸಂಗೀತ ಕಚೇರಿಯ ಮೊದಲ ಸ್ವರದಂತೆ, ಮುಂಬರುವ ೯೦ ದಿನಗಳು ನಿಂತ ನೀರಿಗೆ ತಾಜಾ ಚಲನೆಯನ್ನು ತಂದುಕೊಡುವ ಘಟ್ಟವಾಗಿದೆ.`,
+        mr: `विश्रांतीनंतर वाद्यवृंद पुन्हा सूर धरतो, तसा हा ९० दिवसांचा टप्पा थांबलेल्या कामांना ताजी गती आणि स्पष्ट वळण देणारा आहे.`,
+        hi: `ठहराव के बाद जैसे संगीत सभा का पहला सुर गूंजता है, आने वाले ९० दिन अटके हुए कार्यों में ताज़ी गति और स्पष्ट मोड़ लाने जा रहे हैं।`,
+        te: `చిన్న విరామం తర్వాత సంగీతం మళ్ళీ ఊపందుకున్నట్లుగా, రాబోయే 90 రోజులు ఆగిపోయిన ప్రయత్నాలకు తాజా వేగాన్ని ఇవ్వబోతున్నాయి.`,
+        ta: `இடைவேளைக்குப் பிறகு இசைக்குழு மீண்டும் சுருதி சேர்ப்பது போல், அடுத்த 90 நாட்கள் தேங்கியிருந்த முயற்சிகளுக்குப் புதிய வேகத்தைத் தரவுள்ளன.`,
+        en: `Like musicians lifting instruments right after intermission, the coming ninety-day band restarts quiet movement across stalled desks and unanswered threads.`,
+      },
+      18: {
+        kn: `ಎರಡು ಪ್ರತ್ಯೇಕ ನದಿಗಳು ಸಂಗಮವಾಗುವ ಪವಿತ್ರ ಸ್ಥಳದಂತೆ, ನಿಮ್ಮ ಚಾರ್ಟಿನ ಬೃಗು ಬಿಂದು (${bhriguBinduRashiName}) ಚದುರಿದ ಪ್ರಯತ್ನಗಳನ್ನು ಒಂದೇ ಫಲದತ್ತ ತಿರುಗಿಸುತ್ತದೆ.`,
+        mr: `दोन वेगवेगळ्या प्रवाहांचा संगम व्हावा, तसा तुमच्या पत्रिकेतील भृगु बिंदू (${bhriguBinduRashiName}) विखुरलेल्या प्रयत्नांना एकाच ठोस फळाकडे वळवतो.`,
+        hi: `दो अलग धाराओं के संगम की तरह, आपकी कुंडली का भृगु बिंदु (${bhriguBinduRashiName}) बिखरे हुए प्रयासों को एक ठोस परिणाम की ओर मोड़ता है।`,
+        te: `రెండు నదులు కలిసే పవిత్ర సంగమంలా, మీ జాతకంలోని భృగు బిందువు (${bhriguBinduRashiName}) చెదిరిన ప్రయత్నాలను ఒకే ఫలితం వైపు నడిపిస్తోంది.`,
+        ta: `இரு நதிகள் இணையும் சங்கமம் போல், உங்கள் ஜாதகத்தின் பிருகு பிந்து (${bhriguBinduRashiName}) சிதறிய முயற்சிகளை ஒரே வெற்றியாக இணைக்கிறது.`,
+        en: `Where hidden lunar currents meet solar purpose stands your Bhrigu Bindu in ${bhriguBinduRashiName}—the midpoint turning dispersed months into focused green lights.`,
+      },
+      19: {
+        kn: `ಹೊಸ ಮನೆ ಕಟ್ಟುವ ಮುನ್ನ ಹಳೆಯ ಸುತ್ತಮುತ್ತಲಿನ ಕಸವನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸುವಂತೆ, ${n(nowYear)} ನಿಮ್ಮ ಜೀವನ ಮೇಜಿನ ಮೇಲಿನ ಅನಗತ್ಯ ಗೊಂದಲವನ್ನು ಮೊದಲು ತೆರವುಗೊಳಿಸುತ್ತದೆ.`,
+        mr: `नवी इमारत उभारण्यापूर्वी जुना पसारा आवरावा, तसे ${n(nowYear)} हे वर्ष तुमच्या आयुष्यातील अनावश्यक गुंता सर्वप्रथम मोकळा करेल.`,
+        hi: `नई नींव रखने से पहले जैसे मेज़ की पुरानी अव्यवस्था समेटी जाती है, वर्ष ${n(nowYear)} सबसे पहले आपके समय पर जमी धूल साफ़ करता है।`,
+        te: `కొత్త కట్టడం ముందు స్థలాన్ని శుభ్రం చేసినట్లుగా, ${n(nowYear)}వ సంవత్సరం మీ జీవన గదిలోని అనవసర గందరగోళాన్ని తొలగించి క్రమబద్ధం చేస్తుంది.`,
+        ta: `புதிய கட்டுமானத்திற்கு முன் மேடையைச் சுத்தம் செய்வது போல், ${n(nowYear)}-ம் ஆண்டு உங்கள் நேரத்தைக் கெடுக்கும் பழைய சுமைகளை முதலில் அகற்றுகிறது.`,
+        en: `Every lasting structure starts by clearing crowded tables: in ${nowYear}, resetting rhythms matters far more than piling on extra noise.`,
+      },
+      20: {
+        kn: `ಬಂದರು ಬಿಟ್ಟು ಆಳ ಸಮುದ್ರದ ಮುಕ್ತ ಗಾಳಿಯನ್ನು ಹಿಡಿಯುವ ಹಡಗಿನಂತೆ, ${n(nowYear + 1)} ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಕೌಶಲ್ಯಕ್ಕೆ ವಿಶಾಲ ವೇದಿಕೆಯನ್ನು ತೆರೆದುಕೊಡುತ್ತದೆ.`,
+        mr: `बंदर सोडून खुल्या समुद्राची अनुकूल हवा पकडणाऱ्या जहाजाप्रमाणे, ${n(nowYear + 1)} तुमच्या कौशल्याला मोठे व मानाचे व्यासपीठ देईल.`,
+        hi: `बंदरगाह छोड़कर खुले सागर की अनुकूल हवा पकड़ने वाले जलयान की तरह, वर्ष ${n(nowYear + 1)} आपकी योग्यता को बड़ा मंच प्रदान करेगा।`,
+        te: `రేవును విడిచి విశాల సముద్రంలో వేగంగా సాగే నౌకలా, ${n(nowYear + 1)} మీ ప్రతిభకు పెద్ద వేదికను మరియు గుర్తింపును అందిస్తుంది.`,
+        ta: `துறைமுகத்தைத் தாண்டி ஆழ்கடலின் சுதந்திரக் காற்றைப் பிடிக்கும் கப்பல் போல், ${n(nowYear + 1)} உங்கள் திறமைக்குப் பெரிய மேடையைத் திறக்கிறது.`,
+        en: `Leaving narrow harbor buoys for open current, ${nowYear + 1} rewards calm preparation with visibility, invitations, and broader authority.`,
+      },
+      21: {
+        kn: `ಕಾಗದದ ಮೇಲಿದ್ದ ನಕ್ಷೆ ಕಲ್ಲು-ಮಣ್ಣಿನ ಭವ್ಯ ಕಟ್ಟಡವಾಗಿ ನಿಲ್ಲುವ ಘಳಿಗೆಯಿದು; ಕುಟುಂಬದ ಆಸ್ತಿ ಹಾಗೂ ನೆಮ್ಮದಿಯ ಕನಸುಗಳು ಕಣ್ಣ ಮುಂದೆ ರೂಪುಗೊಳ್ಳುತ್ತವೆ.`,
+        mr: `कागदावरील आराखडा प्रत्यक्ष विटा-मातीच्या सुंदर वास्तूत उतरण्याचा हा सुवर्ण काळ आहे; घर-मालमत्तेचे स्वप्न डोळ्यांसमोर साकार होते.`,
+        hi: `कागज़ पर बना नक़्शा अब ठोस ईंट-पत्थर के भव्य भवन में ढलने जा रहा है; गृह, संपत्ति और पारिवारिक उत्सव के सपने साकार रूप लेते हैं।`,
+        te: `కాగితంపై ఉన్న ప్రణాళిక నిజమైన సౌధంగా నిలబడే ఘట్టమిది; కుటుంబ ఆస్తులు మరియు శుభకార్యాల కలలు కళ్ళముందే నిజమవుతాయి.`,
+        ta: `காகிதத்தில் இருந்த வரைபடம் நிஜமான மாளிகையாக உயர்ந்து நிற்கும் தருணம் இது; சொத்து மற்றும் குடும்ப சுப நிகழ்வுகள் நேரில் நிறைவேறும்.`,
+        en: `Blueprints finally harden into brick, keys, and shared laughter at home—quiet discipline matures into assets your family can hold.`,
+      },
+      22: {
+        kn: `ಎತ್ತರದ ಬೆಟ್ಟದ ತುದಿ ತಲುಪಿ ಹಿಂದೆ ನಡೆದು ಬಂದ ಹಾದಿಯನ್ನು ನೋಡುವಾಗ ಮೂಡುವ ಆ ಆಳವಾದ ತೃಪ್ತಿಯೇ ಐದನೇ ವರ್ಷದ ಕೊಡುಗೆಯಾಗಿದೆ.`,
+        mr: `उंच शिखरावर पोहोचून मागे वळून पाहताना जो शांत अभिमान वाटतो, तोच पाचव्या वर्षाच्या क्षितिजाचा खरा आनंद आहे.`,
+        hi: `ऊंचे शिखर पर पहुंचकर पीछे छूटे पथ को देखने पर जो गहन संतोष मिलता है, वही पांचवें वर्ष के क्षितिज का अमूल्य उपहार है।`,
+        te: `ఎత్తైన శిఖరం చేరుకుని వెనక్కి తిరిగి చూసుకున్నప్పుడు కలిగే నిశ్శబ్ద తృప్తే ఐదవ సంవత్సరపు గొప్ప బహుమతి.`,
+        ta: `உயர்ந்த மலை உச்சியை அடைந்து கடந்து வந்த பாதையைத் திரும்பிப் பார்க்கும்போது தோன்றும் அமைதியான நிறைவே ஐந்தாம் ஆண்டின் பரிசாகும்.`,
+        en: `Reaching an unhurried ridge crest allows a grateful glance back—suddenly every puzzling detour from earlier seasons clicks into complete clarity.`,
+      },
+      23: {
+        kn: `ಕತ್ತಲಲ್ಲಿ ಹತ್ತು ಕಲ್ಲು ಎಸೆಯುವ ಬದಲು ಒಂದೇ ನಿಖರ ದೀಪ ಹಚ್ಚಿದಂತೆ, ಈ ಅಧ್ಯಾಯವು ಭಯವನ್ನು ಬಿಟ್ಟು ಸಕ್ರಿಯ ದೋಷಗಳನ್ನು ಮಾತ್ರ ಪ್ರತ್ಯೇಕಿಸಿ ತೋರಿಸುತ್ತದೆ.`,
+        mr: `अंधारात दगड मारण्यापेक्षा अचूक दिवा लावून तपासल्यासारखे, हा अध्याय निरर्थक भीती बाजूला ठेवून फक्त सक्रिय दोष स्पष्ट करतो.`,
+        hi: `अंधेरे में भटकने के बजाय एक सटीक दीपक जलाने की तरह, यह अध्याय व्यर्थ भ्रम हटाकर केवल सक्रिय दोषों को अलग दिखाता है।`,
+        te: `చీకట్లో వంద అంచనాలు వేసే బదులు ఒక ఖచ్చితమైన దీపం వెలిగించినట్లు, ఈ అధ్యాయం అపోహలను తొలగించి అసలైన దోషాలను వేరుచేస్తుంది.`,
+        ta: `இருட்டில் குருட்டாம்போக்காகத் தேடாமல் ஒரு துல்லிய விளக்கை ஏற்றுவது போல், இந்த அத்தியாயம் வீண் அச்சத்தை நீக்கி உண்மையான தோஷங்களை மட்டும் பிரித்துக்காட்டுகிறது.`,
+        en: `Switching on one sharp diagnostic beam ends vague anxiety: here we isolate only verified active patterns across your chart and pair each with its clean fix.`,
+      },
+      24: {
+        kn: `ಇಪ್ಪತ್ತಮೂರು ಅಧ್ಯಾಯಗಳ ಸಾಗರವನ್ನು ಅಂಗೈಯಲ್ಲಿ ಹಿಡಿಯುವ ಪುಟ್ಟ ದಿಕ್ಸೂಚಿಯಂತೆ, ನಿತ್ಯ ಜೀವನಕ್ಕೆ ಬೇಕಾದ ನಾಲ್ಕು ಪ್ರಬಲ ಕೀಲಿಕೈಗಳು ಇಲ್ಲಿ ಒಟ್ಟಾಗಿವೆ.`,
+        mr: `तेवीस अध्यायांचा अथांग सागर तळहातावर मावणाऱ्या होकायंत्रासारखा, दैनंदिन जीवनाच्या चार सोप्या किल्ल्या येथे एकवटल्या आहेत.`,
+        hi: `तेईस अध्यायों के गहरे सागर को हथेली में समाने वाले सरल दिशायंत्र की भांति, रोज़मर्रा की चार शक्तिशाली कुंजियां यहां एकत्र हैं।`,
+        te: `ఇరవై మూడు అధ్యాయాల సారాంశాన్ని అరచేతిలో అమరే చిన్న దిక్సూచిలా మార్చి, రోజువారీ జీవితానికి నాలుగు సులభమైన కీలను ఇక్కడ అందిస్తున్నాము.`,
+        ta: `இருபத்து மூன்று அத்தியாயங்களின் சாரத்தை உள்ளங்கையில் அடங்கும் திசைக்காட்டியாக மாற்றி, அன்றாட வாழ்வின் நான்கு ஆற்றல் சாவிகளை இங்கே தொகுத்துள்ளோம்.`,
+        en: `Distilling twenty-three deep chapters into one pocket compass gives you power without overwhelm—consistency beats complexity every single morning.`,
+      },
+      25: {
+        kn: `ಗೋಕರ್ಣದ ಪವಿತ್ರ ಕಡಲತೀರದಲ್ಲಿ ಅಲೆಗಳು ಶಾಂತವಾಗಿ ತೀರ ಸೇರುವಂತೆ, ನಿಮ್ಮ ಜಾತಕದ ಮಹಾ ವೃತ್ತವು ಪೂರ್ಣ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ಇಲ್ಲಿ ನೆಲೆಗೊಳ್ಳುತ್ತಿದೆ.`,
+        mr: `गोकर्णाच्या पवित्र किनारी लाटा शांतपणे विसावतात, तशी तुमच्या जीवनकथेची ही संपूर्ण परिक्रमा महाबळेश्वराच्या आशीर्वादाने पूर्ण होत आहे.`,
+        hi: `श्री गोकर्ण के पावन तट पर जैसे शांत लहरें विश्राम पाती हैं, वैसे ही आपकी जीवन-कथा का यह संपूर्ण चक्र दिव्य आशीर्वाद के साथ पूर्ण होता है।`,
+        te: `గోకర్ణ పవిత్ర తీరంలో అలలు ప్రశాంతంగా చేరినట్లుగా, మీ జీవిత కథ యొక్క ఈ పూర్తి వలయం దివ్య ఆశీర్వాదంతో సంపూర్ణమవుతోంది.`,
+        ta: `ஸ்ரீ கோகர்ண புனிதக் கடற்கரையில் அலைகள் அமைதியாகக் கரை சேர்வது போல், உங்கள் வாழ்க்கைக் கதையின் முழு வட்டமும் தெய்வீக ஆசியோடு நிறைவடைகிறது.`,
+        en: `Like gentle tides touching Gokarna's sacred shore at dusk, your twenty-five chapter circle closes cleanly in strength, grace, and enduring calm.`,
+      },
+    };
 
-    if (themeKey === "yoga_karana") {
-      return pick6({
-        kn: `ನಾನು ನಿನ್ನ ಜನ್ಮ ಯೋಗ '${yogaName}' ಹಾಗೂ ಕರಣ '${karanaName}' — ನಿನ್ನ ಕುಂಡಲಿಯ ಅಸಲಿ ನಾಯಕ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ! ನನ್ನ ಪಕ್ಕದಲ್ಲೇ ಸಹೋದ್ಯೋಗಿಗಳಾದ '${heroPlanetName}' ಮತ್ತು '${nearestColleagueName}' ಹೇಗೆ ವರ್ತಿಸುತ್ತಿದ್ದಾರೆ ಗೊತ್ತೇ? ನಿನ್ನ ಕೆಲಸದ ವೇಗವನ್ನು ನಿಯಂತ್ರಿಸಿ ಸರಿಯಾದ ಸಮಯಕ್ಕೆ ಬೀಗ ತೆರೆಯುವ ಕೀಲಿ ನನ್ನ ಕೈಯಲ್ಲಿದೆ!`,
-        mr: `मी तुझा जन्म योग '${yogaName}' आणि करण '${karanaName}' — तुझ्या कुंडलीचा खरा नायक बोलत आहे! माझे सहकारी '${heroPlanetName}' आणि '${nearestColleagueName}' पत्रिकेत कशी हालचाल करत आहेत ते पहा — योग्य क्षणी यशाचे कुलूप उघडणारी गुप्त किल्ली माझ्याकडेच आहे!`,
-        hi: `मैं तुम्हारा जन्म योग '${yogaName}' और करण '${karanaName}' — तुम्हारी कुंडली का असली नायक बोल रहा हूं! मेरे साथ काम करने वाले सहकर्मी '${heroPlanetName}' और '${nearestColleagueName}' तुम्हारे भाग्य की घड़ी चला रहे हैं—जब समय पक्का होता है, बंद ताले मैं ही खोलता हूं!`,
-        te: `నేను నీ జన్మ యోగం '${yogaName}' మరియు కరణం '${karanaName}' — నీ కుండలిలోని శక్తివంతమైన నాయకుడిని! నా సహోద్యోగులైన '${heroPlanetName}' మరియు '${nearestColleagueName}' ఇప్పుడు నీ కోసం ఎలా పనిచేస్తున్నారో చూడు—సరైన సమయానికి తలుపు తెరిచే తాళం నా చేతిలోనే ఉంది!`,
-        ta: `நான் உன் பிறப்பு யோகம் '${yogaName}' மற்றும் கரணம் '${karanaName}' — உன் ஜாதகத்தின் வலிமையான நாயகன் பேசுகிறேன்! என் சகாக்களான '${heroPlanetName}' மற்றும் '${nearestColleagueName}' உனக்காக எப்படிச் செயல்படுகிறார்கள் பார்—சரியான நேரத்தில் பூட்டைத் திறப்பவன் நானே!`,
-        en: `I am ${yogaName} Yoga fused with ${karanaName} Karana—the hidden commander of your Kundali, ${devoteeName}! Watch how my colleagues ${heroPlanetName} (House ${heroPlanetHouse}) and ${nearestColleagueName} (House ${nearestColleagueHouse}) behave together to turn your timing valve right now.`,
-      }, lang);
-    }
-
-    if (themeKey === "near_far") {
-      return pick6({
-        kn: `${devoteeName}, ನಾನು ನಿನ್ನ ಜನ್ಮ ಲಗ್ನ '${lagnaRashiName}' (ಅಧಿಪತಿ '${lagnaLordName}') — ನಿನ್ನ ಜೀವನ ರಥದ ಸಾರಥಿ! ನನ್ನ ಸಮೀಪದಲ್ಲೇ ನಿಂತಿರುವ '${nearestColleagueName}' ಹಾಗೂ '${yogiPlanetName}' ಹತ್ತಿರದ ಅವಕಾಶವನ್ನು ತರುತ್ತಿದ್ದರೆ, ಹಳೆಯ ಚಿಂತೆಗಳು ನನ್ನ ದೃಷ್ಟಿಯಿಂದ ಬಹುದೂರ ಸರಿದಿವೆ.`,
-        mr: `${devoteeName}, मी तुझे जन्म लग्न '${lagnaRashiName}' (स्वामी '${lagnaLordName}') — तुझ्या आयुष्याचा सारथी बोलत आहे! माझ्या जवळ उभे असलेले '${nearestColleagueName}' आणि '${yogiPlanetName}' संधी जवळ आणत आहेत, तर जुना तणाव दूर सरला आहे.`,
-        hi: `${devoteeName}, मैं तुम्हारा जन्म लग्न '${lagnaRashiName}' (स्वामी '${lagnaLordName}') — तुम्हारे जीवन रथ का सारथी बोल रहा हूं! मेरे करीब स्थित '${nearestColleagueName}' और '${yogiPlanetName}' नया अवसर पास ला रहे हैं, जबकि पुरानी उलझनें दूर हो रही हैं।`,
-        te: `${devoteeName}, నేను నీ జన్మ లగ్నం '${lagnaRashiName}' (అధిపతి '${lagnaLordName}') మాట్లాడుతున్నాను! నా దగ్గర ఉన్న '${nearestColleagueName}' మరియు '${yogiPlanetName}' విజయాన్ని నీ చేతికందేలా చేస్తుండగా, పాత కష్టాలు దూరంగా వెళ్ళిపోతున్నాయి.`,
-        ta: `${devoteeName}, நான் உன் ஜென்ம லக்னம் '${lagnaRashiName}' (அதிபதி '${lagnaLordName}') பேசுகிறேன்! என் அருகிலுள்ள '${nearestColleagueName}' மற்றும் '${yogiPlanetName}' வெற்றியை அருகே கொண்டு வர, பழைய கவலைகள் தூர விலகுகின்றன.`,
-        en: `I am your ascendant chariot—${lagnaRashiName}, steered by ${lagnaLordName}—speaking right to you, ${devoteeName}! With ${nearestColleagueName} nearby and ${yogiPlanetName} lighting the lane ahead, your next milestone sits closer than fear claims.`,
-      }, lang);
-    }
-
-    // parable / Yogi voice
-    return pick6({
-      kn: `ನಾನು ನಿನ್ನ ಯೋಗಿ '${yogiPlanetName}' ಒಂದು ಸಣ್ಣ ನಿದರ್ಶನದೊಂದಿಗೆ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ${devoteeName}: ಶಿಲ್ಪಿಯು ಕಲ್ಲಿಗೆ ೯೯ ಏಟು ಹೊಡೆದರೂ ಅದು ಒಡೆಯುವುದಿಲ್ಲ — ಆದರೆ ೧೦೦ನೇ ಮೃದು ಏಟಿಗೆ ಮಹಾ ಮೂರ್ತಿ ಹೊರಬರುತ್ತದೆ! ನನ್ನ ಮಿತ್ರ '${heroPlanetName}' ಹಾಗೂ '${nearestColleagueName}' ಆ ೧೦೦ನೇ ಏಟಿನ ಘಳಿಗೆಯನ್ನೇ ನಿಮಗಾಗಿ ತಂದಿದ್ದಾರೆ.`,
-      mr: `मी तुझा योगी '${yogiPlanetName}' एक छान गोष्ट सांगतो ${devoteeName}: शिल्पकार ९९ घाव घालतो तेव्हा दगड हलत नाही — पण १०० व्या एका स्पर्शाने मूर्ती साकार होते! माझे सहकारी '${heroPlanetName}' आणि '${nearestColleagueName}' तोच १०० वा सुवर्ण क्षण घेऊन येत आहेत.`,
-      hi: `मैं तुम्हारा योगी '${yogiPlanetName}' एक सच्चे उदाहरण से बात शुरू करता हूं ${devoteeName}: मूर्तिकार ९९ बार पत्थर तराशता है पर वह मौन रहता है—और १००वें हल्के स्पर्श से अद्भुत मूर्ति प्रकट होती है! मेरे सहयोगी '${heroPlanetName}' और '${nearestColleagueName}' तुम्हारे लिए वही निर्णायक घड़ी लाए हैं।`,
-      te: `నేను నీ యోగి '${yogiPlanetName}' ఒక చిన్న ఉదాహరణతో చెబుతున్నాను ${devoteeName}: శిల్పి 99 సార్లు కొట్టినప్పుడు ఏ మార్పూ కనిపించదు—కానీ 100వ దెబ్బకు అద్భుత శిల్పం బయటపడుతుంది! నా మిత్రుడు '${heroPlanetName}' మరియు '${nearestColleagueName}' ఆ 100వ విజయం కోసమే పనిచేస్తున్నారు.`,
-      ta: `நான் உன் யோகி '${yogiPlanetName}' ஒரு அழகான உதாரணத்துடன் பேசுகிறேன் ${devoteeName}: சிற்பி 99 முறை அடிக்கும்போது சிலை தெரியாது—100-வது அடியில் அதிசயம் பிறக்கும்! என் நண்பர்கள் '${heroPlanetName}' மற்றும் '${nearestColleagueName}' அந்த 100-வது வெற்றியைத் தர உள்ளனர்.`,
-      en: `I am your Yogi planet ${yogiPlanetName}, opening with a quiet story for you, ${devoteeName}: ninety-nine taps of the chisel barely crack rough stone, until the hundredth quiet strike unveils the statue inside! My colleagues ${heroPlanetName} and ${nearestColleagueName} stand right beside your hundredth strike.`,
-    }, lang);
+    return pick6(hookMap[chNum] || hookMap[1], lang);
   };
 
-  // Rich narrative extensions to bring every chapter paragraph to compelling 5–6 line depth (no remedies!)
-  const extP1 = chNum === 23 ? "" : isChildOrInfant
-    ? pick6({
-        kn: `ದಿನನಿತ್ಯದ ಮನೆಯ ಸಣ್ಣ ಸನ್ನಿವೇಶಗಳಲ್ಲೇ ಮಗುವಿನ ನೈಜ ಸ್ವಭಾವ ಪ್ರಕಾಶಿಸುತ್ತದೆ — ನಗು, ಕುತೂಹಲ ಮತ್ತು ಪೋಷಕರ ಮೃದು ಮಾತುಗಳು ಇದರ ಆಂತರಿಕ ಶಕ್ತಿಯನ್ನು ದಿನೇ ದಿನೇ ಇಮ್ಮಡಿಗೊಳಿಸುತ್ತವೆ.`,
-        mr: `घरातील रोजच्या छोट्या प्रसंगांतूनच बाळाची खरी क्षमता खुलते — आनंदी संवाद आणि सुरक्षित वातावरण यातून त्याचा आत्मविश्वास रोज वाढत जातो.`,
-        hi: `घर के छोटे-छोटे दैनिक क्षणों में ही इस बच्चे की वास्तविक प्रतिभा निखरती है—प्रेमपूर्ण संवाद और खुला माहौल इसके आत्मबल को दोगुना करता है।`,
-        te: `ఇంట్లోని రోజువారీ చిన్న ఆటపాటలు, నవ్వులలోనే ఈ చిన్నారి సహజ ప్రతిభ వెలుగు చూస్తుంది—తల్లిదండ్రుల ప్రశాంత మాటలు దీనికి అపారమైన ధైర్యాన్నిస్తాయి.`,
-        ta: `வீட்டின் அன்றாடச் சிறிய நிகழ்வுகளிலேயே குழந்தையின் தனித்திறன் வெளிப்படும்—பெற்றோரின் அன்பான வார்த்தைகளும் நிதானமும் இதன் ஆற்றலைப் பலமடங்கு பெருக்கும்.`,
-        en: `Notice how vividly this appears in tiny daily routines at home—gentle patience, warm encouragement, and unhurried play awaken this young spirit far faster than pressure ever could.`,
-      }, lang)
-    : themeKey === "near_far" || themeKey === "cinema"
-    ? pick6({
-        kn: `ನೀವು ದಿನನಿತ್ಯ ಎದುರಿಸುವ ಮಾತುಕತೆ, ಕೆಲಸದ ಜವಾಬ್ದಾರಿ ಮತ್ತು ಕುಟುಂಬದ ನಿರೀಕ್ಷೆಗಳ ನಡುವೆ ಈ ಗ್ರಹಗತಿ ಕನ್ನಡಿ ಹಿಡಿದಂತೆ ಸ್ಪಷ್ಟವಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತಿದೆ; ಎಲ್ಲಿ ಶಕ್ತಿ ಹರಿಯುತ್ತಿದೆ ಎಂಬುದನ್ನು ಗಮನಿಸಿದರೆ ಅರ್ಧ ಗೊಂದಲ ತಕ್ಷಣ ಕರಗುತ್ತದೆ.`,
-        mr: `दररोजच्या कामातील निर्णय, संवाद आणि कौटुंबिक जबाबदाऱ्या यांत हाच पॅटर्न स्पष्टपणे जाणवतो; तुमची ऊर्जा नेमकी कुठे अडकली आहे हे एकदा लक्षात आले की निम्मा ताण लगेच नाहीसा होतो.`,
-        hi: `दैनिक कामकाज, संबंधों और निर्णयों में यह प्रभाव आईने की तरह साफ़ झलकता है; जैसे ही आप समझते हैं कि आपकी ऊर्जा कहां जा रही है, आधी उलझन उसी क्षण शांत हो जाती है।`,
-        te: `రోజువారీ పనులు, కుటుంబ చర్చలు మరియు నిర్ణయాలలో ఈ ప్రభావం అద్దంలా స్పష్టంగా కనిపిస్తుంది; మీ శక్తి ఎటువైపు ప్రవహిస్తోందో గుర్తించిన క్షణమే సగం గందరగోళం తగ్గిపోతుంది.`,
-        ta: `அன்றாடப் பணிகள், குடும்ப உரையாடல்கள் மற்றும் முக்கிய முடிவுகளில் இந்த அமைப்பு கண்ணாடி போல் வெளிப்படுகிறது; உங்கள் ஆற்றல் எங்கே செல்கிறது எனப் பார்த்த நொடியில் பாதி குழப்பம் நீங்கும்.`,
-        en: `Look at how vividly this plays out in ordinary weekly conversations, finances, and family responsibilities—once you recognize this exact rhythm on screen instead of taking delays personally, half the mental tension melts immediately.`,
-      }, lang)
-    : pick6({
-        kn: `${nakshatraName} ಮತ್ತು '${yogaName}'ದ ಈ ವಿಶಿಷ್ಟ ಸಂಯೋಜನೆ ನಿಮ್ಮನ್ನು ಗಾಳಿಯಲ್ಲಿ ದೀಪದಂತೆ ಅಲ್ಲಾಡಲು ಬಿಡುವುದಿಲ್ಲ; ಮೇಲ್ನೋಟಕ್ಕೆ ಸಣ್ಣದಾಗಿ ಕಾಣುವ ನಿಮ್ಮ ಶಿಸ್ತು ಮತ್ತು ಪ್ರಾಮಾಣಿಕತೆಯೇ ಒಳಗೆ ದೊಡ್ಡ ಬಲವನ್ನು ಕಟ್ಟುತ್ತಿದೆ.`,
-        mr: `${nakshatraName} व '${yogaName}'ची ही खास जोड तुमच्यातील ठामपणा कधीही खचू देत नाही; वरवर साधी वाटणारी तुमची प्रामाणिकता आणि सातत्य आतमध्ये मोठी ताकद निर्माण करत आहे.`,
-        hi: `${nakshatraName} और '${yogaName}' का यह विशेष संयोग आपके धैर्य को कभी बिखरने नहीं देता; बाहर से साधारण दिखने वाला आपका अनुशासन ही भीतर से भविष्य की बड़ी नींव गढ़ रहा है।`,
-        te: `${nakshatraName} మరియు '${yogaName}' కలయిక మిమ్మల్ని ఒడిదుడుకులలోనూ నిలబెడుతుంది; బయటకు సాధారణంగా కనిపించే మీ క్రమశిక్షణ మరియు నిజాయితీ లోపల గొప్ప శక్తిని నిర్మిస్తున్నాయి.`,
-        ta: `${nakshatraName} மற்றும் '${yogaName}' இணைப்பு உங்களை ஒருபோதும் தளரவிடாது; வெளியே எளிமையாகத் தெரியும் உங்கள் நேர்மையும் ஒழுக்கமும் உள்ளே அசைக்க முடியாத பலத்தைக் கட்டுகின்றன.`,
-        en: `Backed quietly by your ${nakshatraName} spark and ${yogaName} timing engine, your steadiness holds even under silent pressure—everyday integrity is stacking compound trust behind scenes nobody else notices yet.`,
+  // Unique per-chapter Paragraph 2 & 3 deepening lines (NO shared boilerplate across any chapters!)
+  const buildUniqueExtP2 = (): string => {
+    if (chNum === 23) return "";
+    if (isChildOrInfant && chNum === 12) {
+      return pick6({
+        kn: `ಮಗುವಿನ ಪ್ರಶ್ನೆಗಳಿಗೆ ತಾಳ್ಮೆಯಿಂದ ಉತ್ತರಿಸಿದಷ್ಟು ಅದರ ವಿಶ್ಲೇಷಣಾ ಬುದ್ಧಿ ಮತ್ತು ಆತ್ಮವಿಶ್ವಾಸ ಸ್ವಾಭಾವಿಕವಾಗಿ ವೃದ್ಧಿಸುತ್ತವೆ.`,
+        mr: `मुलाच्या कुतूहलाला शांत उत्तरे दिल्यास त्याची तर्कबुद्धी आणि आत्मविश्वास नैसर्गिकपणे बहरतात.`,
+        hi: `बच्चे की जिज्ञासाओं को धैर्य से उत्तर देने पर उसकी तार्किक बुद्धि और आत्मविश्वास सहज रूप से खिलते हैं।`,
+        te: `చిన్నారి అడిగే ప్రతి ప్రశ్నకు ఓపికగా సమాధానం చెబితే దాని ఆలోచనా శక్తి, ఆత్మవిశ్వాసం అద్భుతంగా పెరుగుతాయి.`,
+        ta: `குழந்தையின் கேள்விகளுக்குப் பொறுமையாகப் பதிலளித்தாலே அதன் அறிவாற்றலும் தன்னம்பிக்கையும் இயல்பாக வளரும்.`,
+        en: `Answering curious childhood questions with calm warmth builds lasting confidence far better than rushing rote memorization.`,
       }, lang);
+    }
+    if (isChildOrInfant && chNum === 13) {
+      return pick6({
+        kn: `ಕುಟುಂಬದ ಆರ್ಥಿಕ ಶಿಸ್ತು ಮತ್ತು ಸರಳ ಬದುಕು ಮಗುವಿನ ಬೆಳವಣಿಗೆಗೆ ಶಾಂತ ಸುರಕ್ಷಾ ಕವಚವನ್ನು ನೀಡುತ್ತವೆ.`,
+        mr: `घरातील आर्थिक शिस्त आणि साधेपणा या बाळाच्या वाढीभोवती शांत सुरक्षितता निर्माण करतात.`,
+        hi: `परिवार का शांत वित्तीय अनुशासन और सादगी इस बालक के विकास के लिए सबसे सुरक्षित वातावरण बनाती है।`,
+        te: `ఇంట్లోని ఆర్థిక క్రమశిక్షణ మరియు ప్రశాంతత ఈ చిన్నారి ఎదుగుదలకు గట్టి భద్రతను ఇస్తాయి.`,
+        ta: `குடும்பத்தின் நிதி ஒழுங்கும் எளிமையான சூழலும் குழந்தையின் வளர்ச்சிக்குப் பாதுகாப்பான கவசமாகத் திகழ்கின்றன.`,
+        en: `Steady household discipline behind the scenes wraps this child's future education in serene long-term safety.`,
+      }, lang);
+    }
+    if (isChildOrInfant && chNum === 14) {
+      return pick6({
+        kn: `ಹಿರಿಯರ ನಡುವಿನ ಗೌರವಪೂರ್ಣ ಮಾತುಕತೆಯನ್ನು ಕೇಳುತ್ತಾ ಬೆಳೆಯುವ ಮಗು ಭವಿಷ್ಯದಲ್ಲಿ ಗಟ್ಟಿ ಬಾಂಧವ್ಯಗಳನ್ನು ಕಟ್ಟಬಲ್ಲದು.`,
+        mr: `घरातील आदरयुक्त संवाद ऐकत मोठे होणारे मूल पुढे चालून अतिशय संतुलित नाती जपते.`,
+        hi: `बड़ों के बीच सम्मानजनक संवाद सुनते हुए बड़ा होने वाला बच्चा जीवन भर मधुर संबंध निभाना सीखता है।`,
+        te: `పెద్దల మధ్య ఉన్న ఆప్యాయతను చూస్తూ పెరిగే చిన్నారి భవిష్యత్తులో చక్కని మానవ సంబంధాలను నిర్మించుకుంటుంది.`,
+        ta: `பெரியவர்களின் அன்பான உரையாடலைக் கேட்டு வளரும் குழந்தை எதிர்காலத்தில் வலுவான உறவுகளைக் கட்டமைக்கும்.`,
+        en: `Watching respectful calm communication at home teaches this tender heart healthy trust effortlessly.`,
+      }, lang);
+    }
 
-  const extP2 = chNum === 23 ? "" : isChildOrInfant
-    ? pick6({
-        kn: `ಹತ್ತಿರದಲ್ಲಿರುವ ಸಂತೋಷವೇನೆಂದರೆ ಮಗುವಿನ ನೈಸರ್ಗಿಕ ಕಲಿಕಾ ಶಕ್ತಿ ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿದೆ; ತಂದೆ-ತಾಯಿ ಆತಂಕವನ್ನು ದೂರವಿಟ್ಟು ಪ್ರೋತ್ಸಾಹಿಸಿದಷ್ಟು ಭವಿಷ್ಯ ಇನ್ನೂ ಉಜ್ವಲವಾಗಿ ಬೆಳಗುತ್ತದೆ.`,
-        mr: `जवळ असलेली सुंदर गोष्ट म्हणजे बाळाची ग्रहणशक्ती खूप तीक्ष्ण आहे; पालकांनी विनाकारण काळजी दूर ठेवून हसता संवाद वाढवला की प्रगती झपाट्याने होते.`,
-        hi: `पास खड़ा सबसे बड़ा वरदान यह है कि इस बच्चे की सीखने की क्षमता अत्यंत प्रखर है; अभिभावक अनावश्यक चिंता दूर रखकर जितना प्रोत्साहन देंगे, उतना यह खिलेगा।`,
-        te: `దగ్గరగా ఉన్న ఆనందం ఏమిటంటే ఈ చిన్నారి గ్రహణశక్తి చాలా చురుకుగా ఉంది; తల్లిదండ్రులు ఆందోళనను దూరంగా ఉంచి నవ్వుతూ ప్రోత్సహిస్తే అద్భుతంగా ఎదుగుతుంది.`,
-        ta: `அருகிலுள்ள பெரிய நன்மை என்னவென்றால் குழந்தையின் கற்கும் திறன் மிகவும் கூர்மையானது; பெற்றோர் அச்சத்தைத் தவிர்த்து ஊக்கப்படுத்திய அளவுக்கு எதிர்காலம் ஒளிவீசும்.`,
-        en: `Notice what stands wonderfully near: bright curiosity and emotional resilience come naturally to this child—the further parents push comparison away, the stronger this young talent shines.`,
-      }, lang)
-    : pick6({
-        kn: `ಹತ್ತಿರ-ದೂರ ನೋಡಿ: ಹಳೆಯ ಗೊಂದಲ ಹಾಗೂ ತಪ್ಪು ನಿರೀಕ್ಷೆಗಳು ನಿಮ್ಮಿಂದ ದೂರ ಸರಿಯುತ್ತಿವೆ; ಅದೇ ಸಮಯದಲ್ಲಿ '${lagnaRashiName}' ಲಗ್ನಕ್ಕೆ ತಕ್ಕ ಸ್ಪಷ್ಟ ಗುರಿ ಮತ್ತು ಹೊಸ ಬಾಗಿಲುಗಳು ಹತ್ತಿರ ಬರುತ್ತಿವೆ.`,
-        mr: `जवळ आणि दूर नीट पहा: जुना गोंधळ व चुकीच्या अपेक्षा हळूहळू मागे सरत आहेत; त्याच वेळी तुमच्या '${lagnaRashiName}' स्वभावाशी जुळणारे नवे मार्ग व विश्वासू लोक हाताशी येत आहेत.`,
-        hi: `पास और दूर का स्पष्ट संकेत देखें: पुराने भ्रम और अनावश्यक बोझ अब आपसे दूर खिसक रहे हैं, जबकि आपके '${lagnaRashiName}' स्वभाव के अनुकूल ठोस अवसर कदम-दर-कदम पास आ रहे हैं।`,
-        te: `దగ్గర-దూరం గమనించండి: పాత గందరగోళం మరియు అనవసర అపోహలు మీ నుండి దూరంగా వెళ్ళిపోతున్నాయి; అదే సమయంలో మీ '${lagnaRashiName}' బలానికి సరిపోయే కొత్త దారులు దగ్గరవుతున్నాయి.`,
-        ta: `அருகும் தொலைவும் தெளிவாகத் தெரிகிறது: பழைய குழப்பமும் தேவையற்ற எதிர்பார்ப்புகளும் விலகிச் செல்கின்றன; அதே நேரத்தில் உங்கள் '${lagnaRashiName}' வலிமைக்கு ஏற்ற புதிய வாய்ப்புகள் அருகே வருகின்றன.`,
-        en: `Look at that clean distance contrast right inside your chart: outdated confusion and fair-weather friction are steadily receding far behind, while clearer timing and authentic doors aligned with your ${lagnaRashiName} core pull noticeably near.`,
-      }, lang);
+    const mapP2: Record<number, Record<SixLang, string>> = {
+      1: {
+        kn: `ಇಂದಿನ '${nakshatraName}' ಸೂಕ್ಷ್ಮ ಸಂವೇದನೆಯು ಅಲ್ಪಕಾಲಿಕ ಗದ್ದಲಕ್ಕಿಂತ ನಿಜವಾದ ಮೌನ ಸತ್ಯವನ್ನು ಗುರುತಿಸುವಲ್ಲಿ ನಿಮಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ.`,
+        mr: `आजची '${nakshatraName}' जाणीव तुम्हाला तात्पुरत्या गोंधळापेक्षा दीर्घकालीन शांत सत्य अचूक ओळखण्यास मदत करते.`,
+        hi: `आज की '${nakshatraName}' संवेदनशीलता आपको अस्थायी शोर के बजाय भीतर के शांत सच को तुरंत पहचानने में मदद करती है।`,
+        te: `నేటి '${nakshatraName}' సూక్ష్మ దృష్టి తాత్కాలిక గందరగోళం కంటే వెనుక ఉన్న వాస్తవాన్ని గ్రహించడంలో తోడ్పడుతుంది.`,
+        ta: `இன்றைய '${nakshatraName}' நுண்ணுணர்வு தற்காலிக ஆரவாரத்தைத் தாண்டி உண்மையான தெளிவை அடைய உதவுகிறது.`,
+        en: `Your ${nakshatraName} sensitivity detects genuine intent beneath surface noise long before events prove it publicly.`,
+      },
+      2: {
+        kn: `ಪಕ್ಷದ ಮರ್ಯಾದೆಯಂತೆ ಮುಚ್ಚಿಟ್ಟಿರುವ ಆಂತರಿಕ ಗೌರವವು, ನೀವು ಸ್ವಂತದತ್ತ ಗಮನ ಹರಿಸಿದ ಕ್ಷಣವೇ ಸುತ್ತಲಿನವರಿಗೆ ಕಾಣಿಸತೊಡಗುತ್ತದೆ.`,
+        mr: `न बोलता निभावलेली तुमची प्रतिष्ठा ज्या क्षणी तुम्ही स्वतःच्या वेळेचा आदर कराल त्या क्षणी सर्वांना ठळकपणे जाणवेल.`,
+        hi: `बिना जताए निभाई गई आपकी निष्ठा ठीक उसी दिन सबको दिखाई देगी जिस दिन आप अपने समय को सम्मान देना शुरू करेंगे।`,
+        te: `ఎవరికీ చెప్పకుండా మీరు చేసిన త్యాగాల విలువ, మీ సమయాన్ని మీరు గౌరవించడం మొదలుపెట్టిన రోజే అందరికీ స్పష్టమవుతుంది.`,
+        ta: `சொல்லாமல் சுமந்த உங்கள் பெருந்தன்மையின் மதிப்பு, உங்கள் நேரத்தை நீங்களே மதிக்கத் தொடங்கிய நொடியில் வெளிப்படும்.`,
+        en: `Silent generosity finally earns visible respect the day your calendar protects your own rest as fiercely as everyone else's.`,
+      },
+      3: {
+        kn: `ಕಳೆದ ಕಷ್ಟದ ಪ್ರತಿ ಅನುಭವವೂ ಮುಂದಿನ ನಾಲ್ಕು ವರ್ಷಗಳ ದೊಡ್ಡ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಸುಲಭವಾಗಿ ಹೊರುವ ತರಬೇತಿಯಾಗಿತ್ತು ಎಂಬುದು ಈಗ ಅರ್ಥವಾಗುತ್ತದೆ.`,
+        mr: `गेल्या कठीण काळातील प्रत्येक धडा पुढच्या मोठ्या जबाबदाऱ्या सहज पेलण्यासाठी दिलेले प्रशिक्षणच होते हे आता स्पष्ट होत आहे.`,
+        hi: `बीते कठिन चरण का हर अनुभव दरअसल आने वाले बड़े उत्तरदायित्वों को सहजता से संभालने का पूर्व-प्रशिक्षण ही था।`,
+        te: `గత కష్టాల్లో నేర్చుకున్న ప్రతి అనుభవం రాబోయే పెద్ద బాధ్యతలను సునాయాసంగా మోయడానికి సిద్ధం చేసిన శిక్షణేనని ఇప్పుడు అర్థమవుతుంది.`,
+        ta: `கடந்த காலத்தின் ஒவ்வொரு சோதனையும் வரப்போகும் பெரிய பொறுப்புகளை எளிதாகச் சுமப்பதற்கான முன்னோட்டப் பயிற்சியாகவே இருந்தது.`,
+        en: `Seen clearly from today's distance, every strenuous detour trained your judgement for heavier trusts waiting ahead.`,
+      },
+      4: {
+        kn: `${n(maandiHouse)}ನೇ ಭಾವದ ಸೂಕ್ಷ್ಮ ತಪಾಸಣೆ ಮುಗಿದ ಬಳಿಕ ಹೊರಬರುವ ಕೆಲಸವು ದೀರ್ಘಕಾಲ ಬಾಳಿಕೆ ಬರುವ ಗುಣಮಟ್ಟವನ್ನು ಹೊಂದಿರುತ್ತದೆ.`,
+        mr: `${n(maandiHouse)}व्या स्थानाची ही सूक्ष्म चाचणी पार पडल्यानंतर घडलेले काम दीर्घकाळ टिकणारे व भक्कम दर्जाचे ठरते.`,
+        hi: `${n(maandiHouse)}वें भाव की इस सूक्ष्म परीक्षा के बाद पूरा हुआ प्रत्येक कार्य अत्यंत टिकाऊ और दोषरहित सिद्ध होता है।`,
+        te: `${n(maandiHouse)}వ స్థానంలోని ఈ పరిశీలన దాటి బయటకు వచ్చిన ప్రతి పని దీర్ఘకాలం నిలిచే నాణ్యతను కలిగి ఉంటుంది.`,
+        ta: `${n(maandiHouse)}-ம் இடத்தின் இந்த நுண்ணிய சோதனையைத் தாண்டி வெளிவரும் செயல் நீண்டகாலம் நிலைக்கும் தரத்துடன் அமையும்.`,
+        en: `Anything surviving that House ${maandiHouse} final checkpoint emerges unusually clean, durable, and immune to silent defects later.`,
+      },
+      5: {
+        kn: `ನಿಮ್ಮ ನೈಸರ್ಗಿಕ '${dominantElement}' ತತ್ವ ಸಮತೋಲನಕ್ಕೆ ಬಂದ ತಕ್ಷಣ, ಇತರರು ಗೊಂದಲಗೊಳ್ಳುವ ವಿಷಯಗಳಲ್ಲೂ ನಿಮಗೆ ನಿಚ್ಚಳ ದಾರಿ ತೋರುತ್ತದೆ.`,
+        mr: `तुमचे नैसर्गिक '${dominantElement}' तत्त्व संतुलित राहताच इतरांना कठीण वाटणारे निर्णय तुम्हाला अगदी सहज सुचतात.`,
+        hi: `आपके भीतर का '${dominantElement}' तत्व संतुलित रहते ही वे समाधान सरल दिखने लगते हैं जिनमें दूसरे उलझ जाते हैं।`,
+        te: `మీలోని '${dominantElement}' తత్వం సమతుల్యమైనప్పుడు, ఇతరులకు క్లిష్టంగా తోచే సమస్యలకు కూడా మీకు సులభంగా పరిష్కారం కనిపిస్తుంది.`,
+        ta: `உங்கள் இயல்பான '${dominantElement}' ஆற்றல் சமநிலை அடையும்போது மற்றவர்கள் தடுமாறும் இடங்களிலும் உங்களுக்குத் தெளிவு பிறக்கும்.`,
+        en: `Once your ${dominantElement} constitution settles into natural rhythm, sharp instinct illuminates shortcuts others overlook completely.`,
+      },
+      6: {
+        kn: `ಯಾವ ದಿನ ಮನಸ್ಸು ಅಶಾಂತವೋ ಅಂದು ದೊಡ್ಡ ಒಪ್ಪಂದ ಮುಂದೂಡಿ, '${yogiPlanetName}' ಅನುಕೂಲವಿರುವ ಶಾಂತ ಮುಂಜಾನೆಯಲ್ಲೇ ಹೆಜ್ಜೆ ಇಡಿ.`,
+        mr: `ज्या दिवशी मन अस्थिर वाटेल तेव्हा मोठे करार टाळून '${yogiPlanetName}' च्या अनुकूल शांत सकाळी निर्णय घ्या.`,
+        hi: `जिस क्षण मन में उतावली लगे तब बड़े निर्णय रोककर '${yogiPlanetName}' के अनुकूल शांत प्रातःकाल में पहल करना श्रेयस्कर रहता है।`,
+        te: `మనసు ఆందోళనగా ఉన్నప్పుడు పెద్ద నిర్ణయాలను ఆపి, '${yogiPlanetName}' అనుకూలంగా ఉన్న ప్రశాంత ఉదయం వేళ అడుగు వేయండి.`,
+        ta: `மனம் பதற்றமாக இருக்கும்போது பெரிய முடிவுகளைத் தள்ளிவைத்து, '${yogiPlanetName}' பலம் கொண்ட அமைதியான காலை நேரத்தில் செயல்படுங்கள்.`,
+        en: `Letting noisy pressure pass while backing decisions aligned with ${yogiPlanetName} multiplies outcomes cleanly with noticeably less effort.`,
+      },
+      7: {
+        kn: `${currentMahadasha} ಅಧಿಪತಿ ಕೊಡುವ ದೀರ್ಘ ಪಾಠವನ್ನು '${currentBhuktiLord}' ತನ್ನ ಉಪ-ಹಂತದಲ್ಲಿ ನಿತ್ಯದ ಫಲಿತಾಂಶವಾಗಿ ಬದಲಾಯಿಸುತ್ತಿದೆ.`,
+        mr: `${currentMahadasha} नाथाचा मुख्य आराखडा '${currentBhuktiLord}' आपल्या अंतर्दशेत दररोजच्या प्रत्यक्ष अनुभवात उतरवत आहे.`,
+        hi: `${currentMahadasha} स्वामी की दीर्घ योजना को '${currentBhuktiLord}' अपनी भुक्ति में व्यावहारिक परिणामों के रूप में प्रकट कर रहे हैं।`,
+        te: `${currentMahadasha} అధిపతి ఇచ్చే దీర్ఘకాల ప్రణాళికను '${currentBhuktiLord}' తన అంతర్దశలో రోజువారీ ఫలితాలుగా మారుస్తున్నారు.`,
+        ta: `${currentMahadasha} அதிபதியின் நீண்டகாலத் திட்டத்தை '${currentBhuktiLord}' தனது அந்தர்தசையில் நேரடிப் பலன்களாக வெளிப்படுத்துகிறார்.`,
+        en: `Notice how ${currentMahadasha} supplies the overarching canvas while ${currentBhuktiLord} delivers day-to-day catalysts until ${bhuktiEndDate}.`,
+      },
+      8: {
+        kn: `ಕಷ್ಟದ ಕಾಲದಲ್ಲಿಯೂ ನಿಮ್ಮ ಕೈಹಿಡಿದ ಆ ಕೆಲವೇ ವಿಶ್ವಾಸಾರ್ಹ ಜನರು ನಿಮ್ಮ ಜೀವನದ ನಿಜವಾದ ಆಸ್ತಿ ಎಂದು ಕಾಲವೇ ಸಾಬೀತುಪಡಿಸಿದೆ.`,
+        mr: `कठीण प्रसंगांतही तुमच्या सोबत टिकून राहिलेली मोजकी विश्वासू माणसेच तुमची खरी ताकद आहेत हे वेळेने दाखवून दिले.`,
+        hi: `चुनौतीपूर्ण समय में भी आपके साथ अडिग रहने वाले चुनिंदा विश्वसनीय लोग ही जीवन की असली पूंजी सिद्ध हुए हैं।`,
+        te: `కష్టసమయంలోనూ మీ వెన్నంటి నిలిచిన కొద్దిమంది నిజాయితీగల మనుషులే మీ అసలైన సంపద అని కాలం నిరూపించింది.`,
+        ta: `சோதனையான காலத்திலும் உங்களோடு துணை நின்ற உண்மையான சிலரே உங்கள் வாழ்வின் நிலையான சொத்து எனக் காலம் காட்டிவிட்டது.`,
+        en: `Time under Saturn cleanly separates noisy applause from dependable character—what remains with you now is built to last.`,
+      },
+      9: {
+        kn: `ಗುರು ಕರುಣೆಯ ಈ ಹಂತದಲ್ಲಿ ಸಲಹೆಗಾರರ ಒಂದು ಸದ್ಗುಣಿ ಮಾತು ಹಲವು ತಿಂಗಳ ಅಲೆದಾಟವನ್ನು ತಪ್ಪಿಸಿ ನೇರ ದಾರಿ ತೋರಬಲ್ಲದು.`,
+        mr: `गुरुकृपेच्या या खिडकीत अनुभवी व्यक्तीचा एक योग्य सल्ला कित्येक महिन्यांची धडपड वाचवून सरळ मार्ग दाखवू शकतो.`,
+        hi: `बृहस्पति के इस शुभ दौर में किसी अनुभवी मार्गदर्शक का एक संक्षिप्त सुझाव कई महीनों का अनावश्यक भटकाव बचा सकता है।`,
+        te: `గురు కటాక్షం ఉన్న ఈ సమయంలో అనుభవజ్ఞులైన పెద్దల ఒక్క మంచి మాట నెలల తరబడి పడే శ్రమను తప్పించి సరైన దారి చూపుతుంది.`,
+        ta: `குரு அருள் வீசும் இக்கட்டத்தில் அனுபவமிக்க ஒருவரின் ஆலோசனை பல மாதத் தேடலை மிச்சப்படுத்தி நேரான வழியைக் காட்டும்.`,
+        en: `In this Jupiter window, one honest conversation with a principled mentor replaces months of trial-and-error guesswork.`,
+      },
+      10: {
+        kn: `ನೆರಳಿನ ಅತಿಶಯೋಕ್ತಿಯನ್ನು ಬದಿಗಿರಿಸಿ ವಾಸ್ತವದ ಕಾಗದಪತ್ರಗಳನ್ನು ಗಮನಿಸಿದ ಕ್ಷಣ ರಾಹು ಭ್ರಮೆ ಕರಗಿ ಕೇತುವಿನ ಸ್ಪಷ್ಟತೆ ಹೊರಹೊಮ್ಮುತ್ತದೆ.`,
+        mr: `कागदपत्रे आणि थेट आकडेवारी तपासली की राहुचा आभासी गोंधळ सरतो आणि केतूची अचूक विवेकबुद्धी जागा घेते.`,
+        hi: `तथ्य और दस्तावेज़ स्वयं जांचते ही राहु का अनावश्यक भ्रम छंट जाता है तथा केतु का निर्मल विवेक राह दिखाने लगता है।`,
+        te: `నిజానిజాలను, పత్రాలను స్వయంగా సరిచూసుకున్న క్షణమే రాహు భ్రమలు తొలగి కేతువు యొక్క ప్రశాంత వివేకం మేల్కొంటుంది.`,
+        ta: `உண்மை நிலைமையையும் ஆவணங்களையும் நேரில் சரிபார்த்த நொடியில் ராகு மாயை விலகி கேதுவின் தெளிவு பிறக்கிறது.`,
+        en: `Replacing rumor with verified facts dissolves shadow anxiety at once—calm discernment turns illusion back into clear terrain.`,
+      },
+      11: {
+        kn: `${moonRashiName} ಚಂದ್ರನ ಭಾವನಾತ್ಮಕ ಪ್ರಬುದ್ಧತೆಯೂ ರಾಜಯೋಗದೊಂದಿಗೆ ಬೆರೆತು, ಅಧಿಕಾರದಲ್ಲಿದ್ದರೂ ಮೃದುತ್ವ ಉಳಿಸಿಕೊಳ್ಳುವ ಶಕ್ತಿಯನ್ನು ನಿಮಗೆ ನೀಡಿದೆ.`,
+        mr: `${moonRashiName} चंद्राची समंजस प्रगल्भता राजयोगाशी जोडल्याने अधिकार मिळूनही तुमची नम्रता टिकून राहते.`,
+        hi: `${moonRashiName} चंद्र की संवेदनशील परिपक्वता जब राजयोगों से जुड़ती है, तो सफलता के बाद भी विनम्रता बनी रहती है।`,
+        te: `${moonRashiName} చంద్రుని పరిణతి రాజయోగాలతో కలవడం వల్ల ఉన్నత స్థానంలోనూ సహజ వినయాన్ని కాపాడుకుంటారు.`,
+        ta: `${moonRashiName} சந்திரனின் பக்குவம் ராஜயோகங்களோடு இணைவதால் உயர்ந்த இடத்திலும் உங்கள் பணிவு மாறாமல் நிற்கிறது.`,
+        en: `Your ${moonRashiName} emotional maturity blends smoothly with hidden leadership gifts—allowing authority without harshness.`,
+      },
+      12: {
+        kn: `ನೀವು ನೇಪಥ್ಯದಲ್ಲಿ ಕಟ್ಟಿದ ಕೌಶಲ್ಯಗಳೇ ಈಗ ಮುನ್ನೆಲೆಗೆ ಬಂದು, ಇತರರಿಗೆ ಪರಿಹರಿಸಲಾಗದ ಸಮಸ್ಯೆಗಳನ್ನು ನಿಮ್ಮ ಕೈಗೆ ತಂದು ನಿಲ್ಲಿಸುತ್ತವೆ.`,
+        mr: `पडद्यामागे तुम्ही कमावलेली कौशल्येच आता समोर येऊन कठीण प्रसंगांमध्ये तुमची वेगळी ओळख घडवतील.`,
+        hi: `पर्दे के पीछे आपने जो कौशल निखारे हैं, अब वही आगे आकर जटिल परिस्थितियों में आपकी अलग पहचान बनाते हैं।`,
+        te: `తెరవెనుక మీరు పెంచుకున్న నైపుణ్యాలే ఇప్పుడు ముందుకు వచ్చి, క్లిష్ట పరిస్థితుల్లో మిమ్మల్ని ప్రధాన స్థానంలో నిలబెడతాయి.`,
+        ta: `திரைக்குப் பின்னால் நீங்கள் வளர்த்த திறமைகளே இப்போது முன்வந்து சிக்கலான நேரங்களில் உங்களுக்குத் தனி அங்கீகாரம் பெற்றுத் தரும்.`,
+        en: `Quiet competence earned behind the scenes now turns visible—rooms begin inviting your judgement instead of merely your labor.`,
+      },
+      13: {
+        kn: `ಹಣಕಾಸಿನ ವಿಷಯದಲ್ಲಿ ಮೌನ ಸ್ಪಷ್ಟತೆಯಿದ್ದರೆ ಕುಟುಂಬದ ಅನಗತ್ಯ ಒತ್ತಡಗಳು ಕಡಿಮೆಯಾಗಿ ಸಂಪತ್ತು ಸ್ವಾಭಾವಿಕವಾಗಿ ಗಟ್ಟಿಗೊಳ್ಳುತ್ತದೆ.`,
+        mr: `आर्थिक बाबींत स्पष्ट हिशोब व नियोजन असल्यास घरातील अनावश्यक ताण कमी होऊन संपत्ती स्थिर राहते.`,
+        hi: `धन प्रबंधन में स्पष्ट लेखा-जोखा रहने से पारिवारिक चिंता घटती है तथा संचय की गति सहज ही तीव्र होती है।`,
+        te: `ఆర్థిక విషయాల్లో స్పష్టమైన లెక్కలు, ప్రణాళిక ఉంటే కుటుంబ ఒత్తిడి తగ్గి సంపద సహజంగా స్థిరపడుతుంది.`,
+        ta: `பண நிர்வாகத்தில் தெளிவான கணக்கும் திட்டமும் இருந்தால் குடும்ப அழுத்தம் குறைந்து செல்வம் இயல்பாகச் சேரும்.`,
+        en: `Quiet clarity around cash flow ends silent guilt—leaving earned wealth free to build enduring margin instead of vanishing piecemeal.`,
+      },
+      14: {
+        kn: `ಪ್ರತಿದಿನದ ಚಿಕ್ಕ ಕಾಳಜಿಯ ಮಾತುಗಳು ದುಬಾರಿ ಉಡುಗೊರೆಗಳಿಗಿಂತ ವೇಗವಾಗಿ ಆತ್ಮೀಯ ಬಾಂಧವ್ಯದ ಗೋಡೆಗಳನ್ನು ಕರಗಿಸುತ್ತವೆ.`,
+        mr: `महागड्या भेटींपेक्षा दररोजचे दोन आपुलकीचे शब्द नात्यातील दुरावा अधिक वेगाने दूर करतात.`,
+        hi: `महंगे उपहारों से कहीं तेज़ी से प्रतिदिन के दो स्नेहभरे शब्द निकट रिश्तों की दूरी को समाप्त करते हैं।`,
+        te: `ఖరీదైన బహుమతుల కంటే రోజువారీ చిన్న ఆప్యాయత మాటలే అనుబంధాల మధ్య ఉన్న దూరాన్ని వేగంగా కరిగిస్తాయి.`,
+        ta: `விலையுயர்ந்த பரிசுகளை விட தினமும் பேசும் இரு அன்பான வார்த்தைகளே உறவுகளுக்குள் உள்ள இடைவெளியை விரைந்து குறைக்கும்.`,
+        en: `Small affectionate check-ins soften unspoken tension ten times faster than grand gestures saved only for rare occasions.`,
+      },
+      15: {
+        kn: `ನಿಮ್ಮ ಬುದ್ಧಿವಂತಿಕೆ ಮತ್ತು ಸೃಜನಶೀಲ ಆಲೋಚನೆಗಳಿಗೆ ಆಟದ ಮನೋಭಾವ ಬೆರೆತಾಗ ಅತ್ಯುತ್ತಮ ಫಲಿತಾಂಶ ತಾನಾಗಿಯೇ ಹುಟ್ಟುತ್ತದೆ.`,
+        mr: `तुमच्या बुद्धिमत्तेला आणि सृजनशील विचारांना थोड्या आनंदी मोकळेपणाची साथ मिळाल्यास उत्तम फळे मिळतात.`,
+        hi: `जब आपकी कुशाग्र बुद्धि को आनंद और सहज सृजन का साथ मिलता है, तभी सर्वश्रेष्ठ विचार जन्म लेते हैं।`,
+        te: `మీ విజ్ఞానానికి మరియు సృజనాత్మకతకు కొంచెం ఉల్లాసభరిత స్వేచ్ఛ తోడైతే అద్భుతమైన ఫలితాలు వెలువడతాయి.`,
+        ta: `உங்கள் நுண்ணறிவும் படைப்பாற்றலும் மகிழ்ச்சியான சுதந்திரத்துடன் இணையும்போது மிகச் சிறந்த எண்ணங்கள் உருவாகும்.`,
+        en: `Playful curiosity feeds sharper intellect than pressure ever will—give creative instincts room to breathe again.`,
+      },
+      16: {
+        kn: `ನಿದ್ದೆ ಮತ್ತು ಆಹಾರದ ಸಮಯವನ್ನು ಶಿಸ್ತಿಗೆ ತಂದ ಕ್ಷಣದಿಂದ ದೇಹದ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ವಿಸ್ಮಯಕಾರಿ ವೇಗದಲ್ಲಿ ಮರಳುತ್ತದೆ.`,
+        mr: `झोप आणि जेवणाची वेळ नियमित होताच शरीराची नैसर्गिक प्रतिकारशक्ती आश्चर्यकारक वेगाने परत येते.`,
+        hi: `नींद और भोजन का समय संतुलित होते ही शरीर की प्राकृतिक रोग-प्रतिरोधक क्षमता चमत्कारी गति से लौट आती है।`,
+        te: `నిద్ర మరియు ఆహార వేళలను క్రమబద్ధం చేసిన వెంటనే శరీర సహజ శక్తి అద్భుత వేగంతో తిరిగి వస్తుంది.`,
+        ta: `தூக்கத்தையும் உணவு நேரத்தையும் சீரமைத்த நொடியிலிருந்தே உடலின் இயற்கை எதிர்ப்புச் சக்தி வியக்கத்தக்க வகையில் திரும்பும்.`,
+        en: `Restoring regular meals and genuine rest turns quiet internal friction off—energy recovers far faster than stress predicted.`,
+      },
+      17: {
+        kn: `ಈ ೯೦ ದಿನಗಳಲ್ಲೇ ಪೀಠಿಕೆಯಂತೆ ಕಾಣುವ ಚಿಕ್ಕ ಯಶಸ್ಸು ವರ್ಷದ ಕೊನೆಯ ದೊಡ್ಡ ಮೈಲಿಗಲ್ಲಿಗೆ ನಿಮ್ಮ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ದ್ವಿಗುಣಗೊಳಿಸುತ್ತದೆ.`,
+        mr: `या ९० दिवसांत मिळणारे छोटे यश पुढे वर्षाअखेरीस येणाऱ्या मोठ्या टप्प्यासाठी तुमचा आत्मविश्वास दुप्पट करेल.`,
+        hi: `इन ९० दिनों में मिली छोटी सफलता भी आगे आने वाले बड़े लक्ष्य के प्रति आपका विश्वास दोगुना कर देगी।`,
+        te: `ఈ 90 రోజుల్లో లభించే చిన్న విజయం కూడా రాబోయే పెద్ద మైలురాయి కోసం మీ ఆత్మవిశ్వాసాన్ని రెట్టింపు చేస్తుంది.`,
+        ta: `இந்த 90 நாட்களில் கிடைக்கும் சிறிய வெற்றியும் வரவிருக்கும் பெரிய இலக்கிற்கான உங்கள் நம்பிக்கையை இரட்டிப்பாக்கும்.`,
+        en: `One clean breakthrough across this quarter acts as the catalyst shifting doubt back into steady forward traction.`,
+      },
+      18: {
+        kn: `ನಾಲ್ಕರಿಂದ ಆರನೇ ತಿಂಗಳ ನಡುವೆ ನಡೆಯುವ ಆಕಸ್ಮಿಕ ಭೇಟಿ ಅಥವಾ ಶುಭ ಪತ್ರವ್ಯವಹಾರವು ಮುಂದಿನ ಗುರಿಯ ದಿಕ್ಕನ್ನು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ.`,
+        mr: `चौथ्या ते सहाव्या महिन्यात होणारी अनपेक्षित भेट किंवा चांगला संवाद तुमच्या पुढच्या योजनेला पक्के रूप देईल.`,
+        hi: `चौथे से छठे महीने के मध्य होने वाली कोई आकस्मिक भेंट अथवा शुभ संदेश आपकी आगे की दिशा को सुदृढ़ बना देगा।`,
+        te: `నాలుగు నుండి ఆరు నెలల మధ్య జరిగే అనుకోని పరిచయం లేదా శుభ సమాచారం మీ తదుపరి ప్రయాణాన్ని బలపరుస్తుంది.`,
+        ta: `4 முதல் 6 மாதங்களுக்குள் நிகழும் எதிர்பாராத சந்திப்பு அல்லது நற்செய்தி உங்கள் அடுத்த இலக்கை உறுதிப்படுத்தும்.`,
+        en: `Midyear alignments clear fog from delayed replies—converting stalled patience into concrete forward agreements.`,
+      },
+      19: {
+        kn: `${n(nowYear)}ರ ಮೊದಲಾರ್ಧದಲ್ಲಿ ನಿರರ್ಥಕ ಹೊರೆ ತೆಗೆದಷ್ಟು ವರ್ಷಾಂತ್ಯಕ್ಕೆ ಹೊಸ ಕಲಿಕೆ ಮತ್ತು ಆರ್ಥಿಕ ಉಳಿತಾಯದ ಜಾಗ ಹೆಚ್ಚಾಗುತ್ತದೆ.`,
+        mr: `${n(nowYear)} च्या पहिल्या भागात जुने ओझे कमी करताच वर्षाच्या शेवटी नवीन प्रगती व बचतीसाठी जागा मोकळी होते.`,
+        hi: `${n(nowYear)} के पूर्वार्ध में जितना अनावश्यक बोझ घटेगा, वर्षांत में नई प्रगति और स्थिरता के लिए उतना ही अधिक अवसर मिलेगा।`,
+        te: `${n(nowYear)} ప్రథమార్థంలో అనవసర భారాన్ని తగ్గించుకునే కొద్దీ ఏడాది చివరి నాటికి పొదుపు, ప్రశాంతతకు ఎక్కువ స్థలం ఏర్పడుతుంది.`,
+        ta: `${n(nowYear)}-ன் முற்பகுதியில் தேவையற்ற சுமைகளைக் குறைத்த அளவுக்கு ஆண்டின் இறுதியில் சேமிப்பிற்கும் வளர்ச்சிக்கும் இடம் விரியும்.`,
+        en: `Simplifying obligations early in ${nowYear} clears crucial bandwidth so fresh opportunities have clean room to grow.`,
+      },
+      20: {
+        kn: `ಈ ವೇಗದ ವರ್ಷದಲ್ಲಿ ನಿಮ್ಮ ಮಾತಿನ ನಿಖರತೆ ಮತ್ತು ಹಿಂದಿನ ನಂಬಿಕಾರ್ಹತೆಯೇ ಹೊಸ ಮೈತ್ರಿಗಳಿಗೆ ಕೀಲಿಕೈಯಾಗಲಿದೆ.`,
+        mr: `या वेगवान वर्षात तुमचा अचूक शब्द आणि जुनी विश्वासार्हता नवीन मोठ्या संधींचे दार उघडून देईल.`,
+        hi: `प्रगति के इस वर्ष में आपकी स्पष्ट वाणी और पूर्व विश्वसनीयता ही नए अवसरों एवं सहयोगों की कुंजी बनेगी।`,
+        te: `ఈ వేగవంతమైన సంవత్సరంలో మీ మాట నిలకడ మరియు గత నమ్మకమే కొత్త ఉన్నత పరిచయాలకు తాళం చెవి అవుతాయి.`,
+        ta: `வேகமான இந்த ஆண்டில் உங்கள் வாக்குத் தவறாத நேர்மையும் முன் அனுபவமுமே புதிய உயர்வுகளுக்கான திறவுகோலாகும்.`,
+        en: `Your past dependability speaks ahead of you in ${nowYear + 1}—opening doors previously guarded by caution.`,
+      },
+      21: {
+        kn: `ಬಹುಕಾಲದಿಂದ ಕಂಡ ಕನಸು ಕುಟುಂಬದ ಸಮ್ಮತಿಯೊಂದಿಗೆ ಸ್ಥಿರ ಆಸ್ತಿ ಅಥವಾ ಗೌರವಯುತ ಸಾಧನೆಯಾಗಿ ನಿಲ್ಲುವ ಕಾಲವಿದು.`,
+        mr: `अनेक दिवस पाहिलेले स्वप्न कुटुंबाच्या एकजुटीने प्रत्यक्ष मालमत्ता किंवा मानाचे यश बनून उभे राहील.`,
+        hi: `लंबे समय से संजोया गया सपना परिवार की सहमति एवं सहयोग से ठोस संपत्ति या सम्मान के रूप में साकार होता दिखता है।`,
+        te: `ఎప్పటినుండో చూస్తున్న కల కుటుంబ ఐక్యతతో నిజమైన ఆస్తిగా లేదా గౌరవప్రదమైన విజయంగా నిలుస్తుంది.`,
+        ta: `நீண்டநாள் கனவு குடும்பத்தின் ஒத்துழைப்புடன் நிலையான சொத்தாக அல்லது பெருமைமிகு சாதனையாக வடிவம் பெறுகிறது.`,
+        en: `Patience across Years 3–4 converts invisible daily discipline into shared household comfort and tangible anchors.`,
+      },
+      22: {
+        kn: `ನೀವು ಕಟ್ಟಿದ ಮೌಲ್ಯಗಳು ಹಾಗೂ ಶಾಂತ ವ್ಯಕ್ತಿತ್ವವು ಕುಟುಂಬದ ಕಿರಿಯರಿಗೆ ಜೀವನ ಪಾಠದ ದೀಪವಾಗಿ ಬೆಳಗುವ ಹಂತವಿದು.`,
+        mr: `तुम्ही जपलेली मूल्ये आणि शांत व्यक्तिमत्त्व पुढे कुटुंबातील पुढच्या पिढीसाठी प्रेरणादायी दीपस्तंभ ठरेल.`,
+        hi: `आपके द्वारा संजोए गए संस्कार और शांत संतुलन आने वाली पीढ़ी के लिए भी प्रेरणा का प्रकाशस्तंभ बनते हैं।`,
+        te: `మీరు పాటించిన విలువలు, సంయమనం కుటుంబంలోని తర్వాతి తరానికి కూడా వెలుగు చూపే దీపస్తంభంగా నిలుస్తాయి.`,
+        ta: `நீங்கள் காத்த நற்பண்புகளும் அமைதியான ஆளுமையும் குடும்பத்தின் அடுத்த தலைமுறைக்கும் வழிகாட்டும் கலங்கரை விளக்கமாகும்.`,
+        en: `Steady emotional freedom by ${nowYear + 4} turns your lived discipline into quiet inspiration for everyone watching.`,
+      },
+      24: {
+        kn: `ಸಂಕೀರ್ಣ ಉಪದೇಶಗಳಿಗಿಂತ ಪ್ರತಿದಿನ ತಪ್ಪದೆ ಪಾಲಿಸುವ ಸಣ್ಣ ಆಚರಣೆಯೇ ಮನಸ್ಸಿನ ತರಂಗವನ್ನು ನಿಶ್ಚಲಗೊಳಿಸುತ್ತದೆ.`,
+        mr: `मोठ्या क्लिष्ट नियमांपेक्षा दररोज न चुकता पाळलेली छोटीशी सवयच मनाची लय शांत व स्थिर ठेवते.`,
+        hi: `जटिल नियमों के बजाय प्रतिदिन बिना टूटे निभाई गई एक छोटी शांत आदत ही भीतर की ऊर्जा को अटल बनाती है।`,
+        te: `కఠిన నియమాల కంటే ప్రతిరోజూ తప్పకుండా పాటించే చిన్న నియమమే మనసును స్థిరంగా, ఆనందంగా ఉంచుతుంది.`,
+        ta: `சிக்கலான விதிகளை விட தினமும் தவறாமல் கடைப்பிடிக்கும் சிறிய அமைதிப் பழக்கமே மன அலைகளை நிலைநிறுத்தும்.`,
+        en: `Short unbreakable daily rituals quietly outperform occasional dramatic intensity across every season ahead.`,
+      },
+      25: {
+        kn: `${moonRashiName} ಮನಃಶಾಂತಿ ಹಾಗೂ ${nakshatraName} ದಿವ್ಯ ತೇಜಸ್ಸು ಈ ಅಂತಿಮ ಹಂತದಲ್ಲಿ ನಿಮ್ಮನ್ನು ಕುಟುಂಬ ಸಮೇತ ಆತ್ಮಬಲದ ಶಿಖರದಲ್ಲಿಡುತ್ತವೆ.`,
+        mr: `${moonRashiName} मनाची शांतता आणि ${nakshatraName} चा दिव्य प्रकाश या अंतिम टप्प्यात तुमच्या संपूर्ण परिवाराला आत्मबलाच्या शिखरावर ठेवतो.`,
+        hi: `${moonRashiName} की मानसिक शांति और ${nakshatraName} का दिव्य तेज इस समापन चरण में आपके परिवार को आत्मविश्वास के शिखर पर स्थापित करते हैं।`,
+        te: `${moonRashiName} మనశ్శాంతి మరియు ${nakshatraName} దివ్య కాంతి ఈ తుది ఘట్టంలో మీ కుటుంబాన్ని అజేయ ఆత్మవిశ్వాసంతో నిలుపుతాయి.`,
+        ta: `${moonRashiName} மன அமைதியும் ${nakshatraName} அருளொளியும் இந்த நிறைவுக் கட்டத்தில் உங்கள் குடும்பத்தைத் தன்னம்பிக்கை உச்சத்தில் நிறுத்துகின்றன.`,
+        en: `Emotional steadiness (${moonRashiName}) and innate star radiance (${nakshatraName}) unite cleanly to carry your household boldly forward.`,
+      },
+    };
+    return pick6(mapP2[chNum] || mapP2[1], lang);
+  };
 
-  const extP3 = chNum === 23 ? "" : isChildOrInfant
-    ? pick6({
-        kn: `ಪ್ರತಿದಿನ ಮಗುವಿನ ಜೊತೆ ನಗುತ್ತಾ ಕಳೆಯುವ ಶಾಂತ ಸಮಯವೇ ಇದರ ಬಾಲ್ಯದ ಸವಿ ನೆನಪು ಮತ್ತು ಮುಂದಿನ ದೊಡ್ಡ ಯಶಸ್ಸಿಗೆ ಭದ್ರ ಬುನಾದಿ.`,
-        mr: `दररोज बाळासोबत खेळलेला व हसलेला शांत वेळच त्याचे बालपण समृद्ध करतो आणि भविष्याचा पाया मजबूत करतो.`,
-        hi: `प्रतिदिन बच्चे के साथ बिताया गया शांत, हंसमुख समय ही इसके सुखद बचपन और उज्ज्वल भविष्य की सबसे पक्की नींव है।`,
-        te: `ప్రతిరోజూ చిన్నారితో ఆనందంగా గడిపే ప్రశాంత సమయమే దాని ఉజ్వల భవిష్యత్తుకు గట్టి పునాది.`,
-        ta: `தினமும் குழந்தையுடன் மகிழ்ச்சியாகச் செலவிடும் அமைதியான நேரமே அதன் இனிய எதிர்காலத்திற்கு வலுவான அடித்தளமாகும்.`,
-        en: `Warm unhurried moments spent listening and laughing together each day form the true anchor behind every future milestone.`,
-      }, lang)
-    : pick6({
-        kn: `ನೀವು ಇದನ್ನು ಸಂಕೀರ್ಣ ಗಣಿತವೆಂದು ತಲೆಕೆಡಿಸಿಕೊಳ್ಳಬೇಕಿಲ್ಲ — ಸರಿಯಾದ ವಾರ '${localizedYogiDay}', ಸ್ಪಷ್ಟ ಮಾತು ಹಾಗೂ ತಾಳ್ಮೆಯ ಹೆಜ್ಜೆಗಳೇ ಕಥೆಯನ್ನು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಿಸುತ್ತವೆ.`,
-        mr: `यासाठी मोठ्या तांत्रिक गणितात अडकण्याची गरज नाही — योग्य दिवस '${localizedYogiDay}', स्पष्ट संवाद आणि शांत सातत्य हीच तुमची कथा यशस्वी करतात.`,
-        hi: `इसमें किसी कठिन नियम की उलझन नहीं है—आपका शुभ दिन '${localizedYogiDay}', साफ़ निर्णय और धैर्यपूर्ण निरंतरता ही पूरी कहानी को आपके पक्ष में मोड़ देते हैं।`,
-        te: `దీని కోసం కష్టమైన గణనల గురించి ఆలోచించాల్సిన పనిలేదు—మీ శుభ రోజు '${localizedYogiDay}', స్పష్టమైన మాట మరియు ప్రశాంతమైన అడుగులే కథను మీకు అనుకూలంగా మలుపుతిప్పుతాయి.`,
-        ta: `இதற்குக் கடினமான விதிகள் எதுவும் தேவையில்லை—உங்கள் சுப நாளான '${localizedYogiDay}', தெளிவான பேச்சு மற்றும் நிதானமான முயற்சியே முழுக் கதையையும் உங்கள் பக்கம் திருப்பும்.`,
-        en: `Zero heavy formulas required here: move cleanly on your aligned day (${localizedYogiDay}), keep promises crisp, and watch practical clarity turn the whole storyline unmistakably in your favor.`,
-      }, lang);
+  const buildUniqueExtP3 = (): string => {
+    if (chNum === 23 || chNum === 25) return "";
+    if (isChildOrInfant && (chNum === 12 || chNum === 13 || chNum === 14)) {
+      const childP3: Record<number, Record<SixLang, string>> = {
+        12: {
+          kn: `ಮಗುವಿನ ನೈಸರ್ಗಿಕ ಕುತೂಹಲವನ್ನು ಹಾಡು-ಕಥೆಗಳ ಮೂಲಕ ಪೋಷಿಸಿದರೆ ಕಲಿಕೆಯು ಆಟದಷ್ಟೇ ಸಂತೋಷಕರವಾಗುತ್ತದೆ.`,
+          mr: `बाळाची नैसर्गिक जिज्ञासा गोष्टी आणि गाण्यांमधून जोपासली की शिक्षण खेळासारखे आनंददायी बनते.`,
+          hi: `बच्चे की स्वाभाविक जिज्ञासा को कहानियों और गीतों से संवारने पर सीखना खेल जितना सुखद बन जाता है।`,
+          te: `చిన్నారి ఆసక్తిని కథలు, పాటల ద్వారా ప్రోత్సహిస్తే చదువు ఆటలాగే ఆనందంగా మారుతుంది.`,
+          ta: `குழந்தையின் ஆர்வத்தைக் கதைகள், பாடல்கள் மூலம் ஊக்கப்படுத்தினால் கல்வி விளையாட்டைப் போல் இனிமையாகும்.`,
+          en: `Keeping learning playful turns natural curiosity into lifelong confidence with zero strain.`,
+        },
+        13: {
+          kn: `ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಪ್ರಾರಂಭಿಸುವ ನಿಯಮಿತ ಶೈಕ್ಷಣಿಕ ಉಳಿತಾಯವೇ ಕುಟುಂಬದ ಭವಿಷ್ಯಕ್ಕೆ ದೊಡ್ಡ ಆಧಾರಸ್ತಂಭ.`,
+          mr: `मुलाच्या नावाने सुरू केलेली शांत शैक्षणिक बचत पुढे कुटुंबाची सर्वात भक्कम ठेव ठरते.`,
+          hi: `बालक के भविष्य हेतु प्रारंभ की गई नियमित शैक्षणिक बचत पूरे परिवार का सुदृढ़ संबल बनती है।`,
+          te: `చిన్నారి పేరుతో ప్రారంభించే క్రమమైన విద్యా పొదుపే కుటుంబ భవిష్యత్తుకు బలమైన పునాది.`,
+          ta: `குழந்தையின் பெயரில் தொடங்கும் முறையான கல்விச் சேமிப்பே குடும்ப எதிர்காலத்திற்கு வலிமையான தூண்.`,
+          en: `Quiet, consistent education savings set aside peacefully today anchor bright tomorrows cleanly.`,
+        },
+        14: {
+          kn: `ಮನೆಯ ಪ್ರೀತಿ ಮತ್ತು ನಿಧಾನದ ಮಾತುಗಳೇ ಮಗುವಿನ ಹೃದಯದಲ್ಲಿ ಜೀವನಪರ್ಯಂತ ಉಳಿಯುವ ಬೆಚ್ಚಗಿನ ನೆನಪುಗಳು.`,
+          mr: `घरातील प्रेम आणि शांत संवाद हीच मुलाच्या मनात आयुष्यभर टिकणारी सर्वात गोड साठवण असते.`,
+          hi: `घर का स्नेह और शांत संवाद ही बच्चे के हृदय में आजीवन बसने वाली सबसे सुंदर स्मृतियां हैं।`,
+          te: `ఇంట్లోని ఆప్యాయత మరియు ప్రశాంతమైన మాటలే చిన్నారి మనసులో జీవితాంతం నిలిచే తీపి జ్ఞాపకాలు.`,
+          ta: `வீட்டின் அன்பும் நிதானமான பேச்சுமே குழந்தையின் இதயத்தில் வாழ்நாள் முழுவதும் நிலைக்கும் இனிய நினைவுகள்.`,
+          en: `Kind words around the dinner table silently weave unbreakable emotional courage for decades ahead.`,
+        },
+      };
+      return pick6(childP3[chNum], lang);
+    }
+
+    const mapP3: Record<number, Record<SixLang, string>> = {
+      1: {
+        kn: `ಆತುರಕ್ಕೆ ಬದಲಾಗಿ ಶಾಂತ ವೀಕ್ಷಣೆಗೆ ಜಾಗ ಕೊಟ್ಟರೆ, ಈ ಕ್ಷಣದ ಸನ್ನಿವೇಶ ತಾನಾಗಿಯೇ ನಿಮ್ಮ ಪರವಾಗಿ ನಿಲ್ಲುತ್ತದೆ.`,
+        mr: `घाई करण्याऐवजी शांत निरीक्षणाची सवय ठेवल्यास आत्ताची परिस्थिती आपोआप तुमच्या बाजूने झुकते.`,
+        hi: `उतावलेपन की जगह शांत अवलोकन चुनते ही वर्तमान परिस्थिति स्वतः आपके पक्ष में ढलती चली जाती है।`,
+        te: `తొందరపాటు కంటే ప్రశాంతమైన పరిశీలనకు ప్రాధాన్యమిస్తే, ప్రస్తుత పరిస్థితి అదే మీకు అనుకూలంగా మారుతుంది.`,
+        ta: `அவசரப்படுவதற்குப் பதிலாக அமைதியான கவனத்தைக் கையாண்டால், தற்போதைய சூழல் தானாக உங்கள் பக்கம் திரும்பும்.`,
+        en: `Choosing quiet observation over hasty reaction shifts the entire emotional balance quietly back to you.`,
+      },
+      2: {
+        kn: `ನಿಮ್ಮ ಸ್ವಂತ ಸಮಯಕ್ಕೆ ಸ್ಪಷ್ಟ ಮರ್ಯಾದೆ ನೀಡಿದ ದಿನವೇ ಇತರರು ಸಹ ನಿಮ್ಮ ಶ್ರಮವನ್ನು ಹಗುರವಾಗಿ ಕಾಣುವುದು ನಿಲ್ಲುತ್ತದೆ.`,
+        mr: `तुम्ही स्वतःच्या वेळेचा सन्मान ठेवाल त्या दिवसापासून लोक तुमचे कष्ट गृहीत धरणे बंद करतील.`,
+        hi: `जिस दिन आप स्वयं अपने समय का सम्मान करने लगेंगे, उसी दिन से लोग आपके परिश्रम को हल्के में लेना बंद कर देंगे।`,
+        te: `మీ సమయాన్ని మీరు గౌరవించడం మొదలుపెట్టిన రోజే ఇతరులు కూడా మీ శ్రమను తేలికగా తీసుకోవడం ఆపేస్తారు.`,
+        ta: `உங்கள் நேரத்தை நீங்கள் மதிக்கத் தொடங்கும் நாளிலிருந்து மற்றவர்களும் உங்கள் உழைப்பைச் சாதாரணமாக நினைப்பதை நிறுத்துவார்கள்.`,
+        en: `Fair boundaries protect love from turning into silent exhaustion—respecting yourself teaches others how to value you.`,
+      },
+      3: {
+        kn: `ಹಿಂದಿನ ಎರಡು ವರ್ಷಗಳ ತೀಕ್ಷ್ಣ ಅನುಭವವೇ ಇನ್ನು ಮುಂದೆ ಎದುರಾಗುವ ಪ್ರತಿಯೊಂದು ದೊಡ್ಡ ಹೆಜ್ಜೆಗೂ ನಿಮ್ಮ ದಿಕ್ಸೂಚಿಯಾಗಿದೆ.`,
+        mr: `मागील दोन वर्षांचा अचूक अनुभवच यापुढच्या प्रत्येक मोठ्या पावलासाठी तुमचे सर्वात सुरक्षित मार्गदर्शन आहे.`,
+        hi: `बीते दो वर्षों की यह व्यावहारिक कसौटी ही अब आगे हर बड़े कदम पर आपका सबसे सटीक मार्गदर्शक बन चुकी है।`,
+        te: `గత రెండేళ్ళ కఠిన అనుభవమే ఇకపై మీరు వేసే ప్రతి పెద్ద అడుగుకూ అత్యంత సురక్షితమైన దిక్సూచిగా మారింది.`,
+        ta: `கடந்த இரண்டு ஆண்டுகளின் தெளிவான அனுபவமே இனி நீங்கள் எடுக்கும் ஒவ்வொரு பெரிய முயற்சிக்கும் வழிகாட்டியாகும்.`,
+        en: `What tested you recently now guards every upcoming negotiation with sharper intuition than books can teach.`,
+      },
+      4: {
+        kn: `ಅಂತಿಮ ಸಣ್ಣ ವಿವರವನ್ನು ಸಮಾಧಾನದಿಂದ ಪರೀಕ್ಷಿಸುವ ಅಭ್ಯಾಸ ಬೆಳೆಸಿಕೊಂಡರೆ, ವಿಳಂಬವೆಲ್ಲಾ ಸುಲಭ ಯಶಸ್ಸಾಗಿ ಮಾರ್ಪಡುತ್ತದೆ.`,
+        mr: `शेवटचा छोटा तपशील शांतपणे तपासण्याची सवय ठेवल्यास प्रत्येक विलंब थेट यशात रूपांतरित होतो.`,
+        hi: `अंतिम छोटे बिंदु को धैर्यपूर्वक जांचने की आदत डालते ही हर अनावश्यक देरी स्थायी सफलता में बदलने लगती है।`,
+        te: `చివరి చిన్న వివరాలను ప్రశాంతంగా సరిచూసుకునే అలవాటు చేసుకుంటే, ప్రతి ఆలస్యం సులభ విజయంగా మారుతుంది.`,
+        ta: `கடைசிச் சிறிய விவரத்தை அமைதியாகச் சரிபார்க்கும் பழக்கத்தை வளர்த்தால் தாமதங்கள் அனைத்தும் வெற்றியாக மாறும்.`,
+        en: `Pausing to verify the final five percent calmly turns frustrating delays into airtight long-term protection.`,
+      },
+      5: {
+        kn: `ಹೊರಗಿನ ಒತ್ತಡಕ್ಕಿಂತ ಒಳಗಿನ ನೈಜ ಸಮತೋಲನಕ್ಕೆ ಮೊದಲ ಆದ್ಯತೆ ಕೊಡುವುದೇ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ನಿಜವಾದ ಬಲ.`,
+        mr: `बाहेरील अपेक्षांच्या गडबडीपेक्षा स्वतःचा शांत समतोल सांभाळणे हीच तुमच्या व्यक्तिमत्त्वाची खरी शक्ती आहे.`,
+        hi: `बाहरी शोर की अपेक्षा भीतर के शांत संतुलन को प्राथमिकता देना ही आपके व्यक्तित्व की सबसे बड़ी पूंजी है।`,
+        te: `బయటి ఒత్తిడుల కంటే లోపలి ప్రశాంత సమతుల్యతకు విలువ ఇవ్వడమే మీ వ్యక్తిత్వంలోని నిజమైన బలం.`,
+        ta: `வெளிப்புற அழுத்தங்களை விட உள்ளத்தின் சமநிலைக்கு முன்னுரிமை அளிப்பதே உங்கள் ஆளுமையின் உண்மையான வலிமையாகும்.`,
+        en: `Protecting internal equilibrium before answering external demands unlocks the calm sharpness behind your finest choices.`,
+      },
+      6: {
+        kn: `ಅತಿಯಾದ ವೇಗಕ್ಕಿಂತ ನಿಮ್ಮ ಗ್ರಹಗತಿಗೆ ಹೊಂದುವ ಸಮಯದಲ್ಲಿ ಹೆಜ್ಜೆ ಹಾಕಿದರೆ ಕಡಿಮೆ ಆಯಾಸದಲ್ಲಿ ದೊಡ್ಡ ಲಾಭ ದೊರೆಯುತ್ತದೆ.`,
+        mr: `अतिघाई टाळून अनुकूल वेळेच्या सुसंगतीत पाऊल टाकल्यास कमी श्रमात मोठा व टिकाऊ लाभ मिळतो.`,
+        hi: `अंधी दौड़ की जगह अनुकूल घड़ी के साथ कदम मिलाने पर कम थकान में अधिक स्पष्ट और स्थायी परिणाम प्राप्त होते हैं।`,
+        te: `హడావిడి పడకుండా అనుకూల సమయంలో నిర్ణయాలు తీసుకుంటే తక్కువ శ్రమతోనే పెద్ద లాభం చేకూరుతుంది.`,
+        ta: `அதிக வேகத்தை விட உகந்த நேரத்துடன் இணைந்து செயல்படும்போது குறைந்த களைப்பில் பெரிய பலன் கிடைக்கும்.`,
+        en: `Pairing clean timing with calm preparation effortlessly outperforms frantic hours pushed on low-tide windows.`,
+      },
+      7: {
+        kn: `ನಡೆಯುತ್ತಿರುವ ಅವಧಿಯ ಪ್ರತಿಯೊಂದು ತಿಂಗಳನ್ನೂ ಸಣ್ಣ ಗುರಿಗಳಾಗಿ ವಿಂಗಡಿಸಿ ಮುನ್ನಡೆದರೆ ನಿಶ್ಚಿತ ಪ್ರಗತಿ ಸಾಧಿಸುತ್ತೀರಿ.`,
+        mr: `सध्याच्या कालखंडातील प्रत्येक महिन्याचे छोटे टप्पे ठरवून पुढे गेल्यास निश्चित व ठोस यश मिळते.`,
+        hi: `वर्तमान दशा-अवधि के प्रत्येक माह को छोटे व्यावहारिक लक्ष्यों में बांटकर चलने से प्रगति पूर्णतः निश्चित हो जाती है।`,
+        te: `నడుస్తున్న కాలంలోని ప్రతి నెలను చిన్న లక్ష్యాలుగా విభజించి ముందుకు సాగితే ఖచ్చితమైన అభివృద్ధి సాధిస్తారు.`,
+        ta: `நடப்பு காலத்தின் ஒவ்வொரு மாதத்தையும் சிறிய இலக்குகளாகப் பிரித்து முன்னேறினால் உறுதியான வளர்ச்சி கிட்டும்.`,
+        en: `Breaking your active cycle into calm thirty-day milestones converts complex planetary shifts into dependable weekly wins.`,
+      },
+      8: {
+        kn: `ತಾಳ್ಮೆ ಮತ್ತು ನಿಯಮಿತ ಪರಿಶ್ರಮವನ್ನು ಕೈಬಿಡದಿದ್ದರೆ ಮುಂಬರುವ ವರ್ಷಗಳಲ್ಲಿ ಯಾರೂ ಅಲ್ಲಾಡಿಸಲಾಗದ ಸ್ಥಾನ ನಿಮ್ಮದಾಗುತ್ತದೆ.`,
+        mr: `संयम आणि सातत्यपूर्ण परिश्रम न सोडल्यास पुढच्या वर्षांत कोणीही हलवू न शकणारे स्थान तुम्ही मिळवाल.`,
+        hi: `धैर्य और नियमित कर्मठता बनाए रखने पर आने वाले वर्षों में ऐसा अटल स्थान प्राप्त होता है जिसे कोई हिला नहीं सकता।`,
+        te: `సహనం మరియు క్రమమైన శ్రమను వదలకపోతే రాబోయే సంవత్సరాల్లో ఎవరూ కదిలించలేని ఉన్నత స్థానం మీకు దక్కుతుంది.`,
+        ta: `பொறுமையையும் சீரான உழைப்பையும் கைவிடாவிட்டால் வரும் ஆண்டுகளில் யாராலும் அசைக்க முடியாத உயர்வு உங்களுடையதாகும்.`,
+        en: `Unhurried consistency builds credibility that shortcuts never match—stay faithful to steady craft and trust the pace.`,
+      },
+      9: {
+        kn: `ಶುಭ ಸಲಹೆ ಹಾಗೂ ಹೊಸ ಜ್ಞಾನಕ್ಕೆ ಮನಸ್ಸು ತೆರೆದಷ್ಟು ಈ ಅನುಕೂಲಕರ ಗ್ರಹಸಂಚಾರ ನಿಮಗೆ ದ್ವಿಗುಣ ಲಾಭ ತರುತ್ತದೆ.`,
+        mr: `चांगल्या सल्ल्यासाठी आणि नवीन ज्ञानासाठी मन खुले ठेवताच हे अनुकूल भ्रमण तुम्हाला दुप्पट फायदा देऊन जाते.`,
+        hi: `शुभ परामर्श और नए ज्ञान के लिए मन खुला रखते ही यह बृहस्पति-गोचर आपको दोगुना लाभ प्रदान करता है।`,
+        te: `మంచి సలహాలు మరియు కొత్త విషయాల పట్ల ఆసక్తిని పెంచుకున్న కొద్దీ ఈ శుభ సమయం మీకు రెట్టింపు మేలు చేస్తుంది.`,
+        ta: `நல்ல ஆலோசனைகளுக்கும் புதிய கல்விக்கும் மனதைத் திறந்து வைக்கும்போது இந்தக் குரு காலம் இரட்டிப்பு நன்மை தரும்.`,
+        en: `Remaining teachable and welcoming worthy mentors turns a pleasant transit window into a lifelong upward launchpad.`,
+      },
+      10: {
+        kn: `ಕಾಗದದ ಮೇಲಿನ ಸ್ಪಷ್ಟ ದಾಖಲೆ ಮತ್ತು ನೈಜ ಸತ್ಯದ ಮೇಲಷ್ಟೇ ಭರವಸೆ ಇಟ್ಟರೆ ಯಾವುದೇ ಭ್ರಮೆ ನಿಮ್ಮನ್ನು ದಾರಿ ತಪ್ಪಿಸಲಾರದು.`,
+        mr: `कागदपत्रांवरील लेखी स्पष्टता आणि प्रत्यक्ष वास्तवावर विश्वास ठेवल्यास कोणताही भ्रम तुम्हाला फसवू शकणार नाही.`,
+        hi: `दस्तावेज़ी स्पष्टता और प्रत्यक्ष तथ्यों पर आधारित निर्णय लेने पर कोई भी छलावा आपकी राह नहीं रोक सकता।`,
+        te: `ఖచ్చితమైన పత్రాలు మరియు నిజమైన వాస్తవాల ఆధారంగా నిర్ణయాలు తీసుకుంటే ఏ భ్రమా మిమ్మల్ని తప్పుదారి పట్టించలేదు.`,
+        ta: `தெளிவான ஆவணங்கள் மற்றும் நேரடி உண்மைகளின் அடிப்படையில் முடிவெடுத்தால் எந்த மாயையும் உங்களைத் திசைதிருப்ப முடியாது.`,
+        en: `Testing bright promises against concrete evidence keeps every ambition grounded and protects peace from sudden hype.`,
+      },
+      11: {
+        kn: `ನಿಮ್ಮೊಳಗಿನ ಸಕಾರಾತ್ಮಕ ನಾಯಕತ್ವವನ್ನು ಸಂದರ್ಭ ಬಂದಾಗ ಧೈರ್ಯದಿಂದ ಬಳಸಿದರೆ, ಗೌರವವು ತಾನಾಗಿಯೇ ನಿಮ್ಮನ್ನು ಹುಡುಕಿ ಬರುತ್ತದೆ.`,
+        mr: `योग्य वेळी तुमच्यातील सकारात्मक नेतृत्वाची धुरा धाडसाने सांभाळली की मानसन्मान आपोआप तुमच्याकडे चालून येतो.`,
+        hi: `अवसर आने पर अपने भीतर के सकारात्मक नेतृत्व को निसंकोच आगे लाने पर प्रतिष्ठा स्वयं आपके चरण चूमती है।`,
+        te: `సమయం వచ్చినప్పుడు మీలోని సహజ నాయకత్వాన్ని ధైర్యంగా చూపిస్తే, గౌరవం మరియు గుర్తింపు వాటంతట అవే మీ వద్దకు వస్తాయి.`,
+        ta: `சரியான தருணத்தில் உங்கள் தலைமைப் பண்பைத் தயக்கமின்றி வெளிப்படுத்தினால் பெருமையும் மதிப்பும் தானாகத் தேடி வரும்.`,
+        en: `Stepping cleanly onto the stage when real responsibility calls lets your dormant royal strengths shine effortlessly.`,
+      },
+      12: {
+        kn: `ನಿಮ್ಮ ದುಡಿಮೆಯ ಮೌಲ್ಯವನ್ನು ನೀವೇ ಗೌರವಿಸಿದ ಕ್ಷಣದಿಂದ, ಕೆಲಸದ ಸ್ಥಳ ಅಥವಾ ವ್ಯವಹಾರದಲ್ಲಿ ಉತ್ತಮ ಸ್ಥಾನಮಾನ ತೆರೆದುಕೊಳ್ಳುತ್ತದೆ.`,
+        mr: `तुमच्या कामाच्या दर्जाला तुम्हीच योग्य मान दिल्यापासून कार्यक्षेत्रात नवी पदे व अधिकार खुले होतात.`,
+        hi: `जिस क्षण आप स्वयं अपने काम के वास्तविक मूल्य का सम्मान करते हैं, कार्यस्थल में उन्नति के नए द्वार खुलने लगते हैं।`,
+        te: `మీ శ్రమ విలువను మీరే గుర్తించి గౌరవించిన క్షణం నుండి వృత్తి వ్యాపారాల్లో ఉన్నత అవకాశాలు తలుపు తడతాయి.`,
+        ta: `உங்கள் உழைப்பின் மதிப்பை நீங்களே உயர்த்திப் பிடிக்கும் நொடியிலிருந்து தொழில் துறையில் பெரிய அங்கீகாரம் கிடைக்கும்.`,
+        en: `Aligning your voice with real outcomes converts unseen reliability into visible authority and fairer rewards.`,
+      },
+      13: {
+        kn: `ತಿಂಗಳ ಮೊದಲ ದಿನವೇ ಉಳಿತಾಯವನ್ನು ಪ್ರತ್ಯೇಕಿಸುವ ಸಣ್ಣ ಅಭ್ಯಾಸವೇ ವರ್ಷಗಳಲ್ಲಿ ದೊಡ್ಡ ಆರ್ಥಿಕ ನೆಮ್ಮದಿಯನ್ನು ಕಟ್ಟಿಕೊಡುತ್ತದೆ.`,
+        mr: `महिन्याच्या पहिल्याच दिवशी बचत वेगळी काढण्याची छोटी सवय काही वर्षांत मोठे आर्थिक स्थैर्य उभारते.`,
+        hi: `माह के आरंभ में ही निश्चित बचत अलग रखने की सरल आदत कुछ वर्षों में मजबूत आर्थिक सुरक्षा खड़ी कर देती है।`,
+        te: `నెల ప్రారంభంలోనే పొదుపును పక్కన పెట్టే చిన్న నియమం కొన్ని ఏళ్ళలో పెద్ద ఆర్థిక భరోసాను నిర్మిస్తుంది.`,
+        ta: `மாதத்தின் முதல் நாளிலேயே சேமிப்பைத் தனியாக ஒதுக்கும் பழக்கம் சில ஆண்டுகளில் அசைக்க முடியாத பொருளாதாரப் பலத்தைத் தரும்.`,
+        en: `Protecting your savings margin before discretionary spending replaces lingering money worry with durable household wealth.`,
+      },
+      14: {
+        kn: `ಸಣ್ಣ ತಪ್ಪು ತಿಳುವಳಿಕೆಯನ್ನು ಅಂದೇ ಪ್ರೀತಿಯಿಂದ ಬಗೆಹರಿಸಿಕೊಂಡರೆ, ಆತ್ಮೀಯ ಸಂಬಂಧಗಳಲ್ಲಿ ವಿಶ್ವಾಸ ಇನ್ನೂ ಆಳವಾಗಿ ಬೇರೂರುತ್ತದೆ.`,
+        mr: `लहानसा गैरसमज त्याच दिवशी प्रेमाने मिटवून घेतल्यास जवळच्या नात्यातील विश्वास आणखी घट्ट होत जातो.`,
+        hi: `छोटी गलतफहमी को उसी दिन स्नेह से सुलझा लेने पर निकट संबंधों की डोर जीवन भर के लिए मजबूत हो जाती है।`,
+        te: `చిన్న అపార్థాలను ఆ రోజే ప్రేమగా మాట్లాడి పరిష్కరించుకుంటే ఆత్మీయ బంధాల్లో నమ్మకం ఇంకా బలపడుతుంది.`,
+        ta: `சிறிய மனக்கசப்பை அன்றே அன்பாகப் பேசித் தீர்த்துக்கொண்டால் நெருங்கிய உறவுகளில் நம்பிக்கை ஆழமாக வேரூன்றும்.`,
+        en: `Choosing candid warmth today clears unspoken walls quickly and deepens trust across every quiet season ahead.`,
+      },
+      15: {
+        kn: `ಮನಸ್ಸಿಗೆ ಆನಂದ ತರುವ ಸೃಜನಶೀಲ ಚಟುವಟಿಕೆಯೇ ನಿಮ್ಮ ಬದುಕಿನ ಉತ್ಸಾಹವನ್ನು ಸದಾ ಹಸಿರಾಗಿಡುವ ನಿಜವಾದ ರಸಾಯನವಾಗಿದೆ.`,
+        mr: `मनाला प्रसन्न ठेवणाऱ्या सृजनशील छंदाची जोड दिल्यास आयुष्याचा उत्साह नेहमी टवटवीत राहतो.`,
+        hi: `मन को प्रफुल्लित रखने वाली रचनात्मक अभिरुचि से जीवन का उत्साह हर अवस्था में तरोताज़ा बना रहता है।`,
+        te: `మనసుకు సంతోషాన్నిచ్చే సృజనాత్మక వ్యాపకాన్ని కొనసాగించడం వల్ల జీవితంపై ఉత్సాహం ఎప్పుడూ తాజాగా ఉంటుంది.`,
+        ta: `மனதிற்கு மகிழ்ச்சி தரும் படைப்பாற்றல் செயல்கள் வாழ்வின் உற்சாகத்தை எப்போதும் பசுமையாக வைத்திருக்கும்.`,
+        en: `Making dedicated room for joyful creation keeps curiosity vibrant and infuses fresh warmth into ordinary routines.`,
+      },
+      16: {
+        kn: `ಪ್ರತಿ ಗಂಟೆಗೂ ಸ್ವಲ್ಪ ವಿಶ್ರಾಂತಿ ಮತ್ತು ಶುದ್ಧ ಉಸಿರಾಟಕ್ಕೆ ಸಮಯ ಕೊಟ್ಟರೆ ನಿಮ್ಮ ದೈಹಿಕ ಶಕ್ತಿ ದೀರ್ಘಕಾಲ ತಾರುಣ್ಯದಿಂದಿರುತ್ತದೆ.`,
+        mr: `दर तासाला दोन मिनिटे शांत श्वास व थोडा विसावा घेतल्यास तुमचा शारीरिक जोम दीर्घकाळ टिकून राहतो.`,
+        hi: `काम के बीच कुछ मिनट शांत श्वास और विश्राम को स्थान देने से शारीरिक स्फूर्ति एवं ऊर्जा दीर्घकाल तक बनी रहती है।`,
+        te: `పని మధ్యలో కాస్త ప్రశాంత శ్వాస మరియు విశ్రాంతి తీసుకోవడం వల్ల మీ శారీరక బలం ఎంతో కాలం ఉత్సాహంగా ఉంటుంది.`,
+        ta: `பணிக்கு நடுவே சிறிது ஓய்வும் அமைதியான சுவாசமும் எடுத்துக்கொண்டால் உங்கள் உடல் ஆற்றல் நீண்ட காலம் குறையாது.`,
+        en: `Honoring simple hydration, posture breaks, and serene evening shutdown protects steady energy through busy months.`,
+      },
+      17: {
+        kn: `ಈ ತ್ರೈಮಾಸಿಕದ ಪ್ರತಿಯೊಂದು ಸಣ್ಣ ಗೆಲುವನ್ನೂ ಗಮನಿಸಿ ಮುಂದುವರಿದರೆ, ನಿರೀಕ್ಷೆಗಿಂತ ಬೇಗ ದೊಡ್ಡ ತಿರುವು ಕೈಸೇರುತ್ತದೆ.`,
+        mr: `या तिमाहीतील प्रत्येक छोट्या यशाची नोंद ठेवून पुढे गेल्यास अपेक्षेपेक्षा लवकर मोठे वळण मिळते.`,
+        hi: `इस तिमाही की प्रत्येक छोटी उपलब्धि को संजोकर चलने पर अपेक्षित बड़ा परिवर्तन समय से पहले ही घटित हो जाता है।`,
+        te: `ఈ మూడు నెలల్లో వచ్చే ప్రతి చిన్న విజయాన్ని సరిగ్గా వినియోగించుకుంటే, ఊహించిన దానికంటే ముందే పెద్ద మార్పు కనిపిస్తుంది.`,
+        ta: `இந்தக் காலாண்டின் ஒவ்வொரு சிறிய வெற்றியையும் சரியாகப் பயன்படுத்தினால் எதிர்பார்த்ததை விட விரைவில் பெரிய திருப்பம் நிகழும்.`,
+        en: `Stay responsive inside the next ninety days—timely replies and calm preparation harvest quick breakthroughs cleanly.`,
+      },
+      18: {
+        kn: `ಮಧ್ಯಂತರದ ಈ ಅವಧಿಯಲ್ಲಿ ಧೈರ್ಯ ಮತ್ತು ವಿವೇಚನೆ ಎರಡನ್ನೂ ಜೊತೆಯಾಗಿ ಇಟ್ಟರೆ ಬೃಗು ಬಿಂದುವಿನ ಶುಭ ಫಲ ಪೂರ್ಣವಾಗಿ ದೊರೆಯುತ್ತದೆ.`,
+        mr: `वर्षाच्या मध्यावर धाडस व समतोल एकत्र ठेवल्यास भृगु बिंदूचे शुभ फळ पूर्ण क्षमतेने मिळून जाते.`,
+        hi: `मध्यांतर के इस चरण में साहस एवं विवेक का संतुलन रखने पर भृगु बिंदु के शुभ फल पूर्ण रूप से प्राप्त होते हैं।`,
+        te: `సంవత్సర మధ్య భాగంలో ధైర్యం మరియు వివేకం రెండింటినీ జతచేస్తే భృగు బిందువు యొక్క శుభ ఫలితం సంపూర్ణంగా లభిస్తుంది.`,
+        ta: `ஆண்டின் நடுப்பகுதியில் துணிச்சலையும் விவேகத்தையும் இணைத்தால் பிருகு பிந்துவின் முழு நற்பலனும் நிச்சயம் கிடைக்கும்.`,
+        en: `Welcoming this mid-year threshold with calm readiness converts hidden patience into visible career and family relief.`,
+      },
+      19: {
+        kn: `ಮೊದಲ ವರ್ಷದಲ್ಲೇ ಶಿಸ್ತಿನ ಅಡಿಪಾಯ ಗಟ್ಟಿಯಾದರೆ ಮುಂದಿನ ನಾಲ್ಕು ವರ್ಷಗಳ ಪಯಣ ಹಗುರವಾಗಿ ಸಾಗುತ್ತದೆ.`,
+        mr: `पहिल्याच वर्षी कामाचा व वेळेचा पाया पक्का झाला तर पुढील चार वर्षांचा प्रवास अत्यंत सहज होतो.`,
+        hi: `पहले वर्ष में ही दिनचर्या और समय की नींव पक्की हो जाने से आगे के चार वर्षों की यात्रा स्वतः सुगम हो जाती है।`,
+        te: `మొదటి ఏడాదే క్రమశిక్షణతో కూడిన పునాది గట్టిపడితే రాబోయే నాలుగేళ్ళ ప్రయాణం ఎంతో సులువుగా సాగుతుంది.`,
+        ta: `முதல் ஆண்டிலேயே ஒழுங்கான அடித்தளத்தை அமைத்துக்கொண்டால் அடுத்த நான்கு ஆண்டுப் பயணம் மிக எளிதாக அமையும்.`,
+        en: `Laying clean foundations during Year 1 eliminates silent friction before larger waves arrive across subsequent years.`,
+      },
+      20: {
+        kn: `ಎರಡನೇ ವರ್ಷದಲ್ಲಿ ಸಿಗುವ ನೂತನ ಪರಿಚಯಗಳು ಹಾಗೂ ವೇದಿಕೆಗಳನ್ನು ನಮ್ರತೆಯಿಂದ ಸ್ವೀಕರಿಸಿದರೆ ಕೀರ್ತಿ ಸ್ಥಿರವಾಗುತ್ತದೆ.`,
+        mr: `दुसऱ्या वर्षी मिळणारे नवे संपर्क आणि मोठ्या जबाबदाऱ्या नम्रपणे स्वीकारल्यास यश चिरस्थायी होते.`,
+        hi: `दूसरे वर्ष में मिलने वाले नए संपर्कों और बड़े मंच को विनम्रता से अपनाने पर प्रतिष्ठा स्थायी बनती है।`,
+        te: `రెండవ సంవత్సరంలో లభించే కొత్త అవకాశాలు మరియు పరిచయాలను వినయంతో స్వీకరిస్తే కీర్తి స్థిరపడుతుంది.`,
+        ta: `இரண்டாம் ஆண்டில் கிடைக்கும் புதிய அறிமுகங்களையும் மேடைகளையும் பணிவுடன் ஏற்றால் புகழ் நிலையாகும்.`,
+        en: `Stepping boldly into Year 2's wider arena while keeping promises crisp turns visibility into enduring reputation.`,
+      },
+      21: {
+        kn: `ಸಂಪತ್ತು ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಂತೋಷ ಒಟ್ಟಿಗೆ ಸಾಗುವ ಈ ಘಟ್ಟದಲ್ಲಿ ತಾಳ್ಮೆಯ ಹಣಕಾಸು ನಿರ್ವಹಣೆ ವೈಭವವನ್ನು ಉಳಿಸುತ್ತದೆ.`,
+        mr: `संपत्ती आणि घरचा आनंद एकत्र बहरण्याच्या या टप्प्यात संतुलित आर्थिक विचार वैभव अखंड ठेवतो.`,
+        hi: `समृद्धि और पारिवारिक उत्सव के इस चरण में संतुलित आर्थिक योजना प्राप्त वैभव को चिरस्थायी बनाती है।`,
+        te: `ఐశ్వర్యం మరియు కుటుంబ ఆనందం కలిసే ఈ ఘట్టంలో జాగ్రత్తగా వేసే ఆర్థిక ప్రణాళిక వైభవాన్ని నిలుపుతుంది.`,
+        ta: `செல்வமும் குடும்ப மகிழ்ச்சியும் இணையும் இக்கட்டத்தில் நிதானமான நிதித் திட்டமிடல் உயர்வை நிலைநிறுத்தும்.`,
+        en: `Balancing celebratory generosity with sensible reserves anchors golden Year 3–4 prosperity effortlessly.`,
+      },
+      22: {
+        kn: `ಐದನೇ ವರ್ಷದ ಕೊನೆಗೆ ನೀವು ಇತರರಿಗೂ ಧೈರ್ಯ ತುಂಬುವ ಆದರ್ಶ ವ್ಯಕ್ತಿಯಾಗಿ ನೆಮ್ಮದಿಯಿಂದ ಬಾಳುವ ಯೋಗ ಕೂಡಿಬಂದಿದೆ.`,
+        mr: `पाचव्या वर्षाअखेरीस तुम्ही इतरांना आधार व प्रेरणा देणारे समाधानी आयुष्य जगत असाल.`,
+        hi: `पांचवें वर्ष की परिपक्वता में आप स्वयं शांत रहते हुए अन्य लोगों के लिए भी प्रेरणा और संबल बनेंगे।`,
+        te: `ఐదవ ఏడాది ముగిసేసరికి మీరు ఇతరులకు సైతం ధైర్యాన్ని, ఆదర్శాన్ని ఇచ్చే ప్రశాంత స్థితిలో ఉంటారు.`,
+        ta: `ஐந்தாம் ஆண்டின் நிறைவில் பிறருக்கும் தைரியமும் வழிகாட்டுதலும் அளிக்கும் அமைதியான உயர் நிலையில் இருப்பீர்கள்.`,
+        en: `Arriving at Year 5 in steady health and integrity lets you mentor others from genuine hard-won calm.`,
+      },
+      24: {
+        kn: `ಮನಸ್ಸಿಗೆ ಭಾರ ಅನಿಸಿದಾಗ ಈ ನಾಲ್ಕು ಸರಳ ಸಂಗತಿಗಳಿಗೆ ಮರಳುವುದೇ ಬದುಕನ್ನು ಸುಂದರವಾಗಿಡುವ ನಿತ್ಯ ರಹಸ್ಯವಾಗಿದೆ.`,
+        mr: `मन थकल्यावर या चार सोप्या आधारांकडे परत येणे हेच जीवन आनंददायी ठेवण्याचे दैनंदिन गुपित आहे.`,
+        hi: `थकान या उलझन के समय इन चार सरल सूत्रों पर लौट आना ही जीवन को सहज व आनंदमय रखने की नित्य कला है।`,
+        te: `మనసుకు భారం అనిపించిన ప్రతిసారీ ఈ నాలుగు సులభ అంశాలకు తిరిగి రావడమే జీవితాన్ని అందంగా ఉంచే నిత్య రహస్యం.`,
+        ta: `மனம் சோர்வடையும்போதெல்லாம் இந்த நான்கு எளிய பழக்கங்களுக்குத் திரும்புவதே வாழ்வை இனிமையாக வைத்திருக்கும் ரகசியம்.`,
+        en: `Returning cheerfully to these four personal anchors turns chaotic weeks back into calm focused momentum.`,
+      },
+    };
+    return pick6(mapP3[chNum] || mapP3[1], lang);
+  };
+
+  const extP1 = "";
+  const extP2 = buildUniqueExtP2();
+  const extP3 = buildUniqueExtP3();
 
   // Per-chapter visual summary: what is NEAR, what is FAR, focusHouse/focusYearOffset, glanceVerdict!
   const lblNear = pick6({ kn: "ಹತ್ತಿರ (ನಿಮ್ಮ ಕಡೆ ಬರುತ್ತಿದೆ)", mr: "जवळ (हाताशी येत आहे)", hi: "निकट (तेज़ी से पास आ रहा)", te: "దగ్గర (మీ వైపు వస్తున్నది)", ta: "அருகில் (உங்களிடம் வருவது)", en: "Near You Now" }, lang);
@@ -2212,12 +2757,13 @@ export function buildDynamicStoryChapters(
     }
   );
 
-  // Chapters 19..22 — Dynamic Year 1, Year 2, Year 3, Years 4-5 Stories (each with distinct story arc + twist!)
+  // Chapters 19..22 — Dynamic Year 1, Year 2, Year 3, Years 4-5 Stories (each with distinct question, story arc + twist!)
   const yearNarratives: Array<{
     ch: number;
     offset: number;
     icon: string;
     themeKn: string; themeMr: string; themeHi: string; themeTe: string; themeTa: string; themeEn: string;
+    qKn: string; qMr: string; qHi: string; qTe: string; qTa: string; qEn: string;
     storyKn: string; storyMr: string; storyHi: string; storyTe: string; storyTa: string; storyEn: string;
     twistKn: string; twistMr: string; twistHi: string; twistTe: string; twistTa: string; twistEn: string;
     moveKn: string; moveMr: string; moveHi: string; moveTe: string; moveTa: string; moveEn: string;
@@ -2231,6 +2777,12 @@ export function buildDynamicStoryChapters(
       themeTe: "గట్టి పునాది & పాత చిక్కుల నుండి విముక్తి",
       themeTa: "உறுதியான அடித்தளம் & பழைய சிக்கல்கள் தீர்வு",
       themeEn: "Clearing Old Loops & Rebuilding Steadiness",
+      qKn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ${n(nowYear)}ರಲ್ಲಿ ಯಾವ ಹಳೆಯ ಭಾರವನ್ನು ಇಳಿಸಿ ಹೊಸ ಶಿಸ್ತಿನ ಅಡಿಪಾಯ ಕಟ್ಟಿಕೊಳ್ಳುತ್ತೀರಿ?`,
+      qMr: `प्रश्न: ${devoteeName}, ${n(nowYear)} मध्ये कोणती जुनी गुंतागुंत कायमची मोडीत काढून तुम्ही नवी शिस्त लावाल?`,
+      qHi: `प्रश्न: ${devoteeName}, वर्ष ${n(nowYear)} में किस पुराने बोझ को उतारकर आप जीवन की नई लय स्थापित करने वाले हैं?`,
+      qTe: `ప్రశ్న: ${devoteeName}, ${n(nowYear)}లో ఏ పాత భారాలను వదిలించుకుని కొత్త స్థిరత్వాన్ని నిర్మించుకుంటారు?`,
+      qTa: `கேள்வி: ${devoteeName}, ${n(nowYear)}-ம் ஆண்டில் எந்தப் பழைய சுமைகளை அகற்றிப் புதிய ஒழுங்கை உருவாக்கப் போகிறீர்கள்?`,
+      qEn: `Question: ${devoteeName}, which outdated routines finally close during ${nowYear} so solid structure can anchor?`,
       storyKn: `${n(nowYear)}ನೇ ವರ್ಷವು ಕಳೆದ ದಿನಗಳ ಅಸ್ತವ್ಯಸ್ತತೆಯನ್ನು ಸರಿಪಡಿಸಿ ಬದುಕನ್ನು ನಿಚ್ಚಳ ಹಳಿಗೆ ತರುವ ಅಡಿಪಾಯದ ವರ್ಷ. ಅರ್ಧಕ್ಕೆ ನಿಂತಿದ್ದ ಆಲೋಚನೆಗಳಿಗೆ ಸ್ಪಷ್ಟ ವೇಳಾಪಟ್ಟಿ ಸಿಗುತ್ತದೆ.`,
       storyMr: `${n(nowYear)} हे वर्ष जुना गोंधळ संपवून आयुष्याला शिस्त लावण्याचा भक्कम पाया आहे. अर्धवट राहिलेल्या कामांना निश्चित वेग मिळेल.`,
       storyHi: `${n(nowYear)} का यह वर्ष पिछले बिखराव को समेटकर जीवन को व्यवस्थित दिशा देने की मजबूत नींव है। अधूरी योजनाओं को स्पष्ट आकार मिलेगा।`,
@@ -2264,6 +2816,12 @@ export function buildDynamicStoryChapters(
       themeTe: "వేగవంతమైన ఎదుగుదల, కొత్త హోదా & కీర్తి",
       themeTa: "வேகமான உயர்வு, புதிய அந்தஸ்து & புகழ்",
       themeEn: "Breakthrough Acceleration & Earned Spotlight",
+      qKn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ${n(nowYear + 1)}ರಲ್ಲಿ ನಿಮ್ಮ ಪ್ರತಿಭೆ ಯಾವ ದೊಡ್ಡ ವೇದಿಕೆ ಹಾಗೂ ಹೊಸ ಅಧಿಕಾರವನ್ನು ತಲುಪುತ್ತದೆ?`,
+      qMr: `प्रश्न: ${devoteeName}, ${n(nowYear + 1)} मध्ये तुमची मेहनत तुम्हाला कोणत्या नव्या पदावर व मोठ्या व्यासपीठावर नेऊन ठेवेल?`,
+      qHi: `प्रश्न: ${devoteeName}, वर्ष ${n(nowYear + 1)} में आपकी योग्यता को किस नए मंच और बड़ी प्रतिष्ठा का अवसर प्राप्त होगा?`,
+      qTe: `ప్రశ్న: ${devoteeName}, ${n(nowYear + 1)}లో మీ శ్రమకు ఎలాంటి వేగవంతమైన గుర్తింపు మరియు కొత్త హోదా దక్కుతాయి?`,
+      qTa: `கேள்வி: ${devoteeName}, ${n(nowYear + 1)}-ம் ஆண்டில் உங்கள் திறமை எந்தப் புதிய உயர்வையும் அங்கீகாரத்தையும் பெறப்போகிறது?`,
+      qEn: `Question: ${devoteeName}, where does steady groundwork catapult into wider public recognition across ${nowYear + 1}?`,
       storyKn: `${n(nowYear + 1)}ರಲ್ಲಿ ನೀರಿನಲ್ಲಿ ದೋಣಿ ಗಾಳಿಯ ದಿಕ್ಕಿಗೆ ಸಿಕ್ಕಂತೆ ನಿಮ್ಮ ಪ್ರಯತ್ನಗಳಿಗೆ ದ್ವಿಗುಣ ವೇಗ ಸಿಗುತ್ತದೆ! ಹಿಂದಿನ ವರ್ಷ ಕಟ್ಟಿದ ಅಡಿಪಾಯದ ಮೇಲೆ ನಿಮ್ಮ ಹೆಸರು, ಸಂಪರ್ಕ ಹಾಗೂ ಹೊಸ ಅವಕಾಶಗಳು ಹಲವು ಪಟ್ಟು ಬೆಳೆಯುತ್ತವೆ.`,
       storyMr: `${n(nowYear + 1)} मध्ये तुमची मेहनत दुप्पट वेगाने फळे देईल! आधीच्या वर्षी घातलेल्या पायावर तुमचे नाव, अधिकार आणि संधी मोठ्या प्रमाणात वाढतील.`,
       storyHi: `${n(nowYear + 1)} में आपके प्रयासों को हवा का अनुकूल रुख मिलेगा! पिछले वर्ष बने आधार पर आपकी पहचान, संपर्क और अवसर कई गुना बढ़ेंगे।`,
@@ -2297,6 +2855,12 @@ export function buildDynamicStoryChapters(
       themeTe: "సువర్ణ శిఖరం, ఆస్తి స్థిరత్వం & కుటుంబ వేడుక",
       themeTa: "பொற்கால உச்சம், சொத்து உறுதி & குடும்ப மகிழ்ச்சி",
       themeEn: "Golden Peak — Tangible Assets & Celebratory Stability",
+      qKn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ${n(nowYear + 2)}–${n(nowYear + 3)}ರಲ್ಲಿ ಮನೆ, ಸ್ಥಿರ ಆಸ್ತಿ ಹಾಗೂ ಕುಟುಂಬದ ಮಂಗಳ ಕಾರ್ಯಗಳು ಹೇಗೆ ಕೈಗೂಡುತ್ತವೆ?`,
+      qMr: `प्रश्न: ${devoteeName}, ${n(nowYear + 2)}–${n(nowYear + 3)} दरम्यान घर, स्थावर मालमत्ता व कौटुंबिक सोहळे कसे साकार होतील?`,
+      qHi: `प्रश्न: ${devoteeName}, ${n(nowYear + 2)}–${n(nowYear + 3)} के मध्य गृह, स्थायी संपत्ति एवं पारिवारिक उत्सव कैसे सिद्ध होंगे?`,
+      qTe: `ప్రశ్న: ${devoteeName}, ${n(nowYear + 2)}–${n(nowYear + 3)} మధ్యకాలంలో స్థిరాస్తి, ఇల్లు మరియు కుటుంబ వేడుకలు ఎలా సిద్ధించనున్నాయి?`,
+      qTa: `கேள்வி: ${devoteeName}, ${n(nowYear + 2)}–${n(nowYear + 3)} காலகட்டத்தில் வீடு, சொத்து மற்றும் குடும்ப சுப நிகழ்வுகள் எப்படி நிறைவேறும்?`,
+      qEn: `Question: ${devoteeName}, how do lasting home, property, and family milestones turn tangible across ${nowYear + 2}–${nowYear + 3}?`,
       storyKn: `${n(nowYear + 2)} ಮತ್ತು ${n(nowYear + 3)}ನೇ ವರ್ಷಗಳು ಕನಸುಗಳನ್ನು ಕಲ್ಲು-ಮಣ್ಣಿನ ವಾಸ್ತವಕ್ಕೆ ಇಳಿಸುವ ಸುವರ್ಣ ಹಂತ! ಸ್ವಂತ ಮನೆ, ಆಸ್ತಿ, ವಾಹನ, ಮಕ್ಕಳ ಪ್ರಮುಖ ಸಾಧನೆ ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಸಂಭ್ರಮ ಗರಿಗೆದರುತ್ತದೆ.`,
       storyMr: `${n(nowYear + 2)} व ${n(nowYear + 3)} ही वर्षे तुमच्या स्वप्नांना प्रत्यक्ष स्थावर रूप देणारी आहेत! घर, वाहन, मालमत्ता आणि कुटुंबात आनंदाचे सोहळे या काळात साकार होतात.`,
       storyHi: `${n(nowYear + 2)} और ${n(nowYear + 3)} आपके सपनों को ठोस यथार्थ में बदलने का स्वर्णिम शिखर हैं! गृह, संपत्ति, संतान की बड़ी उपलब्धि और परिवार में मांगलिक उत्सवों का योग बनता है।`,
@@ -2330,6 +2894,12 @@ export function buildDynamicStoryChapters(
       themeTe: "5వ ఏడాది పరిపక్వత & శాశ్వత ప్రశాంతత",
       themeTa: "5-வது ஆண்டு நிறைவு & நிரந்தர மன அமைதி",
       themeEn: "Year 5 Horizon — Lasting Independence & Quiet Legacy",
+      qKn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ${n(nowYear + 4)}ರ ಐದನೇ ವರ್ಷದ ಅಂತ್ಯಕ್ಕೆ ನಿಮ್ಮ ಬದುಕು ಯಾವ ಶಾಶ್ವತ ಸ್ವಾತಂತ್ರ್ಯ ಮತ್ತು ಗೌರವದ ನೆಲೆಯಲ್ಲಿ ನಿಲ್ಲಲಿದೆ?`,
+      qMr: `प्रश्न: ${devoteeName}, ${n(nowYear + 4)} पर्यंतचा हा पाच वर्षांचा प्रवास तुम्हाला कोणती चिरस्थायी शांतता व प्रतिष्ठा देऊन जाईल?`,
+      qHi: `प्रश्न: ${devoteeName}, ${n(nowYear + 4)} तक पहुंचने पर पांच-वर्षीय यात्रा आपके लिए कैसी स्थायी स्वतंत्रता और सम्मान रचेगी?`,
+      qTe: `ప్రశ్న: ${devoteeName}, ${n(nowYear + 4)} ఐదవ ఏడాది నాటికి మీ జీవితం ఎలాంటి శాశ్వత ఆర్థిక స్వేచ్ఛ, ప్రశాంతతను పొందబోతోంది?`,
+      qTa: `கேள்வி: ${devoteeName}, ${n(nowYear + 4)}-ம் ஆண்டில் உங்கள் ஐந்தாண்டுப் பயணம் எந்த நிலையான சுதந்திரத்திலும் பெருமையிலும் நிலைபெறும்?`,
+      qEn: `Question: ${devoteeName}, what enduring peace, autonomy, and quiet respect crown your five-year arc by ${nowYear + 4}?`,
       storyKn: `ಐದನೇ ವರ್ಷದ ದಿಗಂತ (${n(nowYear + 4)}) ತಲುಪುವ ವೇಳೆಗೆ, ನೀವು ಬರೀ 'ಬದುಕು ಸಾಗಿಸುವ' ಹಂತವನ್ನು ದಾಟಿ ಇತರರಿಗೆ ಮಾರ್ಗದರ್ಶನ ಹಾಗೂ ನೆರಳು ಕೊಡುವ ಎತ್ತರದ ಸ್ಥಾನದಲ್ಲಿರುತ್ತೀರಿ. ಹಣದ ಆತಂಕ ಕಡಿಮೆಯಾಗಿ ಸಮಯದ ಸ್ವಾತಂತ್ರ್ಯ ಲಭಿಸುತ್ತದೆ.`,
       storyMr: `पाचव्या वर्षाच्या टप्प्यावर (${n(nowYear + 4)}) तुम्ही केवळ स्वतःचा विचार करण्यापलीकडे जाऊन इतरांना आधार देणाऱ्या खंबीर स्थानावर असाल. पैशाची चिंता कमी होऊन मनाला खरे स्वातंत्र्य लाभेल.`,
       storyHi: `पांचवें वर्ष (${n(nowYear + 4)}) तक पहुंचते-पहुंचते आप केवल संघर्ष पार करने की अवस्था से निकलकर दूसरों को सहारा देने वाले प्रतिष्ठित स्थान पर होंगे। अनावश्यक चिंता घटकर समय की आज़ादी मिलेगी।`,
@@ -2342,7 +2912,7 @@ export function buildDynamicStoryChapters(
       twistTe: `ఐదేళ్ల మహా మలుపు: ఒకప్పుడు కోల్పోయామని బాధపడ్డ దానికంటే ఎన్నో రెట్లు గొప్ప జీవితాన్ని పొంది, 'అన్నింటికీ ఒక అర్థం ఉండింది!' అని సంతోషిస్తారు.`,
       twistTa: `ஐந்தாண்டுப் பயணத்தின் திருப்பம்: முன்பு இழந்ததாக வருந்தியதை விடப் பன்மடங்கு சிறந்த வாழ்க்கையை அடைந்து, 'நடந்ததெல்லாம் நன்மைக்கே!' என உணர்வீர்கள்.`,
       twistEn: `The 5-year closing twist: looking back from ${nowYear + 4}, every painful redirection from the past makes complete sense—you outgrew rooms that were too small for where you landed.`,
-      moveKn: `ನಿಮ್ಮ ಭವಿಷ್ಯದ ಪಯಣ: ಆರೋಗ್ಯ, ಕುಟುಂಬದ ಒಗ್ಗಟ್ಟು ಹಾಗೂ ಕಲಿಯುವ ಉತ್ಸಾಹವನ್ನು ಎಂದಿಗೂ ನಿಲ್ಲಿಸಬೇಡಿ.`,
+      moveKn: `ನಿಮ್ಮ ಭವಿష್ಯದ ಪಯಣ: ಆರೋಗ್ಯ, ಕುಟುಂಬದ ಒಗ್ಗಟ್ಟು ಹಾಗೂ ಕಲಿಯುವ ಉತ್ಸಾಹವನ್ನು ಎಂದಿಗೂ ನಿಲ್ಲಿಸಬೇಡಿ.`,
       moveMr: `पुढील वाटचाल: आरोग्य, कुटुंबाचे प्रेम आणि सतत शिकण्याची जिद्द कधीच सोडू नका.`,
       moveHi: `दीर्घ सूत्र: स्वास्थ्य, परिवार की एकता और सीखने का उत्साह जीवन भर संजोए रखें।`,
       moveTe: `భవిష్యత్ సూత్రం: ఆరోగ్యం, కుటుంబ ఐక్యత మరియు కొత్త విషయాలు నేర్చుకునే ఉత్సాహాన్ని ఎప్పుడూ వదులుకోకండి.`,
@@ -2368,14 +2938,7 @@ export function buildDynamicStoryChapters(
         ta: `ஆண்டு ${n(y.offset + 1)} (${n(nowYear + y.offset)}): ${y.themeTa}`,
         en: `Year ${y.offset + 1} (${nowYear + y.offset}) — ${y.themeEn}`,
       },
-      question: {
-        kn: `ಪ್ರಶ್ನೆ: ${devoteeName}, ${n(nowYear + y.offset)}ನೇ ವರ್ಷದಲ್ಲಿ ನಿಮ್ಮ ಕಥೆಯ ಪ್ರಮುಖ ತಿರುವು ಏನು?`,
-        mr: `प्रश्न: ${devoteeName}, ${n(nowYear + y.offset)} या वर्षात तुमच्या प्रवासाचे मुख्य वळण काय असेल?`,
-        hi: `प्रश्न: ${devoteeName}, वर्ष ${n(nowYear + y.offset)} में आपकी कहानी का सबसे बड़ा मोड़ क्या होने वाला है?`,
-        te: `ప్రశ్న: ${devoteeName}, ${n(nowYear + y.offset)} సంవత్సరంలో మీ ప్రయాణంలో వచ్చే ప్రధాన మలుపు ఏమిటి?`,
-        ta: `கேள்வி: ${devoteeName}, ${n(nowYear + y.offset)}-ம் ஆண்டில் உங்கள் வாழ்வின் முக்கிய திருப்பம் என்ன?`,
-        en: `Question: ${devoteeName}, what defining shift shapes your journey in ${nowYear + y.offset}?`,
-      },
+      question: { kn: y.qKn, mr: y.qMr, hi: y.qHi, te: y.qTe, ta: y.qTa, en: y.qEn },
       p1: { kn: y.storyKn, mr: y.storyMr, hi: y.storyHi, te: y.storyTe, ta: y.storyTa, en: y.storyEn },
       p2: { kn: y.twistKn, mr: y.twistMr, hi: y.twistHi, te: y.twistTe, ta: y.twistTa, en: y.twistEn },
       p3: { kn: y.moveKn, mr: y.moveMr, hi: y.moveHi, te: y.moveTe, ta: y.moveTa, en: y.moveEn },
@@ -2569,6 +3132,7 @@ export function buildDynamicStoryChapters(
         isChildOrInfant,
         taraScore,
         taraWord,
+        chapterBadge: cleanRegional(pick6(item.badge, lang), lang),
       });
 
       const baseP1 = cleanRegional(pick6(item.p1, lang), lang);
