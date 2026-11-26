@@ -14,10 +14,10 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "tatha": { kn: "ಮತ್ತು", hi: "तथा", te: "మరియు", ta: "மற்றும்", en: "and" },
   "aur": { kn: "ಮತ್ತು", hi: "और", te: "మరియు", ta: "மற்றும்", en: "and" },
   "kirti": { kn: "ಕೀರ್ತಿ", hi: "कीर्ति", te: "కీర్తి", ta: "கீர்த்தி", en: "Kirti" },
-  "keerthi": { kn: "ಕೀರ್ತಿ", hi: "कीರ್ತಿ", te: "కీర్తి", ta: "கீர்த்தி", en: "Keerthi" },
+  "keerthi": { kn: "ಕೀರ್ತಿ", hi: "कीर्ति", te: "కీర్తి", ta: "கீர்த்தி", en: "Keerthi" },
   "talpankar": { kn: "ತಲ್ಪಂಕರ್", hi: "तल्पंकर", te: "తల్పంకర్", ta: "தல்பங்கர்", en: "Talpankar" },
   "talpanakar": { kn: "ತಲ್ಪನಕರ್", hi: "तल्पनकर", te: "తల్పనకర్", ta: "தல்பனகர்", en: "Talpanakar" },
-  "gowtam": { kn: "ಗೌತಮ್", hi: "गौतम", te: "గೌತಮ್", ta: "கௌதம்", en: "Gowtam" },
+  "gowtam": { kn: "ಗೌತಮ್", hi: "गौतम", te: "గౌతమ్", ta: "கௌதம்", en: "Gowtam" },
   "gautam": { kn: "ಗೌತಮ್", hi: "गौतम", te: "గౌతమ్", ta: "கௌதம்", en: "Gautam" },
   "roja": { kn: "ರೋಜಾ", hi: "रोजा", te: "రోజా", ta: "ரோஜா", en: "Roja" },
   "swayam naik": { kn: "ಸ್ವಯಂ ನಾಯಕ್", hi: "स्वयं नायक", te: "స్వయం నాయక్", ta: "ஸ்வயம் நாயக்", en: "Swayam Naik" },
@@ -38,9 +38,9 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "dilip pujari": { kn: "ದಿಲೀಪ್ ಪೂಜಾರಿ", hi: "दिलीप पुजारी", te: "దిలీప్ పూజారి", ta: "தில்லீப் பூஜாரி", en: "Dilip Pujari" },
   "dilip": { kn: "ದಿಲೀಪ್", hi: "दिलीप", te: "దిలీప్", ta: "தில்லீப்", en: "Dilip" },
   "pujari": { kn: "ಪೂಜಾರಿ", hi: "पुजारी", te: "పూజారి", ta: "பூஜாரி", en: "Pujari" },
-  "pramod kudgi": { kn: "ಪ್ರಮೋದ್ ಕುಡ್ಗಿ", hi: "प्रमोद कुड्गी", te: "ప్రమోద్ ಕುಡ್ಗಿ", ta: "பிரமோத் குட்கி", en: "Pramod Kudgi" },
+  "pramod kudgi": { kn: "ಪ್ರಮೋದ್ ಕುಡ್ಗಿ", hi: "प्रमोद कुड्गी", te: "ప్రమోద్ కుడ్గి", ta: "பிரமோத் குட்கி", en: "Pramod Kudgi" },
   "pramod kodgi": { kn: "ಪ್ರಮೋದ್ ಕೊಡ್ಗಿ", hi: "प्रमोद कोडगी", te: "ప్రమోద్ కొడ్గి", ta: "பிரமோத் கொட்கி", en: "Pramod Kodgi" },
-  "pramod kodigi": { kn: "ಪ್ರಮೋದ್ ಕೊಡಿಗಿ", hi: "प्रमोद कोडिगी", te: "ప్రమోద్ ಕೊಡಿಗಿ", ta: "பிரமோத் கொடிகீ", en: "Pramod Kodigi" },
+  "pramod kodigi": { kn: "ಪ್ರಮೋದ್ ಕೊಡಿಗಿ", hi: "प्रमोद कोडिगी", te: "ప్రమోద్ కొడిగి", ta: "பிரமோத் கொடிகீ", en: "Pramod Kodigi" },
   "pramod": { kn: "ಪ್ರಮೋದ್", hi: "प्रमोद", te: "ప్రమోద్", ta: "பிரமோத்", en: "Pramod" },
   "kudgi": { kn: "ಕುಡ್ಗಿ", hi: "कुड्गी", te: "కుడ్గి", ta: "குட்கி", en: "Kudgi" },
   "shreeram pandit": { kn: "ಶ್ರೀರಾಮ ಪಂಡಿತ್", hi: "श्रीराम पंडित", te: "శ్రీరామ్ పండిట్", ta: "ஸ்ரீராம் பண்டிட்", en: "Shreeram Pandit" },
@@ -71,7 +71,7 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "homa": { kn: "ಹೋಮ", hi: "होम", te: "హోమం", ta: "ஹோமம்", en: "Homa" },
   "homam": { kn: "ಹೋಮ", hi: "होम", te: "హోమం", ta: "ஹோமம்", en: "Homam" },
   "havana": { kn: "ಹವನ", hi: "हवन", te: "హవనం", ta: "ஹவனம்", en: "Havana" },
-  "havan": { kn: "ಹವನ", hi: "हवन", te: "ಹವనం", ta: "ஹவனம்", en: "Havan" },
+  "havan": { kn: "ಹವನ", hi: "हवन", te: "హవనం", ta: "ஹவனம்", en: "Havan" },
   "shanti": { kn: "ಶಾಂತಿ", hi: "शांति", te: "శాంతి", ta: "சாந்தி", en: "Shanti" },
   "shanthi": { kn: "ಶಾಂತಿ", hi: "शांति", te: "శాంతి", ta: "சாந்தி", en: "Shanthi" },
   "vrata": { kn: "ವ್ರತ", hi: "व्रत", te: "వ్రతం", ta: "விரதம்", en: "Vrata" },
@@ -138,8 +138,8 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "tilahavana": { kn: "ತಿಲಹವನ", hi: "तिलहवन", te: "తిలహవనం", ta: "திலஹவனம்", en: "Tilahavana" },
   "ashlesha bali": { kn: "ಆಶ್ಲೇಷಾ ಬಲಿ", hi: "आश्लेषा बलि", te: "ఆశ్లేషా బలి", ta: "ஆயில்ய பலி", en: "Ashlesha Bali" },
   "shani shanti": { kn: "ಶನಿ ಶಾಂತಿ", hi: "शनि शांति", te: "శని శాంతి", ta: "சனி சாந்தி", en: "Shani Shanti" },
-  "maha pooja": { kn: "ಮಹಾಪೂಜೆ", hi: "महापूजा", te: "ಮಹಾಪೂಜ", ta: "மகாபூஜை", en: "Maha Pooja" },
-  "mahapooja": { kn: "ಮಹಾಪೂಜೆ", hi: "महापूजा", te: "ಮಹಾಪೂಜ", ta: "மகாபூஜை", en: "Mahapooja" },
+  "maha pooja": { kn: "ಮಹಾಪೂಜೆ", hi: "महापूजा", te: "మహాపూజ", ta: "மகாபூஜை", en: "Maha Pooja" },
+  "mahapooja": { kn: "ಮಹಾಪೂಜೆ", hi: "महापूजा", te: "మహాపూజ", ta: "மகாபூஜை", en: "Mahapooja" },
   "vishesha": { kn: "ವಿಶೇಷ", hi: "विशेष", te: "విశేష", ta: "விசேஷ", en: "Vishesha" },
   "ishtartha": { kn: "ಇಷ್ಟಾರ್ಥ", hi: "इष्टार्थ", te: "ఇష్టార్థ", ta: "இஷ்டார்த்த", en: "Ishtartha" },
   "kavacha": { kn: "ಕವಚ", hi: "कवच", te: "కవచం", ta: "கவசம்", en: "Kavacha" },
@@ -180,7 +180,7 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "manju": { kn: "ಮಂಜು", hi: "मंजू", te: "మంజు", ta: "மஞ்சு", en: "Manju" },
   "manjula": { kn: "ಮಂಜುಳಾ", hi: "मंजुला", te: "మంజుల", ta: "மஞ்சுளா", en: "Manjula" },
   "manjunatha": { kn: "ಮಂಜುನಾಥ", hi: "मंजूनाथ", te: "మంజునాథ", ta: "மஞ்சுநாத", en: "Manjunatha" },
-  "manjunath": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజుನಾಥ್", ta: "மஞ்சுநாத்", en: "Manjunath" },
+  "manjunath": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజునాథ్", ta: "மஞ்சுநாத்", en: "Manjunath" },
   "venkatesh": { kn: "ವೆಂಕಟೇಶ್", hi: "वेंकटेश", te: "వెంకటేష్", ta: "வெங்கடேஷ்", en: "Venkatesh" },
   "vasishtha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vasishtha" },
   "vashishtha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vashishtha" },
@@ -195,7 +195,7 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "gautama": { kn: "ಗೌತಮ", hi: "गौतम", te: "గౌతమ", ta: "கௌதம", en: "Gautama" },
   "vishwamitra": { kn: "ವಿಶ್ವಾಮಿತ್ರ", hi: "विश्वामित्र", te: "విశ్వామిత్ర", ta: "விஸ்வாமித்திரர்", en: "Vishwamitra" },
   "viswamitra": { kn: "ವಿಶ್ವಾಮಿತ್ರ", hi: "विश्वामित्र", te: "విశ్వామిత్ర", ta: "விஸ்வாமித்திரர்", en: "Viswamitra" },
-  "jamadagni": { kn: "ಜಮದಗ್ನಿ", hi: "जमदग्नि", te: "జమదग्नि", ta: "ஜமதக்னி", en: "Jamadagni" },
+  "jamadagni": { kn: "ಜಮದಗ್ನಿ", hi: "जमदग्नि", te: "జమదగ్ని", ta: "ஜமதக்னி", en: "Jamadagni" },
   "atri": { kn: "ಅತ್ರಿ", hi: "अत्रि", te: "అత్రి", ta: "அத்ரி", en: "Atri" },
   "agastya": { kn: "ಅಗಸ್ತ್ಯ", hi: "अगस्त्य", te: "అగస్త్య", ta: "அகஸ்தியர்", en: "Agastya" },
   "harita": { kn: "ಹರೀತ", hi: "हरीत", te: "హరీత", ta: "ஹரித", en: "Harita" },
@@ -211,7 +211,7 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "mukti mantapa gokarna": { kn: "ಮುಕ್ತಿಮಂಟಪ, ಗೋಕರ್ಣ", hi: "मुक्तिमंडप, गोकर्ण", te: "ముక్తిమంటపం, గోకర్ణ", ta: "முக்திமண்டபம், கோகர்ணம்", en: "Muktimantapa, Gokarna" },
   "kotiteertha gokarna": { kn: "ಕೋಟಿತೀರ್ಥ, ಗೋಕರ್ಣ", hi: "कोटितीर्थ, गोकर्ण", te: "కోటితీర్థం, గోకర్ణ", ta: "கோடிதீர்த்தம், கோகர்ணம்", en: "Kotiteertha, Gokarna" },
   "gokarna kotiteertha": { kn: "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ", hi: "गोकर्ण कोटितीर्थ", te: "గోకర్ణ కోటితీర్థం", ta: "கோகர்ண கோடிதீர்த்தம்", en: "Gokarna Kotiteertha" },
-  "gokarna muktimantapa": { kn: "ಗೋಕರ್ಣ ಮುಕ್ತಿಮಂಟಪ", hi: "गोकर्ण मुक्तिमंडप", te: "గోಕರ್ಣ ಮುಕ್ತಿಮಂಟపం", ta: "கோகர்ண முக்திமண்டபம்", en: "Gokarna Muktimantapa" },
+  "gokarna muktimantapa": { kn: "ಗೋಕರ್ಣ ಮುಕ್ತಿಮಂಟಪ", hi: "गोकर्ण मुक्तिमंडप", te: "గోకర్ణ ముక్తిమంటపం", ta: "கோகர்ண முக்திமண்டபம்", en: "Gokarna Muktimantapa" },
   "gokarna kshetra": { kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ", hi: "गोकर्ण क्षेत्र", te: "గోకర్ణ క్షేత్రం", ta: "கோகர்ண க்ஷேத்திரம்", en: "Gokarna Kshetra" },
   "mahabaleshwara": { kn: "ಮಹಾಬಲೇಶ್ವರ", hi: "महाबलेश्वर", te: "మహాబలేశ్వర", ta: "மகாபலேஸ்வரர்", en: "Mahabaleshwara" },
   "devasthana": { kn: "ದೇವಸ್ಥಾನ", hi: "देवस्थान", te: "దేవస్థానం", ta: "தேவஸ்தானம்", en: "Temple" },
@@ -245,21 +245,21 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "hubli": { kn: "ಹುಬ್ಬಳ್ಳಿ", hi: "हुबली", te: "హుబ్లీ", ta: "ஹுப்ளி", en: "Hubli" },
   "hubballi": { kn: "ಹುಬ್ಬಳ್ಳಿ", hi: "हुबली", te: "హుబ్లీ", ta: "ஹுப்ளி", en: "Hubballi" },
   "ಹುಬ್ಬಳ್ಳಿ": { kn: "ಹುಬ್ಬಳ್ಳಿ", hi: "हुबली", te: "హుబ్లీ", ta: "ஹுப்ளி", en: "Hubballi" },
-  "mangalore": { kn: "ಮಂಗಳೂರು", hi: "मंगलुरु", te: "ಮಂಗಳೂರು", ta: "மங்களூரு", en: "Mangalore" },
-  "mangaluru": { kn: "ಮಂಗಳೂರು", hi: "मंगलुरु", te: "ಮಂಗಳೂರು", ta: "மங்களೂரு", en: "Mangaluru" },
-  "ಮಂಗಳೂರು": { kn: "ಮಂಗಳೂರು", hi: "मंगलुरु", te: "ಮಂಗಳೂರು", ta: "மங்களூரு", en: "Mangaluru" },
+  "mangalore": { kn: "ಮಂಗಳೂರು", hi: "मंगलुरु", te: "మంగళూరు", ta: "மங்களூரு", en: "Mangalore" },
+  "mangaluru": { kn: "ಮಂಗಳೂರು", hi: "मंगलुरु", te: "మంగళూరు", ta: "மங்களூரு", en: "Mangaluru" },
+  "ಮಂಗಳೂರು": { kn: "ಮಂಗಳೂರು", hi: "मंगलुरु", te: "మంగళూరు", ta: "மங்களூரு", en: "Mangaluru" },
   "udupi": { kn: "ಉಡುಪಿ", hi: "उडुपी", te: "ఉడుపి", ta: "உடுப்பி", en: "Udupi" },
   "ಉಡುಪಿ": { kn: "ಉಡುಪಿ", hi: "उडुपी", te: "ఉడుపి", ta: "உடுப்பி", en: "Udupi" },
   "shivamogga": { kn: "ಶಿವಮೊಗ್ಗ", hi: "शिवमोग्गा", te: "శివమొగ్గ", ta: "சிவமொக்கா", en: "Shivamogga" },
-  "shimoga": { kn: "ಶಿವಮೊಗ್ಗ", hi: "शिवमोग्गा", te: "శివమొగ్ಗ", ta: "சிவமொக்கா", en: "Shimoga" },
-  "ಶಿವಮೊಗ್ಗ": { kn: "ಶಿವಮೊಗ್ಗ", hi: "शिवमोग्गा", te: "శివమొగ్ಗ", ta: "சிவமொக்கா", en: "Shivamogga" },
+  "shimoga": { kn: "ಶಿವಮೊಗ್ಗ", hi: "शिवमोग्गा", te: "శివమొగ్గ", ta: "சிவமொக்கா", en: "Shimoga" },
+  "ಶಿವಮೊಗ್ಗ": { kn: "ಶಿವಮೊಗ್ಗ", hi: "शिवमोग्गा", te: "శివమొగ్గ", ta: "சிவமொக்கா", en: "Shivamogga" },
   "belagavi": { kn: "ಬೆಳಗಾವಿ", hi: "बेलगावी", te: "బెళగావి", ta: "பெலகாவி", en: "Belagavi" },
   "belgaum": { kn: "ಬೆಳಗಾವಿ", hi: "बेलगावी", te: "బెళగావి", ta: "பெலகாவி", en: "Belagavi" },
   "ಬೆಳಗಾವಿ": { kn: "ಬೆಳಗಾವಿ", hi: "बेलगावी", te: "బెళగావి", ta: "பெலகாவி", en: "Belagavi" },
   "dharwad": { kn: "ಧಾರವಾಡ", hi: "धारवाड़", te: "ధార్వాడ్", ta: "தார்வாட்", en: "Dharwad" },
   "ಧಾರವಾಡ": { kn: "ಧಾರವಾಡ", hi: "धारवाड़", te: "ధార్వాడ్", ta: "தார்வாட்", en: "Dharwad" },
   "sirsi": { kn: "ಶಿರಸಿ", hi: "सिरसी", te: "శిరసి", ta: "சிரசி", en: "Sirsi" },
-  "ಶಿರಸಿ": { kn: "ಶಿರಸಿ", hi: "सिरसी", te: "శిರಸಿ", ta: "சிரசி", en: "Sirsi" },
+  "ಶಿರಸಿ": { kn: "ಶಿರಸಿ", hi: "सिरसी", te: "శిరసి", ta: "சிரசி", en: "Sirsi" },
   "kumta": { kn: "ಕುಮಟಾ", hi: "कुमटा", te: "కుమటా", ta: "குமடா", en: "Kumta" },
   "ಕುಮಟಾ": { kn: "ಕುಮಟಾ", hi: "कुमटा", te: "కుమటా", ta: "குமடா", en: "Kumta" },
   "karwar": { kn: "ಕಾರವಾರ", hi: "कारवार", te: "కారవార", ta: "கார்வார்", en: "Karwar" },
@@ -272,7 +272,7 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "ದೆಹಲಿ": { kn: "ದೆಹಲಿ", hi: "दिल्ली", te: "ఢిల్లీ", ta: "தில்லி", en: "Delhi" },
   "new delhi": { kn: "ನವದೆಹಲಿ", hi: "नई दिल्ली", te: "న్యూఢిల్లీ", ta: "புது தில்லி", en: "New Delhi" },
   "pune": { kn: "ಪುಣೆ", hi: "पुणे", te: "పుణె", ta: "புனே", en: "Pune" },
-  "ಪುಣೆ": { kn: "ಪುಣೆ", hi: "ಪುಣೆ", te: "పుణె", ta: "புனே", en: "Pune" },
+  "ಪುಣೆ": { kn: "ಪುಣೆ", hi: "पुणे", te: "పుణె", ta: "புனே", en: "Pune" },
   "hyderabad": { kn: "ಹೈದರಾಬಾದ್", hi: "हैदराबाद", te: "హైదరాబాద్", ta: "ஹைதராபாத்", en: "Hyderabad" },
   "ಹೈದರಾಬಾದ್": { kn: "ಹೈದರಾಬಾದ್", hi: "हैदराबाद", te: "హైదరాబాద్", ta: "ஹைதராபாத்", en: "Hyderabad" },
   "chennai": { kn: "ಚೆನ್ನೈ", hi: "चेन्नई", te: "చెన్నై", ta: "சென்னை", en: "Chennai" },
@@ -290,7 +290,7 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "ಶ್ರೀರಾಮ ಪಂಡಿತ್": { kn: "ಶ್ರೀರಾಮ ಪಂಡಿತ್", hi: "श्रीराम पंडित", te: "శ్రీరామ్ పండిట్", ta: "ஸ்ரீராம் பண்டிட்", en: "Shreeram Pandit" },
   "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್": { kn: "ಶ್ರೀರಾಮ ಪಂಡಿತ್", hi: "श्रीराम पंडित", te: "శ్రీరామ్ పండిట్", ta: "ஸ்ரீராம் பண்டிட்", en: "Shreeram Pandit" },
   "pandit shreeram": { kn: "ಪಂಡಿತ್ ಶ್ರೀರಾಮ", hi: "पंडित श्रीराम", te: "పండిట్ శ్రీరామ్", ta: "பண்டிட் ஸ்ரீராம்", en: "Pandit Shreeram" },
-  "pandit shriram": { kn: "ಪಂಡಿತ್ ಶ್ರೀರಾಮ", hi: "पंडित श्रीराम", te: "పండిట్ శ్రీరామ్", ta: "பண்டிట్ ஸ்ரீராம்", en: "Pandit Shriram" },
+  "pandit shriram": { kn: "ಪಂಡಿತ್ ಶ್ರೀರಾಮ", hi: "पंडित श्रीराम", te: "పండిట్ శ్రీరామ్", ta: "பண்டிட் ஸ்ரீராம்", en: "Pandit Shriram" },
   "vedamurthi shriram pandit": { kn: "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್", hi: "वेदमूर्ति श्रीराम पंडित", te: "వేదమూర్తి శ్రీరామ్ పండిట్", ta: "வேதமூர்த்தி ஸ்ரீராம் பண்டிட்", en: "Vedamurthi Shriram Pandit" },
   "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್": { kn: "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್", hi: "वेदमूर्ति श्रीराम पंडित", te: "వేదమూర్తి శ్రీరామ్ పండిట్", ta: "வேதமூர்த்தி ஸ்ரீராம் பண்டிட்", en: "Vedamurthi Shriram Pandit" },
   "ಚೈತನ್ಯ ಪಂಡಿತ್": { kn: "ಚೈತನ್ಯ ಪಂಡಿತ್", hi: "चैतन्य पंडित", te: "చైతన్య పండిట్", ta: "சைதன்ய பண்டிட்", en: "Chaitanya Pandit" },
@@ -299,18 +299,18 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   // Common Poojas & Rituals
   "moksha narayana bali": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ", hi: "मोक्ष नारायण बलि", te: "మోక్ష నారాయణ బలి", ta: "மோக்ஷ நாராயண பலி", en: "Moksha Narayana Bali" },
   "moksha narayan bali": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ", hi: "मोक्ष नारायण बलि", te: "మోక్ష నారాయణ బలి", ta: "மோக்ஷ நாராயண பலி", en: "Moksha Narayan Bali" },
-  "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ", hi: "मोक्ष नारायण बलि", te: "మోక్ష నಾರಾಯಣ బలి", ta: "மோக்ஷ நாராயண பலி", en: "Moksha Narayana Bali" },
+  "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ", hi: "मोक्ष नारायण बलि", te: "మోక్ష నారాయణ బలి", ta: "மோக்ஷ நாராயண பலி", en: "Moksha Narayana Bali" },
   "moksha narayana bali haagoo tripindi shraddha": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "मोक्ष नारायण बलि एवं त्रिपिंडी श्राद्ध", te: "మోక్ష నారాయణ బలి మరియు త్రిపిండి శ్రాద్ధము", ta: "மோக்ஷ நாராயண பலி மற்றும் திரிபிண்டி ஸ்ராத்தம்", en: "Moksha Narayana Bali and Tripindi Shraddha" },
   "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "मोक्ष नारायण बलि एवं त्रिपिंडी श्राद्ध", te: "మోక్ష నారాయణ బలి మరియు త్రిపిండి శ్రాద్ధము", ta: "மோக்ஷ நாராயண பலி மற்றும் திரிபிண்டி ஸ்ராத்தம்", en: "Moksha Narayana Bali and Tripindi Shraddha" },
   "kala sarpa shanti": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాంతి", ta: "காலசர்ப்ப சாந்தி", en: "Kala Sarpa Shanti" },
   "ಕಾಳಸರ್ಪ ಶಾಂತಿ": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాంతి", ta: "காலசர்ப்ப சாந்தி", en: "Kalasarpa Shanti" },
-  "ಕಾಲ ಸರ್ಪ ಶಾಂತಿ": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాಂತಿ", ta: "காலசர்ப்ப சாந்தி", en: "Kala Sarpa Shanti" },
+  "ಕಾಲ ಸರ್ಪ ಶಾಂತಿ": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాంతి", ta: "காலசர்ப்ப சாந்தி", en: "Kala Sarpa Shanti" },
   "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ": { kn: "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "त्रिपिंडी श्राद्ध", te: "త్రిపిండి శ్రాద్ధము", ta: "திரிபிண்டி ஸ்ராத்தம்", en: "Tripindi Shraddha" },
   "ಮಂಜುಶ್ರೀ": { kn: "ಮಂಜುಶ್ರೀ", hi: "मंजूश्री", te: "మంజుశ్రీ", ta: "மஞ்சுஸ்ரீ", en: "Manjushree" },
   "ಮಂಜು": { kn: "ಮಂಜು", hi: "मंजू", te: "మంజు", ta: "மஞ்சு", en: "Manju" },
   "ಮಂಜುಳಾ": { kn: "ಮಂಜುಳಾ", hi: "मंजुला", te: "మంజుల", ta: "மஞ்சுளா", en: "Manjula" },
   "ಮಂಜುನಾಥ": { kn: "ಮಂಜುನಾಥ", hi: "मंजूनाथ", te: "మంజునాథ", ta: "மஞ்சுநாத", en: "Manjunatha" },
-  "ಮಂಜುನಾಥ್": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజుನಾಥ್", ta: "மஞ்சுநாத்", en: "Manjunath" },
+  "ಮಂಜುನಾಥ್": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజునాథ్", ta: "மஞ்சுநாத்", en: "Manjunath" },
   // Diverse Cultural & Regional Devotee Names (Muslim, Christian, Hindu & Regional)
   "fatima": { kn: "ಫಾತಿಮಾ", hi: "फ़ातिमा", te: "ఫాతిమా", ta: "பாத்திமா", en: "Fatima" },
   "zoya": { kn: "ಝೋಯಾ", hi: "ज़ोया", te: "జోయా", ta: "ஜோயா", en: "Zoya" },
@@ -320,14 +320,14 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "mohammed": { kn: "ಮೊಹಮ್ಮದ್", hi: "मोहम्मद", te: "మొహమ్మద్", ta: "முகம்மது", en: "Mohammed" },
   "mohammad": { kn: "ಮೊಹಮ್ಮದ್", hi: "मोहम्मद", te: "మొహమ్మద్", ta: "முகம்மது", en: "Mohammad" },
   "muhammad": { kn: "ಮುಹಮ್ಮದ್", hi: "मुहम्मद", te: "ముహమ్మద్", ta: "முகம்மது", en: "Muhammad" },
-  "imran": { kn: "ಇಮ್ರಾನ್", hi: "इमरान", te: "ఇమ్రాನ್", ta: "இம்ரான்", en: "Imran" },
+  "imran": { kn: "ಇಮ್ರಾನ್", hi: "इमरान", te: "ఇమ్రాన్", ta: "இம்ரான்", en: "Imran" },
   "ibrahim": { kn: "ಇಬ್ರಾಹಿಂ", hi: "इब्राहिम", te: "ఇబ్రహీం", ta: "இப்ராஹிம்", en: "Ibrahim" },
   "ali": { kn: "ಅಲಿ", hi: "अली", te: "అలీ", ta: "அலி", en: "Ali" },
   "ahmed": { kn: "ಅಹ್ಮದ್", hi: "अहमद", te: "అహ్మద్", ta: "அகமது", en: "Ahmed" },
   "khan": { kn: "ಖಾನ್", hi: "ख़ान", te: "ఖాన్", ta: "கான்", en: "Khan" },
   "syed": { kn: "ಸೈಯದ್", hi: "सैयद", te: "సయ్యద్", ta: "சையத்", en: "Syed" },
-  "salman": { kn: "ಸಲ್ಮಾನ್", hi: "सलमान", te: "ಸಲ್ಮಾನ್", ta: "சல்மான்", en: "Salman" },
-  "farhan": { kn: "ಫರ್ಹಾನ್", hi: "फ़रहान", te: "ಫರ್ಹಾನ್", ta: "பர்ஹான்", en: "Farhan" },
+  "salman": { kn: "ಸಲ್ಮಾನ್", hi: "सलमान", te: "సల్మాన్", ta: "சல்மான்", en: "Salman" },
+  "farhan": { kn: "ಫರ್ಹಾನ್", hi: "फ़रहान", te: "ఫర్హాన్", ta: "பர்ஹான்", en: "Farhan" },
   "shabana": { kn: "ಶಬಾನಾ", hi: "शबाना", te: "షబానా", ta: "ஷபானா", en: "Shabana" },
   "nasreen": { kn: "ನಸ್ರೀನ್", hi: "नसरीन", te: "నస్రీన్", ta: "நஸ்ரீன்", en: "Nasreen" },
   "sameer": { kn: "ಸಮೀರ್", hi: "समीर", te: "సమీర్", ta: "சமீர்", en: "Sameer" },
@@ -339,11 +339,11 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "michael": { kn: "ಮೈಕೆಲ್", hi: "माइकल", te: "మైఖేల్", ta: "மைக்கேல்", en: "Michael" },
   "paul": { kn: "ಪಾಲ್", hi: "पॉल", te: "పాల్", ta: "பால்", en: "Paul" },
   "james": { kn: "ಜೇಮ್ಸ್", hi: "जेम्स", te: "జేమ్స్", ta: "ஜேம்ஸ்", en: "James" },
-  "george": { kn: "ಜಾರ್ಜ್", hi: "जॉर्ज", te: "జಾರ್జ్", ta: "ஜார்ஜ்", en: "George" },
+  "george": { kn: "ಜಾರ್ಜ್", hi: "जॉर्ज", te: "జార్జ్", ta: "ஜார்ஜ்", en: "George" },
   "thomas": { kn: "ಥಾಮಸ್", hi: "थॉमस", te: "థామస్", ta: "தாமஸ்", en: "Thomas" },
   "anthony": { kn: "ಆಂಟನಿ", hi: "एंथनी", te: "ఆంథోనీ", ta: "அந்தோணி", en: "Anthony" },
   "matthew": { kn: "ಮ್ಯಾಥ್ಯೂ", hi: "मैथ्यू", te: "మాథ్యూ", ta: "மேத்யூ", en: "Matthew" },
-  "robert": { kn: "ರಾಬರ್ಟ್", hi: "रॉबर्ट", te: "ರಾబర్ట్", ta: "ராபர்ட்", en: "Robert" },
+  "robert": { kn: "ರಾಬರ್ಟ್", hi: "रॉबर्ट", te: "రాబర్ట్", ta: "ராபர்ட்", en: "Robert" },
   "raghavendra": { kn: "ರಾಘವೇಂದ್ರ", hi: "राघवेंद्र", te: "రాఘవేంద్ర", ta: "ராகவேந்திரா", en: "Raghavendra" },
   "shree": { kn: "ಶ್ರೀ", hi: "श्री", te: "శ్రీ", ta: "ஸ்ரீ", en: "Shree" },
   "sree": { kn: "ಶ್ರೀ", hi: "श्री", te: "శ్రీ", ta: "ஸ்ரீ", en: "Sree" },
@@ -387,7 +387,7 @@ const SYLLABIC_CONSONANTS: Record<string, { kn: string; hi: string; te: string; 
   f: { kn: "ಫ", hi: "फ़", te: "ఫ", ta: "ப" },
   z: { kn: "ಝ", hi: "ज़", te: "ఝ", ta: "ஜ" },
   q: { kn: "ಕ", hi: "क़", te: "క", ta: "க" },
-  x: { kn: "ಕ್ಸ", hi: "क्स", te: "క్ಸ", ta: "க்ஸ" },
+  x: { kn: "ಕ್ಸ", hi: "क्स", te: "క్స", ta: "க்ஸ" },
   c: { kn: "ಕ", hi: "क", te: "క", ta: "க" }
 };
 
@@ -423,15 +423,19 @@ const SYLLABIC_VIRAMA: Record<string, string> = {
   kn: "್",
   hi: "्",
   te: "్",
-  ta: "்"
+  ta: "்",
+  ml: "്"
 };
 
 /**
  * Phonetically transliterates a single unknown English word into an Indic script
  * using authentic syllabic composition (consonant + matra) rather than broken viramas.
  */
-function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | "ta"): string {
+function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | "ta" | "ml"): string {
   if (!word) return word;
+  if (langCode === "ml") {
+    return convertIndicScript(phoneticTransliterateWord(word, "kn"), "ml");
+  }
 
   // If the word contains non-English (Indic) characters, convert to Latin phonetic first
   let inputWord = word;
@@ -447,61 +451,61 @@ function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | 
     // 1. Try 2-char consonant match
     const c2 = lower.slice(i, i + 2);
     if (SYLLABIC_CONSONANTS[c2]) {
-      const cons = SYLLABIC_CONSONANTS[c2][langCode];
+      const cons = SYLLABIC_CONSONANTS[c2][langCode] || "";
       i += 2;
       // Check following 2-char vowel
       const v2 = lower.slice(i, i + 2);
       if (SYLLABIC_MATRAS[v2]) {
-        result += cons + SYLLABIC_MATRAS[v2][langCode];
+        result += cons + (SYLLABIC_MATRAS[v2][langCode] || "");
         i += 2;
         continue;
       }
       // Check following 1-char vowel
       const v1 = lower.slice(i, i + 1);
       if (SYLLABIC_MATRAS[v1]) {
-        result += cons + SYLLABIC_MATRAS[v1][langCode];
+        result += cons + (SYLLABIC_MATRAS[v1][langCode] || "");
         i += 1;
         continue;
       }
       // Consonant not followed by vowel (word end or next consonant)
-      result += cons + SYLLABIC_VIRAMA[langCode];
+      result += cons + (SYLLABIC_VIRAMA[langCode] || "");
       continue;
     }
 
     // 2. Try 1-char consonant match
     const c1 = lower.slice(i, i + 1);
     if (SYLLABIC_CONSONANTS[c1]) {
-      const cons = SYLLABIC_CONSONANTS[c1][langCode];
+      const cons = SYLLABIC_CONSONANTS[c1][langCode] || "";
       i += 1;
       // Check following 2-char vowel
       const v2 = lower.slice(i, i + 2);
       if (SYLLABIC_MATRAS[v2]) {
-        result += cons + SYLLABIC_MATRAS[v2][langCode];
+        result += cons + (SYLLABIC_MATRAS[v2][langCode] || "");
         i += 2;
         continue;
       }
       // Check following 1-char vowel
       const v1 = lower.slice(i, i + 1);
       if (SYLLABIC_MATRAS[v1]) {
-        result += cons + SYLLABIC_MATRAS[v1][langCode];
+        result += cons + (SYLLABIC_MATRAS[v1][langCode] || "");
         i += 1;
         continue;
       }
       // Consonant not followed by vowel (word end or next consonant)
-      result += cons + SYLLABIC_VIRAMA[langCode];
+      result += cons + (SYLLABIC_VIRAMA[langCode] || "");
       continue;
     }
 
     // 3. Independent vowel (at start of syllable or word)
     const v2 = lower.slice(i, i + 2);
     if (INDEP_VOWELS[v2]) {
-      result += INDEP_VOWELS[v2][langCode];
+      result += INDEP_VOWELS[v2][langCode] || "";
       i += 2;
       continue;
     }
     const v1 = lower.slice(i, i + 1);
     if (INDEP_VOWELS[v1]) {
-      result += INDEP_VOWELS[v1][langCode];
+      result += INDEP_VOWELS[v1][langCode] || "";
       i += 1;
       continue;
     }
@@ -520,13 +524,14 @@ function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | 
 }
 
 /**
- * Detects the script of an input string (Kannada, Devanagari, Telugu, Tamil, or English).
+ * Detects the script of an input string (Kannada, Devanagari, Telugu, Tamil, Malayalam, or English).
  */
-export function detectScript(text: string): "kn" | "hi" | "te" | "ta" | "en" {
+export function detectScript(text: string): "kn" | "hi" | "te" | "ta" | "ml" | "en" {
   if (/[\u0C80-\u0CFF]/.test(text)) return "kn";
   if (/[\u0900-\u097F]/.test(text)) return "hi";
   if (/[\u0C00-\u0C7F]/.test(text)) return "te";
   if (/[\u0B80-\u0BFF]/.test(text)) return "ta";
+  if (/[\u0D00-\u0D7F]/.test(text)) return "ml";
   return "en";
 }
 
@@ -714,7 +719,8 @@ const SCRIPT_OFFSETS: Record<string, number> = {
   hi: 0x0900,
   mr: 0x0900,
   te: 0x0c00,
-  kn: 0x0c80
+  kn: 0x0c80,
+  ml: 0x0d00
 };
 
 // Tamil consonant/vowel remapping table (offsets 0x00 to 0x7F)
@@ -792,6 +798,7 @@ export function convertIndicScript(text: string, targetLang: "kn" | "hi" | "mr" 
       else if (code >= 0x0c00 && code <= 0x0c7f) srcBase = 0x0c00;
       else if (code >= 0x0c80 && code <= 0x0cff) srcBase = 0x0c80;
       else if (code >= 0x0b80 && code <= 0x0bff) srcBase = 0x0b80;
+      else if (code >= 0x0d00 && code <= 0x0d7f) srcBase = 0x0d00;
 
       if (srcBase !== 0) {
         const offset = code - srcBase;
@@ -817,6 +824,7 @@ export function convertIndicScript(text: string, targetLang: "kn" | "hi" | "mr" 
     else if (code >= 0x0b80 && code <= 0x0bff) srcBase = 0x0b80;
     else if (code >= 0x0c00 && code <= 0x0c7f) srcBase = 0x0c00;
     else if (code >= 0x0c80 && code <= 0x0cff) srcBase = 0x0c80;
+    else if (code >= 0x0d00 && code <= 0x0d7f) srcBase = 0x0d00;
 
     if (srcBase !== 0) {
       const offset = code - srcBase;
@@ -829,12 +837,12 @@ export function convertIndicScript(text: string, targetLang: "kn" | "hi" | "mr" 
 }
 
 /**
- * Transliterates English/Indic names into the requested target language (kn, hi, mr, te, ta, en).
+ * Transliterates English/Indic names into the requested target language (kn, hi, mr, te, ta, ml, en).
  */
 export function transliterateName(inputName: string, targetLang: string): string {
   if (!inputName || !inputName.trim()) return inputName;
   const rawCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en");
-  const langCode = (rawCode === "mr" ? "hi" : rawCode) as "kn" | "hi" | "te" | "ta" | "en";
+  const langCode = (rawCode === "mr" ? "hi" : rawCode) as "kn" | "hi" | "te" | "ta" | "ml" | "en";
   const nameTrimmed = inputName.trim();
   const inputScript = detectScript(nameTrimmed);
 
@@ -852,13 +860,20 @@ export function transliterateName(inputName: string, targetLang: string): string
 
   // 1. Direct whole-name dictionary lookup
   const lowerWhole = nameTrimmed.toLowerCase();
-  if (NAME_DICTIONARY[lowerWhole] && NAME_DICTIONARY[lowerWhole][langCode]) {
-    return NAME_DICTIONARY[lowerWhole][langCode];
+  if (NAME_DICTIONARY[lowerWhole]) {
+    if (NAME_DICTIONARY[lowerWhole][langCode]) {
+      return NAME_DICTIONARY[lowerWhole][langCode];
+    }
+    if (langCode === "ml" && (NAME_DICTIONARY[lowerWhole].kn || NAME_DICTIONARY[lowerWhole].hi)) {
+      return convertIndicScript(NAME_DICTIONARY[lowerWhole].kn || NAME_DICTIONARY[lowerWhole].hi, "ml");
+    }
   }
   for (const map of Object.values(NAME_DICTIONARY)) {
     for (const val of Object.values(map)) {
       if (val.toLowerCase() === lowerWhole) {
-        return map[langCode] || val;
+        if (map[langCode]) return map[langCode];
+        if (langCode === "ml" && (map.kn || map.hi)) return convertIndicScript(map.kn || map.hi, "ml");
+        return val;
       }
     }
   }
@@ -886,18 +901,25 @@ export function transliterateName(inputName: string, targetLang: string): string
     return translatedWords.join(" ").replace(/\s+/g, " ").trim();
   }
 
-  // Indic target (kn, hi, te, ta):
+  // Indic target (kn, hi, te, ta, ml):
   const words = processed.split(/\s+/);
   const translatedWords = words.map((word) => {
     const wLower = word.toLowerCase();
     // Dictionary word match
-    if (NAME_DICTIONARY[wLower] && NAME_DICTIONARY[wLower][langCode]) {
-      return NAME_DICTIONARY[wLower][langCode];
+    if (NAME_DICTIONARY[wLower]) {
+      if (NAME_DICTIONARY[wLower][langCode]) {
+        return NAME_DICTIONARY[wLower][langCode];
+      }
+      if (langCode === "ml" && (NAME_DICTIONARY[wLower].kn || NAME_DICTIONARY[wLower].hi)) {
+        return convertIndicScript(NAME_DICTIONARY[wLower].kn || NAME_DICTIONARY[wLower].hi, "ml");
+      }
     }
     for (const map of Object.values(NAME_DICTIONARY)) {
       for (const val of Object.values(map)) {
         if (val.toLowerCase() === wLower) {
-          return map[langCode] || val;
+          if (map[langCode]) return map[langCode];
+          if (langCode === "ml" && (map.kn || map.hi)) return convertIndicScript(map.kn || map.hi, "ml");
+          return val;
         }
       }
     }
@@ -966,6 +988,7 @@ export function resolveDevoteeDisplayName(
     hi: "जातक",
     te: "జాతకుడు",
     ta: "ஜாதகர்",
+    ml: "ഭക്തൻ",
     en: "Devotee"
   };
 
@@ -1024,6 +1047,14 @@ export function resolveDevoteeDisplayName(
       return trimmed;
     }
     return transliterateName(trimmed, "ta");
+  }
+
+  // 6. If target is Malayalam
+  if (lang === "ml") {
+    if (/[\u0D00-\u0D7F]/.test(trimmed)) {
+      return trimmed;
+    }
+    return transliterateName(trimmed, "ml");
   }
 
   return trimmed;

@@ -5,6 +5,8 @@ import { prepareSampoornaMaster25Data } from "../services/sampoornaMaster25Servi
 import type { SixLang } from "../features/fiveYearPrediction/fiveYearLocale";
 import { compute5YearMasterPrediction } from "../features/fiveYearPrediction/fiveYearPredictionEngine";
 import { generateAntarangaSatya, type AntarangaLang } from "../features/hotelSecret/antarangaService";
+import { PDF_DICT, YOGA_LOCALES, KARANA_LOCALES, TATVA_LOCALES } from "../components/instantReading/instantReadingPdfLocale";
+import { resolveDevoteeDisplayName } from "../utils/transliterator";
 
 const mockInput: KundliInput = {
   name: "Raghavendra Hegde",
@@ -154,6 +156,29 @@ describe("Cross-Language Token Purity & Script Leak Audit", () => {
         if (lang !== "en") {
           expect(result.moonSignName).not.toMatch(ENGLISH_PLANETS_RASHIS);
           expect(result.nakshatraName).not.toMatch(ENGLISH_PLANETS_RASHIS);
+          expect(result.paragraph1).not.toMatch(/\bOverthinking\b/);
+          expect(result.paragraph1).not.toContain("NaN");
+          expect(result.luckyElements?.gemstone).not.toMatch(
+            lang === "ml" ? /[\u0900-\u0CFF]/ : /[\u0D00-\u0D7F]/
+          );
+        }
+
+        // Verify Vidya Shree transliteration across all 7 languages never yields NaN or foreign script
+        const resolved = resolveDevoteeDisplayName("Vidya Shree", lang);
+        expect(resolved).not.toContain("NaN");
+        if (lang === "ml") {
+          expect(resolved).toMatch(/[\u0D00-\u0D7F]/);
+          expect(PDF_DICT.labelLord.ml).not.toMatch(/[\u0B80-\u0CFF]/);
+          expect(PDF_DICT.labelCaution.ml).not.toMatch(/[\u0B80-\u0CFF]/);
+          expect(YOGA_LOCALES["ಸೌಭಾಗ್ಯ"].ml).not.toMatch(/[\u0B80-\u0CFF]/);
+          expect(YOGA_LOCALES["ಅತಿಗಂಡ"].ml).not.toMatch(/[\u0B80-\u0CFF]/);
+          expect(KARANA_LOCALES["ವಣಿಜ"].ml).not.toMatch(/[\u0B80-\u0CFF]/);
+          expect(KARANA_LOCALES["ಶಕುನಿ"].ml).not.toMatch(/[\u0B80-\u0CFF]/);
+          expect(TATVA_LOCALES["ಜಲ"].ml).not.toMatch(/[\u0B80-\u0CFF]/);
+        }
+        if (lang === "ta") {
+          expect(YOGA_LOCALES["ಬ್ರಹ್ಮ"].ta).not.toMatch(/[a-zA-Z]/);
+          expect(PDF_DICT.brandBanner.ta).not.toMatch(/[॥।ॐ]/);
         }
       });
     });

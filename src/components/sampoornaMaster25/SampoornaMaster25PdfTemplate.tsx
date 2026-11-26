@@ -302,6 +302,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: "16px",
             width: "100%",
             padding: "5px 10px",
             boxSizing: "border-box",
@@ -311,7 +312,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
           }}
         >
           <span>{runningHeaderFolio}</span>
-          <span>
+          <span style={{ whiteSpace: "nowrap" }}>
             {data.devoteeName} • {data.lagnaName}
           </span>
         </div>
@@ -340,194 +341,166 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
       </div>
 
       {/* ==================================================================== */}
-      {/* SECTION 1 (PAGE 1): CLEAN ROYAL BOOKLET COVER & INTRODUCTION PAGE    */}
+      {/* SECTION 1 (PAGE 1): CLEAN MINIMALIST PREMIUM V1 COVER HEADER         */}
       {/* ==================================================================== */}
       <div className={sectionClass} data-section="cover">
         <div
           style={{
             boxSizing: "border-box",
             letterSpacing: "normal",
-            display: "flex",
-            flexDirection: "column",
-            gap: "20px",
+            textAlign: "center",
+            padding: "8px 6px 4px 6px",
           }}
         >
-          {/* TOP BRAND HEADER: BAGGONA PANCHANGA */}
-          <div style={{ textAlign: "center" }}>
-            <p
-              style={{
-                margin: "0 0 8px 0",
-                fontSize: "15px",
-                fontWeight: 700,
-                color: "#92400e",
-                letterSpacing: "normal",
-              }}
-            >
-              {sacredInvocation}
-            </p>
-
-            <div
-              style={{
-                display: "inline-block",
-                borderBottom: "3px solid #b45309",
-                paddingBottom: "6px",
-                marginBottom: "10px",
-                fontSize: "34px",
-                fontWeight: 800,
-                color: "#78350f",
-                letterSpacing: "normal",
-              }}
-            >
-              {data.coverPage.brandBannerTitle}
-            </div>
-
-            <h1
-              style={{
-                margin: "6px 0 8px 0",
-                fontSize: "34px",
-                fontWeight: 800,
-                lineHeight: 1.32,
-                color: "#451a03",
-                letterSpacing: "normal",
-              }}
-            >
-              {pick6(
-                {
-                  kn: "ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಗ್ರಂಥ",
-                  mr: "संपूर्ण २५ अध्यायांचे महा-जन्मपत्रिका ग्रंथ",
-                  hi: "संपूर्ण २५ अध्यायों का महा-जन्मकुंडली ग्रंथ",
-                  te: "సంపూర్ణ 25 అధ్యాయాల మహా జాతక గ్రంథం",
-                  ta: "சம்பூர்ண 25 அத்தியாய மகா ஜாதக நூல்",
-                  en: "Sampoorna 25-Chapter Master Horoscope",
-                },
-                lang
-              )}
-            </h1>
-
-            <p
-              style={{
-                margin: 0,
-                fontSize: "16px",
-                fontWeight: 600,
-                color: "#78350f",
-                letterSpacing: "normal",
-              }}
-            >
-              {data.coverPage.kshetraSubtitle}
-            </p>
-          </div>
-
-          {/* CENTERED ROYAL DEVOTEE DEDICATION PLAQUE (NO DUPLICATE 6-CELL BOX) */}
-          <div
+          <p
             style={{
-              position: "relative",
-              overflow: "hidden",
-              borderRadius: "16px",
-              border: "2px solid rgba(180, 83, 9, 0.45)",
-              background:
-                "linear-gradient(135deg, rgba(254, 243, 199, 0.72) 0%, rgba(255, 251, 235, 0.96) 50%, rgba(254, 243, 199, 0.72) 100%)",
-              padding: "24px 32px",
-              textAlign: "center",
-              boxShadow: "0 2px 8px rgba(120, 53, 15, 0.08)",
+              margin: "0 0 10px 0",
+              fontSize: "14px",
+              fontWeight: 700,
+              color: "#92400e",
+              letterSpacing: "normal",
             }}
           >
-            <span style={{ position: "absolute", top: "10px", left: "14px", fontSize: "12px", color: "rgba(180, 83, 9, 0.45)" }}>❖</span>
-            <span style={{ position: "absolute", top: "10px", right: "14px", fontSize: "12px", color: "rgba(180, 83, 9, 0.45)" }}>❖</span>
-            <span style={{ position: "absolute", bottom: "10px", left: "14px", fontSize: "12px", color: "rgba(180, 83, 9, 0.45)" }}>❖</span>
-            <span style={{ position: "absolute", bottom: "10px", right: "14px", fontSize: "12px", color: "rgba(180, 83, 9, 0.45)" }}>❖</span>
+            {sacredInvocation}
+          </p>
 
-            <div style={{ fontSize: "14.5px", fontWeight: 700, color: "#92400e", marginBottom: "6px" }}>
-              {pick6(
-                {
-                  kn: "ಈ ಪವಿತ್ರ ಜಾತಕ ಗ್ರಂಥವನ್ನು ವಿಶೇಷವಾಗಿ ಸಮರ್ಪಿಸಿರುವ ಜಾತಕರು",
-                  mr: "ही वैयक्तिक जीवनपुस्तिका विशेष समर्पित जातक",
-                  hi: "यह पावन जीवन-पुस्तिका विशेष रूप से समर्पित जातक",
-                  te: "ఈ పవిత్ర గ్రంథం ప్రత్యేకంగా రూపొందించబడిన జాతకులు",
-                  ta: "இந்தப் புனித ஜாதக நூல் பிரத்யேகமாக வழங்கப்படும் ஜாதகர்",
-                  en: "Prepared & Consecrated Exclusively For",
-                },
-                lang
-              )}
-            </div>
-
-            <div style={{ fontSize: "34px", fontWeight: 800, color: "#451a03", lineHeight: 1.28, marginBottom: "8px" }}>
-              {data.devoteeName}
-            </div>
-
-            <div style={{ fontSize: "16px", fontWeight: 700, color: "#78350f", lineHeight: 1.5 }}>
-              {data.coverPage.bookletEditionLine}
-            </div>
+          {/* Premium PDF V1 Royal Banner Pill (Clean Open Bordered Top/Bottom Strip) */}
+          <div
+            style={{
+              display: "inline-block",
+              padding: "10px 38px",
+              marginBottom: "10px",
+              borderRadius: "8px",
+              borderTop: "2px solid rgba(180, 83, 9, 0.45)",
+              borderBottom: "2px solid rgba(180, 83, 9, 0.45)",
+              backgroundColor: "rgba(254, 243, 199, 0.35)",
+              fontSize: "34px",
+              fontWeight: 800,
+              lineHeight: 1.3,
+              color: "#78350f",
+              letterSpacing: "normal",
+            }}
+          >
+            {data.coverPage.brandBannerTitle}
           </div>
 
-          {/* COMPACT SERENE PRATAH DARSHANA & PRARTHANA VIGNETTE (SMALL MANNER) */}
+          <h1
+            style={{
+              margin: "4px 0 6px 0",
+              fontSize: "27px",
+              fontWeight: 800,
+              lineHeight: 1.35,
+              color: "#451a03",
+              letterSpacing: "normal",
+            }}
+          >
+            {pick6(
+              {
+                kn: "ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಗ್ರಂಥ",
+                mr: "संपूर्ण २५ अध्यायांचे महा-जन्मपत्रिका ग्रंथ",
+                hi: "संपूर्ण २५ अध्यायों का महा-जन्मकुंडली ग्रंथ",
+                te: "సంపూర్ణ 25 అధ్యాయాల మహా జాతక గ్రంథం",
+                ta: "சம்பூர்ண 25 அத்தியாய மகா ஜாதக நூல்",
+                en: "Sampoorna 25-Chapter Master Horoscope",
+              },
+              lang
+            )}
+          </h1>
+
+          <p
+            style={{
+              margin: "0 auto 14px auto",
+              fontSize: "15.5px",
+              fontStyle: "italic",
+              fontWeight: 600,
+              color: "#78350f",
+              letterSpacing: "normal",
+            }}
+          >
+            {data.coverPage.kshetraSubtitle}
+          </p>
+
+          {/* Hairline V1 Emblem Divider */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "18px",
+              marginBottom: "14px",
+              opacity: 0.85,
+            }}
+          >
+            <div style={{ width: "96px", borderBottom: "1.5px solid rgba(180, 83, 9, 0.5)" }} />
+            <span style={{ fontSize: "18px", fontWeight: 700, color: "#92400e" }}>
+              {lang === "ta" ? "✦" : "ॐ"}
+            </span>
+            <div style={{ width: "96px", borderBottom: "1.5px solid rgba(180, 83, 9, 0.5)" }} />
+          </div>
+
+          {/* Borderless Compact Pratah Darshana & Concise Prarthana Accent */}
           <div
             data-cover-element="pratah-prarthana"
             style={{
               display: "flex",
               flexDirection: "row",
               alignItems: "center",
-              gap: "18px",
-              borderRadius: "14px",
-              border: "1.5px solid rgba(180, 83, 9, 0.3)",
-              backgroundColor: "#fffdf8",
-              padding: "14px 20px",
-              boxShadow: "0 1px 4px rgba(120, 53, 15, 0.06)",
+              justifyContent: "center",
+              gap: "14px",
+              maxWidth: "740px",
+              margin: "0 auto",
+              padding: "4px 8px",
+              textAlign: "left",
             }}
           >
             <img
               src="/daily_posters/poster_1_shiva.jpg"
               alt="Sri Gokarna Mahabaleshwara Pratah Darshana"
               style={{
-                width: "84px",
-                height: "84px",
-                borderRadius: "12px",
+                width: "54px",
+                height: "54px",
+                borderRadius: "9999px",
                 objectFit: "cover",
                 border: "2px solid #d97706",
                 flexShrink: 0,
               }}
             />
-
-            <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-              <div style={{ fontSize: "14.5px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: "13px",
+                lineHeight: 1.48,
+                color: "#78350f",
+                fontWeight: 600,
+                wordBreak: "break-word",
+              }}
+            >
+              <strong style={{ color: "#92400e", marginRight: "6px" }}>
                 ❖{" "}
                 {pick6(
                   {
-                    kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಪ್ರಾತಃ ಪ್ರಾರ್ಥನೆ & ಸಂಕಲ್ಪ",
-                    mr: "श्री गोकर्ण प्रातः प्रार्थना व संकल्प",
-                    hi: "श्री गोकर्ण प्रातः प्रार्थना एवं संकल्प",
-                    te: "శ్రీ గోకర్ణ ప్రాతః ప్రార్థన & సంకల్పం",
-                    ta: "ஸ்ரீ கோகர்ண காலைப் பிரார்த்தனை & சங்கல்பம்",
-                    en: "Sri Gokarna Pratah Prarthana & Sanctuary Vow",
+                    kn: "ಪ್ರಾತಃ ಪ್ರಾರ್ಥನೆ:",
+                    mr: "प्रातः प्रार्थना:",
+                    hi: "प्रातः प्रार्थना:",
+                    te: "ప్రాతః ప్రార్థన:",
+                    ta: "காலைப் பிரார்த்தனை:",
+                    en: "Pratah Prarthana:",
                   },
                   lang
                 )}
-              </div>
-              <p
-                style={{
-                  margin: "0 0 5px 0",
-                  fontSize: "13.5px",
-                  lineHeight: 1.52,
-                  color: "#451a03",
-                  fontWeight: 600,
-                  wordBreak: "break-word",
-                }}
-              >
-                {pick6(
-                  {
-                    kn: "ಪ್ರಾತಃ ಸ್ಮರಾಮಿ ಭವಭೀತಿಹರಂ ಸುರೇಶಂ — ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಪ್ರಾತಃಕಾಲದ ಮಂಗಳಾರತಿಯ ದಿವ್ಯ ಸನ್ನಿಧಿಯಲ್ಲಿ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಸತ್ಯ ಮಾರ್ಗದರ್ಶನವನ್ನು ಭಕ್ತಿಪೂರ್ವಕವಾಗಿ ಸಮರ್ಪಿಸಲಾಗಿದೆ.",
-                    mr: "प्रातः स्मरामि भवभीतिहरं सुरेशम् — श्री क्षेत्र गोकर्ण महाबळेश्वराच्या प्रातःकालीन आरतीच्या पवित्र सान्निध्यात आपल्या जीवनकुंडलीचे हे अचूक मार्गदर्शन सादर केले आहे.",
-                    hi: "प्रातः स्मरामि भवभीतिहरं सुरेशम् — श्री क्षेत्र गोकर्ण महाबलेश्वर की प्रातःकालीन मंगल आरती के पावन सान्निध्य में आपकी जीवन-कुंडली का यह सटीक मार्गदर्शन समर्पित है।",
-                    te: "ప్రాతః స్మరామి భవభీతిహరం సురేశం — శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని ప్రాతఃకాల మంగళారతి సన్నిధిలో మీ జన్మ కుండలి యొక్క ఖచ్చితమైన మార్గదర్శనం సమర్పించబడింది.",
-                    ta: "அதிகாலை கதிரொளியில் ஸ்ரீ கோகர்ண மகாபலேஸ்வரரின் மங்கள ஆரத்தி சன்னதியில், உங்கள் ஜென்ம குண்டலியின் துல்லியமான வழிகாட்டல் பக்தியுடன் சமர்ப்பிக்கப்படுகிறது.",
-                    en: "Consecrated at dawn during Sri Kshetra Gokarna's Pratah Aarati before Lord Mahabaleshwara—a calm, clear celestial guide prepared strictly for your private keeping.",
-                  },
-                  lang
-                )}
-              </p>
-              <div style={{ fontSize: "12.5px", fontWeight: 700, color: "#92400e" }}>
-                {data.coverPage.sealHeading}
-              </div>
-            </div>
+              </strong>
+              {pick6(
+                {
+                  kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತರಿಂದ ಸಮರ್ಪಿತ ಜಾತಕ ಗ್ರಂಥ.",
+                  mr: "श्री क्षेत्र गोकर्ण महाबळेश्वर सान्निध्यात वेदमूर्ती चैतन्य पंडित यांनी सादर केलेला जीवनग्रंथ.",
+                  hi: "श्री क्षेत्र गोकर्ण महाबलेश्वर सान्निध्य में वेदमूर्ति चैतन्य पंडित द्वारा समर्पित जीवन-ग्रंथ।",
+                  te: "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో వేదమూర్తి చైతన్య పండిత్ సమర్పించిన జీవన గ్రంథం.",
+                  ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியில் வேதமூர்த்தி சைதன்ய பண்டிதரால் சமர்ப்பிக்கப்பட்ட வாழ்க்கை நூல்.",
+                  en: "Sacred astrological guidance consecrated at dawn before Lord Mahabaleshwara by Veda Moorthy Chaitanya Pandit.",
+                },
+                lang
+              )}
+            </p>
           </div>
         </div>
       </div>
@@ -969,7 +942,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 >
                   <span style={{ color: "#b45309", marginRight: "8px" }}>❖</span>
                   <span style={{ marginRight: "6px" }}>{questionLabel}</span>
-                  {chapter.question}
+                  {(chapter.question || "").replace(/^(ಪ್ರಶ್ನೆ|प्रश्न|ప్రశ్న|கேள்வி|ചോദ്യം|Question)\s*:\s*/i, "").trim()}
                 </div>
               </div>
 

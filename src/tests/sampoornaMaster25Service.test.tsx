@@ -595,12 +595,12 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(coverEl.compareDocumentPosition(detailsEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(detailsEl.compareDocumentPosition(ch1El) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    // Cover contains Baggona Panchanga brand, Devotee name, single clean edition line & Pratah Prarthana vignette
+    // Cover stays clean & minimalist (brand banner + Pratah vignette, zero stacked dedication card clutter)
     const coverText = coverEl.textContent || "";
+    const detailsText = detailsEl.textContent || "";
     expect(coverText).toContain("ಬಗ್ಗೋಣ ಪಂಚಾಂಗ");
-    expect(coverText).toContain(payloadKn.devoteeName);
-    expect(coverText).toContain(payloadKn.coverPage.bookletEditionLine);
-    expect(coverText).not.toContain(`${payloadKn.pakshaName} ${payloadKn.pakshaName}`);
+    expect(detailsText).toContain(payloadKn.devoteeName);
+    expect(detailsText).not.toContain(`${payloadKn.pakshaName} ${payloadKn.pakshaName}`);
     const pratahImg = coverEl.querySelector('[data-cover-element="pratah-prarthana"] img');
     expect(pratahImg).not.toBeNull();
     expect(pratahImg?.getAttribute("src")).toContain("/daily_posters/poster_1_shiva.jpg");
@@ -759,5 +759,44 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(pAEn.chapters[6].paragraphs[0]).toMatch(/Mahadasha/i);
     expect(pAEn.chapters[6].paragraphs[0]).toMatch(/Bhukti/i);
     expect(pAKn.chapters[0].paragraphs[0]).toContain(pAKn.heroSummary!.heroPlanetName);
+  });
+
+  it("17. Enforces zero doubled Question prefixes across all 25 chapters, zero 'Moderate'/English leaks in DOM, and clean 'ml' fallback", async () => {
+    const langs = ["kn", "mr", "hi", "te", "ta", "en"] as const;
+    for (const lang of langs) {
+      cleanup();
+      const payload = await prepareSampoornaMaster25Data(
+        { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka (581326)" },
+        lang
+      );
+      const { container } = render(<SampoornaMaster25PdfTemplate data={payload} />);
+      const renderedText = container.textContent || "";
+
+      expect(renderedText).not.toMatch(/Question:\s*Question:/i);
+      expect(renderedText).not.toMatch(/ಪ್ರಶ್ನೆ:\s*ಪ್ರಶ್ನೆ:/);
+      expect(renderedText).not.toMatch(/प्रश्न:\s*प्रश्न:/);
+      expect(renderedText).not.toMatch(/ప్రశ్న:\s*ప్రశ్న:/);
+      expect(renderedText).not.toMatch(/கேள்வி:\s*கேள்வி:/);
+
+      if (lang !== "en") {
+        // Unlocalized Dosha severity badge or English compass/label words must never leak
+        expect(renderedText).not.toMatch(/\b(Moderate|High Priority|Gentle|Season|Dispositor|Dignity)\b/);
+      }
+      if (lang === "te") {
+        expect(payload.coverPage.brandBannerTitle).not.toMatch(/[\u0C80-\u0CFF]/);
+        expect(payload.footerText).not.toMatch(/[\u0C80-\u0CFF]/);
+        expect(payload.calendarQrSection?.features[0] || "").not.toMatch(/[\u0900-\u097F]/);
+      }
+      if (lang === "ta") {
+        expect(renderedText).not.toMatch(/[॥।ॐ]/);
+      }
+    }
+
+    // Passing 7th UI language "ml" cleanly resolves to "en" instead of mixing scripts
+    const mlPayload = await prepareSampoornaMaster25Data(
+      { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+      "ml" as any
+    );
+    expect(mlPayload.targetLanguage).toBe("en");
   });
 });

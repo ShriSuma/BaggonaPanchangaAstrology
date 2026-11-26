@@ -370,7 +370,8 @@ export async function prepareSampoornaMaster25Data(
   langArg?: SixLang,
   options?: { onProgress?: (pct: number, msg: string) => void }
 ): Promise<SampoornaMaster25Payload> {
-  const targetLang: SixLang = langArg || (sessionOrData?.targetLanguage as SixLang) || "kn";
+  const rawRequestedLang = (langArg || (sessionOrData?.targetLanguage as string) || "kn").slice(0, 2).toLowerCase();
+  const targetLang: SixLang = (rawRequestedLang === "ml" ? "en" : ["kn", "mr", "hi", "te", "ta", "en"].includes(rawRequestedLang) ? rawRequestedLang : "kn") as SixLang;
   options?.onProgress?.(10, pick6({
     kn: "೧. ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಜಾತಕ ಗಣಿತ ಪರಿಶೀಲನೆ...",
     mr: "१. जन्म कुंडली व गणितीय पडताळणी...",
@@ -1020,7 +1021,7 @@ export async function prepareSampoornaMaster25Data(
     kn: "॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಜ್ಯೋತಿಷ್ಯ ಪೀಠ • ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ ॥",
     mr: "॥ श्री क्षेत्र गोकर्ण महाबळेश्वर ज्योतिष पीठ • बग्गोण पंचांग प्रकाशन ॥",
     hi: "॥ श्री क्षेत्र गोकर्ण महाबलेश्वर ज्योतिष पीठ • बग्गोण पंचांग प्रकाशन ॥",
-    te: "॥ శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర జ్యೋతిష్య పీఠం • బగ్గోణ పంచాంగ ప్రచురణ ॥",
+    te: "॥ శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర జ్యోతిష్య పీఠం • బగ్గోణ పంచాంగ ప్రచురణ ॥",
     ta: "✦ ஸ்ரீ க்ஷேத்திர கோகர்ண மகாபலேஸ்வரர் ஜோதிட பீடம் • பக்கோண பஞ்சாங்க வெளியீடு ✦",
     en: "|| Sri Kshetra Gokarna Mahabaleshwara Jyotishya Peetha • Baggona Panchanga Publication ||"
   }, targetLang);
@@ -1098,7 +1099,7 @@ export async function prepareSampoornaMaster25Data(
         kn: "ದೈನಂದಿನ ತಾರಾಬಲ & ಶುಭ ತಾರೆ ನಿರ್ಣಯ (ಪ್ರತಿ ದಿನವೂ ನಿಮ್ಮ ನಕ್ಷತ್ರಕ್ಕೆ ಸಿಗುವ ಶುಭ ಬಲ)",
         mr: "दैनिक ताराबल व शुभ तारा विश्लेषण (दररोजचे नक्षत्र बल)",
         hi: "दैनिक ताराबल एवं शुभ तारा निर्णय (प्रतिदिन का नक्षत्र बल)",
-        te: "రోజువారీ తారాబలం & శుభ తార నిర్ణయం (ప్రతిరోజు నक्षత్ర బలం)",
+        te: "రోజువారీ తారాబలం & శుభ తార నిర్ణయం (ప్రతిరోజు నక్షత్ర బలం)",
         ta: "தினசரி தாராபலம் & சுப தாரை கணிப்பு (நட்சத்திர பலன்)",
         en: "Daily Tarabala & Auspicious Star alignment for your Janma Nakshatra"
       }, targetLang),

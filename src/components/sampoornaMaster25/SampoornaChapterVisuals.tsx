@@ -687,7 +687,7 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
   const lblN = pick6({ kn: "ಉ", mr: "उ", hi: "उ", te: "ఉ", ta: "வ", en: "N" }, lang);
   const lblE = pick6({ kn: "ಪೂ", mr: "पू", hi: "पू", te: "తూ", ta: "கி", en: "E" }, lang);
   const lblS = pick6({ kn: "ದ", mr: "द", hi: "द", te: "ద", ta: "தெ", en: "S" }, lang);
-  const lblW = pick6({ kn: "ಪ", mr: "प", hi: "प", te: "प", ta: "மே", en: "W" }, lang);
+  const lblW = pick6({ kn: "ಪ", mr: "प", hi: "प", te: "ప", ta: "மே", en: "W" }, lang);
 
   const statRows = [
     { k: pick6({ kn: "ಯೋಗಿ & ದಿಕ್ಕು:", mr: "योगी व दिशा:", hi: "योगी व दिशा:", te: "యోగి & దిశ:", ta: "யோகி & திசை:", en: "Yogi & Direction:" }, lang), v: `${metrics.yogiPlanetName} • ${metrics.yogiDirection}` },

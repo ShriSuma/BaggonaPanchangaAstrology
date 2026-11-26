@@ -266,28 +266,28 @@ export const FIVE_YEAR_TEXT_6L: Record<string, L6> = {
     mr: "ज्योतिषी श्रीराम पंडित यांचा पावन आशीर्वाद व अधिकृत मुद्रा"
   },
   turningPointLabel: {
-    kn: "ವರ್ಷದ ಪ್ರಮುಖ ತಿರುವು (Turning Point):",
+    kn: "ವರ್ಷದ ಪ್ರಮುಖ ತಿರುವು:",
     en: "Defining Turning Point of the Year:",
-    hi: "वर्ष का मुख्य मोड़ (Turning Point):",
+    hi: "वर्ष का मुख्य मोड़:",
     ta: "ஆண்டின் முக்கிய திருப்புமுனை:",
-    te: "సంవత్సరపు ప్రధాన మలుపు (Turning Point):",
-    mr: "वर्षाचे मुख्य वळण (Turning Point):"
+    te: "సంవత్సరపు ప్రధాన మలుపు:",
+    mr: "वर्षाचे मुख्य वळण:"
   },
   goldenWindowLabel: {
-    kn: "ಸುವರ್ಣಾವಕಾಶದ ಕಾಲ (Golden Period):",
+    kn: "ಸುವರ್ಣಾವಕಾಶದ ಕಾಲ:",
     en: "Golden Opportunity Window:",
-    hi: "स्वर्णिम अवसर काल (Golden Period):",
+    hi: "स्वर्णिम अवसर काल:",
     ta: "பொற்கால வாய்ப்புக் காலம்:",
-    te: "స్వర్ణావకాశ సమయం (Golden Period):",
-    mr: "सुवर्णसंधीचा काळ (Golden Period):"
+    te: "స్వర్ణావకాశ సమయం:",
+    mr: "सुवर्णसंधीचा काळ:"
   },
   cautionLabel: {
-    kn: "ಎಚ್ಚರಿಕೆ ಹಾಗೂ ಶಮನ ಪರಿಹಾರ (Caution & Remedy):",
+    kn: "ಎಚ್ಚರಿಕೆ ಹಾಗೂ ಶಮನ ಪರಿಹಾರ:",
     en: "Cautionary Guidance & Pacification:",
-    hi: "सावधानी एवं शमन उपाय (Caution & Remedy):",
+    hi: "सावधानी एवं शमन उपाय:",
     ta: "எச்சரிக்கை மற்றும் பரிகாரம்:",
     te: "హెచ్చరిక మరియు శాంతి పరిహారం:",
-    mr: "सावधगिरी व शमन उपाय (Caution & Remedy):"
+    mr: "सावधगिरी व शमन उपाय:"
   },
   whatToExpectLabel: {
     kn: "ಖಚಿತವಾಗಿ ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಫಲಗಳು:",
@@ -362,12 +362,12 @@ export const FIVE_YEAR_TEXT_6L: Record<string, L6> = {
     mr: "चरण"
   },
   pivotalTurningPointCardTitle: {
-    kn: "🌟 ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಅತ್ಯಂತ ಮಹತ್ವದ ಮಹಾ ತಿರುವು (Pivotal Turning Point)",
+    kn: "🌟 ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಅತ್ಯಂತ ಮಹತ್ವದ ಮಹಾ ತಿರುವು",
     en: "🌟 Defining Turning Point of the 5-Year Horizon (2026 - 2031)",
-    hi: "🌟 आगामी ५ वर्षों का सबसे निर्णायक महा मोड़ (Pivotal Turning Point)",
+    hi: "🌟 आगामी ५ वर्षों का सबसे निर्णायक महा मोड़",
     ta: "🌟 அடுத்த 5 ஆண்டுகளில் மிக முக்கியமான மாபெரும் திருப்புமுனை",
     te: "🌟 రాబోయే 5 సంవత్సరాలలో అత్యంత కీలకమైన మహా మలుపు",
-    mr: "🌟 पुढील ५ वर्षांतील सर्वात महत्त्वाचे मोठे वळण (Pivotal Turning Point)"
+    mr: "🌟 पुढील ५ वर्षांतील सर्वात महत्त्वाचे मोठे वळण"
   },
   milestoneMatrixTitle: {
     kn: "೫ ವರ್ಷಗಳ ಸುವರ್ಣ ಭವಿಷ್ಯ ಮೈಲಿಗಲ್ಲುಗಳ ಕೋಷ್ಟಕ (2026 - 2031)",

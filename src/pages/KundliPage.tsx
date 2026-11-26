@@ -1503,7 +1503,7 @@ export default function KundliPage(): JSX.Element {
       setIsGeneratingMaster25Pdf(true);
       setMaster25Progress(10);
       const rawLang = ((pdfLanguage || i18n.language || "kn").slice(0, 2)).toLowerCase();
-      const validLang: SixLang = (["kn", "hi", "mr", "te", "ta", "en"].includes(rawLang) ? rawLang : "kn") as SixLang;
+      const validLang: SixLang = (rawLang === "ml" ? "en" : ["kn", "hi", "mr", "te", "ta", "en"].includes(rawLang) ? rawLang : "kn") as SixLang;
 
       setMaster25ProgressMsg(
         validLang === "kn"
