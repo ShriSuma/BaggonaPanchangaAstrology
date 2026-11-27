@@ -360,6 +360,54 @@ export const FaceReadingPdfTemplate: React.FC<Props> = ({
           </div>
         </div>
 
+        {/* Dedicated 4-Domain Life Guidance Card (Family, Money, Health, Profession) */}
+        {result.lifeDomains && (
+          <div
+            style={{
+              background: "#FFFFFF",
+              border: "2px solid #F59E0B",
+              borderRadius: "8px",
+              padding: "12px",
+              marginBottom: "12px",
+              boxShadow: "0 2px 6px rgba(180,83,9,0.06)"
+            }}
+          >
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#78350F", borderBottom: "1.5px solid #FEF3C7", paddingBottom: "4px", marginBottom: "8px" }}>
+              {code === "kn"
+                ? "🌟 ಚತುರ್ವಿಧ ಜೀವನ ಫಲಗಳು: ಕುಟುಂಬ, ಧನ, ಆರೋಗ್ಯ & ವೃತ್ತಿ-ವ್ಯಾಪಾರ:"
+                : code === "hi"
+                  ? "🌟 जीवन के ४ प्रमुख क्षेत्र: परिवार, धन, स्वास्थ्य एवं व्यापार-करियर:"
+                  : code === "mr"
+                    ? "🌟 जीवनातील ४ प्रमुख क्षेत्रे: कुटुंब, धन, आरोग्य व करिअर:"
+                    : code === "te"
+                      ? "🌟 4 జీవన రంగాలు: కుటుంబం, ధనం, ఆరోగ్యం & వృత్తి:"
+                      : code === "ta"
+                        ? "🌟 4 வாழ்வியல் துறைகள்: குடும்பம், பணம், ஆரோக்கியம் & தொழில்:"
+                        : code === "ml"
+                          ? "🌟 4 ജീവിത മേഖലകൾ: കുടുംബം, ധനം, ആരോഗ്യം & തൊഴിൽ:"
+                          : "🌟 4 Dedicated Life Domains: Family, Money, Health & Profession:"}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "10.5px", color: "#451A03" }}>
+              <div style={{ background: "#FFFBEB", padding: "7px 9px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+                <strong style={{ color: "#92400E" }}>👨‍👩‍👧‍👦 {code === "kn" ? "ಕುಟುಂಬ:" : "Family:"}</strong>{" "}
+                <div>{formatText(result.lifeDomains.family, code)}</div>
+              </div>
+              <div style={{ background: "#FFFBEB", padding: "7px 9px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+                <strong style={{ color: "#92400E" }}>💰 {code === "kn" ? "ಧನ & ಲಾಭ:" : "Money:"}</strong>{" "}
+                <div>{formatText(result.lifeDomains.money, code)}</div>
+              </div>
+              <div style={{ background: "#FFFBEB", padding: "7px 9px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+                <strong style={{ color: "#92400E" }}>❤️ {code === "kn" ? "ಆರೋಗ್ಯ:" : "Health:"}</strong>{" "}
+                <div>{formatText(result.lifeDomains.health, code)}</div>
+              </div>
+              <div style={{ background: "#FFFBEB", padding: "7px 9px", borderRadius: "6px", border: "1px solid #FDE68A" }}>
+                <strong style={{ color: "#92400E" }}>💼 {code === "kn" ? "ವೃತ್ತಿ & ವ್ಯಾಪಾರ:" : "Profession:"}</strong>{" "}
+                <div>{formatText(result.lifeDomains.profession, code)}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Prediction Content Card */}
         <div
           style={{

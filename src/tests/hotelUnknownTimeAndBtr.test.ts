@@ -30,6 +30,15 @@ import { prepareSampoornaMaster25Data } from "../services/sampoornaMaster25Servi
 import { SampoornaMaster25PdfTemplate } from "../components/sampoornaMaster25/SampoornaMaster25PdfTemplate";
 import { HotelExpressWalkInPdfTemplate } from "../components/hotelSecret/HotelExpressWalkInPdfTemplate";
 import type { SevenLang } from "../services/sampoornaMaster25Locale7L";
+import fs from "fs";
+import path from "path";
+import { generateExpressWalkInAiNarrative } from "../features/hotelSecret/hotelUnknownTimeEngine";
+import {
+  checkHotelFreePreviewQuota,
+  markHotelFreePreviewConsumed,
+  clearTestHotelQuotaMemory,
+  getFreeQuotaExhaustedMessage
+} from "../features/hotelSecret/hotelFreeQuotaGuard";
 
 const SEVEN_LANGS: SevenLang[] = ["kn", "en", "hi", "mr", "te", "ta", "ml"];
 
@@ -311,5 +320,201 @@ describe("Hotel QR Unknown-Time, BTR, Prashna & Express ₹149 Verification", ()
       expect(r3.container.textContent).toContain(prashna.trisphutaRashiName);
       cleanup();
     }
+  });
+
+  it("enforces IP & device 1-free-answer limit while NEVER blocking paid downloads", async () => {
+    clearTestHotelQuotaMemory();
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem("baggona_hotel_qr_free_claimed_v1");
+      window.localStorage.removeItem("baggona_hotel_device_fp_v1");
+    }
+
+    const firstAttempt = await checkHotelFreePreviewQuota({
+      isPaymentVerified: false,
+      overrideIp: "203.0.113.42",
+      overrideDeviceId: "dev_alpha"
+    });
+    expect(firstAttempt.allowed).toBe(true);
+    expect(firstAttempt.alreadyUsed).toBe(false);
+
+    await markHotelFreePreviewConsumed({
+      ip: "203.0.113.42",
+      deviceId: "dev_alpha",
+      serviceUsed: "hasta_samudrika",
+      hotelName: "Pandit Palette",
+      tableNumber: "5",
+      guestName: "Rohan"
+    });
+
+    const secondSameDevice = await checkHotelFreePreviewQuota({
+      isPaymentVerified: false,
+      overrideIp: "203.0.113.42",
+      overrideDeviceId: "dev_alpha"
+    });
+    expect(secondSameDevice.allowed).toBe(false);
+    expect(secondSameDevice.alreadyUsed).toBe(true);
+
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem("baggona_hotel_qr_free_claimed_v1");
+    }
+    const secondIncognitoSameIp = await checkHotelFreePreviewQuota({
+      isPaymentVerified: false,
+      overrideIp: "203.0.113.42",
+      overrideDeviceId: "dev_incognito_2"
+    });
+    expect(secondIncognitoSameIp.allowed).toBe(false);
+    expect(secondIncognitoSameIp.alreadyUsed).toBe(true);
+
+    const paidOverride = await checkHotelFreePreviewQuota({
+      isPaymentVerified: true,
+      overrideIp: "203.0.113.42",
+      overrideDeviceId: "dev_alpha"
+    });
+    expect(paidOverride.allowed).toBe(true);
+    expect(paidOverride.alreadyUsed).toBe(false);
+
+    const familyUpsellOverride = await checkHotelFreePreviewQuota({
+      isPaymentVerified: false,
+      isPaidFamilyUpsell: true,
+      overrideIp: "203.0.113.42",
+      overrideDeviceId: "dev_alpha"
+    });
+    expect(familyUpsellOverride.allowed).toBe(true);
+
+    const differentVisitor = await checkHotelFreePreviewQuota({
+      isPaymentVerified: false,
+      overrideIp: "198.51.100.77",
+      overrideDeviceId: "dev_fresh_guest"
+    });
+    expect(differentVisitor.allowed).toBe(true);
+
+    const langs: SevenLang[] = ["kn", "en", "hi", "mr", "te", "ta", "ml"];
+    for (const lang of langs) {
+      const msg = getFreeQuotaExhaustedMessage(lang, "203.0.113.42");
+      expect(msg).toContain("203.0.113.42");
+      expect(msg.length).toBeGreaterThan(30);
+    }
+  });
+
+  it("renders dedicated 4 Life Domains (Family, Money, Health, Profession) & multi-paragraph depth on all 3 PDFs across all 7 languages", async () => {
+    const langs: SevenLang[] = ["kn", "en", "hi", "mr", "te", "ta", "ml"];
+    const dummyImg =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+    const kundli = calculateKundli({
+      name: "Kiran Sharma",
+      birthDate: "1994-07-19",
+      birthTime: "10:15",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      gender: "Male"
+    });
+
+    for (const lang of langs) {
+      const palmRes = await executePalmReading(dummyImg, "right", "Kiran Sharma", lang, "");
+      expect(palmRes.lifeDomains).toBeDefined();
+      const palmFamily = palmRes.lifeDomains!.family[lang] || palmRes.lifeDomains!.family.en;
+      const palmMoney = palmRes.lifeDomains!.money[lang] || palmRes.lifeDomains!.money.en;
+      const palmHealth = palmRes.lifeDomains!.health[lang] || palmRes.lifeDomains!.health.en;
+      const palmProf = palmRes.lifeDomains!.profession[lang] || palmRes.lifeDomains!.profession.en;
+      expect(palmFamily.length).toBeGreaterThan(15);
+      expect(palmMoney.length).toBeGreaterThan(15);
+      expect(palmHealth.length).toBeGreaterThan(15);
+      expect(palmProf.length).toBeGreaterThan(15);
+      expect(palmRes.aiPrediction.split(/\n\n+/).length).toBeGreaterThanOrEqual(2);
+
+      const pRender = render(
+        React.createElement(PalmReadingPdfTemplate, {
+          result: palmRes,
+          personName: "Kiran Sharma",
+          lang,
+          containerId: `test-palm-domains-${lang}`
+        })
+      );
+      expect(pRender.container.textContent).toContain(palmFamily);
+      expect(pRender.container.textContent).toContain(palmProf);
+      cleanup();
+
+      const faceRes = await executeFaceReading(dummyImg, "Kiran Sharma", lang, "");
+      expect(faceRes.lifeDomains).toBeDefined();
+      const faceFamily = faceRes.lifeDomains!.family[lang] || faceRes.lifeDomains!.family.en;
+      const faceMoney = faceRes.lifeDomains!.money[lang] || faceRes.lifeDomains!.money.en;
+      const faceHealth = faceRes.lifeDomains!.health[lang] || faceRes.lifeDomains!.health.en;
+      const faceProf = faceRes.lifeDomains!.profession[lang] || faceRes.lifeDomains!.profession.en;
+      expect(faceFamily.length).toBeGreaterThan(15);
+      expect(faceMoney.length).toBeGreaterThan(15);
+      expect(faceHealth.length).toBeGreaterThan(15);
+      expect(faceProf.length).toBeGreaterThan(15);
+      expect(faceRes.aiPrediction.split(/\n\n+/).length).toBeGreaterThanOrEqual(2);
+
+      const fRender = render(
+        React.createElement(FaceReadingPdfTemplate, {
+          result: faceRes,
+          devoteeName: "Kiran Sharma",
+          lang,
+          containerId: `test-face-domains-${lang}`
+        })
+      );
+      expect(fRender.container.textContent).toContain(faceMoney);
+      expect(fRender.container.textContent).toContain(faceHealth);
+      cleanup();
+
+      const sankhya = buildChandraSankhyaProfile("Kiran Sharma", "1994-07-19", kundli, lang);
+      const prashna = computeDeepPrashnaHoraryReading({
+        devoteeName: "Kiran Sharma",
+        questionDomain: "career_wealth",
+        horaryNumber: 45,
+        latitude: 14.5479,
+        longitude: 74.3188,
+        lang
+      });
+      expect(prashna.domainGuidance).toBeDefined();
+      expect(prashna.domainGuidance.family.length).toBeGreaterThan(15);
+      expect(prashna.domainGuidance.money.length).toBeGreaterThan(15);
+      expect(prashna.domainGuidance.health.length).toBeGreaterThan(15);
+      expect(prashna.domainGuidance.profession.length).toBeGreaterThan(15);
+
+      const aiParagraphs = await generateExpressWalkInAiNarrative({
+        devoteeName: "Kiran Sharma",
+        lang,
+        prashna,
+        sankhya,
+        apiKey: ""
+      });
+      expect(aiParagraphs.length).toBeGreaterThanOrEqual(3);
+
+      const prRender = render(
+        React.createElement(HotelPrashnaPdfTemplate, {
+          data: {
+            devoteeName: "Kiran Sharma",
+            lang,
+            tableNumber: "5",
+            hotelName: "Pandit Palette",
+            generatedDateStr: "2026-11-27",
+            placeName: "Gokarna",
+            prashna,
+            sankhya,
+            aiParagraphs
+          }
+        })
+      );
+      const renderedPrashnaText = (prRender.container.textContent || "").replace(/#/g, "");
+      expect(renderedPrashnaText).toContain(prashna.domainGuidance.family.replace(/#/g, ""));
+      expect(renderedPrashnaText).toContain(prashna.domainGuidance.profession.replace(/#/g, ""));
+      expect(renderedPrashnaText).toContain(aiParagraphs[0].replace(/#/g, ""));
+      expect(renderedPrashnaText).toContain(aiParagraphs[2].replace(/#/g, ""));
+      cleanup();
+    }
+  });
+
+  it("strictly isolates single-service separate PDFs inside AntarangadaSatyaPage (zero combo bundles)", () => {
+    const pageSrc = fs.readFileSync(
+      path.resolve(process.cwd(), "src/pages/AntarangadaSatyaPage.tsx"),
+      "utf-8"
+    );
+    expect(pageSrc).not.toContain("samudrika_combo_249");
+    expect(pageSrc).not.toContain("trinetra_all3_349");
+    expect(pageSrc).not.toContain("express_149");
+    expect(pageSrc).toContain("paidByServiceMode");
+    expect(pageSrc).toContain("checkHotelFreePreviewQuota");
   });
 });

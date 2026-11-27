@@ -3996,3 +3996,64 @@ export async function verifyHotelOrderPayment(
 
   return { verified: true, order };
 }
+
+// ============================================================================
+// HOTEL TABLE QR FREE-PREVIEW IP & DEVICE ANTI-ABUSE LEDGER
+// Ensures 1 free preview answer per guest IP / device (paid downloads unaffected).
+// ============================================================================
+const HOTEL_FREE_USAGE_COL = "hotel_qr_free_usage";
+
+export interface HotelFreeUsageDoc {
+  key: string;
+  ip: string;
+  deviceId: string;
+  serviceUsed: string;
+  hotelName: string;
+  tableNumber: string;
+  guestName: string;
+  firstUsedAt: string;
+}
+
+const memoryFreeUsageLedger = new Map<string, HotelFreeUsageDoc>();
+
+export async function getHotelFreeUsageRecord(
+  ipDocId: string,
+  deviceDocId: string
+): Promise<HotelFreeUsageDoc | null> {
+  if (ipDocId && memoryFreeUsageLedger.has(ipDocId)) {
+    return memoryFreeUsageLedger.get(ipDocId)!;
+  }
+  if (deviceDocId && memoryFreeUsageLedger.has(deviceDocId)) {
+    return memoryFreeUsageLedger.get(deviceDocId)!;
+  }
+
+  for (const id of [ipDocId, deviceDocId].filter(Boolean)) {
+    try {
+      const ref = doc(firestore, HOTEL_FREE_USAGE_COL, id);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const data = snap.data() as HotelFreeUsageDoc;
+        memoryFreeUsageLedger.set(id, data);
+        return data;
+      }
+    } catch {
+      // Offline / permission resilient
+    }
+  }
+  return null;
+}
+
+export async function saveHotelFreeUsageRecord(
+  docIds: string[],
+  record: HotelFreeUsageDoc
+): Promise<void> {
+  for (const id of docIds.filter(Boolean)) {
+    memoryFreeUsageLedger.set(id, record);
+    try {
+      const ref = doc(firestore, HOTEL_FREE_USAGE_COL, id);
+      await setDoc(ref, { ...record, key: id }, { merge: true });
+    } catch {
+      // Offline resilient (localStorage mirror remains primary backup)
+    }
+  }
+}

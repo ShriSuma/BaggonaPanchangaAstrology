@@ -263,6 +263,12 @@ export interface DeepPrashnaHoraryResult {
   chatraRashiName: string;
   panchaPakshiBird: string;
   panchaPakshiState: string;
+  domainGuidance: {
+    family: string;
+    money: string;
+    health: string;
+    profession: string;
+  };
   timingForecast: string;
   verdictTitle: string;
   verdictSummary: string;
@@ -987,11 +993,11 @@ export function computeDeepPrashnaHoraryReading(params: {
   // Pancha Pakshi Shastra Bird & Current 5-Yaama State
   const birdIndex = Math.floor(seedNakIdx / 6) % 5; // 5 Tamil Siddha Pakshis
   const pakshiBirds: Array<Record<SevenLang, string>> = [
-    { kn: "ಗರುಡ (ಭೇರುಂಡ / Vulture)", en: "Vulture (Vallooru)", hi: "गरुड़ / वल्लूरु पक्षी", mr: "गरुड / वल्लूरू पक्षी", te: "గరుడ పక్షి", ta: "வல்லூறு பட்சி", ml: "വല്ലൂറു പക്ഷി" },
-    { kn: "ಗೂಬೆ (ಉಲೂಕ / Owl)", en: "Owl (Aanthai)", hi: "उलूक / आंथै पक्षी", mr: "उलूक / आंथै पक्षी", te: "ఉలూక పక్షి", ta: "ஆந்தை பட்சி", ml: "ആന്ത പക്ഷി" },
-    { kn: "ಕಾಗೆ (ಕಾಕ / Crow)", en: "Crow (Kagam)", hi: "काक / कागम पक्षी", mr: "काक / कागम पक्षी", te: "కాక పక్షి", ta: "காகம் பட்சி", ml: "കാകം പക്ഷി" },
-    { kn: "ಕೋಳಿ (ಕುಕ್ಕುಟ / Cock)", en: "Cock (Kozhi)", hi: "कुक्कुट / कोझी पक्षी", mr: "कुक्कुट / कोझी पक्षी", te: "కుక్కుట పక్షి", ta: "கோழி பட்சி", ml: "കോഴി പക്ഷി" },
-    { kn: "ನವಿಲು (ಮಯೂರ / Peacock)", en: "Peacock (Mayil)", hi: "मयूर / मयिल पक्षी", mr: "मयूर / मयिल पक्षी", te: "మయూర పక్షి", ta: "மயில் பட்சி", ml: "മയിൽ പക്ഷി" }
+    { kn: "ಗರುಡ (ಭೇರುಂಡ)", en: "Vulture (Vallooru)", hi: "गरुड़ / वल्लूरु पक्षी", mr: "गरुड / वल्लूरू पक्षी", te: "గరుడ పక్షి", ta: "வல்லூறு பட்சி", ml: "വല്ലൂറു പക്ഷി" },
+    { kn: "ಗೂಬೆ (ಉಲೂಕ)", en: "Owl (Aanthai)", hi: "उलूक / आंथै पक्षी", mr: "उलूक / आंथै पक्षी", te: "ఉలూక పక్షి", ta: "ஆந்தை பட்சி", ml: "ആന്ത പക്ഷി" },
+    { kn: "ಕಾಗೆ (ಕಾಕ)", en: "Crow (Kagam)", hi: "काक / कागम पक्षी", mr: "काक / कागम पक्षी", te: "కాక పక్షి", ta: "காகம் பட்சி", ml: "കാകം പക്ഷി" },
+    { kn: "ಕೋಳಿ (ಕುಕ್ಕುಟ)", en: "Cock (Kozhi)", hi: "कुक्कुट / कोझी पक्षी", mr: "कुक्कुट / कोझी पक्षी", te: "కుక్కుట పక్షి", ta: "கோழி பட்சி", ml: "കോഴി പക്ഷി" },
+    { kn: "ನವಿಲು (ಮಯೂರ)", en: "Peacock (Mayil)", hi: "मयूर / मयिल पक्षी", mr: "मयूर / मयिल पक्षी", te: "మయూర పక్షి", ta: "மயில் பட்சி", ml: "മയിൽ പക്ഷി" }
   ];
   const minsSince6 = (((now.getHours() * 60 + now.getMinutes()) - 360) + 1440) % 720;
   const yaamaIdx = Math.floor(minsSince6 / 144) % 5; // 5 Yaamas of ~2h 24m
@@ -1011,12 +1017,56 @@ export function computeDeepPrashnaHoraryReading(params: {
   const panchaPakshiBird = pakshiBirds[birdIndex]?.[lang] || pakshiBirds[0].en;
   const panchaPakshiState = pakshiStates[pakshiStateIdx]?.[lang] || pakshiStates[0].en;
 
+  const h4Lord = GRAHA_7L[signLord(((udayaLagnaIdx + 3) % 12) as RashiIndex)]?.[lang] || "Moon";
+  const h2Lord = GRAHA_7L[signLord(((udayaLagnaIdx + 1) % 12) as RashiIndex)]?.[lang] || "Venus";
+  const h6Lord = GRAHA_7L[signLord(((udayaLagnaIdx + 5) % 12) as RashiIndex)]?.[lang] || "Mars";
+  const h10Lord = GRAHA_7L[signLord(((udayaLagnaIdx + 9) % 12) as RashiIndex)]?.[lang] || "Saturn";
+
   const udayaLagnaName = RASHI_7L[udayaLagnaIdx]?.[lang] || RASHI_7L[0].en;
   const udayaLagnaLordName = GRAHA_7L[udayaLordPlanet]?.[lang] || String(udayaLordPlanet);
   const seedLagnaName = RASHI_7L[seedLagnaIdx]?.[lang] || RASHI_7L[0].en;
   const seedNakshatraName = NAKSHATRA_7L[seedNakIdx]?.[lang] || NAKSHATRA_7L[0].en;
   const karyaLordName = GRAHA_7L[karyaLordPlanet]?.[lang] || String(karyaLordPlanet);
   const questionLabel = dom.labels[lang] || dom.labels.en;
+
+  const domainGuidance = {
+    family: pick7({
+      kn: `೪ನೇ ಕುಟುಂಬ ಸ್ಥಾನಾಧಿಪತಿ ${h4Lord} ಹಾಗೂ ಚತುಃಸ್ಫುಟ ${chatusphutaRashiName} ಪ್ರಭಾವದಿಂದ ಮನೆಯಲ್ಲಿ ಶಾಂತಿ ಮತ್ತು ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಲಭಿಸುತ್ತದೆ; ಮಾತಿನಲ್ಲಿ ತಾಳ್ಮೆ ಇರಲಿ.`,
+      en: `4th Family Bhava ruled by ${h4Lord} alongside Chatusphuta ${chatusphutaRashiName} supports warm domestic understanding and elders' harmony when speech stays measured.`,
+      hi: `चतुर्थ भाव स्वामी ${h4Lord} और चतुःस्फुट ${chatusphutaRashiName} घर में पारिवारिक सौहार्द तथा बड़ों का आशीर्वाद देते हैं; वाणी में मधुरता रखें।`,
+      mr: `चतुर्थ स्थान स्वामी ${h4Lord} आणि चतुःस्फुट ${chatusphutaRashiName} कुटुंबात सुख-शांती आणि वडिलधाऱ्यांचा आशीर्वाद देतात.`,
+      te: `చతుర్థ స్థాన అధిపతి ${h4Lord} మరియు చతుఃస్ఫుట ${chatusphutaRashiName} కుటుంబంలో ప్రశాంతతను మరియు అనుబంధాలను బలపరుస్తాయి.`,
+      ta: `4-ம் குடும்ப பாவாதிபதி ${h4Lord} மற்றும் சதுர்ஸ்புடம் ${chatusphutaRashiName} குடும்ப ஒற்றுமையையும் பெரியோரின் ஆசியையும் தருகின்றன.`,
+      ml: `നാലാം ഭാവാധിപൻ ${h4Lord}-ഉം ചതുഃസ്ഫുടം ${chatusphutaRashiName}-ഉം കുടുംബ സമാധാനവും മുതിർന്നവരുടെ അനുഗ്രഹവും നൽകുന്നു.`
+    }, lang),
+    money: pick7({
+      kn: `೨ನೇ ಧನೇಶ ${h2Lord} ಹಾಗೂ ಪವಿತ್ರ ಸಂಖ್ಯೆ #${toNativeDigits7L(cleanNum, lang)} (${seedLagnaName}) ಬಲದಿಂದ ಹಣಕಾಸಿನ ಒಳಹರಿವು ಸುಧಾರಿಸುತ್ತದೆ; ಅನಗತ್ಯ ಸಾಲ ತಪ್ಪಿಸಿ.`,
+      en: `2nd Dhana Bhava governed by ${h2Lord} aligned with Seed #${cleanNum} (${seedLagnaName}) indicates steady wealth recovery; focus on disciplined reserves rather than impulsive lending.`,
+      hi: `द्वितीय धनेश ${h2Lord} और पावन संख्या #${toNativeDigits7L(cleanNum, lang)} (${seedLagnaName}) के संयोग से धन प्रवाह मजबूत होता है; अनावश्यक उधार से बचें।`,
+      mr: `द्वितीय धनेश ${h2Lord} आणि अंक #${toNativeDigits7L(cleanNum, lang)} (${seedLagnaName}) आर्थिक स्थिरता व लाभ दर्शवतात.`,
+      te: `ద్వితీయ ధనేశుడు ${h2Lord} మరియు సంఖ్య #${toNativeDigits7L(cleanNum, lang)} ధన లాభాన్ని సూచిస్తున్నాయి.`,
+      ta: `2-ம் தன அதிபதி ${h2Lord} மற்றும் எண் #${toNativeDigits7L(cleanNum, lang)} பண வரவையும் சேமிப்பு உயர்வைக் காட்டுகின்றன.`,
+      ml: `രണ്ടാം ധനാധിപൻ ${h2Lord}-ഉം സംഖ്യ #${toNativeDigits7L(cleanNum, lang)}-ഉം സാമ്പത്തിക പുരോഗതിയും സ്ഥിരതയും നൽകുന്നു.`
+    }, lang),
+    health: pick7({
+      kn: `ತ್ರಿಸ್ಫುಟ ${trisphutaRashiName} (${trisphutaNakshatraName}) ಹಾಗೂ ೬ನೇ ಭಾವೇಶ ${h6Lord} ಪ್ರಭಾವದಿಂದ ದೈಹಿಕ ಚೇತರಿಕೆ ಕಾಣುತ್ತದೆ; ನಿಯಮಿತ ನಿದ್ರೆ ಮತ್ತು ನೀರು ಸೇವನೆ ಅತ್ಯಗತ್ಯ.`,
+      en: `Trisphuta in ${trisphutaRashiName} (${trisphutaNakshatraName}) paired with 6th Lord ${h6Lord} signals steady vitality recovery when sleep rhythm and hydration remain regular.`,
+      hi: `त्रिस्फुट ${trisphutaRashiName} एवं षष्ठेश ${h6Lord} स्वास्थ्य में क्रमिक सुधार दिखाते हैं; नियमित विश्राम और मानसिक शांति बनाए रखें।`,
+      mr: `त्रिस्फुट ${trisphutaRashiName} व षष्ठेश ${h6Lord} आरोग्यात सुधारणा दर्शवतात; विश्रांती घ्या.`,
+      te: `త్రిస్ఫుట ${trisphutaRashiName} మరియు 6వ అధిపతి ${h6Lord} ఆరోగ్య పునరుద్ధరణను చూపుతున్నాయి.`,
+      ta: `திரிஸ்புடம் ${trisphutaRashiName} மற்றும் 6-ம் அதிபதி ${h6Lord} உடல் நல முன்னேற்றத்தைத் தருகின்றன.`,
+      ml: `ത്രിസ്ഫുടം ${trisphutaRashiName}-ഉം ആറാം അധിപൻ ${h6Lord}-ഉം ആരോഗ്യ പുരോഗതി നൽകുന്നു.`
+    }, lang),
+    profession: pick7({
+      kn: `೧೦ನೇ ಕರ್ಮೇಶ ${h10Lord} ಹಾಗೂ ಪಂಚಪಕ್ಷಿ ${panchaPakshiBird} (${panchaPakshiState}) ಪ್ರಭಾವದಿಂದ ವೃತ್ತಿ-ವ್ಯಾಪಾರದಲ್ಲಿ ಹೊಸ ಜವಾಬ್ದಾರಿ & ಯಶಸ್ಸು ದೊರೆಯುತ್ತದೆ.`,
+      en: `10th Karma Lord ${h10Lord} backed by ${panchaPakshiBird} (${panchaPakshiState}) empowers career growth, authority recognition, and structured business expansion.`,
+      hi: `दशम कर्मेश ${h10Lord} और पंचपक्षी ${panchaPakshiBird} (${panchaPakshiState}) कार्यक्षेत्र में पदोन्नति, सम्मान और व्यापार विस्तार का योग बनाते हैं।`,
+      mr: `दशमेश ${h10Lord} व पंचपक्षी ${panchaPakshiBird} (${panchaPakshiState}) करिअर आणि व्यवसायात प्रगती व मानसन्मान देतात.`,
+      te: `10వ కర్మాధిపతి ${h10Lord} మరియు పంచపక్షి ${panchaPakshiBird} వృత్తి-వ్యాపారంలో పురోగతిని ఇస్తాయి.`,
+      ta: `10-ம் கர்ம அதிபதி ${h10Lord} மற்றும் பஞ்சபட்சி ${panchaPakshiBird} தொழில் உயர்வையும் வெற்றியையும் தருகின்றன.`,
+      ml: `പത്താം കർമ്മാധിപൻ ${h10Lord}-ഉം പഞ്ചപക്ഷി ${panchaPakshiBird}-ഉം തൊഴിൽ വളർച്ചയും വിജയവും നൽകുന്നു.`
+    }, lang)
+  };
 
   const timingForecast =
     ithasalaType === "direct_sambandha"
@@ -1138,6 +1188,7 @@ export function computeDeepPrashnaHoraryReading(params: {
     chatraRashiName,
     panchaPakshiBird,
     panchaPakshiState,
+    domainGuidance,
     timingForecast,
     verdictTitle,
     verdictSummary,
@@ -1167,17 +1218,20 @@ export async function generateExpressWalkInAiNarrative(params: {
 
   const fallback = [
     prashna.verdictSummary,
-    sankhya
-      ? pick7({
-          kn: `ನಿಮ್ಮ ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಚಾಲ್ಡಿಯನ್ ಸಂಖ್ಯೆ ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} (ಮೂಲಾಂಕ ${toNativeDigits7L(sankhya.mulank, lang)}) ಆಗಿದ್ದು, ಶುಭ ಬಣ್ಣ ${sankhya.luckyColor} ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಿಗೆ ಸ್ಥಿರತೆ ನೀಡುತ್ತದೆ.`,
-          en: `Your Chaldean Name Vibration balances at ${sankhya.chaldeanCompound} (Root ${sankhya.chaldeanSingle}), aligned with ${sankhya.luckyColor} and lucky numbers ${sankhya.luckyNumbers.join(", ")}.`,
-          hi: `आपके नाम का चाल्डियन अंक ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} है और शुभ रंग ${sankhya.luckyColor} आपके प्रयासों में स्थिरता लाता है।`,
-          mr: `तुमच्या नावाची चाल्डियन संख्या ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} असून शुभ रंग ${sankhya.luckyColor} तुमचा आत्मविश्वास वाढवतो.`,
-          te: `మీ నామ సంఖ్యాబలం ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} మరియు శుభ వర్ణం ${sankhya.luckyColor} మీ పనులకు బలం చేకూరుస్తుంది.`,
-          ta: `உங்கள் பெயரின் எண் அதிர்வு ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} மற்றும் அதிர்ஷ்ட நிறம் ${sankhya.luckyColor} வெற்றியைத் தரும்.`,
-          ml: `നിങ്ങളുടെ പേരിന്റെ ചാൽഡിയൻ സംഖ്യ ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} ഉം ശുഭനിറം ${sankhya.luckyColor}-ഉം പ്രവർത്തനങ്ങൾക്ക് ഉറപ്പ് നൽകുന്നു.`
-        }, lang)
-      : prashna.remedialAction,
+    `${prashna.domainGuidance.family} ${prashna.domainGuidance.money}`,
+    `${prashna.domainGuidance.health} ${prashna.domainGuidance.profession}` +
+      (sankhya
+        ? " " +
+          pick7({
+            kn: `ನಿಮ್ಮ ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಚಾಲ್ಡಿಯನ್ ಸಂಖ್ಯೆ ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} (ಮೂಲಾಂಕ ${toNativeDigits7L(sankhya.mulank, lang)}) ಆಗಿದ್ದು, ಶುಭ ಬಣ್ಣ ${sankhya.luckyColor} ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಿಗೆ ಸ್ಥಿರತೆ ನೀಡುತ್ತದೆ.`,
+            en: `Chaldean Name Vibration aligns at ${sankhya.chaldeanCompound} (Root ${sankhya.chaldeanSingle}), supported by ${sankhya.luckyColor} and auspicious numbers ${sankhya.luckyNumbers.join(", ")}.`,
+            hi: `आपके नाम का चाल्डियन अंक ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} है और शुभ रंग ${sankhya.luckyColor} आपके प्रयासों में स्थिरता लाता है।`,
+            mr: `तुमच्या नावाची चाल्डियन संख्या ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} असून शुभ रंग ${sankhya.luckyColor} तुमचा आत्मविश्वास वाढवतो.`,
+            te: `మీ నామ సంఖ్యాబలం ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} మరియు శుభ వర్ణం ${sankhya.luckyColor} మీ పనులకు బలం చేకూరుస్తుంది.`,
+            ta: `உங்கள் பெயரின் எண் அதிர்வு ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} மற்றும் அதிர்ஷ்ட நிறம் ${sankhya.luckyColor} வெற்றியைத் தரும்.`,
+            ml: `നിങ്ങളുടെ പേരിന്റെ ചാൽഡിയൻ സംഖ്യ ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} ഉം ശുഭനിറം ${sankhya.luckyColor}-ഉം പ്രവർത്തനങ്ങൾക്ക് ഉറപ്പ് നൽകുന്നു.`
+          }, lang)
+        : ""),
     prashna.remedialAction
   ];
 

@@ -203,6 +203,12 @@ export type PalmReadingResult = {
   verdictTitle: Record<string, string>;
   aiPrediction: string;
   remedyRecommendation: Record<string, string>;
+  lifeDomains?: {
+    family: Record<string, string>;
+    money: Record<string, string>;
+    health: Record<string, string>;
+    profession: Record<string, string>;
+  };
   generatedAt: string;
 };
 
@@ -1035,6 +1041,45 @@ export function generateDynamicOfflinePalmReading(
       ? `നമസ്കാരം ${devoteeName}. പ്രാചീന ബൃഹത് സംഹിതയും ഗരുഡപുരാണ ഹസ്തസാമുദ്രിക ശാസ്ത്രവുമനുസരിച്ച് നിങ്ങളുടെ കൈരേഖകളും ഗ്രഹമണ്ഡലങ്ങളും പരിശോധിച്ചിരിക്കുന്നു.\n\n🖐️ **ഹസ്ത തത്ത്വവും ആയുസ്സും:** നിങ്ങളുടെ കൈ ${L(chironomyHandType.element)} സ്വഭാവമുള്ളതാണ്. ${L(lifeLine.status)} — ${L(lifeLine.indication)}\n\n💡 **ബുദ്ധിയും തൊഴിൽ ഭാഗ്യവും:** ${L(headLine.status)} — ${L(headLine.indication)}\n\n🪔 **ഗോകർണ്ണ പരിഹാരം:** ${L(chosenRemedy)}`
       : `Greetings ${devoteeName}. Based on classical Vedic Hastarekha Shastra (Brihat Samhita & Garuda Purana traditions), your ${handLabel.en} reveals distinct ${chironomyHandType.element.en} traits.\n\n🖐️ **Vitality & Lifespan:** Your hand exhibits ${lifeLine.status.en}. This indicates: ${lifeLine.indication.en}\n\n💡 **Intellect & Career:** The Head Line demonstrates ${headLine.status.en}. Supported by ${thumbAnalysis.yavaSign.en}, your vocational acumen is primed for steady expansion.\n\n❤️ **Marriage & Bonds:** The Heart Line shows ${heartLine.status.en}, pointing to an auspicious union window around ${chosenMarr.windowEn}. Expected partner qualities: ${chosenMarr.spouseEn}.\n\n🪔 **Sacred Gokarna Blessing & Remedy:** ${chosenRemedy.en}`;
 
+  const lifeDomains = {
+    family: {
+      kn: `ಹೃದಯ ರೇಖೆ (${heartLine.status.kn}) ಹಾಗೂ ಶುಕ್ರ ಪರ್ವತದ ಅನುಗ್ರಹದಿಂದ ಕೌಟುಂಬಿಕ ಬಾಂಧವ್ಯ ಹಾಗೂ ವಿವಾಹ ಜೀವನವು ${chosenMarr.windowKn} ಸುಖಮಯವಾಗಿರುತ್ತದೆ.`,
+      en: `Supported by Heart Line (${heartLine.status.en}) and balanced Shukra Mount, domestic peace and marriage harmony flourish strongly (${chosenMarr.windowEn}).`,
+      hi: `हृदय रेखा (${heartLine.status.hi}) और शुक्र पर्वत के बल से पारिवारिक सुख, जीवनसाथी का सहयोग एवं संतान सुख प्राप्त होता है।`,
+      mr: `हृदय रेषा आणि शुक्र पर्वताच्या शुभ बलामुळे कौटुंबिक शांतता व वैवाहिक सुख मिळते.`,
+      te: `హృదయ రేఖ మరియు శుక్ర పర్వతం బలం వల్ల కుటుంబ సౌఖ్యం, దాంపత్య అనురాగం బలంగా ఉంటాయి.`,
+      ta: `இதய ரேகை மற்றும் சுக்கிர மேட்டின் அருளால் குடும்ப ஒற்றுமையும் இல்லற மகிழ்ச்சியும் சிறக்கும்.`,
+      ml: `ഹൃദയരേഖയും ശുക്ര മണ്ഡലവും കുടുംബ ഐക്യവും ദാമ്പത്യ സൗഖ്യവും നൽകുന്നു.`
+    },
+    money: {
+      kn: `ಶನಿ ಹಾಗೂ ಸೂರ್ಯ ಪರ್ವತ ಬಲದೊಂದಿಗೆ ${chosenWealth.ageKn} ಆರ್ಥಿಕ ಏಳಿಗೆ ಹಾಗೂ ಸ್ವಂತ ಆಸ್ತಿ ಸಂಚಯ ಯೋಗ ಪ್ರಬಲವಾಗಿದೆ.`,
+      en: `Fate & Sun Line alignment accelerates cashflow discipline, savings buildup, and fixed-asset gains around ${chosenWealth.ageEn}.`,
+      hi: `शनि एवं सूर्य पर्वत के संयोग से धन संचय, व्यापार लाभ और स्थायी संपत्ति प्राप्ति के प्रबल योग हैं।`,
+      mr: `शनि व सूर्य पर्वतामुळे धनसंचय, नफा आणि स्थावर मालमत्तेचा योग प्रबळ आहे.`,
+      te: `శని మరియు సూర్య పర్వత బలంతో ధన సంచయం, స్థిరాస్తి వృద్ధి కలుగుతాయి.`,
+      ta: `சனி மற்றும் சூரிய மேட்டின் பலத்தால் செல்வச் சேர்க்கையும் நிலையான சொத்து யோகமும் அமையும்.`,
+      ml: `ശനിയും സൂര്യ മണ്ഡലവും ധനവളർച്ചയും സ്വത്ത് സമ്പാദ്യവും നൽകുന്നു.`
+    },
+    health: {
+      kn: `ಆಯುರ್ ರೇಖೆ (${lifeLine.status.kn}) ಜೀವನಶಕ್ತಿಯನ್ನು ಸೂಚಿಸುತ್ತದೆ; ನಿಯಮಿತ ಯೋಗ, ಸೂರ್ಯೋದಯ ವೇಳೆಯ ವಾಕಿಂಗ್ ಹಾಗೂ ಶುದ್ಧ ಆಹಾರ ಆರೋಗ್ಯ ಕಾಯುತ್ತವೆ.`,
+      en: `Life Line vitality (${lifeLine.status.en}) affirms physical resilience; steady sleep, morning sunlight, and balanced digestion sustain peak energy.`,
+      hi: `आयु रेखा (${lifeLine.status.hi}) उत्तम प्राणशक्ति दर्शाती है; नियमित व्यायाम एवं सात्विक आहार से स्वास्थ्य उत्तम रहेगा।`,
+      mr: `आयुष्य रेषा उत्तम प्राणशक्ती दर्शवते; नियमित व्यायाम आणि संतुलित आहार घ्यावा.`,
+      te: `జీవన రేఖ మంచి శారీరక బలాన్ని చూపుతోంది; నియమిత నిద్ర & ఆహారం మేలు చేస్తాయి.`,
+      ta: `ஆயுள் ரேகை நல்ல உடல் வலிமையைக் காட்டுகிறது; முறையான உணவு மற்றும் நடைப்பயிற்சி ஆரோக்கியத்தைக் காக்கும்.`,
+      ml: `ആയുർരേഖ മികച്ച ആരോഗ്യം കാണിക്കുന്നു; ചിട്ടയായ വ്യായാമവും വിശ്രമവും ശക്തി നൽകും.`
+    },
+    profession: {
+      kn: `ಬುದ್ಧಿ ರೇಖೆ (${headLine.status.kn}) ಹಾಗೂ ಗುರು ಪರ್ವತವು ಆಡಳಿತ, ವ್ಯಾಪಾರ, ತಂತ್ರಜ್ಞಾನ ಮತ್ತು ವೃತ್ತಿಪರ ಕ್ಷೇತ್ರದಲ್ಲಿ ಉನ್ನತ ಪದವಿ ಕೊಡುತ್ತದೆ.`,
+      en: `Head Line (${headLine.status.en}) paired with Guru & Budha fingers drives authority leadership, business growth, and steady career promotion.`,
+      hi: `मस्तिष्क रेखा (${headLine.status.hi}) और गुरु पर्वत व्यापार, प्रबंधन एवं नौकरी में उच्च पद व प्रतिष्ठा दिलाते हैं।`,
+      mr: `मस्तक रेषा आणि गुरु पर्वतामुळे करिअर, प्रशासन व व्यवसायात मोठी प्रगती होते.`,
+      te: `బుద్ధి రేఖ మరియు గురు పర్వతం వృత్తి, వ్యాపార మరియు నాయకత్వ రంగాలలో ఉన్నత స్థానాన్ని అందిస్తాయి.`,
+      ta: `புத்தி ரேகை மற்றும் குரு மேடு தொழில், வணிகம் மற்றும் நிர்வாகத்தில் உயர்ந்த பதவியை அளிக்கும்.`,
+      ml: `ബുദ്ധിരേഖയും ഗുരു മണ്ഡലവും തൊഴിലിലും ബിസിനസ്സിലും ഉന്നത സ്ഥാനവും വിജയവും നൽകുന്നു.`
+    }
+  };
+
   return {
     handSide,
     handSideLabel: handLabel,
@@ -1059,6 +1104,7 @@ export function generateDynamicOfflinePalmReading(
     verdictTitle: chosenVerdict,
     aiPrediction,
     remedyRecommendation: chosenRemedy,
+    lifeDomains,
     generatedAt: now.toLocaleString()
   };
 }
@@ -1576,6 +1622,7 @@ Return ONLY a strict JSON object (no markdown wrapping) adhering to this schema:
       verdictTitle,
       aiPrediction: parsedData.detailedPredictionText || baseline.aiPrediction,
       remedyRecommendation,
+      lifeDomains: baseline.lifeDomains,
       generatedAt: new Date().toLocaleString()
     };
   } catch (err) {

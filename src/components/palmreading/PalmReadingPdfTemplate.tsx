@@ -489,11 +489,127 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
               </div>
             </div>
             <div style={{ fontSize: "10px", color: "#FEF3C7", fontWeight: 800 }}>
-              {code === "kn" ? "ಪುಟ ೨ / ೨" : "Page 2 of 2"}
+              {result.lifeDomains
+                ? (code === "kn" ? "ಪುಟ ೨ / ೩" : "Page 2 of 3")
+                : (code === "kn" ? "ಪುಟ ೨ / ೨" : "Page 2 of 2")}
             </div>
           </div>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* PAGE 3: 4 LIFE DOMAINS (FAMILY, MONEY, HEALTH, PROFESSION) & DEEP SUMMARY */}
+      {/* ========================================================================= */}
+      {result.lifeDomains && (
+        <div
+          className="pdf-page"
+          style={{
+            width: "794px",
+            height: "1123px",
+            padding: "24px",
+            boxSizing: "border-box",
+            position: "relative",
+            background: "#FFFDF7"
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              border: "3px solid #D97706",
+              borderRadius: "12px",
+              padding: "18px 20px",
+              boxSizing: "border-box",
+              background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between"
+            }}
+          >
+            <div style={{ textAlign: "center", borderBottom: "2px solid #F59E0B", paddingBottom: "10px" }}>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E", letterSpacing: "1px" }}>
+                {header.top}
+              </div>
+              <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#78350F", margin: "4px 0" }}>
+                {code === "kn"
+                  ? "೭. ಚತುರ್ವಿಧ ಜೀವನ ಮಾರ್ಗದರ್ಶನ: ಕುಟುಂಬ, ಧನ, ಆರೋಗ್ಯ & ವೃತ್ತಿ-ವ್ಯಾಪಾರ"
+                  : code === "hi"
+                    ? "७. जीवन के ४ प्रमुख क्षेत्र: परिवार, धन, स्वास्थ्य एवं व्यापार-करियर"
+                    : code === "mr"
+                      ? "७. जीवनातील ४ प्रमुख क्षेत्रे: कुटुंब, धन, आरोग्य व करिअर"
+                      : code === "te"
+                        ? "7. నాలుగు ముఖ్య జీవన రంగాలు: కుటుంబం, ధనం, ఆరోగ్యం & వృత్తి"
+                        : code === "ta"
+                          ? "7. வாழ்வின் 4 முக்கிய துறைகள்: குடும்பம், பணம், ஆரோக்கியம் & தொழில்"
+                          : code === "ml"
+                            ? "7. നാല് പ്രധാന ജീവിത മേഖലകൾ: കുടുംബം, ധനം, ആരോഗ്യം & തൊഴിൽ"
+                            : "7. Four Life Domains: Family, Money, Health & Profession"}
+              </h2>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "14px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E", marginBottom: "6px" }}>
+                  👨‍👩‍👧‍👦 {code === "kn" ? "ಕುಟುಂಬ & ದಾಂಪತ್ಯ" : code === "hi" ? "परिवार एवं दांपत्य" : code === "mr" ? "कुटुंब व नातेसंबंध" : code === "te" ? "కుటుంబం" : code === "ta" ? "குடும்பம்" : code === "ml" ? "കുടുംബം" : "Family & Harmony"}
+                </div>
+                <div style={{ fontSize: "12px", color: "#451A03", lineHeight: "1.6" }}>
+                  {result.lifeDomains.family[code] || result.lifeDomains.family.en || result.lifeDomains.family.kn}
+                </div>
+              </div>
+              <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "14px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E", marginBottom: "6px" }}>
+                  💰 {code === "kn" ? "ಧನ, ಸಂಪತ್ತು & ಲಾಭ" : code === "hi" ? "धन एवं व्यापार लाभ" : code === "mr" ? "धन व आर्थिक लाभ" : code === "te" ? "ధనం & ఆర్థికం" : code === "ta" ? "பணம் & செல்வம்" : code === "ml" ? "ധനവും സമ്പത്തും" : "Money & Wealth"}
+                </div>
+                <div style={{ fontSize: "12px", color: "#451A03", lineHeight: "1.6" }}>
+                  {result.lifeDomains.money[code] || result.lifeDomains.money.en || result.lifeDomains.money.kn}
+                </div>
+              </div>
+              <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "14px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E", marginBottom: "6px" }}>
+                  ❤️ {code === "kn" ? "ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ" : code === "hi" ? "स्वास्थ्य एवं ऊर्जा" : code === "mr" ? "आरोग्य व शक्ती" : code === "te" ? "ఆరోగ్యం" : code === "ta" ? "ஆரோக்கியம்" : code === "ml" ? "ആരോഗ്യം" : "Health & Vitality"}
+                </div>
+                <div style={{ fontSize: "12px", color: "#451A03", lineHeight: "1.6" }}>
+                  {result.lifeDomains.health[code] || result.lifeDomains.health.en || result.lifeDomains.health.kn}
+                </div>
+              </div>
+              <div style={{ background: "#FFFFFF", border: "1.5px solid #F59E0B", borderRadius: "10px", padding: "14px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E", marginBottom: "6px" }}>
+                  💼 {code === "kn" ? "ವೃತ್ತಿ, ಉದ್ಯೋಗ & ವ್ಯಾಪಾರ" : code === "hi" ? "करियर एवं व्यवसाय" : code === "mr" ? "करिअर व व्यवसाय" : code === "te" ? "వృత్తి & వ్యాపారం" : code === "ta" ? "தொழில் & வணிகம்" : code === "ml" ? "തൊഴിലും ബിസിനസ്സും" : "Profession & Career"}
+                </div>
+                <div style={{ fontSize: "12px", color: "#451A03", lineHeight: "1.6" }}>
+                  {result.lifeDomains.profession[code] || result.lifeDomains.profession.en || result.lifeDomains.profession.kn}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: "#FFFFFF", border: "2px solid #F59E0B", borderRadius: "10px", padding: "14px", fontSize: "12px", color: "#451A03", lineHeight: "1.65" }}>
+              <div style={{ fontWeight: 800, color: "#78350F", marginBottom: "6px" }}>
+                🪔 {code === "kn" ? "ಹೆಚ್ಚುವರಿ ಪ್ರಶ್ನೆಗಳು ಹಾಗೂ ವೈಯಕ್ತಿಕ ದೈವಿಕ ಮಾರ್ಗದರ್ಶನ:" : code === "hi" ? "आगे के प्रश्नों एवं व्यक्तिगत परामर्श हेतु:" : code === "mr" ? "पुढील प्रश्नांसाठी व मार्गदर्शनासाठी:" : "Extended Guidance & Sacred Assurance:"}
+              </div>
+              <div style={{ whiteSpace: "pre-wrap" }}>{cleanPrediction}</div>
+            </div>
+
+            <div
+              style={{
+                background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
+                border: "1.5px solid #D97706",
+                borderRadius: "8px",
+                padding: "8px 14px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between"
+              }}
+            >
+              <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#FEF3C7" }}>
+                {fTexts.priest}
+              </div>
+              <div style={{ fontSize: "10px", color: "#FEF3C7", fontWeight: 800 }}>
+                {code === "kn" ? "ಪುಟ ೩ / ೩" : "Page 3 of 3"}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -213,17 +213,58 @@ export const HotelPrashnaPdfTemplate = React.forwardRef<HTMLDivElement, { data: 
           </div>
         </div>
 
-        {/* Section 3: Deep Prashna AI Synthesis & Sacred Remedy */}
+        {/* Section 3: Four Life Domains Guidance (Family, Money, Health & Profession) */}
+        <div className="prashna-pdf-section" style={cardStyle}>
+          <h2 style={{ margin: "0 0 12px 0", fontSize: "19px", fontWeight: 800, color: "#78350f", borderBottom: "1.5px solid #e2b45d", paddingBottom: "6px" }}>
+            {pick7({
+              kn: "೩. ಚತುರ್ವಿಧ ಜೀವನ ಫಲಗಳು: ಕುಟುಂಬ, ಧನ, ಆರೋಗ್ಯ & ವೃತ್ತಿ-ವ್ಯಾಪಾರ",
+              en: "3. Dedicated Life Domains: Family, Money, Health & Profession",
+              hi: "३. जीवन के चार प्रमुख क्षेत्र: परिवार, धन, स्वास्थ्य एवं व्यापार-करियर",
+              mr: "३. जीवनातील चार प्रमुख क्षेत्रे: कुटुंब, धन, आरोग्य व व्यवसाय-करिअर",
+              te: "3. జీవిత 4 ప్రధాన రంగాలు: కుటుంబం, ధనం, ఆరోగ్యం & వృత్తి",
+              ta: "3. வாழ்வின் 4 முக்கிய துறைகள்: குடும்பம், பணம், ஆரோக்கியம் & தொழில்",
+              ml: "3. ജീവിതത്തിലെ 4 പ്രധാന മേഖലകൾ: കുടുംബം, ധനം, ആരോഗ്യം & തൊഴിൽ"
+            }, lang)}
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <div style={cellStyle}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
+                👨‍👩‍👧‍👦 {pick7({ kn: "ಕುಟುಂಬ & ದಾಂಪತ್ಯ", en: "Family & Relationships", hi: "परिवार एवं दांपत्य", mr: "कुटुंब व नातेसंबंध", te: "కుటుంబం & దాంపత్యం", ta: "குடும்பம் & உறவு", ml: "കുടുംബവും ബന്ധങ്ങളും" }, lang)}
+              </div>
+              <div style={{ fontSize: "13.5px", lineHeight: 1.55 }}>{cleanTxt(data.prashna.domainGuidance?.family)}</div>
+            </div>
+            <div style={cellStyle}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
+                💰 {pick7({ kn: "ಧನ, ಸಂಪತ್ತು & ಲಾಭ", en: "Money & Wealth", hi: "धन एवं आर्थिक लाभ", mr: "धन व आर्थिक लाभ", te: "ధనం & ఆర్థిక లాభం", ta: "பணம் & செல்வ வளம்", ml: "ധനവും സമ്പാദ്യവും" }, lang)}
+              </div>
+              <div style={{ fontSize: "13.5px", lineHeight: 1.55 }}>{cleanTxt(data.prashna.domainGuidance?.money)}</div>
+            </div>
+            <div style={cellStyle}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
+                ❤️ {pick7({ kn: "ಆರೋಗ್ಯ & ಪ್ರಾಣಶಕ್ತಿ", en: "Health & Vitality", hi: "स्वास्थ्य एवं ऊर्जा", mr: "आरोग्य व शक्ती", te: "ఆరోగ్యం & శక్తి", ta: "ஆரோக்கியம் & ஆற்றல்", ml: "ആരോഗ്യവും ശക്തിയും" }, lang)}
+              </div>
+              <div style={{ fontSize: "13.5px", lineHeight: 1.55 }}>{cleanTxt(data.prashna.domainGuidance?.health)}</div>
+            </div>
+            <div style={cellStyle}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
+                💼 {pick7({ kn: "ವೃತ್ತಿ, ಉದ್ಯೋಗ & ವ್ಯಾಪಾರ", en: "Profession & Career", hi: "करियर एवं व्यवसाय", mr: "करिअर व व्यवसाय", te: "వృత్తి & వ్యాపారం", ta: "தொழில் & வணிகம்", ml: "തൊഴിലും ബിസിനസ്സും" }, lang)}
+              </div>
+              <div style={{ fontSize: "13.5px", lineHeight: 1.55 }}>{cleanTxt(data.prashna.domainGuidance?.profession)}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4: Deep Multi-Paragraph Prashna AI Synthesis & Sacred Remedy */}
         <div className="prashna-pdf-section" style={cardStyle}>
           <h2 style={{ margin: "0 0 10px 0", fontSize: "19px", fontWeight: 800, color: "#78350f", borderBottom: "1.5px solid #e2b45d", paddingBottom: "6px" }}>
             {pick7({
-              kn: "೩. ಸಮಗ್ರ ಪ್ರಶ್ನ ವಿಶ್ಲೇಷಣೆ & ಗೋಕರ್ಣ ಶಾಂತಿ ಪರಿಹಾರ",
-              en: "3. Deep Prashna Interpretation & Sacred Remedy",
-              hi: "३. विस्तृत प्रश्न फलादेश एवं शास्त्रीय उपाय",
-              mr: "३. सखोल प्रश्न विश्लेषण व शास्त्रीय उपाय",
-              te: "3. సంపూర్ణ ప్రశ్న విశ్లేషణ & పరిహారం",
-              ta: "3. விரிவான பிரசன்ன பலன் & பரிகாரம்",
-              ml: "3. സമ്പൂർണ്ണ പ്രശ്ന വിശകലനവും പരിഹാരവും"
+              kn: "೪. ಸಮಗ್ರ ಪ್ರಶ್ನ ವಿಶ್ಲೇಷಣೆ (೨–೩ ಸುದೀರ್ಘ ಭಾಗಗಳು) & ಗೋಕರ್ಣ ಶಾಂತಿ ಪರಿಹಾರ",
+              en: "4. Deep Prashna Detailed Narration & Sacred Gokarna Remedy",
+              hi: "४. विस्तृत प्रश्न फलादेश (संपूर्ण विवरण) एवं शास्त्रीय उपाय",
+              mr: "४. सखोल प्रश्न विश्लेषण (संपूर्ण माहिती) व शास्त्रीय उपाय",
+              te: "4. సంపూర్ణ ప్రశ్న విశ్లేషణ & గోకర్ణ పరిహారం",
+              ta: "4. விரிவான பிரசன்ன பலன் & கோகர்ண பரிகாரம்",
+              ml: "4. സമ്പൂർണ്ണ പ്രശ്ന വിശകലനവും ഗോകർണ്ണ പരിഹാരവും"
             }, lang)}
           </h2>
 

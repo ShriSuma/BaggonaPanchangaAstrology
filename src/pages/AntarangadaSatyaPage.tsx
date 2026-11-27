@@ -119,6 +119,11 @@ import {
   type AntarangaLoaderStage
 } from "../components/loaders/AntarangaAstrologicalScreenLoader";
 import { CityAutocompleteInput } from "../components/common/CityAutocompleteInput";
+import {
+  checkHotelFreePreviewQuota,
+  markHotelFreePreviewConsumed,
+  getFreeQuotaExhaustedMessage
+} from "../features/hotelSecret/hotelFreeQuotaGuard";
 
 // 7-Language Popular Dining Cities
 const QUICK_CITIES_BY_LANG: Record<AntarangaLang, Array<{ name: string; lat: number; lng: number }>> = {
@@ -1731,8 +1736,14 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
   const cameraStreamRef = useRef<MediaStream | null>(null);
 
-  // 3. Unique Order Session ID & Package Tier Selection (₹150 Hasta/Mukha / ₹200 Prashna / ₹249 Combo / ₹349 All-3 / ₹350 Kundali / ₹450 Remedy)
+  // 3. Unique Order Session ID & Strict Single-Service Package Tier Selection (Separate PDF per Service)
   const [activeOrderId, setActiveOrderId] = useState<string>(() => generateHotelOrderId("1"));
+  const orderIdsByServiceModeRef = useRef<Partial<Record<HotelServiceMode, string>>>({});
+  const [paidByServiceMode, setPaidByServiceMode] = useState<
+    Partial<Record<HotelServiceMode, { orderId: string; txnId: string; pkg: HotelPackageType }>>
+  >({});
+  const [isPaidFamilyUpsell, setIsPaidFamilyUpsell] = useState<boolean>(false);
+  const [freeQuotaError, setFreeQuotaError] = useState<string | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<HotelPackageType>("standard_350");
   const packagePrice =
     selectedPackage === "palm_150"
@@ -1741,17 +1752,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         ? HOTEL_FACE_PRICE_INR
         : selectedPackage === "prashna_200"
           ? HOTEL_PRASHNA_PRICE_INR
-          : selectedPackage === "samudrika_combo_249"
-            ? HOTEL_SAMUDRIKA_COMBO_INR
-            : selectedPackage === "trinetra_all3_349"
-              ? HOTEL_TRINETRA_ALL3_INR
-              : selectedPackage === "express_149"
-                ? HOTEL_EXPRESS_PRICE_INR
-                : selectedPackage === "remedy_450"
-                  ? HOTEL_PREMIUM_REMEDY_PRICE_INR
-                  : selectedPackage === "family_250"
-                    ? HOTEL_FAMILY_UPSELL_PRICE_INR
-                    : HOTEL_PDF_PRICE_INR;
+          : selectedPackage === "remedy_450"
+            ? HOTEL_PREMIUM_REMEDY_PRICE_INR
+            : selectedPackage === "family_250"
+              ? HOTEL_FAMILY_UPSELL_PRICE_INR
+              : HOTEL_PDF_PRICE_INR;
 
   const [hasClickedPaymentApp, setHasClickedPaymentApp] = useState<boolean>(false);
   const [returnedFromPaymentApp, setReturnedFromPaymentApp] = useState<boolean>(false);
@@ -1766,7 +1771,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
       if (t) {
         setTableNumber(t);
-        setActiveOrderId(generateHotelOrderId(t));
+        const initialTableOrderId = generateHotelOrderId(t);
+        setActiveOrderId(initialTableOrderId);
+        orderIdsByServiceModeRef.current = { kundli: initialTableOrderId };
       }
       if (h) setHotelName(h);
       if (l && ANTARANGA_LANGUAGES.some((item) => item.code === l)) {
@@ -1845,6 +1852,32 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const [isPaymentVerified, setIsPaymentVerified] = useState(false);
   const [verifiedTxnId, setVerifiedTxnId] = useState<string>("");
 
+  const resolveModeForPackage = (
+    pkg: HotelPackageType,
+    fallbackMode: HotelServiceMode
+  ): HotelServiceMode => {
+    if (pkg === "palm_150") return "hasta_samudrika";
+    if (pkg === "face_150") return "mukha_samudrika";
+    if (pkg === "prashna_200") return "prashna_shastra";
+    return fallbackMode;
+  };
+
+  const markServiceModePaid = (
+    orderIdToMark: string,
+    txnIdToMark: string,
+    pkgToMark: HotelPackageType,
+    fallbackMode: HotelServiceMode
+  ) => {
+    const ownerMode = resolveModeForPackage(pkgToMark, fallbackMode);
+    setIsPaymentVerified(true);
+    setVerifiedTxnId(txnIdToMark);
+    setFreeQuotaError(null);
+    setPaidByServiceMode((prev) => ({
+      ...prev,
+      [ownerMode]: { orderId: orderIdToMark, txnId: txnIdToMark, pkg: pkgToMark }
+    }));
+  };
+
   // Single-use Download Guard: track downloaded status to disable button once downloaded
   const [downloadedPdfs, setDownloadedPdfs] = useState<{
     fiveYear?: boolean;
@@ -1874,9 +1907,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         setDownloadedPdfs(JSON.parse(saved));
       }
       const savedCounts = sessionStorage.getItem(`baggona_hotel_download_counts_${activeOrderId}`);
-      if (savedCounts) {
-        setDownloadCounts(JSON.parse(savedCounts));
-      }
+      setDownloadCounts(savedCounts ? JSON.parse(savedCounts) : {});
     } catch {}
   }, [activeOrderId]);
 
@@ -2054,13 +2085,42 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   };
 
   const switchServiceMode = (mode: HotelServiceMode) => {
+    if (mode === serviceMode) return;
     setServiceMode(mode);
-    if (!isPaymentVerified) {
-      if (mode === "hasta_samudrika") setSelectedPackage("palm_150");
-      else if (mode === "mukha_samudrika") setSelectedPackage("face_150");
-      else if (mode === "prashna_shastra") setSelectedPackage("prashna_200");
-      else setSelectedPackage("standard_350");
+    setPaymentError(null);
+    setFreeQuotaError(null);
+
+    const paidRecord = paidByServiceMode[mode];
+    if (paidRecord) {
+      setActiveOrderId(paidRecord.orderId);
+      setSelectedPackage(paidRecord.pkg);
+      setIsPaymentVerified(true);
+      setVerifiedTxnId(paidRecord.txnId);
+      try {
+        const saved = sessionStorage.getItem(`baggona_hotel_downloads_${paidRecord.orderId}`);
+        setDownloadedPdfs(saved ? JSON.parse(saved) : {});
+      } catch {
+        setDownloadedPdfs({});
+      }
+      return;
     }
+
+    const modeOrderId =
+      orderIdsByServiceModeRef.current[mode] || generateHotelOrderId(tableNumber || "1");
+    orderIdsByServiceModeRef.current[mode] = modeOrderId;
+    setActiveOrderId(modeOrderId);
+    setIsPaymentVerified(false);
+    setVerifiedTxnId("");
+    setEnteredUtr("");
+    setShowPaymentSection(false);
+    setHasClickedPaymentApp(false);
+    setReturnedFromPaymentApp(false);
+    setDownloadedPdfs({});
+
+    if (mode === "hasta_samudrika") setSelectedPackage("palm_150");
+    else if (mode === "mukha_samudrika") setSelectedPackage("face_150");
+    else if (mode === "prashna_shastra") setSelectedPackage("prashna_200");
+    else setSelectedPackage(isPaidFamilyUpsell ? "family_250" : "standard_350");
   };
 
   const handlePhotoUpload = (kind: "palm" | "face", file?: File) => {
@@ -2137,8 +2197,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     if (!activeOrderId) return;
     const unsubscribe = subscribeHotelOrder(activeOrderId, (order) => {
       if ((order.status === "PAID" || order.status === "VERIFIED") && order.amountInr >= packagePrice) {
-        setIsPaymentVerified(true);
-        setVerifiedTxnId(order.paymentId || order.transactionId || order.utr || `TXN_${activeOrderId}`);
+        const resolvedTxn = order.paymentId || order.transactionId || order.utr || `TXN_${activeOrderId}`;
+        markServiceModePaid(activeOrderId, resolvedTxn, order.packageType || selectedPackage, serviceMode);
         if (order.downloadedFiles) {
           setDownloadedPdfs((prev) => ({
             ...prev,
@@ -2184,8 +2244,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         const isPaid = await checkHotelPaymentWebhookStatus(activeOrderId, packagePrice);
         if (isPaid) {
           clearInterval(intervalId);
-          setIsPaymentVerified(true);
-          setVerifiedTxnId(`TXN_WEBHOOK_${activeOrderId}`);
+          markServiceModePaid(activeOrderId, `TXN_WEBHOOK_${activeOrderId}`, selectedPackage, serviceMode);
         }
       } catch {
         // Silently continue polling
@@ -2223,7 +2282,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 1-Click Free "Get Antarangada Satya" with Astrological Full-Screen Loader
+  // 1-Click Free "Get Antarangada Satya" with Astrological Full-Screen Loader + IP/Device 1-Free Gate
   const handleGetDarkSecret = async () => {
     if (!devoteeName.trim()) {
       alert(ui.nameRequiredError);
@@ -2232,6 +2291,20 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
     if (timePrecision !== "no_dob_instant" && new Date(birthDate) > new Date()) {
       alert(selectedLang === "kn" ? "ಜನನ ದಿನಾಂಕವು ಭವಿಷ್ಯದ್ದಾಗಿರಲು ಸಾಧ್ಯವಿಲ್ಲ." : "Birth date cannot be in the future.");
+      return;
+    }
+
+    setFreeQuotaError(null);
+    const freeQuotaCheck = await checkHotelFreePreviewQuota({
+      isPaymentVerified,
+      isPaidFamilyUpsell
+    });
+    if (!freeQuotaCheck.allowed) {
+      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip));
+      setShowPaymentSection(true);
+      setTimeout(() => {
+        document.getElementById("hotel-free-quota-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 90);
       return;
     }
 
@@ -2354,10 +2427,6 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         aiParagraphs: expressAiParas
       });
 
-      if (timePrecision === "no_dob_instant") {
-        setSelectedPackage("express_149");
-      }
-
       // 1. Generate Free Dark Secret & Complete 7-Language Free Revelation Suite
       const secret = generateAntarangaSatya(
         kundli,
@@ -2371,6 +2440,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         unknownFlag
       );
       setSecretResult(secret);
+
+      if (!isPaymentVerified && !isPaidFamilyUpsell) {
+        void markHotelFreePreviewConsumed({
+          ip: freeQuotaCheck.ip,
+          deviceId: freeQuotaCheck.deviceId,
+          serviceUsed: "kundli",
+          hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+          tableNumber: tableNumber || "1",
+          guestName: devoteeName.trim()
+        });
+      }
 
       // 2. Pre-compute 5-Year Master Horizon
       try {
@@ -2696,8 +2776,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       setScreenLoaderProgress(100);
       await new Promise((r) => setTimeout(r, 350));
 
-      setIsPaymentVerified(true);
-      setVerifiedTxnId(res.transactionId || `TXN_${enteredUtr.trim()}`);
+      markServiceModePaid(
+        activeOrderId,
+        res.transactionId || `TXN_${enteredUtr.trim()}`,
+        selectedPackage,
+        serviceMode
+      );
 
       // Smooth scroll to Download Center so user sees download buttons
       setTimeout(() => {
@@ -2727,6 +2811,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     if (!check.verified) {
       setPaymentError(check.reason || ui.unpaidWarning);
       setIsPaymentVerified(false);
+      setPaidByServiceMode((prev) => {
+        const next = { ...prev };
+        delete next[resolveModeForPackage(selectedPackage, serviceMode)];
+        return next;
+      });
       setShowPaymentSection(true);
       setTimeout(() => {
         const payEl = document.getElementById("hotel-payment-box");
@@ -2735,7 +2824,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       return false;
     }
 
-    setIsPaymentVerified(true);
+    markServiceModePaid(
+      activeOrderId,
+      verifiedTxnId || `TXN_${activeOrderId}`,
+      selectedPackage,
+      serviceMode
+    );
     return true;
   };
 
@@ -2880,13 +2974,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       }
 
       const currentPackagePrice =
-        selectedPackage === "express_149"
-          ? HOTEL_EXPRESS_PRICE_INR
-          : selectedPackage === "remedy_450"
-            ? 450
-            : selectedPackage === "family_250"
-              ? 250
-              : 350;
+        selectedPackage === "remedy_450"
+          ? 450
+          : selectedPackage === "family_250"
+            ? 250
+            : 350;
       const currentPackageCoins = currentPackagePrice * 10;
 
       // 1. Log download to Firestore for daily summary aggregation & audit
@@ -3210,6 +3302,22 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       }, m25SevenLang));
       return;
     }
+
+    setFreeQuotaError(null);
+    const freeQuotaCheck = await checkHotelFreePreviewQuota({
+      isPaymentVerified,
+      isPaidFamilyUpsell
+    });
+    if (!freeQuotaCheck.allowed) {
+      setSelectedPackage("palm_150");
+      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip));
+      setShowPaymentSection(true);
+      setTimeout(() => {
+        document.getElementById("hotel-free-quota-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 90);
+      return;
+    }
+
     setIsCalculating(true);
     triggerScreenLoader("antaranga_calc", undefined, { progress: 35 });
     try {
@@ -3226,9 +3334,19 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         gender === "female" ? "Female" : "Male"
       );
       setPalmResult(res);
-      if (!isPaymentVerified && selectedPackage !== "samudrika_combo_249" && selectedPackage !== "trinetra_all3_349") {
+      if (!isPaymentVerified) {
         setSelectedPackage("palm_150");
         syncStandaloneOrderFirestore("palm_150", HOTEL_PALM_PRICE_INR);
+        if (!isPaidFamilyUpsell) {
+          void markHotelFreePreviewConsumed({
+            ip: freeQuotaCheck.ip,
+            deviceId: freeQuotaCheck.deviceId,
+            serviceUsed: "hasta_samudrika",
+            hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+            tableNumber: tableNumber || "1",
+            guestName: devoteeName.trim()
+          });
+        }
       }
       setScreenLoaderProgress(100);
       setTimeout(() => {
@@ -3260,6 +3378,22 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       }, m25SevenLang));
       return;
     }
+
+    setFreeQuotaError(null);
+    const freeQuotaCheck = await checkHotelFreePreviewQuota({
+      isPaymentVerified,
+      isPaidFamilyUpsell
+    });
+    if (!freeQuotaCheck.allowed) {
+      setSelectedPackage("face_150");
+      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip));
+      setShowPaymentSection(true);
+      setTimeout(() => {
+        document.getElementById("hotel-free-quota-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 90);
+      return;
+    }
+
     setIsCalculating(true);
     triggerScreenLoader("antaranga_calc", undefined, { progress: 35 });
     try {
@@ -3271,9 +3405,19 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         activeGeminiKey
       );
       setFaceResult(res);
-      if (!isPaymentVerified && selectedPackage !== "samudrika_combo_249" && selectedPackage !== "trinetra_all3_349") {
+      if (!isPaymentVerified) {
         setSelectedPackage("face_150");
         syncStandaloneOrderFirestore("face_150", HOTEL_FACE_PRICE_INR);
+        if (!isPaidFamilyUpsell) {
+          void markHotelFreePreviewConsumed({
+            ip: freeQuotaCheck.ip,
+            deviceId: freeQuotaCheck.deviceId,
+            serviceUsed: "mukha_samudrika",
+            hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+            tableNumber: tableNumber || "1",
+            guestName: devoteeName.trim()
+          });
+        }
       }
       setScreenLoaderProgress(100);
       setTimeout(() => {
@@ -3293,6 +3437,22 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       alert(ui.nameRequiredError);
       return;
     }
+
+    setFreeQuotaError(null);
+    const freeQuotaCheck = await checkHotelFreePreviewQuota({
+      isPaymentVerified,
+      isPaidFamilyUpsell
+    });
+    if (!freeQuotaCheck.allowed) {
+      setSelectedPackage("prashna_200");
+      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip));
+      setShowPaymentSection(true);
+      setTimeout(() => {
+        document.getElementById("hotel-free-quota-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 90);
+      return;
+    }
+
     setIsCalculating(true);
     triggerScreenLoader("antaranga_calc", undefined, { progress: 35 });
     try {
@@ -3337,9 +3497,19 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         sankhya,
         aiParagraphs: aiParas
       });
-      if (!isPaymentVerified && selectedPackage !== "trinetra_all3_349") {
+      if (!isPaymentVerified) {
         setSelectedPackage("prashna_200");
         syncStandaloneOrderFirestore("prashna_200", HOTEL_PRASHNA_PRICE_INR);
+        if (!isPaidFamilyUpsell) {
+          void markHotelFreePreviewConsumed({
+            ip: freeQuotaCheck.ip,
+            deviceId: freeQuotaCheck.deviceId,
+            serviceUsed: "prashna_shastra",
+            hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+            tableNumber: tableNumber || "1",
+            guestName: devoteeName.trim()
+          });
+        }
       }
       setScreenLoaderProgress(100);
       setTimeout(() => {
@@ -3561,11 +3731,20 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     setSecretResult(null);
     setFiveYearPayload(null);
     setMaster25Payload(null);
+    setIsPaidFamilyUpsell(true);
+    setFreeQuotaError(null);
     setSelectedPackage("family_250");
 
     const newOrderId = generateHotelOrderId(tableNumber || "1");
+    orderIdsByServiceModeRef.current.kundli = newOrderId;
+    setPaidByServiceMode((prev) => {
+      const next = { ...prev };
+      delete next.kundli;
+      return next;
+    });
     setActiveOrderId(newOrderId);
     setIsPaymentVerified(false);
+    setVerifiedTxnId("");
     setEnteredUtr("");
     setDownloadedPdfs({});
     setDownloadCounts({});
@@ -4204,9 +4383,6 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                         setIsTimeUnknown(false);
                       } else {
                         setIsTimeUnknown(true);
-                        if (opt.id === "no_dob_instant" && !isPaymentVerified) {
-                          setSelectedPackage("express_149");
-                        }
                       }
                     }}
                     className={`py-2 px-2 rounded-xl border-2 text-[11px] font-bold flex items-center justify-center gap-1 transition cursor-pointer ${
@@ -4656,15 +4832,42 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           </div>
         </section>
 
-        {/* ── STEP 2: Result Card (Unified Host for Standalone 2-Free-Insights OR Janma Kundali Secrets) ── */}
+        {/* ── STEP 2: Result Card (Unified Host for Standalone 2-Free-Insights OR Janma Kundali Secrets OR IP Quota Unlock) ── */}
         {((serviceMode === "kundli" && secretResult) ||
-          (serviceMode !== "kundli" && (palmResult || faceResult || standalonePrashnaPayload))) && (
+          (serviceMode !== "kundli" && (palmResult || faceResult || standalonePrashnaPayload)) ||
+          Boolean(freeQuotaError)) && (
           <section
             id="antaranga-result-card"
             className="bg-[#FFFDF7] border-2 border-[#D4AF37] rounded-2xl p-5 sm:p-6 shadow-[0_12px_45px_rgba(217,119,6,0.18)] space-y-4 animate-in fade-in duration-300"
           >
-            {/* Standalone Service Preview (Hasta / Mukha / Prashna -> First 2 Insights Free + Paid Standalone PDF & Bundle Options) */}
-            {serviceMode !== "kundli" && (
+            {freeQuotaError && (
+              <div
+                id="hotel-free-quota-banner"
+                className="p-4 rounded-2xl bg-gradient-to-r from-rose-50 via-amber-50 to-rose-50 border-2 border-rose-400 text-rose-950 space-y-2.5 shadow-md"
+              >
+                <div className="text-xs sm:text-sm font-black flex items-center gap-2">
+                  <span>🛡️</span>
+                  <span>{freeQuotaError}</span>
+                </div>
+                {!isPaymentVerified && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPaymentSection(true);
+                      setTimeout(() => {
+                        document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                      }, 80);
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs sm:text-sm shadow cursor-pointer"
+                  >
+                    {ui.payUnlockCta} (₹{packagePrice})
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Standalone Service Preview (Hasta / Mukha / Prashna -> First 2 Insights Free + Paid Separate Single PDF) */}
+            {serviceMode !== "kundli" && (palmResult || faceResult || standalonePrashnaPayload) && (
               <div id="standalone-service-preview" className="space-y-4">
                 {serviceMode === "hasta_samudrika" && palmResult && (
                   <div className="space-y-3">
@@ -4759,7 +4962,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   </div>
                 )}
 
-                {/* Locked Full PDF Unlock Card + Optional Combo Switcher */}
+                {/* Locked Standalone PDF Unlock Card (No Combining Services — Separate PDF Only) */}
                 <div className="bg-amber-50/90 border-2 border-[#D4AF37] rounded-2xl p-4 space-y-3">
                   <div className="text-xs font-black text-amber-950 flex items-center gap-1.5">
                     <span>🔒</span>
@@ -4772,59 +4975,57 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     </span>
                   </div>
 
-                  {/* Single Report vs Bundle Choice */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const pkg: HotelPackageType =
-                          serviceMode === "hasta_samudrika" ? "palm_150" : serviceMode === "mukha_samudrika" ? "face_150" : "prashna_200";
-                        setSelectedPackage(pkg);
-                      }}
-                      className={`p-2.5 rounded-xl border-2 text-left cursor-pointer ${
-                        selectedPackage === "palm_150" || selectedPackage === "face_150" || selectedPackage === "prashna_200"
-                          ? "bg-white border-emerald-600 ring-2 ring-emerald-400"
-                          : "bg-white/80 border-amber-200"
-                      }`}
-                    >
-                      <div className="font-black text-emerald-900">
-                        {serviceMode === "prashna_shastra" ? "₹200" : "₹150"} • {pick7({ kn: "ಈ ಸಂಪೂರ್ಣ PDF ಮಾತ್ರ", en: "This Full PDF Only", hi: "केवल यही PDF", mr: "फक्त ही पूर्ण PDF", te: "ఈ పూర్తి PDF మాత్రమే", ta: "இந்த முழு PDF மட்டும்", ml: "ഈ പൂർണ്ണ PDF മാത്രം" }, m25SevenLang)}
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPackage("samudrika_combo_249")}
-                      className={`p-2.5 rounded-xl border-2 text-left cursor-pointer ${
-                        selectedPackage === "samudrika_combo_249"
-                          ? "bg-white border-amber-600 ring-2 ring-amber-400"
-                          : "bg-white/80 border-amber-200"
-                      }`}
-                    >
-                      <div className="font-black text-amber-950">
-                        ₹249 • {pick7({ kn: "ಹಸ್ತ + ಮುಖ ೨ PDF ಪ್ಯಾಕ್", en: "Palm + Face (2 PDFs)", hi: "हस्त + मुख (२ PDF)", mr: "हस्त + मुख (२ PDF)", te: "హస్త + ముఖ (2 PDFs)", ta: "கை + முக (2 PDFs)", ml: "ഹസ്ത + മുഖ (2 PDFs)" }, m25SevenLang)}
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPackage("trinetra_all3_349")}
-                      className={`p-2.5 rounded-xl border-2 text-left cursor-pointer ${
-                        selectedPackage === "trinetra_all3_349"
-                          ? "bg-white border-amber-600 ring-2 ring-amber-400"
-                          : "bg-white/80 border-amber-200"
-                      }`}
-                    >
-                      <div className="font-black text-amber-950">
-                        ₹349 • {pick7({ kn: "ಹಸ್ತ + ಮುಖ + ಪ್ರಶ್ನ ೩ PDF", en: "All 3 Separate PDFs", hi: "सभी ३ अलग PDF", mr: "तिन्ही ३ स्वतंत्र PDF", te: "అన్ని 3 విడి PDFలు", ta: "மூன்று தனி PDFகள்", ml: "3 പ്രത്യേക PDF-കൾ" }, m25SevenLang)}
-                      </div>
-                    </button>
+                  <div className="bg-white/95 border border-emerald-300 rounded-xl p-3 text-xs space-y-1.5">
+                    <div className="font-black text-emerald-950 flex items-center justify-between gap-2">
+                      <span>
+                        📄{" "}
+                        {serviceMode === "hasta_samudrika"
+                          ? pick7({ kn: "ಪ್ರತ್ಯೇಕ ಹಸ್ತ ಸಾಮುದ್ರಿಕ PDF", en: "Separate Hasta Samudrika PDF", hi: "पृथक हस्त सामुद्रिक PDF", mr: "स्वतंत्र हस्तसामुद्रिक PDF", te: "ప్రత్యేక హస్త సాముద్రిక PDF", ta: "தனி ஹஸ்த சாமுத்ரிகா PDF", ml: "പ്രത്യേക ഹസ്തസാമുദ്രിക PDF" }, m25SevenLang)
+                          : serviceMode === "mukha_samudrika"
+                            ? pick7({ kn: "ಪ್ರತ್ಯೇಕ ಮುಖ ಸಾಮುದ್ರಿಕ PDF", en: "Separate Mukha Samudrika PDF", hi: "पृथक मुख सामुद्रिक PDF", mr: "स्वतंत्र मुख सामुद्रिक PDF", te: "ప్రత్యేక ముఖ సాముద్రిక PDF", ta: "தனி முக சாமுத்ரிகா PDF", ml: "പ്രത്യേക മുഖസാമുദ്രിക PDF" }, m25SevenLang)
+                            : pick7({ kn: "ಪ್ರತ್ಯೇಕ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ PDF", en: "Separate Prashna Shastra PDF", hi: "पृथक प्रश्न शास्त्र PDF", mr: "स्वतंत्र प्रश्न शास्त्र PDF", te: "ప్రత్యేక ప్రశ్న శాస్త్ర PDF", ta: "தனி பிரசன்ன சாஸ்திர PDF", ml: "പ്രത്യേക പ്രശ്നശാസ്ത്ര PDF" }, m25SevenLang)}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-black">
+                        ₹{serviceMode === "prashna_shastra" ? HOTEL_PRASHNA_PRICE_INR : HOTEL_PALM_PRICE_INR}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-700 leading-relaxed font-semibold">
+                      ✨{" "}
+                      {pick7({
+                        kn: "೨–೩ ಸುದೀರ್ಘ ವಿವರಣಾತ್ಮಕ ಪ್ಯಾರಾಗ್ರಾಫ್‌ಗಳು + ಕುಟುಂಬ, ಧನ/ಹಣ, ಆರೋಗ್ಯ ಮತ್ತು ವೃತ್ತಿ/ಉದ್ಯೋಗ ವಿಭಾಗಗಳನ್ನು ಒಳಗೊಂಡಿದೆ.",
+                        en: "Includes 2–3 Detailed Narrative Paragraphs + Dedicated Family, Money, Health & Profession Sections.",
+                        hi: "इसमें २–३ विस्तृत पैराग्राफ + परिवार, धन, स्वास्थ्य एवं व्यवसाय के समर्पित खंड शामिल हैं।",
+                        mr: "यामध्ये २–३ सविस्तर परिच्छेद + कुटुंब, धन, आरोग्य आणि व्यवसाय यांचे स्वतंत्र विभाग समाविष्ट आहेत.",
+                        te: "ఇందులో 2–3 వివరమైన పేరాలు + కుటుంబం, ధనం, ఆరోగ్యం మరియు వృత్తి ప్రత్యేక విభాగాలు ఉంటాయి.",
+                        ta: "2–3 விரிவான பத்திகள் + குடும்பம், பணம், ஆரோக்கியம் & தொழில் சிறப்புப் பிரிவுகள் இதில் உள்ளன.",
+                        ml: "2–3 വിശദമായ ഖണ്ഡികകളും + കുടുംബം, ധനം, ആരോഗ്യം, തൊഴിൽ എന്നീ പ്രത്യേക വിഭാഗങ്ങളും ഇതിൽ ഉൾപ്പെടുന്നു."
+                      }, m25SevenLang)}
+                    </p>
+                    <p className="text-[11px] text-amber-900 leading-relaxed">
+                      💬{" "}
+                      {pick7({
+                        kn: "ಹೆಚ್ಚಿನ ಪ್ರಶ್ನೆಗಳು ಮತ್ತು ಸಂಪೂರ್ಣ ಉತ್ತರಗಳಿಗಾಗಿ ಕೆಳಗೆ ಪಾವತಿಸಿ ಪ್ರತ್ಯೇಕ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.",
+                        en: "To ask further questions and receive complete answers, pay below and download this separate PDF.",
+                        hi: "आगे के प्रश्नों और पूर्ण उत्तरों के लिए नीचे भुगतान कर यह पृथक PDF डाउनलोड करें।",
+                        mr: "पुढील प्रश्न आणि संपूर्ण उत्तरांसाठी खाली पेमेंट करून ही स्वतंत्र PDF डाउनलोड करा.",
+                        te: "తదుపరి ప్రశ్నలు & పూర్తి సమాధానాల కోసం క్రింద చెల్లించి ఈ ప్రత్యేక PDF డൗన్‌లోడ్ చేయండి.",
+                        ta: "மேலும் கேள்விகள் & முழு பதில்களுக்கு கீழே கட்டணம் செலுத்தி இந்தத் தனி PDF-ஐ பதிவிறக்கவும்.",
+                        ml: "കൂടുതൽ ചോദ്യങ്ങൾക്കും പൂർണ്ണ ഉത്തരങ്ങൾക്കുമായി താഴെ പണമടച്ച് ഈ പ്രത്യേക PDF ഡൗൺലോഡ് ചെയ്യുക."
+                      }, m25SevenLang)}
+                    </p>
                   </div>
 
                   {!showPaymentSection && !isPaymentVerified && (
                     <button
                       type="button"
                       onClick={() => {
+                        const pkg: HotelPackageType =
+                          serviceMode === "hasta_samudrika"
+                            ? "palm_150"
+                            : serviceMode === "mukha_samudrika"
+                              ? "face_150"
+                              : "prashna_200";
+                        setSelectedPackage(pkg);
                         setShowPaymentSection(true);
                         setTimeout(() => {
                           document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
@@ -5502,71 +5703,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 </div>
               </div>
 
-              {/* Comparative Package Selector Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-                {/* Package 0: Express Walk-In Prashna + Sankhya + Samudrika PDF (₹149) */}
-                <div
-                  onClick={() => {
-                    if (selectedPackage !== "express_149") {
-                      triggerScreenLoader("package_switch", 450);
-                      setSelectedPackage("express_149");
-                    }
-                  }}
-                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative ${
-                    selectedPackage === "express_149"
-                      ? "bg-gradient-to-b from-emerald-50 to-white border-emerald-600 shadow-xl shadow-emerald-500/15 ring-2 ring-emerald-500"
-                      : "bg-white/95 border-emerald-200 hover:border-emerald-400 shadow-sm"
-                  }`}
-                >
-                  <div className="absolute -top-2.5 right-4 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow">
-                    {pick7({ kn: "ತಕ್ಷಣ ಪ್ರಶ್ನ", en: "Instant Express", hi: "त्वरित एक्सप्रेस", mr: "तात्काळ एक्सप्रेस", te: "తక్షణ ఎక్స్‌ప్రెస్", ta: "உடனடி சிறப்பு", ml: "തൽക്ഷണ എക്സ്പ്രസ്" }, m25SevenLang)}
-                  </div>
-                  <div className="flex items-center justify-between pb-2 border-b border-emerald-100">
-                    <span className="text-xs font-bold text-emerald-950">
-                      {pick7({
-                        kn: "ಪ್ರಶ್ನ & ಸಾಮುದ್ರಿಕ ಎಕ್ಸ್‌ಪ್ರೆಸ್",
-                        en: "Prashna & Samudrika Express",
-                        hi: "प्रश्न व सामुद्रिक एक्सप्रेस",
-                        mr: "प्रश्न व सामुद्रिक एक्सप्रेस",
-                        te: "ప్రశ్న & సాముద్రిక ఎక్స్‌ప్రెస్",
-                        ta: "பிரசன்னம் & சாமுத்ரிகா",
-                        ml: "പ്രശ്ന & സാമുദ്രിക എക്സ്പ്രസ്"
-                      }, m25SevenLang)}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-stone-500 line-through">₹499</span>
-                      <span className="text-lg font-black text-emerald-800">₹149</span>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-stone-700 mt-2 leading-relaxed">
-                    {pick7({
-                      kn: "ಜನ್ಮ ಸಮಯ ತಿಳಿಯದವರಿಗೆ ತಕ್ಷಣದ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ, ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ & ಹಸ್ತ/ಮುಖ PDF.",
-                      en: "Ideal when birth time/date is unknown: Live 1–108 Prashna, Chaldean Sankhya & optional Palm/Face PDF.",
-                      hi: "बिना जन्म समय के लिए आदर्श: तत्काल १–१०८ प्रश्न, नाम अंकशास्त्र व हस्त/मुख PDF।",
-                      mr: "जन्मवेळ माहित नसल्यास उत्तम: तात्काळ १–१०८ प्रश्न, अंकशास्त्र व हस्त/चेहरा PDF.",
-                      te: "జన్మ సమయం తెలియని వారికి: 1–108 ప్రశ్న, నామ సంఖ్యాశాస్త్రం & హస్త/ముఖ PDF.",
-                      ta: "பிறந்த நேரம் தெரியாதவர்களுக்கு: 1–108 பிரசன்னம், எண் கணிதம் & கை/முக PDF.",
-                      ml: "ജനനസമയം അറിയാത്തവർക്കായി: 1–108 പ്രശ്നം, സംഖ്യാശാസ്ത്രം & കൈ/മുഖ PDF."
-                    }, m25SevenLang)}
-                  </p>
-                  <ul className="mt-3 space-y-1.5 text-[11px] text-stone-800">
-                    <li className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                      <span>✓</span>
-                      <span>{pick7({ kn: "೧–೧೦೮ ತಾಜಿಕ ಪ್ರಶ್ನ ಕುಂಡಲಿ PDF", en: "Live Udaya & 1–108 Tajika Prashna PDF", hi: "तात्कालिक १–१०८ ताजिक प्रश्न PDF", mr: "तात्काळ १–१०८ ताजिक प्रश्न PDF", te: "తక్షణ 1–108 తాజిక ప్రశ్న PDF", ta: "நேரடி 1–108 தாஜிக பிரசன்ன PDF", ml: "തൽക്ഷണ 1–108 താജിക പ്രശ്ന PDF" }, m25SevenLang)}</span>
-                    </li>
-                    <li className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                      <span>✓</span>
-                      <span>{pick7({ kn: "ಚಾಲ್ಡಿಯನ್ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ & ಹಸ್ತ/ಮುಖ ಫಲ", en: "Chaldean Sankhya + Optional Palm/Face", hi: "अंकशास्त्र व हस्त/मुख विश्लेषण", mr: "अंकशास्त्र व हस्त/चेहरा फलादेश", te: "సంఖ్యాశాస్త్రం + హస్త/ముఖ ఫలితం", ta: "எண் கணிதம் + கை/முக பலன்", ml: "സംഖ്യാശാസ്ത്രം + കൈ/മുഖ ഫലം" }, m25SevenLang)}</span>
-                    </li>
-                  </ul>
-                  <div className="mt-3 text-right">
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                      selectedPackage === "express_149" ? "bg-emerald-600 text-white" : "text-stone-500"
-                    }`}>
-                      {selectedPackage === "express_149" ? "✓ Selected" : "Select"}
-                    </span>
-                  </div>
-                </div>
+              {/* Comparative Package Selector Cards (Kundali Standard ₹350 vs Sacred Remedy ₹450) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
 
                 {/* Package 1: Standard Vedic Destiny (₹350) */}
                 <div
@@ -5683,18 +5821,16 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 )}
                 <div className="flex items-center justify-center gap-3">
                   <span className="text-xs text-stone-700 font-medium">
-                    {selectedPackage === "express_149"
-                      ? "Express Prashna + Sankhya + Samudrika PDF"
-                      : selectedPackage === "remedy_450"
-                        ? "5-Year PDF + Kundali + Remedy Dossier"
-                        : selectedPackage === "family_250"
-                          ? "Family 25-Chapter Master Report + Janma Kundali"
-                          : "25-Chapter Master PDF + Janma Kundali"}
+                    {selectedPackage === "remedy_450"
+                      ? "5-Year PDF + Kundali + Remedy Dossier"
+                      : selectedPackage === "family_250"
+                        ? "Family 25-Chapter Master Report + Janma Kundali"
+                        : "25-Chapter Master PDF + Janma Kundali"}
                   </span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl sm:text-3xl font-black text-amber-900">₹{packagePrice}</span>
                     <span className="text-xs text-stone-500">
-                      ({selectedPackage === "express_149" ? "INR 149 Only" : selectedPackage === "remedy_450" ? "INR 450 Only" : selectedPackage === "family_250" ? "INR 250 Only" : "INR 350 Only"})
+                      ({selectedPackage === "remedy_450" ? "INR 450 Only" : selectedPackage === "family_250" ? "INR 250 Only" : "INR 350 Only"})
                     </span>
                   </div>
                 </div>
@@ -5762,17 +5898,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                               ? "Mukha Samudrika"
                               : selectedPackage === "prashna_200"
                                 ? "Prashna Shastra"
-                                : selectedPackage === "samudrika_combo_249"
-                                  ? "Palm + Face Combo"
-                                  : selectedPackage === "trinetra_all3_349"
-                                    ? "All-3 Separate PDFs"
-                                    : selectedPackage === "express_149"
-                                      ? "Express Walk-In"
-                                      : selectedPackage === "remedy_450"
-                                        ? "Destiny + Remedy"
-                                        : selectedPackage === "family_250"
-                                          ? "Family Special"
-                                          : "Standard"})
+                                : selectedPackage === "remedy_450"
+                                  ? "Destiny + Remedy"
+                                  : selectedPackage === "family_250"
+                                    ? "Family Special"
+                                    : "Standard"})
                         </span>
                       </div>
                     </div>
@@ -5973,219 +6103,164 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 </p>
               </div>
 
-              {selectedPackage === "palm_150" ||
-              selectedPackage === "face_150" ||
-              selectedPackage === "prashna_200" ||
-              selectedPackage === "samudrika_combo_249" ||
-              selectedPackage === "trinetra_all3_349" ? (
+              {serviceMode === "hasta_samudrika" ? (
                 <div className="flex flex-col gap-3 max-w-lg mx-auto">
-                  {(selectedPackage === "palm_150" ||
-                    selectedPackage === "samudrika_combo_249" ||
-                    selectedPackage === "trinetra_all3_349") && (
-                    <div className="flex flex-col gap-1.5">
-                      {palmResult ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!isPaymentVerified) {
-                                alert(ui.unpaidWarning);
-                                document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
-                                return;
-                              }
-                              void handleDownloadPalmPdf();
-                            }}
-                            disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.palm || 0) >= 3 || Boolean(downloadedPdfs.palm)}
-                            className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
-                              !isPaymentVerified
-                                ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300 cursor-not-allowed"
-                                : "bg-gradient-to-r from-emerald-600 to-teal-600 text-white cursor-pointer"
-                            }`}
-                          >
-                            <span>
-                              ✋{" "}
-                              {!isPaymentVerified
-                                ? `${pick7({ kn: "ಸಂಪೂರ್ಣ ಹಸ್ತ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Hasta Samudrika PDF", hi: "संपूर्ण हस्त सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण हस्तसामुद्रिक PDF डाउनलोड", te: "హస్త సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு ஹஸ்த சாமுத்ரிகா PDF", ml: "ഹസ്തസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
-                                : `${pick7({ kn: "ಸಂಪೂರ್ಣ ಹಸ್ತ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Hasta Samudrika PDF", hi: "संपूर्ण हस्त सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण हस्तसामुद्रिक PDF डाउनलोड", te: "హస్త సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு ஹஸ்த சாமுத்ரிகா PDF", ml: "ഹസ്തസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)}${downloadCounts.palm ? ` (${downloadCounts.palm}/3)` : ""}`}
-                            </span>
-                          </button>
-                          {isPaymentVerified && (
-                            <button
-                              type="button"
-                              onClick={() => void handleOpenInNewTab("palm")}
-                              disabled={isGeneratingPdf}
-                              className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-emerald-100 text-emerald-950 border border-emerald-300 cursor-pointer"
-                            >
-                              {SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}
-                            </button>
-                          )}
-                        </>
-                      ) : (
+                  <div className="flex flex-col gap-1.5">
+                    {palmResult ? (
+                      <>
                         <button
                           type="button"
                           onClick={() => {
-                            setServiceMode("hasta_samudrika");
-                            window.scrollTo({ top: 0, behavior: "smooth" });
+                            if (!isPaymentVerified) {
+                              alert(ui.unpaidWarning);
+                              document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                              return;
+                            }
+                            void handleDownloadPalmPdf();
                           }}
-                          className="py-3 px-4 rounded-xl bg-amber-100 border-2 border-amber-400 text-amber-950 font-bold text-xs cursor-pointer"
+                          disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.palm || 0) >= 3 || Boolean(downloadedPdfs.palm)}
+                          className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                            !isPaymentVerified
+                              ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300 cursor-not-allowed"
+                              : "bg-gradient-to-r from-emerald-600 to-teal-600 text-white cursor-pointer"
+                          }`}
                         >
-                          ✋ {pick7({ kn: "ಹಸ್ತದ ಫೋಟೋ ಸೇರಿಸಿ PDF ಪಡೆಯಿರಿ", en: "Tap to Capture Palm Photo for Your Bundle PDF", hi: "बंडल PDF हेतु हथेली की फोटो लें", mr: "बंडल PDF साठी तळहाताचा फोटो घ्या", te: "అరచేతి ఫోటో తీయండి", ta: "கை படம் எடுக்க தட்டவும்", ml: "കൈപ്പത്തി ഫോട്ടോ എടുക്കുക" }, m25SevenLang)}
+                          <span>
+                            ✋{" "}
+                            {!isPaymentVerified
+                              ? `${pick7({ kn: "ಸಂಪೂರ್ಣ ಹಸ್ತ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Hasta Samudrika PDF", hi: "संपूर्ण हस्त सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण हस्तसामुद्रिक PDF डाउनलोड", te: "హస్త సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு ஹஸ்த சாமுத்ரிகா PDF", ml: "ഹസ്തസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                              : `${pick7({ kn: "ಸಂಪೂರ್ಣ ಹಸ್ತ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Hasta Samudrika PDF", hi: "संपूर्ण हस्त सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण हस्तसामुद्रिक PDF डाउनलोड", te: "హస్త సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு ஹஸ்த சாமுத்ரிகா PDF", ml: "ഹസ്തസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)}${downloadCounts.palm ? ` (${downloadCounts.palm}/3)` : ""}`}
+                          </span>
                         </button>
-                      )}
-                    </div>
-                  )}
-
-                  {(selectedPackage === "face_150" ||
-                    selectedPackage === "samudrika_combo_249" ||
-                    selectedPackage === "trinetra_all3_349") && (
-                    <div className="flex flex-col gap-1.5">
-                      {faceResult ? (
-                        <>
+                        {isPaymentVerified && (
                           <button
                             type="button"
-                            onClick={() => {
-                              if (!isPaymentVerified) {
-                                alert(ui.unpaidWarning);
-                                document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
-                                return;
-                              }
-                              void handleDownloadFacePdf();
-                            }}
-                            disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.face || 0) >= 3 || Boolean(downloadedPdfs.face)}
-                            className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
-                              !isPaymentVerified
-                                ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300 cursor-not-allowed"
-                                : "bg-gradient-to-r from-amber-600 to-yellow-600 text-white cursor-pointer"
-                            }`}
+                            onClick={() => void handleOpenInNewTab("palm")}
+                            disabled={isGeneratingPdf}
+                            className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-emerald-100 text-emerald-950 border border-emerald-300 cursor-pointer"
                           >
-                            <span>
-                              👤{" "}
-                              {!isPaymentVerified
-                                ? `${pick7({ kn: "ಸಂಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Mukha Samudrika PDF", hi: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", te: "ముఖ సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு முக சாமுத்ரிகா PDF", ml: "മുഖസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
-                                : `${pick7({ kn: "ಸಂಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Mukha Samudrika PDF", hi: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", te: "ముఖ సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு முக சாமுத்ரிகா PDF", ml: "മുഖസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)}${downloadCounts.face ? ` (${downloadCounts.face}/3)` : ""}`}
-                            </span>
+                            {SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}
                           </button>
-                          {isPaymentVerified && (
-                            <button
-                              type="button"
-                              onClick={() => void handleOpenInNewTab("face")}
-                              disabled={isGeneratingPdf}
-                              className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-amber-100 text-amber-950 border border-amber-300 cursor-pointer"
-                            >
-                              {SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setServiceMode("mukha_samudrika");
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                          }}
-                          className="py-3 px-4 rounded-xl bg-amber-100 border-2 border-amber-400 text-amber-950 font-bold text-xs cursor-pointer"
-                        >
-                          🤳 {pick7({ kn: "ಮುಖದ ಸೆಲ್ಫಿ ಸೇರಿಸಿ PDF ಪಡೆಯಿರಿ", en: "Tap to Capture Face Selfie for Your Bundle PDF", hi: "बंडल PDF हेतु चेहरा सेल्फी लें", mr: "बंडल PDF साठी सेल्फी घ्या", te: "ముఖం ఫోటో తీయండి", ta: "முக செல்ஃபி எடுக்க தட்டவும்", ml: "മുഖം സെൽഫി എടുക്കുക" }, m25SevenLang)}
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  {(selectedPackage === "prashna_200" || selectedPackage === "trinetra_all3_349") && (
-                    <div className="flex flex-col gap-1.5">
-                      {standalonePrashnaPayload ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!isPaymentVerified) {
-                                alert(ui.unpaidWarning);
-                                document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
-                                return;
-                              }
-                              void handleDownloadPrashnaPdf();
-                            }}
-                            disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.prashna || 0) >= 3 || Boolean(downloadedPdfs.prashna)}
-                            className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
-                              !isPaymentVerified
-                                ? "bg-stone-100 text-stone-500 border-2 border-dashed border-indigo-300 cursor-not-allowed"
-                                : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white cursor-pointer"
-                            }`}
-                          >
-                            <span>
-                              🔮{" "}
-                              {!isPaymentVerified
-                                ? `${pick7({ kn: "ಸಂಪೂರ್ಣ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Prashna Shastra PDF", hi: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", mr: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", te: "సంపూర్ణ ప్రశ్న శాస్త్ర PDF డౌన్‌లోడ్", ta: "முழு பிரசன்ன சாஸ்திர PDF", ml: "പ്രശ്നശാസ്ത്ര PDF ഡൗൺലോഡ്" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
-                                : `${pick7({ kn: "ಸಂಪೂರ್ಣ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Prashna Shastra PDF", hi: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", mr: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", te: "సంపూర్ణ ప్రశ్న శాస్త్ర PDF డౌన్‌లోడ్", ta: "முழு பிரசன்ன சாஸ்திர PDF", ml: "പ്രശ്നശാസ്ത്ര PDF ഡൗൺലോഡ്" }, m25SevenLang)}${downloadCounts.prashna ? ` (${downloadCounts.prashna}/3)` : ""}`}
-                            </span>
-                          </button>
-                          {isPaymentVerified && (
-                            <button
-                              type="button"
-                              onClick={() => void handleOpenInNewTab("prashna")}
-                              disabled={isGeneratingPdf}
-                              className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-indigo-100 text-indigo-950 border border-indigo-300 cursor-pointer"
-                            >
-                              {SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setServiceMode("prashna_shastra");
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                          }}
-                          className="py-3 px-4 rounded-xl bg-indigo-50 border-2 border-indigo-300 text-indigo-950 font-bold text-xs cursor-pointer"
-                        >
-                          🔮 {pick7({ kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ ಗಣಿಸಿ PDF ಪಡೆಯಿರಿ", en: "Tap to Generate Your Bundle Prashna PDF", hi: "प्रश्न शास्त्र PDF तैयार करें", mr: "प्रश्न शास्त्र PDF तयार करा", te: "ప్రశ్న శాస్త్రం లెక్కించండి", ta: "பிரசன்ன PDF உருவாக்கவும்", ml: "പ്രശ്നശാസ്ത്ര PDF തയ്യാറാക്കുക" }, m25SevenLang)}
-                        </button>
-                      )}
-                    </div>
-                  )}
+                        )}
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="py-3 px-4 rounded-xl bg-amber-100 border-2 border-amber-400 text-amber-950 font-bold text-xs cursor-pointer"
+                      >
+                        ✋ {pick7({ kn: "ಹಸ್ತದ ಫೋಟೋ ಸೇರಿಸಿ PDF ಪಡೆಯಿರಿ", en: "Tap to Capture Palm Photo for Hasta PDF", hi: "हथेली की फोटो लेकर PDF पाएं", mr: "तळहाताचा फोटो घेऊन PDF मिळवा", te: "అరచేతి ఫోటో తీయండి", ta: "கை படம் எடுக்க தட்டவும்", ml: "കൈപ്പത്തി ഫോട്ടോ എടുക്കുക" }, m25SevenLang)}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ) : selectedPackage === "express_149" ? (
-                <div className="flex flex-col gap-2 max-w-lg mx-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!isPaymentVerified) {
-                        alert(ui.unpaidWarning);
-                        const payEl = document.getElementById("hotel-payment-box");
-                        if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
-                        return;
-                      }
-                      void handleDownloadExpressWalkInPdf();
-                    }}
-                    disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.express || 0) >= 3 || Boolean(downloadedPdfs.express)}
-                    className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
-                      !isPaymentVerified
-                        ? "bg-stone-100 text-stone-500 border-2 border-dashed border-emerald-400/80 cursor-not-allowed opacity-90"
-                        : (downloadCounts.express || 0) >= 3 || downloadedPdfs.express
-                        ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
-                        : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white active:scale-[0.99] cursor-pointer"
-                    }`}
-                  >
-                    <span>
-                      {!isPaymentVerified
-                        ? `${pick7({ kn: "ಪ್ರಶ್ನ & ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Express Prashna & Samudrika PDF", hi: "एक्सप्रेस प्रश्न व सामुद्रिक PDF डाउनलोड", mr: "एक्सप्रेस प्रश्न व सामुद्रिक PDF डाउनलोड", te: "ఎక్స్‌ప్రెస్ ప్రశ్న & సాముద్రిక PDF డౌన్‌లోడ్", ta: "விரைவு பிரசன்ன & சாமுத்ரிகா PDF", ml: "എക്സ്പ്രസ് പ്രശ്ന & സാമുദ്രിക PDF" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
-                        : (downloadCounts.express || 0) >= 3 || downloadedPdfs.express
-                        ? ui.downloadedBtn
-                        : `${pick7({ kn: "ಪ್ರಶ್ನ & ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Express Prashna & Samudrika PDF", hi: "एक्सप्रेस प्रश्न व सामुद्रिक PDF डाउनलोड", mr: "एक्सप्रेस प्रश्न व सामुद्रिक PDF डाउनलोड", te: "ఎక్స్‌ప్రెస్ ప్రశ్న & సాముద్రిక PDF డౌన్‌లోడ్", ta: "விரைவு பிரசன்ன & சாமுத்ரிகா PDF", ml: "എക്സ്പ്രസ് പ്രശ്ന & സാമുദ്രിക PDF" }, m25SevenLang)}${downloadCounts.express ? ` (${downloadCounts.express}/3)` : ""}`}
-                    </span>
-                  </button>
-                  {isPaymentVerified && (
-                    <button
-                      type="button"
-                      onClick={() => void handleOpenInNewTab("express")}
-                      disabled={isGeneratingPdf}
-                      className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-300 flex items-center justify-center gap-1 transition shadow-sm active:scale-95 cursor-pointer"
-                      title="iPhone Safari Safe Preview"
-                    >
-                      <span>{SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}</span>
-                    </button>
-                  )}
+              ) : serviceMode === "mukha_samudrika" ? (
+                <div className="flex flex-col gap-3 max-w-lg mx-auto">
+                  <div className="flex flex-col gap-1.5">
+                    {faceResult ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!isPaymentVerified) {
+                              alert(ui.unpaidWarning);
+                              document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                              return;
+                            }
+                            void handleDownloadFacePdf();
+                          }}
+                          disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.face || 0) >= 3 || Boolean(downloadedPdfs.face)}
+                          className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                            !isPaymentVerified
+                              ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300 cursor-not-allowed"
+                              : "bg-gradient-to-r from-amber-600 to-yellow-600 text-white cursor-pointer"
+                          }`}
+                        >
+                          <span>
+                            👤{" "}
+                            {!isPaymentVerified
+                              ? `${pick7({ kn: "ಸಂಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Mukha Samudrika PDF", hi: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", te: "ముఖ సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு முக சாமுத்ரிகா PDF", ml: "മുഖസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                              : `${pick7({ kn: "ಸಂಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Mukha Samudrika PDF", hi: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", te: "ముఖ సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு முக சாமுத்ரிகா PDF", ml: "മുഖസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)}${downloadCounts.face ? ` (${downloadCounts.face}/3)` : ""}`}
+                          </span>
+                        </button>
+                        {isPaymentVerified && (
+                          <button
+                            type="button"
+                            onClick={() => void handleOpenInNewTab("face")}
+                            disabled={isGeneratingPdf}
+                            className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-amber-100 text-amber-950 border border-amber-300 cursor-pointer"
+                          >
+                            {SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="py-3 px-4 rounded-xl bg-amber-100 border-2 border-amber-400 text-amber-950 font-bold text-xs cursor-pointer"
+                      >
+                        🤳 {pick7({ kn: "ಮುಖದ ಸೆಲ್ಫಿ ಸೇರಿಸಿ PDF ಪಡೆಯಿರಿ", en: "Tap to Capture Face Selfie for Mukha PDF", hi: "चेहरा सेल्फी लेकर PDF पाएं", mr: "चेहरा सेल्फी घेऊन PDF मिळवा", te: "ముఖం ఫోటో తీయండి", ta: "முக செல்ஃபி எடுக்க தட்டவும்", ml: "മുഖം സെൽഫി എടുക്കുക" }, m25SevenLang)}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : serviceMode === "prashna_shastra" ? (
+                <div className="flex flex-col gap-3 max-w-lg mx-auto">
+                  <div className="flex flex-col gap-1.5">
+                    {standalonePrashnaPayload ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!isPaymentVerified) {
+                              alert(ui.unpaidWarning);
+                              document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                              return;
+                            }
+                            void handleDownloadPrashnaPdf();
+                          }}
+                          disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.prashna || 0) >= 3 || Boolean(downloadedPdfs.prashna)}
+                          className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                            !isPaymentVerified
+                              ? "bg-stone-100 text-stone-500 border-2 border-dashed border-indigo-300 cursor-not-allowed"
+                              : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white cursor-pointer"
+                          }`}
+                        >
+                          <span>
+                            🔮{" "}
+                            {!isPaymentVerified
+                              ? `${pick7({ kn: "ಸಂಪೂರ್ಣ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Prashna Shastra PDF", hi: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", mr: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", te: "సంపూర్ణ ప్రశ్న శాస్త్ర PDF డౌన్‌లోడ్", ta: "முழு பிரசன்ன சாஸ்திர PDF", ml: "പ്രശ്നശാസ്ത്ര PDF ഡൗൺലോഡ്" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                              : `${pick7({ kn: "ಸಂಪೂರ್ಣ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Prashna Shastra PDF", hi: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", mr: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", te: "సంపూర్ణ ప్రశ్న శాస్త్ర PDF డౌన్‌లోడ్", ta: "முழு பிரசன்ன சாஸ்திர PDF", ml: "പ്രശ്നശാസ്ത്ര PDF ഡൗൺലോഡ്" }, m25SevenLang)}${downloadCounts.prashna ? ` (${downloadCounts.prashna}/3)` : ""}`}
+                          </span>
+                        </button>
+                        {isPaymentVerified && (
+                          <button
+                            type="button"
+                            onClick={() => void handleOpenInNewTab("prashna")}
+                            disabled={isGeneratingPdf}
+                            className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-indigo-100 text-indigo-950 border border-indigo-300 cursor-pointer"
+                          >
+                            {SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="py-3 px-4 rounded-xl bg-indigo-50 border-2 border-indigo-300 text-indigo-950 font-bold text-xs cursor-pointer"
+                      >
+                        🔮 {pick7({ kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ ಗಣಿಸಿ PDF ಪಡೆಯಿರಿ", en: "Tap to Generate Prashna Shastra PDF", hi: "प्रश्न शास्त्र PDF तैयार करें", mr: "प्रश्न शास्त्र PDF तयार करा", te: "ప్రశ్న శాస్త్రం లెక్కించండి", ta: "பிரசன்ன PDF உருவாக்கவும்", ml: "പ്രശ്നശാസ്ത്ര PDF തയ്യാറാക്കുക" }, m25SevenLang)}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
