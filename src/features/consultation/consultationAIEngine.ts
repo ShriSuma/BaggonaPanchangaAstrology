@@ -13,7 +13,7 @@
 import { calculateKundliWithPlaceSun } from "../../core/KundliEngine";
 import { type KundliOutput, type PlanetPosition, PlanetName } from "../../core/AstroTypes";
 import { askGemini, type AskGeminiChatTurn } from "../../core/GeminiEngine";
-import { findBhuktiAtAge, generateBhuktiTimeline } from "../../core/DashaBhuktiEngine";
+import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "../../core/birthTime";
 import { getTransitsForDate } from "../../core/BaggonaPredictionEngine";
 import {
@@ -33,10 +33,6 @@ import {
   PLANET_NAMES_I18N
 } from "./consultationPanchangaService";
 import { useAppStore } from "../../stores/appStore";
-import {
-  sanitizeDuplicateSpeechWords,
-  normToken
-} from "./consultationSpeechService";
 import { convertTextIfLanguageDiffers } from "../../utils/transliterator";
 import {
   deduplicateResponseText,
@@ -130,14 +126,14 @@ export function buildLocalizedAstroHighlights(params: {
     lang === "kn"
       ? "ಪಾದ"
       : lang === "hi" || lang === "mr"
-      ? "चरण"
-      : lang === "te"
-      ? "పాదం"
-      : lang === "ta"
-      ? "பாதம்"
-      : lang === "ml"
-      ? "പാദം"
-      : "Pada";
+        ? "चरण"
+        : lang === "te"
+          ? "పాదం"
+          : lang === "ta"
+            ? "பாதம்"
+            : lang === "ml"
+              ? "പാദം"
+              : "Pada";
   const nakWithPada = pada ? `${nakshatra} (${padaWord} ${pada})` : nakshatra;
 
   if (params.keyInfluences) {
@@ -496,8 +492,8 @@ export async function computeDevoteeKundli(
       lang === "kn"
         ? "ಶುಭ ಮಹಾದಶಾ ಕಾಲ"
         : lang === "en"
-        ? "Active Planetary Dasha"
-        : "शुभ महादशा काल";
+          ? "Active Planetary Dasha"
+          : "शुभ महादशा काल";
     currentDashaTextEn = "Active Planetary Dasha";
   }
 
@@ -505,8 +501,7 @@ export async function computeDevoteeKundli(
   const planetsSummary = kundli.planets
     .map(
       (p: PlanetPosition) =>
-        `${pDict[p.name] || p.name}: House ${p.house} in ${
-          p.rashi.english
+        `${pDict[p.name] || p.name}: House ${p.house} in ${p.rashi.english
         } (${p.degree.toFixed(1)}°)${p.isRetrograde ? " [Retrograde]" : ""}`
     )
     .join(", ");
@@ -636,46 +631,46 @@ export async function computeDevoteeKundli(
       return lang === "kn"
         ? `ಸಾಡೇ ಸಾತಿ (ಏಳರೆ ಶನಿ - ಮೊದಲ ಹಂತ: ವ್ಯಯ ಶನಿ ${sign}ದಲ್ಲಿ)`
         : lang === "hi"
-        ? `साढ़ेसाती (प्रथम चरण - द्वादश शनि ${sign} में)`
-        : lang === "te"
-        ? `ఏలినాటి శని (మొదటి దశ - 12వ స్థానం ${sign}లో)`
-        : lang === "ta"
-        ? `ஏழரை சனி (முதல் நிலை - விரய சனி ${sign})`
-        : lang === "ml"
-        ? `ഏഴരശ്ശനി (ആദ്യ ഘട്ടം - 12-ാം ഭാവം ${sign})`
-        : lang === "mr"
-        ? `साडेसाती (प्रथम टप्पा - व्यय शनी ${sign} मध्ये)`
-        : `Sade Sati (Rising Phase - 12th from Moon in ${sign})`;
+          ? `साढ़ेसाती (प्रथम चरण - द्वादश शनि ${sign} में)`
+          : lang === "te"
+            ? `ఏలినాటి శని (మొదటి దశ - 12వ స్థానం ${sign}లో)`
+            : lang === "ta"
+              ? `ஏழரை சனி (முதல் நிலை - விரய சனி ${sign})`
+              : lang === "ml"
+                ? `ഏഴരശ്ശനി (ആദ്യ ഘട്ടം - 12-ാം ഭാവം ${sign})`
+                : lang === "mr"
+                  ? `साडेसाती (प्रथम टप्पा - व्यय शनी ${sign} मध्ये)`
+                  : `Sade Sati (Rising Phase - 12th from Moon in ${sign})`;
     }
     if (house === 1) {
       return lang === "kn"
         ? `ಸಾಡೇ ಸಾತಿ (ಜನ್ಮ ಶನಿ - ಶಿಖರ ಪರೀಕ್ಷಾ ಹಂತ ${sign}ದಲ್ಲಿ)`
         : lang === "hi"
-        ? `साढ़ेसाती (जन्म शनि - मध्य शिखर चरण ${sign} में)`
-        : lang === "te"
-        ? `ఏలినాటి శని (జన్మ శని - ప్రధాన దశ ${sign}లో)`
-        : lang === "ta"
-        ? `ஜென்ம சனி (உச்ச கட்டம் ${sign})`
-        : lang === "ml"
-        ? `ജന്മ ശനി (മധ്യ ഘട്ടം ${sign})`
-        : lang === "mr"
-        ? `साडेसाती (जन्म शनी - मधला टप्पा ${sign} मध्ये)`
-        : `Sade Sati (Peak Janma Phase - on Moon in ${sign})`;
+          ? `साढ़ेसाती (जन्म शनि - मध्य शिखर चरण ${sign} में)`
+          : lang === "te"
+            ? `ఏలినాటి శని (జన్మ శని - ప్రధాన దశ ${sign}లో)`
+            : lang === "ta"
+              ? `ஜென்ம சனி (உச்ச கட்டம் ${sign})`
+              : lang === "ml"
+                ? `ജന്മ ശനി (മധ്യ ഘട്ടം ${sign})`
+                : lang === "mr"
+                  ? `साडेसाती (जन्म शनी - मधला टप्पा ${sign} मध्ये)`
+                  : `Sade Sati (Peak Janma Phase - on Moon in ${sign})`;
     }
     if (house === 2) {
       return lang === "kn"
         ? `ಸಾಡೇ ಸಾತಿ (ಅಂತಿಮ ಇಳಿಕೆ ಹಂತ: ಧನ ಶನಿ ${sign}ದಲ್ಲಿ)`
         : lang === "hi"
-        ? `साढ़ेसाती (अंतिम चरण - द्वितीय शनि ${sign} में)`
-        : lang === "te"
-        ? `ఏలినాటి శని (చివరి దశ - 2వ స్థానం ${sign}లో)`
-        : lang === "ta"
-        ? `பாத சனி (இறுதி நிலை ${sign})`
-        : lang === "ml"
-        ? `ഏഴരശ്ശനി (അവസാന ഘട്ടം ${sign})`
-        : lang === "mr"
-        ? `साडेसाती (अंतिम टप्पा - धन शनी ${sign} मध्ये)`
-        : `Sade Sati (Setting Phase - 2nd from Moon in ${sign})`;
+          ? `साढ़ेसाती (अंतिम चरण - द्वितीय शनि ${sign} में)`
+          : lang === "te"
+            ? `ఏలినాటి శని (చివరి దశ - 2వ స్థానం ${sign}లో)`
+            : lang === "ta"
+              ? `பாத சனி (இறுதி நிலை ${sign})`
+              : lang === "ml"
+                ? `ഏഴരശ്ശനി (അവസാന ഘട്ടം ${sign})`
+                : lang === "mr"
+                  ? `साडेसाती (अंतिम टप्पा - धन शनी ${sign} मध्ये)`
+                  : `Sade Sati (Setting Phase - 2nd from Moon in ${sign})`;
     }
     if (house === 4 || house === 10) {
       return lang === "kn"
@@ -683,47 +678,47 @@ export async function computeDevoteeKundli(
           ? `ಕಂಟಕ ಶನಿ (ಅರ್ಧಾಷ್ಟಮ - ೪ನೇ ಮನೆ ${sign}ದಲ್ಲಿ: ಮಾನಸಿಕ ಆತಂಕ & ವೃತ್ತಿ ಕಷ್ಟ)`
           : `ದಶಮ ಕಂಟಕ ಶನಿ (೧೦ನೇ ಮನೆ ${sign}ದಲ್ಲಿ: ಉದ್ಯೋಗದಲ್ಲಿ ನಿರಂತರ ಒತ್ತಡ & ಕಿರಿಕಿರಿ)`
         : lang === "hi"
-        ? `कंटक शनि (${house}वें भाव ${sign} में - कार्यक्षेत्र व मानसिक दबाव)`
-        : lang === "te"
-        ? `కంటక శని (${house}వ స్థానం ${sign}లో - వృత్తి మరియు మానసిక ఒత్తిడి)`
-        : lang === "ta"
-        ? `கண்டக சனி (${house}-ஆம் இடம் ${sign} - தொழில் மற்றும் மன அழுத்தம்)`
-        : lang === "ml"
-        ? `കണ്ടക ശനി (${house}-ാം ഭാവം ${sign} - തൊഴിൽ സമ്മർദ്ദം)`
-        : lang === "mr"
-        ? `कंटक शनी (${house} व्या स्थानी ${sign} मध्ये - कार्य व मानसिक ताण)`
-        : house === 4
-        ? `Kantaka Shani (4th from Moon in ${sign} - Career & Mental Strain)`
-        : `Kantaka Shani (10th from Moon in ${sign} - Heavy Professional Pressure)`;
+          ? `कंटक शनि (${house}वें भाव ${sign} में - कार्यक्षेत्र व मानसिक दबाव)`
+          : lang === "te"
+            ? `కంటక శని (${house}వ స్థానం ${sign}లో - వృత్తి మరియు మానసిక ఒత్తిడి)`
+            : lang === "ta"
+              ? `கண்டக சனி (${house}-ஆம் இடம் ${sign} - தொழில் மற்றும் மன அழுத்தம்)`
+              : lang === "ml"
+                ? `കണ്ടക ശനി (${house}-ാം ഭാവം ${sign} - തൊഴിൽ സമ്മർദ്ദം)`
+                : lang === "mr"
+                  ? `कंटक शनी (${house} व्या स्थानी ${sign} मध्ये - कार्य व मानसिक ताण)`
+                  : house === 4
+                    ? `Kantaka Shani (4th from Moon in ${sign} - Career & Mental Strain)`
+                    : `Kantaka Shani (10th from Moon in ${sign} - Heavy Professional Pressure)`;
     }
     if (house === 8) {
       return lang === "kn"
         ? `ಅಷ್ಟಮ ಶನಿ (೮ನೇ ಮನೆ ${sign}ದಲ್ಲಿ: ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು & ಕಾರ್ಯವಿಳಂಬ)`
         : lang === "hi"
-        ? `अष्टम शनि (८वें भाव ${sign} में - अप्रत्याशित विलंब)`
-        : lang === "te"
-        ? `అష్టమ శని (8వ స్థానం ${sign}లో - ఆటంకాలు & ఆలస్యం)`
-        : lang === "ta"
-        ? `அஷ்டம சனி (8-ஆம் இடம் ${sign} - எதிர்பாராத தடைகள்)`
-        : lang === "ml"
-        ? `അഷ്ടമ ശനി (8-ാം ഭാവം ${sign} - അപ്രതീക്ഷിത തടസ്സങ്ങൾ)`
-        : lang === "mr"
-        ? `अष्टम शनी (८ व्या स्थानी ${sign} मध्ये - अनपेक्षित विलंब)`
-        : `Ashtama Shani (8th from Moon in ${sign} - Unexpected Roadblocks)`;
+          ? `अष्टम शनि (८वें भाव ${sign} में - अप्रत्याशित विलंब)`
+          : lang === "te"
+            ? `అష్టమ శని (8వ స్థానం ${sign}లో - ఆటంకాలు & ఆలస్యం)`
+            : lang === "ta"
+              ? `அஷ்டம சனி (8-ஆம் இடம் ${sign} - எதிர்பாராத தடைகள்)`
+              : lang === "ml"
+                ? `അഷ്ടമ ശനി (8-ാം ഭാവം ${sign} - അപ്രതീക്ഷിത തടസ്സങ്ങൾ)`
+                : lang === "mr"
+                  ? `अष्टम शनी (८ व्या स्थानी ${sign} मध्ये - अनपेक्षित विलंब)`
+                  : `Ashtama Shani (8th from Moon in ${sign} - Unexpected Roadblocks)`;
     }
     return lang === "kn"
       ? `ಗೋಚಾರ ${house}ನೇ ಮನೆಯ ಶನಿ ಸಂಚಾರ (${sign}ದಲ್ಲಿ)`
       : lang === "hi"
-      ? `गोचर शनि ${house}वें भाव (${sign}) में`
-      : lang === "te"
-      ? `గోచార శని ${house}వ స్థానం (${sign})లో`
-      : lang === "ta"
-      ? `கோசார சனி ${house}-ஆம் இடம் (${sign})`
-      : lang === "ml"
-      ? `ഗോചര ശനി ${house}-ാം ഭാവം (${sign})`
-      : lang === "mr"
-      ? `गोचर शनी ${house} व्या स्थानी (${sign})`
-      : `Saturn transiting House ${house} from Moon in ${sign}`;
+        ? `गोचर शनि ${house}वें भाव (${sign}) में`
+        : lang === "te"
+          ? `గోచార శని ${house}వ స్థానం (${sign})లో`
+          : lang === "ta"
+            ? `கோசார சனி ${house}-ஆம் இடம் (${sign})`
+            : lang === "ml"
+              ? `ഗോചര ശനി ${house}-ാം ഭാവം (${sign})`
+              : lang === "mr"
+                ? `गोचर शनी ${house} व्या स्थानी (${sign})`
+                : `Saturn transiting House ${house} from Moon in ${sign}`;
   };
   shaniTransitNature = shaniByLang(shaniTransitHouseFromMoon, shaniTransitSign);
 
@@ -738,29 +733,29 @@ export async function computeDevoteeKundli(
     ? lang === "kn"
       ? `ಶುಭ ಗುರುಬಲ (${guruTransitHouseFromMoon}ನೇ ಮನೆ ${guruTransitSign}ದಲ್ಲಿ - ದೈವಾನುಗ್ರಹ & ಕಾರ್ಯಸಿದ್ಧಿ)`
       : lang === "hi"
-      ? `शुभ गुरुबल (${guruTransitHouseFromMoon}वें भाव ${guruTransitSign} में - कार्यसिद्धि एवं कृपा)`
-      : lang === "te"
-      ? `శుభ గురుబలం (${guruTransitHouseFromMoon}వ స్థానం ${guruTransitSign}లో - దైవానుగ్రహం)`
-      : lang === "ta"
-      ? `சுப குரு பலம் (${guruTransitHouseFromMoon}-ஆம் இடம் ${guruTransitSign} - காரிய சித்தி)`
-      : lang === "ml"
-      ? `ശുഭ ഗുരുബലം (${guruTransitHouseFromMoon}-ാം ഭാവം ${guruTransitSign} - കാര്യവിജയം)`
-      : lang === "mr"
-      ? `शुभ गुरुबळ (${guruTransitHouseFromMoon} व्या स्थानी ${guruTransitSign} मध्ये - यश)`
-      : `Auspicious Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Divine Grace & Success)`
+        ? `शुभ गुरुबल (${guruTransitHouseFromMoon}वें भाव ${guruTransitSign} में - कार्यसिद्धि एवं कृपा)`
+        : lang === "te"
+          ? `శుభ గురుబలం (${guruTransitHouseFromMoon}వ స్థానం ${guruTransitSign}లో - దైవానుగ్రహం)`
+          : lang === "ta"
+            ? `சுப குரு பலம் (${guruTransitHouseFromMoon}-ஆம் இடம் ${guruTransitSign} - காரிய சித்தி)`
+            : lang === "ml"
+              ? `ശുഭ ഗുരുബലം (${guruTransitHouseFromMoon}-ാം ഭാവം ${guruTransitSign} - കാര്യവിജയം)`
+              : lang === "mr"
+                ? `शुभ गुरुबळ (${guruTransitHouseFromMoon} व्या स्थानी ${guruTransitSign} मध्ये - यश)`
+                : `Auspicious Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Divine Grace & Success)`
     : lang === "kn"
-    ? `ಗುರು ಸಂಚಾರ (${guruTransitHouseFromMoon}ನೇ ಮನೆ ${guruTransitSign}ದಲ್ಲಿ - ತಾಳ್ಮೆ ಹಾಗೂ ಸತತ ಪ್ರಯತ್ನದ ಕಾಲ)`
-    : lang === "hi"
-    ? `गुरु गोचर (${guruTransitHouseFromMoon}वें भाव ${guruTransitSign} में - धैर्य और सतत प्रयास का काल)`
-    : lang === "te"
-    ? `గురు గోచారం (${guruTransitHouseFromMoon}వ స్థానం ${guruTransitSign}లో - సహనం అవసరమైన కాలం)`
-    : lang === "ta"
-    ? `குரு பெயர்ச்சி (${guruTransitHouseFromMoon}-ஆம் இடம் ${guruTransitSign} - பொறுமை அவசியம்)`
-    : lang === "ml"
-    ? `വ്യാഴ സംക്രമണം (${guruTransitHouseFromMoon}-ാം ഭാവം ${guruTransitSign} - ക്ഷമയുടെ കാലം)`
-    : lang === "mr"
-    ? `गुरु गोचर (${guruTransitHouseFromMoon} व्या स्थानी ${guruTransitSign} मध्ये - संयमाचा काळ)`
-    : `Testing Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Requires Patience)`;
+      ? `ಗುರು ಸಂಚಾರ (${guruTransitHouseFromMoon}ನೇ ಮನೆ ${guruTransitSign}ದಲ್ಲಿ - ತಾಳ್ಮೆ ಹಾಗೂ ಸತತ ಪ್ರಯತ್ನದ ಕಾಲ)`
+      : lang === "hi"
+        ? `गुरु गोचर (${guruTransitHouseFromMoon}वें भाव ${guruTransitSign} में - धैर्य और सतत प्रयास का काल)`
+        : lang === "te"
+          ? `గురు గోచారం (${guruTransitHouseFromMoon}వ స్థానం ${guruTransitSign}లో - సహనం అవసరమైన కాలం)`
+          : lang === "ta"
+            ? `குரு பெயர்ச்சி (${guruTransitHouseFromMoon}-ஆம் இடம் ${guruTransitSign} - பொறுமை அவசியம்)`
+            : lang === "ml"
+              ? `വ്യാഴ സംക്രമണം (${guruTransitHouseFromMoon}-ാം ഭാവം ${guruTransitSign} - ക്ഷമയുടെ കാലം)`
+              : lang === "mr"
+                ? `गुरु गोचर (${guruTransitHouseFromMoon} व्या स्थानी ${guruTransitSign} मध्ये - संयमाचा काळ)`
+                : `Testing Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Requires Patience)`;
 
   // Rahu & Ketu Gochara
   const rahuTransit = liveTransits?.[PlanetName.Rahu];
@@ -1115,7 +1110,7 @@ export function detectConversationIntelligence(
       } else if (sessionLanguage === "ta") {
         contextualBridge = `உங்கள் தொழில் மற்றும் வேலை சூழல் குறித்து தொடர்ந்து, "${q}" என்ற கேள்விக்கு:`;
       } else if (sessionLanguage === "ml") {
-        contextualBridge = `നിങ്ങളുടെ ജോലിയും കരിയറും സംബന്ധിച്ച് തുടർന്ന്, "${q}" എന്ന ചോദ്യത്തിന്:` ;
+        contextualBridge = `നിങ്ങളുടെ ജോലിയും കരിയറും സംബന്ധിച്ച് തുടർന്ന്, "${q}" എന്ന ചോദ്യത്തിന്:`;
       } else if (sessionLanguage === "mr") {
         contextualBridge = `आपल्या करिअर आणि नोकरीच्या संदर्भात पुढे बोलताना, "${q}" या प्रश्नावर:`;
       } else {
@@ -3336,88 +3331,88 @@ export function detectRelevantQuestionDosha(
         ? lang === "kn"
           ? "ಸಾಡೇ ಸಾತಿ (ಏಳರೆ ಶನಿ) ಪ್ರಭಾವ"
           : lang === "hi"
-          ? "शनि साढ़ेसाती प्रभाव"
-          : lang === "te"
-          ? "శని ఏలినాటి శని ప్రభావం"
-          : lang === "ta"
-          ? "ஏழரை சனி தாக்கம்"
-          : lang === "ml"
-          ? "ഏഴരശ്ശനി സ്വാധീനം"
-          : lang === "mr"
-          ? "शनि साडेसाती प्रभाव"
-          : "Shani Sade Sati Transit Influence"
+            ? "शनि साढ़ेसाती प्रभाव"
+            : lang === "te"
+              ? "శని ఏలినాటి శని ప్రభావం"
+              : lang === "ta"
+                ? "ஏழரை சனி தாக்கம்"
+                : lang === "ml"
+                  ? "ഏഴരശ്ശനി സ്വാധീനം"
+                  : lang === "mr"
+                    ? "शनि साडेसाती प्रभाव"
+                    : "Shani Sade Sati Transit Influence"
         : isKantaka
-        ? lang === "kn"
-          ? "ದಶಮ / ಕಂಟಕ ಶನಿ ಪ್ರಭಾವ"
-          : lang === "hi"
-          ? "कंटक शनि गोचर प्रभाव"
-          : lang === "te"
-          ? "కంటక శని గోచార ప్రభావం"
-          : lang === "ta"
-          ? "கண்டக சனி பெயர்ச்சி தாக்கம்"
-          : lang === "ml"
-          ? "കണ്ടക ശനി സ്വാധീനം"
-          : lang === "mr"
-          ? "कंटक शनी गोचर प्रभाव"
-          : "Kantaka Shani Transit Influence"
-        : lang === "kn"
-        ? "ಅಷ್ಟಮ ಶನಿ ಪ್ರಭಾವ"
-        : lang === "hi"
-        ? "अष्टम शनि गोचर प्रभाव"
-        : lang === "te"
-        ? "అష్టమ శని గోచార ప్రభావం"
-        : lang === "ta"
-        ? "அஷ்டம சனி பெயர்ச்சி தாக்கம்"
-        : lang === "ml"
-        ? "അഷ്ടമ ശനി സ്വാധീനം"
-        : lang === "mr"
-        ? "अष्टम शनी गोचर प्रभाव"
-        : "Ashtama Shani Transit Influence";
+          ? lang === "kn"
+            ? "ದಶಮ / ಕಂಟಕ ಶನಿ ಪ್ರಭಾವ"
+            : lang === "hi"
+              ? "कंटक शनि गोचर प्रभाव"
+              : lang === "te"
+                ? "కంటక శని గోచార ప్రభావం"
+                : lang === "ta"
+                  ? "கண்டக சனி பெயர்ச்சி தாக்கம்"
+                  : lang === "ml"
+                    ? "കണ്ടക ശനി സ്വാധീനം"
+                    : lang === "mr"
+                      ? "कंटक शनी गोचर प्रभाव"
+                      : "Kantaka Shani Transit Influence"
+          : lang === "kn"
+            ? "ಅಷ್ಟಮ ಶನಿ ಪ್ರಭಾವ"
+            : lang === "hi"
+              ? "अष्टम शनि गोचर प्रभाव"
+              : lang === "te"
+                ? "అష్టమ శని గోచార ప్రభావం"
+                : lang === "ta"
+                  ? "அஷ்டம சனி பெயர்ச்சி தாக்கம்"
+                  : lang === "ml"
+                    ? "അഷ്ടമ ശനി സ്വാധീനം"
+                    : lang === "mr"
+                      ? "अष्टम शनी गोचर प्रभाव"
+                      : "Ashtama Shani Transit Influence";
 
       const tWhy =
         lang === "kn"
           ? `ಜನ್ಮ ರಾಶಿಯಿಂದ ಶನಿ ಗ್ರಹವು ${transitInfo.shaniHouse}ನೇ ಮನೆಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು (${transitInfo.shaniNature || ""}), ಇದು ವೃತ್ತಿ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿಯ ಮೇಲೆ ತೀವ್ರ ಪರೀಕ್ಷಾ ಪ್ರಭಾವ ಬೀರುತ್ತಿದೆ.`
           : lang === "hi"
-          ? `आपकी चंद्र राशि से ${transitInfo.shaniHouse}वें भाव में शनि गोचर (${transitInfo.shaniNature || ""}) आजीविका एवं मानसिक शांति पर परीक्षा डाल रहा है।`
-          : lang === "te"
-          ? `మీ జన్మ రాశి నుండి శని ${transitInfo.shaniHouse}వ స్థానంలో సంచరిస్తుండటం (${transitInfo.shaniNature || ""}) వృత్తి మరియు మనశ్శాంతిపై ఒత్తిడి తెస్తోంది.`
-          : lang === "ta"
-          ? `உங்கள் சந்திர ராசியிலிருந்து ${transitInfo.shaniHouse}-ஆம் இடத்தில் சனி சஞ்சரிப்பதால் (${transitInfo.shaniNature || ""}) தொழில் மற்றும் மன அமைதியில் சோதனை ஏற்படுகிறது.`
-          : lang === "ml"
-          ? `നിങ്ങളുടെ ചന്ദ്രരാശിയിൽ നിന്ന് ${transitInfo.shaniHouse}-ാം ഭാവത്തിൽ ശനി സഞ്ചരിക്കുന്നത് (${transitInfo.shaniNature || ""}) തൊഴിലിലും മനസ്സമാധാനത്തിലും സമ്മർദ്ദമുണ്ടാക്കുന്നു.`
-          : lang === "mr"
-          ? `तुमच्या चंद्र राशीपासून शनी ${transitInfo.shaniHouse} व्या भावात भ्रमण करत असल्याने (${transitInfo.shaniNature || ""}) कार्यक्षेत्र व मनःशांतीवर ताण येत आहे.`
-          : `Saturn's transit in House ${transitInfo.shaniHouse} from Moon (${transitInfo.shaniNature || ""}) casts direct pressure on career, status, and professional stability.`;
+            ? `आपकी चंद्र राशि से ${transitInfo.shaniHouse}वें भाव में शनि गोचर (${transitInfo.shaniNature || ""}) आजीविका एवं मानसिक शांति पर परीक्षा डाल रहा है।`
+            : lang === "te"
+              ? `మీ జన్మ రాశి నుండి శని ${transitInfo.shaniHouse}వ స్థానంలో సంచరిస్తుండటం (${transitInfo.shaniNature || ""}) వృత్తి మరియు మనశ్శాంతిపై ఒత్తిడి తెస్తోంది.`
+              : lang === "ta"
+                ? `உங்கள் சந்திர ராசியிலிருந்து ${transitInfo.shaniHouse}-ஆம் இடத்தில் சனி சஞ்சரிப்பதால் (${transitInfo.shaniNature || ""}) தொழில் மற்றும் மன அமைதியில் சோதனை ஏற்படுகிறது.`
+                : lang === "ml"
+                  ? `നിങ്ങളുടെ ചന്ദ്രരാശിയിൽ നിന്ന് ${transitInfo.shaniHouse}-ാം ഭാവത്തിൽ ശനി സഞ്ചരിക്കുന്നത് (${transitInfo.shaniNature || ""}) തൊഴിലിലും മനസ്സമാധാനത്തിലും സമ്മർദ്ദമുണ്ടാക്കുന്നു.`
+                  : lang === "mr"
+                    ? `तुमच्या चंद्र राशीपासून शनी ${transitInfo.shaniHouse} व्या भावात भ्रमण करत असल्याने (${transitInfo.shaniNature || ""}) कार्यक्षेत्र व मनःशांतीवर ताण येत आहे.`
+                    : `Saturn's transit in House ${transitInfo.shaniHouse} from Moon (${transitInfo.shaniNature || ""}) casts direct pressure on career, status, and professional stability.`;
 
       const clp =
         lang === "kn"
           ? "ವೃತ್ತಿಯಲ್ಲಿ ನಿರಂತರ ಕಿರಿಕಿರಿ, ಸಹೋದ್ಯೋಗಿಗಳಲ್ಲಿ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ, ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ತಡವಾಗುವುದು ಮತ್ತು ಅಸ್ಥಿರತೆಯ ಭಾವನೆ."
           : lang === "hi"
-          ? "कार्यक्षेत्र में निरंतर तनाव, सहकर्मियों से मतभेद, परिश्रम का उचित सम्मान न मिलना एवं अस्थिरता।"
-          : lang === "te"
-          ? "వృత్తిలో నిరంతర ఒత్తిడి, సహోద్యోగులతో సమన్వయ లోపం, కష్టానికి తగిన గుర్తింపు ఆలస్యం కావడం."
-          : lang === "ta"
-          ? "வேலையில் தொடர்ந்து மன அழுத்தம், சக ஊழியர்களுடன் கருத்து வேறுபாடு, உழைப்பிற்கேற்ற அங்கீகாரம் தாமதமாதல்."
-          : lang === "ml"
-          ? "തൊഴിൽ രംഗത്ത് തുടർച്ചയായ സമ്മർദ്ദം, സഹപ്രവർത്തകരുമായുള്ള അഭിപ്രായ വ്യത്യാസം, അധ്വാനത്തിനൊത്ത അംഗീകാരം വൈകൽ."
-          : lang === "mr"
-          ? "कामाच्या ठिकाणी सतत तणाव, सहकाऱ्यांशी मतभेद, मेहनतीचे योग्य फळ मिळण्यास विलंब."
-          : "Persistent frustration at work, lack of appreciation for hard work, workplace misunderstandings, and financial delays.";
+            ? "कार्यक्षेत्र में निरंतर तनाव, सहकर्मियों से मतभेद, परिश्रम का उचित सम्मान न मिलना एवं अस्थिरता।"
+            : lang === "te"
+              ? "వృత్తిలో నిరంతర ఒత్తిడి, సహోద్యోగులతో సమన్వయ లోపం, కష్టానికి తగిన గుర్తింపు ఆలస్యం కావడం."
+              : lang === "ta"
+                ? "வேலையில் தொடர்ந்து மன அழுத்தம், சக ஊழியர்களுடன் கருத்து வேறுபாடு, உழைப்பிற்கேற்ற அங்கீகாரம் தாமதமாதல்."
+                : lang === "ml"
+                  ? "തൊഴിൽ രംഗത്ത് തുടർച്ചയായ സമ്മർദ്ദം, സഹപ്രവർത്തകരുമായുള്ള അഭിപ്രായ വ്യത്യാസം, അധ്വാനത്തിനൊത്ത അംഗീകാരം വൈകൽ."
+                  : lang === "mr"
+                    ? "कामाच्या ठिकाणी सतत तणाव, सहकाऱ्यांशी मतभेद, मेहनतीचे योग्य फळ मिळण्यास विलंब."
+                    : "Persistent frustration at work, lack of appreciation for hard work, workplace misunderstandings, and financial delays.";
 
       const pooja =
         lang === "kn"
           ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಎಳ್ಳು ದೀಪಾರಾಧನೆ ಸಹಿತ ಶನಿ ಶಾಂತಿ ಹೋಮ"
           : lang === "hi"
-          ? "श्री क्षेत्र गोकर्ण महाबलेश्वर महारुद्राभिषेक एवं तिल दीपार्चन सहित शनि शांति होम"
-          : lang === "te"
-          ? "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర మహారుద్రాభిషేకం మరియు నువ్వుల దీపారాధనతో శని శాంతి హోమం"
-          : lang === "ta"
-          ? "ஸ்ரீ க்ஷேத்ர கோகர்ணம் மகாபலேஸ்வரர் ருத்ராபிஷேகம் மற்றும் எள் தீபத்துடன் சனி சாந்தி ஹோமம்"
-          : lang === "ml"
-          ? "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം മഹാബലേശ്വര മഹാരുദ്രാഭിഷേകവും എള്ളുതിരി സഹിതം ശനി ശാന്തി ഹോമവും"
-          : lang === "mr"
-          ? "श्री क्षेत्र गोकर्ण महाबळेश्वर महारुद्राभिषेक व तीळ दीपाराधनेसह शनी शांती होम"
-          : "Sri Kshetra Gokarna Mahabaleshwara Rudrabhisheka & Sacred Shani Shanti Pooja";
+            ? "श्री क्षेत्र गोकर्ण महाबलेश्वर महारुद्राभिषेक एवं तिल दीपार्चन सहित शनि शांति होम"
+            : lang === "te"
+              ? "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర మహారుద్రాభిషేకం మరియు నువ్వుల దీపారాధనతో శని శాంతి హోమం"
+              : lang === "ta"
+                ? "ஸ்ரீ க்ஷேத்ர கோகர்ணம் மகாபலேஸ்வரர் ருத்ராபிஷேகம் மற்றும் எள் தீபத்துடன் சனி சாந்தி ஹோமம்"
+                : lang === "ml"
+                  ? "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം മഹാബലേശ്വര മഹാരുദ്രാഭിഷേകവും എള്ളുതിരി സഹിതം ശനി ശാന്തി ഹോമവും"
+                  : lang === "mr"
+                    ? "श्री क्षेत्र गोकर्ण महाबळेश्वर महारुद्राभिषेक व तीळ दीपाराधनेसह शनी शांती होम"
+                    : "Sri Kshetra Gokarna Mahabaleshwara Rudrabhisheka & Sacred Shani Shanti Pooja";
 
       const cardData: ActiveDoshaCardData = {
         doshaId: "shani_gochara_impact",
@@ -3464,61 +3459,61 @@ export function detectRelevantQuestionDosha(
         lang === "kn"
           ? "ಸಂತಾನ ತಡೆ ಹಾಗೂ ಪಂಚಮ ಭಾವ ಕರ್ಮ ದೋಷ"
           : lang === "hi"
-          ? "संतान बाधा एवं पंचम भाव कर्म दोष"
-          : lang === "te"
-          ? "సంతాన అడ్డంకి మరియు పంచమ భావ దోషం"
-          : lang === "ta"
-          ? "சந்தான தடை மற்றும் 5ஆம் பாவ தோஷம்"
-          : lang === "ml"
-          ? "സന്താന തടസ്സവും പഞ്ചമ ഭാവ ദോഷവും"
-          : lang === "mr"
-          ? "संतान अडथळा व पंचम भाव दोष"
-          : "Santhana Obstacle & 5th House Progeny Constraint";
+            ? "संतान बाधा एवं पंचम भाव कर्म दोष"
+            : lang === "te"
+              ? "సంతాన అడ్డంకి మరియు పంచమ భావ దోషం"
+              : lang === "ta"
+                ? "சந்தான தடை மற்றும் 5ஆம் பாவ தோஷம்"
+                : lang === "ml"
+                  ? "സന്താന തടസ്സവും പഞ്ചമ ഭാവ ദോഷവും"
+                  : lang === "mr"
+                    ? "संतान अडथळा व पंचम भाव दोष"
+                    : "Santhana Obstacle & 5th House Progeny Constraint";
 
       const tWhy =
         lang === "kn"
           ? "ಜಾತಕದ ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನ, ಪಂಚಮಾಧಿಪತಿ ಗ್ರಹ ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಗತಿಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ಕಾಲದ ವಿಳಂಬ ಉಂಟಾಗುತ್ತಿದೆ."
           : lang === "hi"
-          ? "कुंडली के 5वें भाव (संतान भाव), पंचमेश एवं पुत्रकारक गुरु पर पापग्रहों के प्रभाव से संतान प्राप्ति में विलंब हो रहा है।"
-          : lang === "te"
-          ? "జాతకంలోని 5వ సంతాన స్థానం, పంచమాధిపతి మరియు పుత్రకారక గురువుపై పాపగ్రహ దృష్టి వల్ల సంతాన ప్రాప్తిలో తాత్కాలిక ఆలస్యం ఏర్పడుతోంది."
-          : lang === "ta"
-          ? "ஜாதகத்தின் 5-ஆம் புத்திர ஸ்தானம், 5-ஆம் அதிபதி மற்றும் புத்திரகாரக குருவின் மீது உள்ள கிரகப் பார்வையால் சந்தான பாக்கியத்தில் தாமதம் ஏற்படுகிறது."
-          : lang === "ml"
-          ? "ജാതകത്തിലെ 5-ാം പുത്രസ്ഥാനം, പഞ്ചമാധിപൻ, പുത്രകാരകനായ വ്യാഴം എന്നിവയിലെ ഗ്രഹസമ്മർദ്ദം മൂലമാണ് സന്താനലബ്ധിയിൽ കാലതാമസം നേരിടുന്നത്."
-          : lang === "mr"
-          ? "पत्रिकेतील ५ वे संतान स्थान, पंचमेश आणि पुत्रकारक गुरूवर अशुभ ग्रहांच्या दृष्टीमुळे संतान प्राप्तीमध्ये तात्पुरता विलंब होत आहे."
-          : "Testing planetary aspects upon the 5th House of progeny, its ruling lord, or Putrakaraka Jupiter (Guru) causing temporary delays in conception.";
+            ? "कुंडली के 5वें भाव (संतान भाव), पंचमेश एवं पुत्रकारक गुरु पर पापग्रहों के प्रभाव से संतान प्राप्ति में विलंब हो रहा है।"
+            : lang === "te"
+              ? "జాతకంలోని 5వ సంతాన స్థానం, పంచమాధిపతి మరియు పుత్రకారక గురువుపై పాపగ్రహ దృష్టి వల్ల సంతాన ప్రాప్తిలో తాత్కాలిక ఆలస్యం ఏర్పడుతోంది."
+              : lang === "ta"
+                ? "ஜாதகத்தின் 5-ஆம் புத்திர ஸ்தானம், 5-ஆம் அதிபதி மற்றும் புத்திரகாரக குருவின் மீது உள்ள கிரகப் பார்வையால் சந்தான பாக்கியத்தில் தாமதம் ஏற்படுகிறது."
+                : lang === "ml"
+                  ? "ജാതകത്തിലെ 5-ാം പുത്രസ്ഥാനം, പഞ്ചമാധിപൻ, പുത്രകാരകനായ വ്യാഴം എന്നിവയിലെ ഗ്രഹസമ്മർദ്ദം മൂലമാണ് സന്താനലബ്ധിയിൽ കാലതാമസം നേരിടുന്നത്."
+                  : lang === "mr"
+                    ? "पत्रिकेतील ५ वे संतान स्थान, पंचमेश आणि पुत्रकारक गुरूवर अशुभ ग्रहांच्या दृष्टीमुळे संतान प्राप्तीमध्ये तात्पुरता विलंब होत आहे."
+                    : "Testing planetary aspects upon the 5th House of progeny, its ruling lord, or Putrakaraka Jupiter (Guru) causing temporary delays in conception.";
 
       const clp =
         lang === "kn"
           ? "ವಿವಾಹವಾಗಿ ಹಲವು ಸಮಯ ಕಳೆದರೂ ಸಂತಾನ ಭಾಗ್ಯ ತಡವಾಗುವುದು, ವೈದ್ಯಕೀಯ ವರದಿಗಳು ಸಾಮಾನ್ಯವಾಗಿದ್ದರೂ ಫಲ ಸಿಗದಿರುವುದು ಮತ್ತು ತೀವ್ರ ಮಾನಸಿಕ ಚಿಂತೆ."
           : lang === "hi"
-          ? "विवाह के बाद भी संतान प्राप्ति में विलंब, मानसिक तनाव और परिवार में निराशा का वातावरण।"
-          : lang === "te"
-          ? "వైద్య నివేదికలు సాధారణంగా ఉన్నా సంతాన భాగ్యం ఆలస్యమవడం మరియు కుటుంబంలో మానసిక ఆందోళన."
-          : lang === "ta"
-          ? "மருத்துவ பரிசோதனைகள் நன்றாக இருந்தாலும் குழந்தை பாக்கியம் தாமதமாவதும் குடும்ப மனக்கவலையும்."
-          : lang === "ml"
-          ? "ചികിത്സാ ഫലങ്ങൾ സാധാരണമായിട്ടും സന്താനലബ്ധി വൈകുന്നതും മാനസിക വിഷമവും."
-          : lang === "mr"
-          ? "वैद्यकीय अहवाल सामान्य असूनही संतान प्राप्तीमध्ये विलंब आणि कौटुंबिक मानसिक चिंता."
-          : "Persistent delay in conception despite normal medical evaluations, creating deep emotional stress and family anxiety.";
+            ? "विवाह के बाद भी संतान प्राप्ति में विलंब, मानसिक तनाव और परिवार में निराशा का वातावरण।"
+            : lang === "te"
+              ? "వైద్య నివేదికలు సాధారణంగా ఉన్నా సంతాన భాగ్యం ఆలస్యమవడం మరియు కుటుంబంలో మానసిక ఆందోళన."
+              : lang === "ta"
+                ? "மருத்துவ பரிசோதனைகள் நன்றாக இருந்தாலும் குழந்தை பாக்கியம் தாமதமாவதும் குடும்ப மனக்கவலையும்."
+                : lang === "ml"
+                  ? "ചികിത്സാ ഫലങ്ങൾ സാധാരണമായിട്ടും സന്താനലബ്ധി വൈകുന്നതും മാനസിക വിഷമവും."
+                  : lang === "mr"
+                    ? "वैद्यकीय अहवाल सामान्य असूनही संतान प्राप्तीमध्ये विलंब आणि कौटुंबिक मानसिक चिंता."
+                    : "Persistent delay in conception despite normal medical evaluations, creating deep emotional stress and family anxiety.";
 
       const pooja =
         lang === "kn"
           ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಸಹಿತ ಮಹಾರುದ್ರಾಭಿಷೇಕ"
           : lang === "hi"
-          ? "श्री क्षेत्र गोकर्ण में संतान गोपाल महाहोम एवं नाग प्रतिष्ठा सहित महारुद्राभिषेक"
-          : lang === "te"
-          ? "శ్రీ క్షేత్ర గోకర్ణంలో సంతాన గోపాల మహాహోమం మరియు నాగ ప్రతిష్ఠ సహిత మహారుద్రాభిషేకం"
-          : lang === "ta"
-          ? "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் சந்தான கோபால மகா ஹோமம் மற்றும் நாக பிரதிஷ்டை ருத்ராபிஷேகம்"
-          : lang === "ml"
-          ? "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണത്തിൽ സന്താന ഗോപാല മഹാഹോമവും നാഗപ്രതിഷ്ഠാ മഹാരുദ്രാഭിഷേകവും"
-          : lang === "mr"
-          ? "श्री क्षेत्र गोकर्ण येथे संतान गोपाल महाहोम व नाग प्रतिष्ठेसह महारुद्राभिषेक"
-          : "Sri Kshetra Gokarna Santhana Gopala Maha Homa, Naga Pratishtha & Mahabaleshwara Rudrabhisheka";
+            ? "श्री क्षेत्र गोकर्ण में संतान गोपाल महाहोम एवं नाग प्रतिष्ठा सहित महारुद्राभिषेक"
+            : lang === "te"
+              ? "శ్రీ క్షేత్ర గోకర్ణంలో సంతాన గోపాల మహాహోమం మరియు నాగ ప్రతిష్ఠ సహిత మహారుద్రాభిషేకం"
+              : lang === "ta"
+                ? "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் சந்தான கோபால மகா ஹோமம் மற்றும் நாக பிரதிஷ்டை ருத்ராபிஷேகம்"
+                : lang === "ml"
+                  ? "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണത്തിൽ സന്താന ഗോപാല മഹാഹോമവും നാഗപ്രതിഷ്ഠാ മഹാരുദ്രാഭിഷേകവും"
+                  : lang === "mr"
+                    ? "श्री क्षेत्र गोकर्ण येथे संतान गोपाल महाहोम व नाग प्रतिष्ठेसह महारुद्राभिषेक"
+                    : "Sri Kshetra Gokarna Santhana Gopala Maha Homa, Naga Pratishtha & Mahabaleshwara Rudrabhisheka";
 
       const cardData: ActiveDoshaCardData = {
         doshaId: "santhana_dosha_gokarna",
@@ -3636,16 +3631,16 @@ export async function generateConsultationAnswer(params: {
     sLang === "kn"
       ? "ಶುಭ ದಶಾ ಕಾಲ"
       : sLang === "hi"
-      ? "शुभ दशा काल"
-      : sLang === "te"
-      ? "శుభ దశా కాలం"
-      : sLang === "ta"
-      ? "சுப தசா காலம்"
-      : sLang === "ml"
-      ? "ശുഭ ദശാ കാലം"
-      : sLang === "mr"
-      ? "शुभ दशा काळ"
-      : "Auspicious Dasha Period";
+        ? "शुभ दशा काल"
+        : sLang === "te"
+          ? "శుభ దశా కాలం"
+          : sLang === "ta"
+            ? "சுப தசா காலம்"
+            : sLang === "ml"
+              ? "ശുഭ ദശാ കാലം"
+              : sLang === "mr"
+                ? "शुभ दशा काळ"
+                : "Auspicious Dasha Period";
 
   // 0. Security & System Integrity Probe Interception (0 token cost, 0 leak risk)
   if (detectSecurityOrSystemProbe(userQuestion)) {
@@ -4017,7 +4012,7 @@ MANDATORY ASTROLOGICAL PROOF & MATHEMATICAL RATIONALE DIRECTIVE (DO NOT REPEAT P
   3) Gochara Guru–Shani Double-Transit (Dvishaktya) Proof: Live Jupiter (${timeline.guruTransitSignName}, House ${timeline.guruTransitHouseFromMoon} from Moon) and Saturn (${timeline.shaniTransitSignName}, House ${timeline.shaniTransitHouseFromMoon} from Moon) converge across ${timeline.calendarWindowText} to aspect your ${timeline.lagnaSignName} Lagna (Lord ${timeline.lagnaLordName}) and House ${timeline.bhavaNumber} axis.
 - Explain these 3 converging Vedic proofs clearly, step by step, without asking unrelated questions back!`
     : convIntel.isAskingTiming
-    ? `
+      ? `
 MANDATORY ASTROLOGICAL TIMELINE WINDOW (ACCURATE TIMING WITH 98% PROBABILITY):
 - The devotee is asking WHEN or what is the timeline for ${timeline.topicLabel} ("${userQuestion}").
 - You MUST provide a concrete, specific astrological timeline window based on:
@@ -4025,21 +4020,21 @@ MANDATORY ASTROLOGICAL TIMELINE WINDOW (ACCURATE TIMING WITH 98% PROBABILITY):
   2) Gochara Guru: Guru (${timeline.guruTransitSignName}, House ${timeline.guruTransitHouseFromMoon} from Moon) aligns with House ${timeline.bhavaNumber} (${timeline.bhavaSignName}, Lord ${timeline.bhavaLordName}) over ${timeline.calendarWindowText}.
   3) 98% Probability Auspicious Window: ${timeline.rangeSummary}.
 - State this EXACT calculated timeline range (${timeline.rangeSummary}) clearly and reassuringly in the reading!`
-    : isShadowPresence
-    ? `
+      : isShadowPresence
+        ? `
 MANDATORY SHADOW / UNSEEN PRESENCE ("SOMEONE ROAMING AROUND ME") VEDIC PROTOCOL:
 - The devotee is sensing an unseen presence / shadow roaming near them ("${userQuestion}").
 - Explain calmly through authentic Jyotisha with ZERO fear-mongering:
   1) Analyze Manas-Karaka Moon (${moonRashi}, ${nakshatra}) interacting with Chaya Graha Rahu (transiting House ${astroData.rahuTransitHouseFromMoon} from Moon) / Ketu, 8th/12th sleep-subconscious houses, and Maandi sensitivity.
   2) Clarify reassuringly that Rahu-Ketu are shadow nodes without physical bodies — sleep deprivation, mental fatigue, or deep stress amplifies peripheral shadows/sensations.
   3) Recommend soft night lighting, restful sleep/wellness care, and Sri Hanuman Chalisa / Shiva Panchakshari protection prayer. Never bounce unrelated questions back.`
-    : isDirectOpenChart
-    ? `
+        : isDirectOpenChart
+          ? `
 MANDATORY DIRECT CHART OVERVIEW PROTOCOL ("NEENU HELU / YOU TELL ME"):
 - The devotee asked open-endedly ("${userQuestion}") wanting you to read their horoscope directly.
 - Immediately analyze THIS native's real ${lagnaName} Lagna (Lord ${astroData.lagnaLord} in House ${astroData.lagnaLordHouse}), ${moonRashi} Rashi, ${nakshatra} Nakshatra, active ${currentDashaText} (changing in ${timeline.monthsToDashaChange} months), and 10th/7th/11th Bhavas.
 - STRICTLY DO NOT bounce unrelated questions back or ask "what else do you want to ask?" — directly deliver a complete, helpful chart overview.`
-    : "";
+          : "";
 
   let doshaSectionPrompt = "";
   if (convIntel.isAskingProof || isShadowPresence || isDirectOpenChart) {
@@ -4088,13 +4083,12 @@ CRITICAL PARAGRAPH STRUCTURE RULE (EXACTLY 4 PARAGRAPHS - MANDATORY):
 Since an active Dosha / Karmic influence is present that directly influences the devotee's question:
 You MUST provide EXACTLY 4 well-developed, comprehensive paragraphs.
 Each paragraph MUST contain at least 5 to 6 full lines of authentic, deep Vedic astrological analysis.
-${
-  isSubsequent
-    ? convIntel.isSameTopicFollowUp
-      ? `- Paragraph 1: Direct conversational follow-up on "${userQuestion}". Start naturally from where the previous answer left off using this opening bridge: "${convIntel.contextualBridge}". Acknowledge that the earlier identified factor caused the delay, and proceed directly into the planetary analysis for this question without repeating greetings or character traits.`
-      : `- Paragraph 1: Direct astrological answer addressing THIS NEW QUESTION ("${userQuestion}") based on the specific relevant Bhavas and planetary rulers. ZERO greetings ("ನಮಸ್ಕಾರ / Hello"). ZERO re-reading older questions. ZERO repeating Lagna, Tatva, Gana, or inborn character profiling. Jump STRAIGHT into the answer!`
-    : `- Paragraph 1: Direct astrological answer addressing the devotee's question based on Janma Lagna (${lagnaName}), Moon sign (${moonRashi}), and planetary placements. First connect warmly with fatherly care and mirror their inborn temperament.`
-}
+${isSubsequent
+        ? convIntel.isSameTopicFollowUp
+          ? `- Paragraph 1: Direct conversational follow-up on "${userQuestion}". Start naturally from where the previous answer left off using this opening bridge: "${convIntel.contextualBridge}". Acknowledge that the earlier identified factor caused the delay, and proceed directly into the planetary analysis for this question without repeating greetings or character traits.`
+          : `- Paragraph 1: Direct astrological answer addressing THIS NEW QUESTION ("${userQuestion}") based on the specific relevant Bhavas and planetary rulers. ZERO greetings ("ನಮಸ್ಕಾರ / Hello"). ZERO re-reading older questions. ZERO repeating Lagna, Tatva, Gana, or inborn character profiling. Jump STRAIGHT into the answer!`
+        : `- Paragraph 1: Direct astrological answer addressing the devotee's question based on Janma Lagna (${lagnaName}), Moon sign (${moonRashi}), and planetary placements. First connect warmly with fatherly care and mirror their inborn temperament.`
+      }
 - Paragraph 2: In-depth analysis of Bhavas relevant to this question (10th House Karma for career, 7th House for marriage, 5th House for progeny, 6th/8th House for health/hurdles), running Vimshottari Dasha-Bhukti (${currentDashaText}), and Gochara transits (Saturn: ${shaniTransitNature}, Jupiter: ${guruTransitNature}).
 - Paragraph 3: Future astrological trajectory, timeline of when hurdles will begin clearing, and practical life advice specifically for "${userQuestion}".${timingInstruction}
 - Paragraph 4 (DEDICATED DOSHA & GOKARNA PARIHARA CHAPTER):
@@ -4145,32 +4139,30 @@ CRITICAL MANDATORY INSTRUCTION: 100% EXCLUSIVE FOCUS ON THIS QUESTION
 ========================================================================
 - CURRENT QUESTION TO ANSWER RIGHT NOW: "${userQuestion}"
 - STRICT ANTI-TANGENT RULE: Answer ONLY this exact question without substituting a different topic and without asking unrelated counter-questions back at the end.
-${
-  isSubsequent
-    ? convIntel.isSameTopicFollowUp
-      ? `- THIS IS QUESTION #${qNum} (A DIRECT INTELLIGENT FOLLOW-UP ON: ${convIntel.currentTopic}).
+${isSubsequent
+      ? convIntel.isSameTopicFollowUp
+        ? `- THIS IS QUESTION #${qNum} (A DIRECT INTELLIGENT FOLLOW-UP ON: ${convIntel.currentTopic}).
 - CONVERSATIONAL INTELLIGENCE & CONTINUITY:
   * The devotee is continuing from the previous discussion where ${convIntel.referencedDoshaFromHistory ? convIntel.referencedDoshaFromHistory + " causing the delay" : "the situation"} was established.
   * DO NOT start from scratch! DO NOT re-explain or lecture again on what the dosha is, and DO NOT repeat introductory character traits.
   * START NATURALLY AND DIRECTLY FROM THAT POINT using this contextual bridge in Paragraph 1:
     "${convIntel.contextualBridge}"
   * Connect seamlessly: acknowledge that the delay was due to the identified factor, and now directly resolve their follow-up inquiry "${userQuestion}".`
-      : convIntel.isTopicSwitch
-      ? `- THIS IS QUESTION #${qNum} (SWITCHING TOPICS FROM ${convIntel.previousTopic} TO ${convIntel.currentTopic}).
+        : convIntel.isTopicSwitch
+          ? `- THIS IS QUESTION #${qNum} (SWITCHING TOPICS FROM ${convIntel.previousTopic} TO ${convIntel.currentTopic}).
 - CONVERSATIONAL TRANSITION:
   * Gracefully transition to the new topic using: "${convIntel.contextualBridge}".
   * Focus 100% of your analysis on this new topic: "${userQuestion}".
   * ZERO repeating Lagna, Tatva, Gana, Nakshatra, or inborn character description.`
-      : `- THIS IS QUESTION #${qNum} IN THE ONGOING CONSULTATION (A SUBSEQUENT QUESTION).
+          : `- THIS IS QUESTION #${qNum} IN THE ONGOING CONSULTATION (A SUBSEQUENT QUESTION).
 - MANDATORY INSTRUCTION 1: Focus 100% on this question: "${userQuestion}".
 - MANDATORY INSTRUCTION 2: ZERO repeating intros, greetings ("ನಮಸ್ಕಾರ / ಹಲೋ / Welcome"), or character profiling. Jump immediately into the astrological analysis!`
-    : `- THIS IS THE DEVOTEE'S FIRST QUESTION (QUESTION #1).
-${
-  complexityAnalysis.complexity === "QUICK_SPECIFIC"
-    ? `- Greet them in half a sentence and immediately state the direct answer (gemstone/color/number) in the first sentence!`
-    : `- Greet them with paternal warmth and briefly mirror their inborn temperament (Tatva: ${session.language === "kn" ? astroData.characterProfile.tatva : astroData.characterProfile.tatvaEn}, Gana: ${session.language === "kn" ? astroData.characterProfile.gana : astroData.characterProfile.ganaEn}) in Paragraph 1 before directly answering "${userQuestion}".`
-}`
-}
+      : `- THIS IS THE DEVOTEE'S FIRST QUESTION (QUESTION #1).
+${complexityAnalysis.complexity === "QUICK_SPECIFIC"
+        ? `- Greet them in half a sentence and immediately state the direct answer (gemstone/color/number) in the first sentence!`
+        : `- Greet them with paternal warmth and briefly mirror their inborn temperament (Tatva: ${session.language === "kn" ? astroData.characterProfile.tatva : astroData.characterProfile.tatvaEn}, Gana: ${session.language === "kn" ? astroData.characterProfile.gana : astroData.characterProfile.ganaEn}) in Paragraph 1 before directly answering "${userQuestion}".`
+      }`
+    }
 
 DEVOTEE BIRTH PROFILE & ASTROLOGICAL COORDINATES (COMPUTED ACCURATELY BY BAGGONA PANCHANGA):
 - Name: ${session.name}
@@ -4221,17 +4213,16 @@ AUTHENTIC GEMOLOGICAL & ASTROLOGICAL PROFILE FOR THIS DEVOTEE:
 - Lucky Colors: ${recProfile.luckyColors[session.language] || recProfile.luckyColors.kn} (Avoid: ${recProfile.colorsToAvoid[session.language] || recProfile.colorsToAvoid.kn})
 - Lucky Number: ${recProfile.primaryNumber}
 
-${
-  conversationHistory && conversationHistory.length > 0
-    ? `CRITICAL MULTI-TURN CONVERSATION CONTINUITY & PAST RULINGS:
+${conversationHistory && conversationHistory.length > 0
+      ? `CRITICAL MULTI-TURN CONVERSATION CONTINUITY & PAST RULINGS:
 The devotee is in an ongoing 20-minute conversation. Review all past turns:
 ${conversationHistory.map((t, idx) => `[Turn ${idx + 1} - ${t.role === "user" ? "Devotee" : "Master Astrologer"}]: ${t.text}`).join("\n\n")}
 
 MANDATORY RULES ON PAST RULINGS:
 - If in Turn 1 or earlier you advised against, warned against, or rejected a specific option (e.g. permanent settlement abroad, speculative debt-laden property, or White Coral instead of Diamond), you MUST NOT suggest or approve that same rejected option in this turn!
 - Maintain 100% strict consistency with your earlier statements across ALL life domains. Never contradict yourself!`
-    : ""
-}
+      : ""
+    }
 
 DEVOTEE WORDS / QUESTION:
 "${userQuestion}"
@@ -4250,12 +4241,11 @@ SACRED BEHAVIORAL PROTOCOL (THE 100+ YEAR LINEAGE GOKARNA MASTER ASTROLOGER - "D
      * The devotee should feel holy reverence, paternal affection, and complete confidence in their path ahead.
 
 2. NATIVE'S INBORN CHARACTERISTIC & TEMPERAMENT MIRRORING (ಕನ್ನಡಿಯಂತಹ ಜನ್ಮ ಸ್ವಭಾವ):
-${
-  isSubsequent
-    ? `   - STRICT PROHIBITION: Since this is question #${qNum}, DO NOT repeat the inborn character profiling or Tatva/Gana basics. Go straight into the specific Bhavas and planetary rulers governing "${userQuestion}".`
-    : `   - In Paragraph 1, dynamically reflect the native's true inborn character and temperament based on their Lagna Tatva (${session.language === "kn" ? astroData.characterProfile.tatva : astroData.characterProfile.tatvaEn}) and Nakshatra Gana (${session.language === "kn" ? astroData.characterProfile.gana : astroData.characterProfile.ganaEn}).
+${isSubsequent
+      ? `   - STRICT PROHIBITION: Since this is question #${qNum}, DO NOT repeat the inborn character profiling or Tatva/Gana basics. Go straight into the specific Bhavas and planetary rulers governing "${userQuestion}".`
+      : `   - In Paragraph 1, dynamically reflect the native's true inborn character and temperament based on their Lagna Tatva (${session.language === "kn" ? astroData.characterProfile.tatva : astroData.characterProfile.tatvaEn}) and Nakshatra Gana (${session.language === "kn" ? astroData.characterProfile.gana : astroData.characterProfile.ganaEn}).
    - The native must immediately sense that you are describing their exact inner soul and thought patterns ("ಕನ್ನಡಿಯಂತಹ ನಿಖರ ಸ್ವಭಾವ"), making them feel deeply understood and completely hooked.`
-}
+    }
 
 3. MINOR CHILD / PARENT INQUIRY PROTOCOL (STRICT MANDATORY RULE):
 ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD (${Math.floor(ageYears)} years old, e.g. 12-year-old child)!
@@ -4315,10 +4305,10 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
     apiKey !== undefined
       ? apiKey
       : useAppStore.getState?.()?.geminiApiKey ||
-        (typeof import.meta !== "undefined"
-          ? (import.meta as any).env?.VITE_GEMINI_API_KEY
-          : "") ||
-        ""
+      (typeof import.meta !== "undefined"
+        ? (import.meta as any).env?.VITE_GEMINI_API_KEY
+        : "") ||
+      ""
   ).trim();
 
   if (!effectiveApiKey) {
@@ -4444,8 +4434,8 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
   // into Paragraph 1 so direct verdict / front-loaded answer is always in paragraphs[0]
   const finalParagraphs =
     splitFinal.length >= 2 &&
-    splitFinal[0].startsWith("॥") &&
-    splitFinal[0].length <= 80
+      splitFinal[0].startsWith("॥") &&
+      splitFinal[0].length <= 80
       ? [`${splitFinal[0]}\n\n${splitFinal[1]}`, ...splitFinal.slice(2)]
       : splitFinal;
 
@@ -4569,7 +4559,9 @@ function generateDeterministicFallbackReading(
 
   const isCurrentQuestionDebtKanglish =
     !astroData?.isMinorChild &&
-    /ಸಾಲ|ಋಣ|\bsala\b|sala\s*bad|saala|debt|loan|emi|कर्ज|ऋण|రుణ|అప్పు|கடன்|കട|कर्जमुक्ती/i.test(q);
+    /ಸಾಲ|ಋಣ|\bsala\b|sala\s*bad|saala|debt|loan|emi|कर्ज|ऋण|రుణ|అప్పు|கடன்|കട|कर्जमुक्ती/i.test(
+      q
+    );
   const isCurrentQuestionMarriageKanglish =
     !astroData?.isMinorChild &&
     /\bmaduve\b|\bkalyana\b/i.test(q);
@@ -4670,7 +4662,7 @@ function generateDeterministicFallbackReading(
     );
   }
 
-  if (effectiveDomainEarly === "HEALTH_LONGEVITY") {
+  if (complexityAnalysis.domain === "HEALTH_LONGEVITY") {
     return buildDeterministicHealthReading(
       session,
       question,
@@ -4770,11 +4762,11 @@ function generateDeterministicFallbackReading(
   };
   const timeline = astroData?.kundli
     ? calculateAstrologicalTimeline(
-        astroData.kundli,
-        astroData.ageYears,
-        effectiveTopic,
-        session.language
-      )
+      astroData.kundli,
+      astroData.ageYears,
+      effectiveTopic,
+      session.language
+    )
     : undefined;
 
   const isGreeting =
