@@ -433,14 +433,14 @@ export function analyzeDailyLunarStability(
 
   const tieBreakerPrompt = hasMoonShift
     ? pick7({
-        kn: `ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕದಂದು ಚಂದ್ರನು ಸುಮಾರು ${transitionApproxHour} ಕ್ಕೆ ರಾಶಿ/ನಕ್ಷತ್ರ ಬದಲಾಯಿಸಿದ್ದಾನೆ. ೧೦೦% ನಿಖರ ಫಲಿತಾಂಶಕ್ಕಾಗಿ ನಿಮ್ಮ ಸ್ವಭಾವ ಅಥವಾ ಅಂದಾಜು ಸಮಯ ಆರಿಸಿ:`,
-        en: `The Moon shifted Nakshatra/Sign around ${transitionApproxHour} on your birth date. Select which matches better for 100% accuracy:`,
-        hi: `आपकी जन्म तिथि को चंद्रमा ने लगभग ${transitionApproxHour} बजे राशि/नक्षत्र बदला। १००% सटीक फल हेतु सही विकल्प चुनें:`,
-        mr: `तुमच्या जन्मदिनी चंद्राने सुमारे ${transitionApproxHour} वाजता राशी/नक्षत्र बदलले. १००% अचूक फलासाठी योग्य पर्याय निवडा:`,
-        te: `మీ పుట్టిన తేదీన చంద్రుడు సుమారు ${transitionApproxHour} గంటలకు రాశి/నక్షత్రం మారాడు. 100% ఖచ్చితత్వం కోసం సరిపోయేదాన్ని ఎంచుకోండి:`,
-        ta: `உங்கள் பிறந்த தேதியில் சந்திரன் சுமார் ${transitionApproxHour} மணிக்கு மாறியுள்ளது. 100% துல்லியத்திற்குப் பொருத்தமானதைத் தேர்ந்தெடுக்கவும்:`,
-        ml: `നിങ്ങളുടെ ജനന തീയതിയിൽ ഏകദേശം ${transitionApproxHour}-ന് ചന്ദ്രൻ രാശി/നക്ഷത്രം മാറിയിട്ടുണ്ട്. 100% കൃത്യതയ്ക്കായി ഉചിതമായത് തിരഞ്ഞെടുക്കുക:`
-      }, lang)
+      kn: `ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕದಂದು ಚಂದ್ರನು ಸುಮಾರು ${transitionApproxHour} ಕ್ಕೆ ರಾಶಿ/ನಕ್ಷತ್ರ ಬದಲಾಯಿಸಿದ್ದಾನೆ. ೧೦೦% ನಿಖರ ಫಲಿತಾಂಶಕ್ಕಾಗಿ ನಿಮ್ಮ ಸ್ವಭಾವ ಅಥವಾ ಅಂದಾಜು ಸಮಯ ಆರಿಸಿ:`,
+      en: `The Moon shifted Nakshatra/Sign around ${transitionApproxHour} on your birth date. Select which matches better for 100% accuracy:`,
+      hi: `आपकी जन्म तिथि को चंद्रमा ने लगभग ${transitionApproxHour} बजे राशि/नक्षत्र बदला। १००% सटीक फल हेतु सही विकल्प चुनें:`,
+      mr: `तुमच्या जन्मदिनी चंद्राने सुमारे ${transitionApproxHour} वाजता राशी/नक्षत्र बदलले. १००% अचूक फलासाठी योग्य पर्याय निवडा:`,
+      te: `మీ పుట్టిన తేదీన చంద్రుడు సుమారు ${transitionApproxHour} గంటలకు రాశి/నక్షత్రం మారాడు. 100% ఖచ్చితత్వం కోసం సరిపోయేదాన్ని ఎంచుకోండి:`,
+      ta: `உங்கள் பிறந்த தேதியில் சந்திரன் சுமார் ${transitionApproxHour} மணிக்கு மாறியுள்ளது. 100% துல்லியத்திற்குப் பொருத்தமானதைத் தேர்ந்தெடுக்கவும்:`,
+      ml: `നിങ്ങളുടെ ജനന തീയതിയിൽ ഏകദേശം ${transitionApproxHour}-ന് ചന്ദ്രൻ രാശി/നക്ഷത്രം മാറിയിട്ടുണ്ട്. 100% കൃത്യതയ്ക്കായി ഉചിതമായത് തിരഞ്ഞെടുക്കുക:`
+    }, lang)
     : "";
 
   return {
@@ -463,37 +463,37 @@ const TATTVA_LABELS_7L: Array<{
   maleFriendly: boolean;
   labels: Record<SevenLang, string>;
 }> = [
-  {
-    key: "prithvi",
-    mins: 6,
-    maleFriendly: true,
-    labels: { kn: "ಪೃಥ್ವಿ ತತ್ತ್ವ (ಭೂಮಿ)", en: "Prithvi Tattva (Earth)", hi: "पृथ्वी तत्त्व", mr: "पृथ्वी तत्त्व", te: "పృథ్వీ తత్త్వం", ta: "பிருத்வி தத்துவம்", ml: "പൃഥ്വി തത്ത്വം" }
-  },
-  {
-    key: "jala",
-    mins: 12,
-    maleFriendly: false,
-    labels: { kn: "ಜಲ ತತ್ತ್ವ (ನೀರು)", en: "Jala Tattva (Water)", hi: "जल तत्त्व", mr: "जल तत्त्व", te: "జల తత్త్వం", ta: "ஜல தத்துவம்", ml: "ജല തത്ത്വം" }
-  },
-  {
-    key: "agni",
-    mins: 18,
-    maleFriendly: true,
-    labels: { kn: "ಅಗ್ನಿ ತತ್ತ್ವ (ತೇಜಸ್ಸು)", en: "Agni Tattva (Fire)", hi: "अग्नि तत्त्व", mr: "अग्नि तत्त्व", te: "అగ్ని తత్త్వం", ta: "அக்னி தத்துவம்", ml: "അഗ്നി തത്ത്വം" }
-  },
-  {
-    key: "vayu",
-    mins: 24,
-    maleFriendly: false,
-    labels: { kn: "ವಾಯು ತತ್ತ್ವ (ಗಾಳಿ)", en: "Vayu Tattva (Air)", hi: "वायु तत्त्व", mr: "वायव्य तत्त्व", te: "వాయు తత్త్వం", ta: "வாயு தத்துவம்", ml: "വായു തത്ത്വം" }
-  },
-  {
-    key: "akasha",
-    mins: 30,
-    maleFriendly: true,
-    labels: { kn: "ಆಕಾಶ ತತ್ತ್ವ (ಚೇತನ)", en: "Akasha Tattva (Ether)", hi: "आकाश तत्त्व", mr: "आकाश तत्त्व", te: "ఆకాశ తత్త్వం", ta: "ஆகாச தத்துவம்", ml: "ஆകാശ തത്ത്വം" }
-  }
-];
+    {
+      key: "prithvi",
+      mins: 6,
+      maleFriendly: true,
+      labels: { kn: "ಪೃಥ್ವಿ ತತ್ತ್ವ (ಭೂಮಿ)", en: "Prithvi Tattva (Earth)", hi: "पृथ्वी तत्त्व", mr: "पृथ्वी तत्त्व", te: "పృథ్వీ తత్త్వం", ta: "பிருத்வி தத்துவம்", ml: "പൃഥ്വി തത്ത്വം" }
+    },
+    {
+      key: "jala",
+      mins: 12,
+      maleFriendly: false,
+      labels: { kn: "ಜಲ ತತ್ತ್ವ (ನೀರು)", en: "Jala Tattva (Water)", hi: "जल तत्त्व", mr: "जल तत्त्व", te: "జల తత్త్వం", ta: "ஜல தத்துவம்", ml: "ജല തത്ത്വം" }
+    },
+    {
+      key: "agni",
+      mins: 18,
+      maleFriendly: true,
+      labels: { kn: "ಅಗ್ನಿ ತತ್ತ್ವ (ತೇಜಸ್ಸು)", en: "Agni Tattva (Fire)", hi: "अग्नि तत्त्व", mr: "अग्नि तत्त्व", te: "అగ్ని తత్త్వం", ta: "அக்னி தத்துவம்", ml: "അഗ്നി തത്ത്വം" }
+    },
+    {
+      key: "vayu",
+      mins: 24,
+      maleFriendly: false,
+      labels: { kn: "ವಾಯು ತತ್ತ್ವ (ಗಾಳಿ)", en: "Vayu Tattva (Air)", hi: "वायु तत्त्व", mr: "वायव्य तत्त्व", te: "వాయు తత్త్వం", ta: "வாயு தத்துவம்", ml: "വായു തത്ത്വം" }
+    },
+    {
+      key: "akasha",
+      mins: 30,
+      maleFriendly: true,
+      labels: { kn: "ಆಕಾಶ ತತ್ತ್ವ (ಚೇತನ)", en: "Akasha Tattva (Ether)", hi: "आकाश तत्त्व", mr: "आकाश तत्त्व", te: "ఆకాశ తత్త్వం", ta: "ஆகாச தத்துவம்", ml: "ஆകാശ തത്ത്വം" }
+    }
+  ];
 
 function computeBtrPranapadaTattvaKundaMetrics(
   timeStr: string,
@@ -1071,16 +1071,16 @@ export function computeDeepPrashnaHoraryReading(params: {
   const timingForecast =
     ithasalaType === "direct_sambandha"
       ? pick7({
-          kn: "೩ ರಿಂದ ೧೪ ದಿನಗಳಲ್ಲಿ ಸ್ಪಷ್ಟ ಫಲಿತಾಂಶದ ಚಲನೆ",
-          en: "Clear forward breakthrough inside 3 to 14 days",
-          hi: "३ से १४ दिनों के भीतर सकारात्मक प्रगति",
-          mr: "३ ते १४ दिवसांत सकारात्मक हालचाल",
-          te: "3 నుండి 14 రోజుల్లో స్పష్టమైన శుభ ఫలితం",
-          ta: "3 முதல் 14 நாட்களில் தெளிவான முன்னேற்றம்",
-          ml: "3 മുതൽ 14 ദിവസത്തിനകം ശുഭകരമായ പുരോഗതി"
-        }, lang)
+        kn: "೩ ರಿಂದ ೧೪ ದಿನಗಳಲ್ಲಿ ಸ್ಪಷ್ಟ ಫಲಿತಾಂಶದ ಚಲನೆ",
+        en: "Clear forward breakthrough inside 3 to 14 days",
+        hi: "३ से १४ दिनों के भीतर सकारात्मक प्रगति",
+        mr: "३ ते १४ दिवसांत सकारात्मक हालचाल",
+        te: "3 నుండి 14 రోజుల్లో స్పష్టమైన శుభ ఫలితం",
+        ta: "3 முதல் 14 நாட்களில் தெளிவான முன்னேற்றம்",
+        ml: "3 മുതൽ 14 ദിവസത്തിനകം ശുഭകരമായ പുരോഗതി"
+      }, lang)
       : ithasalaType === "supportive_trine"
-      ? pick7({
+        ? pick7({
           kn: "೩ ರಿಂದ ೮ ವಾರಗಳಲ್ಲಿ ಸಹಕಾರಿ ಫಲ ಹಾಗೂ ಪ್ರಗತಿ",
           en: "Steady auspicious alignment building over 3 to 8 weeks",
           hi: "३ से ८ सप्ताह के भीतर उत्तम सहयोग एवं सफलता",
@@ -1089,39 +1089,39 @@ export function computeDeepPrashnaHoraryReading(params: {
           ta: "3 முதல் 8 வாரங்களில் நற்பலன் சேரும்",
           ml: "3 മുതൽ 8 ആഴ്ചകൾക്കുള്ളിൽ അനുകൂല ഫലം"
         }, lang)
-      : ithasalaType === "patient_effort"
-      ? pick7({
-          kn: "೨ ರಿಂದ ೪ ತಿಂಗಳಲ್ಲಿ ತಾಳ್ಮೆಯ ಪ್ರಯತ್ನದಿಂದ ಯಶಸ್ಸು",
-          en: "Success materializing in 2 to 4 months through structured patience",
-          hi: "२ से ४ महीनों में धैर्यपूर्ण प्रयास से सिद्धि",
-          mr: "२ ते ४ महिन्यांत संयमी प्रयत्नातून यश",
-          te: "2 నుండి 4 నెలల్లో సహనంతో విజయం",
-          ta: "2 முதல் 4 மாதங்களில் பொறுமையான முயற்சியால் வெற்றி",
-          ml: "2 മുതൽ 4 മാസത്തിനുള്ളിൽ സ്ഥിരപരിശ്രമത്തിലൂടെ വിജയം"
-        }, lang)
-      : pick7({
-          kn: "ತಕ್ಷಣದ ಅವಸರ ಬೇಡ — ಪರಿಹಾರದ ನಂತರ ೩–೬ ತಿಂಗಳಲ್ಲಿ ಮಾರ್ಗ ಸುಗಮ",
-          en: "Defer hasty leaps now; clarity & smoother opening arrives after 3–6 months",
-          hi: "अभी जल्दबाजी न करें; उपाय एवं धैर्य से ३–६ माह में मार्ग खुलेगा",
-          mr: "आता घाई टाळा; ३–६ महिन्यांत योग्य संधी मिळेल",
-          te: "తొందరపాటు వద్దు; 3–6 నెలల్లో శుభ మార్గం తెరుచుకుంటుంది",
-          ta: "அவசரப்பட வேண்டாம்; 3–6 மாதங்களில் தடைகள் நீங்கும்",
-          ml: "ഇപ്പോൾ തിടുക്കപ്പെടരുത്; 3–6 മാസത്തിനകം ശരിയായ വഴി തെളിയും"
-        }, lang);
+        : ithasalaType === "patient_effort"
+          ? pick7({
+            kn: "೨ ರಿಂದ ೪ ತಿಂಗಳಲ್ಲಿ ತಾಳ್ಮೆಯ ಪ್ರಯತ್ನದಿಂದ ಯಶಸ್ಸು",
+            en: "Success materializing in 2 to 4 months through structured patience",
+            hi: "२ से ४ महीनों में धैर्यपूर्ण प्रयास से सिद्धि",
+            mr: "२ ते ४ महिन्यांत संयमी प्रयत्नातून यश",
+            te: "2 నుండి 4 నెలల్లో సహనంతో విజయం",
+            ta: "2 முதல் 4 மாதங்களில் பொறுமையான முயற்சியால் வெற்றி",
+            ml: "2 മുതൽ 4 മാസത്തിനുള്ളിൽ സ്ഥിരപരിശ്രമത്തിലൂടെ വിജയം"
+          }, lang)
+          : pick7({
+            kn: "ತಕ್ಷಣದ ಅವಸರ ಬೇಡ — ಪರಿಹಾರದ ನಂತರ ೩–೬ ತಿಂಗಳಲ್ಲಿ ಮಾರ್ಗ ಸುಗಮ",
+            en: "Defer hasty leaps now; clarity & smoother opening arrives after 3–6 months",
+            hi: "अभी जल्दबाजी न करें; उपाय एवं धैर्य से ३–६ माह में मार्ग खुलेगा",
+            mr: "आता घाई टाळा; ३–६ महिन्यांत योग्य संधी मिळेल",
+            te: "తొందరపాటు వద్దు; 3–6 నెలల్లో శుభ మార్గం తెరుచుకుంటుంది",
+            ta: "அவசரப்பட வேண்டாம்; 3–6 மாதங்களில் தடைகள் நீங்கும்",
+            ml: "ഇപ്പോൾ തിടുക്കപ്പെടരുത്; 3–6 മാസത്തിനകം ശരിയായ വഴി തെളിയും"
+          }, lang);
 
   const verdictTitle =
     score >= 78
       ? pick7({
-          kn: "ಶುಭ ಪ್ರಶ್ನ ಯೋಗ — ಹೌದು, ಮುನ್ನಡೆಯಲು ಸಕಾಲ",
-          en: "Strong Yes / Supportive Prashna Yoga",
-          hi: "उत्तम प्रश्न योग — आगे बढ़ने का शुभ समय",
-          mr: "शुभ प्रश्न योग — होय, पुढे जाण्याची उत्तम वेळ",
-          te: "శుభ ప్రశ్న యోగం — ముందుకు సాగడానికి మంచి సమయం",
-          ta: "சுப பிரசன்ன யோகம் — ஆம், முன்னேறச் சரியான நேரம்",
-          ml: "ശുഭ പ്രശ്ന യോഗം — മുന്നോട്ടു പോകാൻ അനുകൂല സമയം"
-        }, lang)
+        kn: "ಶುಭ ಪ್ರಶ್ನ ಯೋಗ — ಹೌದು, ಮುನ್ನಡೆಯಲು ಸಕಾಲ",
+        en: "Strong Yes / Supportive Prashna Yoga",
+        hi: "उत्तम प्रश्न योग — आगे बढ़ने का शुभ समय",
+        mr: "शुभ प्रश्न योग — होय, पुढे जाण्याची उत्तम वेळ",
+        te: "శుభ ప్రశ్న యోగం — ముందుకు సాగడానికి మంచి సమయం",
+        ta: "சுப பிரசன்ன யோகம் — ஆம், முன்னேறச் சரியான நேரம்",
+        ml: "ശുഭ പ്രശ്ന യോഗം — മുന്നോട്ടു പോകാൻ അനുകൂല സമയം"
+      }, lang)
       : score >= 60
-      ? pick7({
+        ? pick7({
           kn: "ಮಧ್ಯಮ ಶುಭ — ವ್ಯವಸ್ಥಿತ ಯೋಜನೆಯಿಂದ ಕಾರ್ಯ ಸಿದ್ಧಿ",
           en: "Balanced / Effort-Backed Fulfillment",
           hi: "संतुलित योग — सही योजना से कार्यसिद्धि",
@@ -1130,7 +1130,7 @@ export function computeDeepPrashnaHoraryReading(params: {
           ta: "மிதமான சுபம் — திட்டமிட்ட முயற்சியால் வெற்றி",
           ml: "സന്തുലിത യോഗം — കൃത്യമായ ആസൂത്രണത്തിലൂടെ വിജയം"
         }, lang)
-      : pick7({
+        : pick7({
           kn: "ತಾಳ್ಮೆ & ಎಚ್ಚರಿಕೆಯ ಸೂಚನೆ — ಪರಿಶೀಲಿಸಿ ಹೆಜ್ಜೆ ಇಡಿ",
           en: "Cautionary Signal — Wait, Verify & Strengthen Ground",
           hi: "सावधानी का संकेत — ठहरकर विचार करें",
@@ -1220,18 +1220,18 @@ export async function generateExpressWalkInAiNarrative(params: {
     prashna.verdictSummary,
     `${prashna.domainGuidance.family} ${prashna.domainGuidance.money}`,
     `${prashna.domainGuidance.health} ${prashna.domainGuidance.profession}` +
-      (sankhya
-        ? " " +
-          pick7({
-            kn: `ನಿಮ್ಮ ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಚಾಲ್ಡಿಯನ್ ಸಂಖ್ಯೆ ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} (ಮೂಲಾಂಕ ${toNativeDigits7L(sankhya.mulank, lang)}) ಆಗಿದ್ದು, ಶುಭ ಬಣ್ಣ ${sankhya.luckyColor} ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಿಗೆ ಸ್ಥಿರತೆ ನೀಡುತ್ತದೆ.`,
-            en: `Chaldean Name Vibration aligns at ${sankhya.chaldeanCompound} (Root ${sankhya.chaldeanSingle}), supported by ${sankhya.luckyColor} and auspicious numbers ${sankhya.luckyNumbers.join(", ")}.`,
-            hi: `आपके नाम का चाल्डियन अंक ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} है और शुभ रंग ${sankhya.luckyColor} आपके प्रयासों में स्थिरता लाता है।`,
-            mr: `तुमच्या नावाची चाल्डियन संख्या ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} असून शुभ रंग ${sankhya.luckyColor} तुमचा आत्मविश्वास वाढवतो.`,
-            te: `మీ నామ సంఖ్యాబలం ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} మరియు శుభ వర్ణం ${sankhya.luckyColor} మీ పనులకు బలం చేకూరుస్తుంది.`,
-            ta: `உங்கள் பெயரின் எண் அதிர்வு ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} மற்றும் அதிர்ஷ்ட நிறம் ${sankhya.luckyColor} வெற்றியைத் தரும்.`,
-            ml: `നിങ്ങളുടെ പേരിന്റെ ചാൽഡിയൻ സംഖ്യ ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} ഉം ശുഭനിറം ${sankhya.luckyColor}-ഉം പ്രവർത്തനങ്ങൾക്ക് ഉറപ്പ് നൽകുന്നു.`
-          }, lang)
-        : ""),
+    (sankhya
+      ? " " +
+      pick7({
+        kn: `ನಿಮ್ಮ ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಚಾಲ್ಡಿಯನ್ ಸಂಖ್ಯೆ ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} (ಮೂಲಾಂಕ ${toNativeDigits7L(sankhya.mulank, lang)}) ಆಗಿದ್ದು, ಶುಭ ಬಣ್ಣ ${sankhya.luckyColor} ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಿಗೆ ಸ್ಥಿರತೆ ನೀಡುತ್ತದೆ.`,
+        en: `Chaldean Name Vibration aligns at ${sankhya.chaldeanCompound} (Root ${sankhya.chaldeanSingle}), supported by ${sankhya.luckyColor} and auspicious numbers ${sankhya.luckyNumbers.join(", ")}.`,
+        hi: `आपके नाम का चाल्डियन अंक ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} है और शुभ रंग ${sankhya.luckyColor} आपके प्रयासों में स्थिरता लाता है।`,
+        mr: `तुमच्या नावाची चाल्डियन संख्या ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} असून शुभ रंग ${sankhya.luckyColor} तुमचा आत्मविश्वास वाढवतो.`,
+        te: `మీ నామ సంఖ్యాబలం ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} మరియు శుభ వర్ణం ${sankhya.luckyColor} మీ పనులకు బలం చేకూరుస్తుంది.`,
+        ta: `உங்கள் பெயரின் எண் அதிர்வு ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} மற்றும் அதிர்ஷ்ட நிறம் ${sankhya.luckyColor} வெற்றியைத் தரும்.`,
+        ml: `നിങ്ങളുടെ പേരിന്റെ ചാൽഡിയൻ സംഖ്യ ${toNativeDigits7L(sankhya.chaldeanCompound, lang)} ഉം ശുഭനിറം ${sankhya.luckyColor}-ഉം പ്രവർത്തനങ്ങൾക്ക് ഉറപ്പ് നൽകുന്നു.`
+      }, lang)
+      : ""),
     prashna.remedialAction
   ];
 

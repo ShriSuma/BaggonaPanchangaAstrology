@@ -517,4 +517,76 @@ describe("Hotel QR Unknown-Time, BTR, Prashna & Express ₹149 Verification", ()
     expect(pageSrc).toContain("paidByServiceMode");
     expect(pageSrc).toContain("checkHotelFreePreviewQuota");
   });
+
+  it("blocks repeat free generation for the same person and same details even across different IPs/devices, and removes upfront prices from menu bar & pre-download UI", async () => {
+    clearTestHotelQuotaMemory();
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem("baggona_hotel_qr_free_claimed_v1");
+      window.localStorage.removeItem("baggona_hotel_qr_free_sigs_v1");
+      window.localStorage.removeItem("baggona_hotel_device_fp_v1");
+    }
+
+    const personSignature = {
+      serviceMode: "kundli",
+      guestName: "Srinivas Rao",
+      birthDate: "1991-06-14",
+      birthTime: "08:30",
+      timePrecision: "exact",
+      placeName: "Hyderabad",
+      gender: "male"
+    };
+
+    const firstAttempt = await checkHotelFreePreviewQuota({
+      isPaymentVerified: false,
+      overrideIp: "198.51.100.10",
+      overrideDeviceId: "dev_srinivas_1",
+      personSignature
+    });
+    expect(firstAttempt.allowed).toBe(true);
+
+    await markHotelFreePreviewConsumed({
+      ip: "198.51.100.10",
+      deviceId: "dev_srinivas_1",
+      serviceUsed: "kundli",
+      hotelName: "Pandit Palette",
+      tableNumber: "3",
+      guestName: "Srinivas Rao",
+      personSignature
+    });
+
+    // Different IP & different device + cleared localStorage, but SAME person/details -> BLOCKED!
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem("baggona_hotel_qr_free_claimed_v1");
+    }
+    const repeatSamePerson = await checkHotelFreePreviewQuota({
+      isPaymentVerified: false,
+      overrideIp: "203.0.113.88",
+      overrideDeviceId: "dev_srinivas_other_phone",
+      personSignature: { ...personSignature, birthTime: "09:00" }
+    });
+    expect(repeatSamePerson.allowed).toBe(false);
+    expect(repeatSamePerson.reason).toBe("same_person_or_details");
+
+    // Paid download/regeneration for the same person -> STILL ALLOWED!
+    const paidSamePerson = await checkHotelFreePreviewQuota({
+      isPaymentVerified: true,
+      overrideIp: "203.0.113.88",
+      overrideDeviceId: "dev_srinivas_other_phone",
+      personSignature
+    });
+    expect(paidSamePerson.allowed).toBe(true);
+
+    // UI menu bar & pre-download teaser check: ZERO ₹ prices shown in menu bar or pre-download CTAs
+    const pageSrc = fs.readFileSync(
+      path.resolve(process.cwd(), "src/pages/AntarangadaSatyaPage.tsx"),
+      "utf-8"
+    );
+    expect(pageSrc).not.toContain("price: `₹${HOTEL_PALM_PRICE_INR}`");
+    expect(pageSrc).not.toContain("price: `₹${HOTEL_FACE_PRICE_INR}`");
+    expect(pageSrc).not.toContain("price: `₹${HOTEL_PRASHNA_PRICE_INR}`");
+    expect(pageSrc).not.toContain("price: `₹${HOTEL_PDF_PRICE_INR}`");
+    expect(pageSrc).toContain("Download Complete Separate PDF Report");
+    expect(pageSrc).toContain("ఉచితం");
+    expect(pageSrc).toContain("இலவசம்");
+  });
 });

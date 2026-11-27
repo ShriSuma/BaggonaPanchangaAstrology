@@ -122,7 +122,9 @@ import { CityAutocompleteInput } from "../components/common/CityAutocompleteInpu
 import {
   checkHotelFreePreviewQuota,
   markHotelFreePreviewConsumed,
-  getFreeQuotaExhaustedMessage
+  getFreeQuotaExhaustedMessage,
+  buildPhotoDigestForQuota,
+  type HotelPersonSignatureInput
 } from "../features/hotelSecret/hotelFreeQuotaGuard";
 
 // 7-Language Popular Dining Cities
@@ -523,8 +525,8 @@ export const ANTARANGA_UI_STRINGS: Record<
 
     // Dining Special Offer Card
     dinerSpecialBadge: "ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್ ವಿಶೇಷ ಅತಿಥಿ ಸೌಲಭ್ಯ",
-    dinerSpecialDiscountNotice: "🍽️ ಹೋಟೆಲ್ ಮೇಜಿನ ವಿಶೇಷ ರಿಯಾಯಿತಿ: ನೀವು ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್‌ನಲ್ಲಿ ಊಟ ಮಾಡುತ್ತಿರುವ ಈ ಸಮಯದಲ್ಲಿ ಮಾತ್ರ ₹೩೫೦ ಕ್ಕೆ ಅನ್‌ಲಾಕ್ ಲಭ್ಯವಿದೆ. (ಸಾಮಾನ್ಯ ಶುಲ್ಕ: ₹೧,೫೦೦ - ೭೭% ರಿಯಾಯಿತಿ)",
-    unlockFiveYearCtaBtn: "🔓 ಕೇವಲ ₹೩೫೦ ನೀಡಿ ಪೂರ್ಣ ೫-ವರ್ಷಗಳ ಮಹಾ ದಸ್ತಾವೇಜು ಅನ್‌ಲಾಕ್ ಮಾಡಿ",
+    dinerSpecialDiscountNotice: "🍽️ ಹೋಟೆಲ್ ಮೇಜಿನ ವಿಶೇಷ ಸೌಲಭ್ಯ: ನೀವು ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್‌ನಲ್ಲಿ ಊಟ ಮಾಡುತ್ತಿರುವ ಈ ಸಮಯದಲ್ಲೇ ಸಂಪೂರ್ಣ ಜಾತಕ ವರದಿ PDF ಡೌನ್‌ಲೋಡ್ ಲಭ್ಯವಿದೆ.",
+    unlockFiveYearCtaBtn: "📥 ಸಂಪೂರ್ಣ ೫-ವರ್ಷಗಳ ಮಹಾ ದಸ್ತಾವೇಜು & ಜನ್ಮ ಕುಂಡಲಿ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
 
     // Payment App Launch Titles & Messages
     launchingPhonePeTitle: "📲 PhonePe ತೆರೆಯಲಾಗುತ್ತಿದೆ...",
@@ -672,8 +674,8 @@ export const ANTARANGA_UI_STRINGS: Record<
 
     // Dining Special Offer Card
     dinerSpecialBadge: "Pandit Palette Special Dining Privilege",
-    dinerSpecialDiscountNotice: "🍽️ Dining Table Privilege: Unlocking for ₹350 is only available while seated at Pandit Palette. (Standard Fee: ₹1,500 - 77% OFF)",
-    unlockFiveYearCtaBtn: "🔓 Unlock Full 5-Year Master Horizon for ₹350",
+    dinerSpecialDiscountNotice: "🍽️ Dining Table Privilege: Download your Complete 25-Chapter Master Report & Janma Kundali PDF directly while seated at Pandit Palette.",
+    unlockFiveYearCtaBtn: "📥 Download Complete 5-Year & Janma Kundali PDF",
 
     // Payment App Launch Titles & Messages
     launchingPhonePeTitle: "📲 Launching PhonePe...",
@@ -821,8 +823,8 @@ export const ANTARANGA_UI_STRINGS: Record<
 
     // Dining Special Offer Card
     dinerSpecialBadge: "पंडित पैलेट विशेष अतिथि विशेषाधिकार",
-    dinerSpecialDiscountNotice: "🍽️ डाइनिंग टेबल विशेष छूट: केवल पंडित पैलेट में भोजन करते समय ₹३५० में अनलॉक उपलब्ध है। (सामान्य शुल्क: ₹१,५०० - ७७% छूट)",
-    unlockFiveYearCtaBtn: "🔓 मात्र ₹३५० में सम्पूर्ण ५-वर्षीय महा कुंडली अनलॉक करें",
+    dinerSpecialDiscountNotice: "🍽️ डाइनिंग टेबल विशेष सुविधा: पंडित पैलेट में भोजन करते समय ही अपनी सम्पूर्ण महा कुंडली PDF डाउनलोड करें।",
+    unlockFiveYearCtaBtn: "📥 सम्पूर्ण ५-वर्षीय महा कुंडली व जन्म पत्रिका PDF डाउनलोड करें",
 
     // Payment App Launch Titles & Messages
     launchingPhonePeTitle: "📲 PhonePe खोला जा रहा है...",
@@ -970,8 +972,8 @@ export const ANTARANGA_UI_STRINGS: Record<
 
     // Dining Special Offer Card
     dinerSpecialBadge: "పండిట్ ప్యాలెట్ ప్రత్యేక అతిథి సదుపాయం",
-    dinerSpecialDiscountNotice: "🍽️ డైనింగ్ టేబుల్ ప్రత్యేక రాయితీ: మీరు పండిట్ ప్యాలెట్‌లో భోజనం చేస్తున్న ఈ సమయంలో మాత్రమే ₹350 కి అన్‌లాక్ అందుబాటులో ఉంది. (సాధారణ రుసుము: ₹1,500 - 77% రాయితీ)",
-    unlockFiveYearCtaBtn: "🔓 కేవలం ₹350 చెల్లించి 5 సంవత్సరాల సంపూర్ణ జాతకాన్ని అన్‌లాక్ చేయండి",
+    dinerSpecialDiscountNotice: "🍽️ డైనింగ్ టేబుల్ ప్రత్యేక సదుపాయం: పండిట్ ప్యాలెట్‌లో భోజనం చేస్తున్న ఈ సమయంలోనే సంపూర్ణ జాతక PDF డౌన్‌లోడ్ చేసుకోండి.",
+    unlockFiveYearCtaBtn: "📥 సంపూర్ణ 5 సంవత్సరాల జాతకం & జన్మ కుండలి PDF డౌన్‌లోడ్ చేయండి",
 
     // Payment App Launch Titles & Messages
     launchingPhonePeTitle: "📲 PhonePe తెరవబడుతోంది...",
@@ -1119,8 +1121,8 @@ export const ANTARANGA_UI_STRINGS: Record<
 
     // Dining Special Offer Card
     dinerSpecialBadge: "பண்டிட் பேலட் சிறப்பு விருந்தினர் சலுகை",
-    dinerSpecialDiscountNotice: "🍽️ டைனிங் டேபிள் சிறப்பு தள்ளுபடி: நீங்கள் பண்டிட் பேலட்டில் உணவு உண்ணும் இந்த நேரத்தில் மட்டுமே ₹350-க்கு அன்லாக் கிடைக்கும். (வழக்கமான கட்டணம்: ₹1,500 - 77% தள்ளுபடி)",
-    unlockFiveYearCtaBtn: "🔓 வெறும் ₹350 செலுத்தி 5 ஆண்டு முழு மகா ஜாதகத்தை அன்லாக் செய்க",
+    dinerSpecialDiscountNotice: "🍽️ டைனிங் டேபிள் சிறப்பு வசதி: பண்டிட் பேலட்டில் உணவு உண்ணும் போதே உங்கள் முழு ஜாதக PDF-ஐ பதிவிறக்கலாம்.",
+    unlockFiveYearCtaBtn: "📥 முழு 5 ஆண்டு ஜாதகம் & ஜென்ம குண்டலி PDF-ஐ பதிவிறக்கவும்",
 
     // Payment App Launch Titles & Messages
     launchingPhonePeTitle: "📲 PhonePe திறக்கப்படுகிறது...",
@@ -1268,8 +1270,8 @@ export const ANTARANGA_UI_STRINGS: Record<
 
     // Dining Special Offer Card
     dinerSpecialBadge: "പണ്ഡിറ്റ് പാലറ്റ് പ്രത്യേക അതിഥി ആനുകൂല്യം",
-    dinerSpecialDiscountNotice: "🍽️ ഡൈനിംഗ് ടേബിൾ പ്രത്യേക കിഴിവ്: നിങ്ങൾ പണ്ഡിറ്റ് പാലറ്റിൽ ഭക്ഷണം കഴിക്കുന്ന ഈ സമയത്ത് മാത്രം ₹350-ൽ അൺലോക്ക് ലഭ്യമാണ്. (സാധാരണ ഫീസ്: ₹1,500 - 77% കിഴിവ്)",
-    unlockFiveYearCtaBtn: "🔓 വെറും ₹350 നൽകി 5 വർഷത്തെ സമ്പൂർണ്ണ മഹാ ജാതകം അൺലോക്ക് ചെയ്യൂ",
+    dinerSpecialDiscountNotice: "🍽️ ഡൈനിംഗ് ടേബിൾ പ്രത്യേക സൗകര്യം: പണ്ഡിറ്റ് പാലറ്റിൽ ഭക്ഷണം കഴിക്കുമ്പോൾ തന്നെ പൂർണ്ണ ജാതക PDF ഡൗൺലോഡ് ചെയ്യൂ.",
+    unlockFiveYearCtaBtn: "📥 5 വർഷത്തെ സമ്പൂർണ്ണ ജാതകവും ജന്മ കുണ്ഡലി PDF-ഉം ഡൗൺലോഡ് ചെയ്യൂ",
 
     // Payment App Launch Titles & Messages
     launchingPhonePeTitle: "📲 PhonePe തുറക്കുന്നു...",
@@ -1417,8 +1419,8 @@ export const ANTARANGA_UI_STRINGS: Record<
 
     // Dining Special Offer Card
     dinerSpecialBadge: "पंडित पॅलेट विशेष पाहुणे सवलत",
-    dinerSpecialDiscountNotice: "🍽️ डायनिंग टेबल विशेष सवलत: पंडित पॅलेटमध्ये जेवणाचा आनंद घेत असतानाच ₹३५० मध्ये अनलॉक उपलब्ध आहे. (नियमित शुल्क: ₹१,५०० - ७७% सूट)",
-    unlockFiveYearCtaBtn: "🔓 फक्त ₹३५० मध्ये संपूर्ण ५-वर्षांची महा पत्रिका अनलॉक करा",
+    dinerSpecialDiscountNotice: "🍽️ डायनिंग टेबल विशेष सुविधा: पंडित पॅलेटमध्ये जेवणाचा आनंद घेत असतानाच संपूर्ण महा पत्रिका PDF डाउनलोड करा.",
+    unlockFiveYearCtaBtn: "📥 संपूर्ण ५-वर्षांची महा पत्रिका व जन्म पत्रिका PDF डाउनलोड करा",
 
     // Payment App Launch Titles & Messages
     launchingPhonePeTitle: "📲 PhonePe उघडत आहे...",
@@ -2294,13 +2296,30 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       return;
     }
 
+    const effSigDate =
+      timePrecision === "no_dob_instant"
+        ? new Date().toISOString().split("T")[0]
+        : birthDate;
+    const kundliPersonSignature: HotelPersonSignatureInput = {
+      serviceMode: "kundli",
+      guestName: devoteeName.trim(),
+      birthDate: effSigDate,
+      birthTime: isTimeUnknown ? "unknown" : birthTime,
+      timePrecision,
+      placeName: selectedCityName,
+      gender,
+      prashnaDomain: timePrecision !== "exact" ? prashnaDomain : undefined,
+      horarySeedNumber: timePrecision !== "exact" ? horarySeedNumber : undefined
+    };
+
     setFreeQuotaError(null);
     const freeQuotaCheck = await checkHotelFreePreviewQuota({
       isPaymentVerified,
-      isPaidFamilyUpsell
+      isPaidFamilyUpsell,
+      personSignature: kundliPersonSignature
     });
     if (!freeQuotaCheck.allowed) {
-      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip));
+      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip, freeQuotaCheck.reason));
       setShowPaymentSection(true);
       setTimeout(() => {
         document.getElementById("hotel-free-quota-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -2448,7 +2467,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           serviceUsed: "kundli",
           hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
           tableNumber: tableNumber || "1",
-          guestName: devoteeName.trim()
+          guestName: devoteeName.trim(),
+          personSignature: kundliPersonSignature
         });
       }
 
@@ -3303,14 +3323,23 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       return;
     }
 
+    const palmSignature: HotelPersonSignatureInput = {
+      serviceMode: "hasta_samudrika",
+      guestName: devoteeName.trim(),
+      gender,
+      handSide,
+      photoDigest: buildPhotoDigestForQuota(palmPhotoDataUrl)
+    };
+
     setFreeQuotaError(null);
     const freeQuotaCheck = await checkHotelFreePreviewQuota({
       isPaymentVerified,
-      isPaidFamilyUpsell
+      isPaidFamilyUpsell,
+      personSignature: palmSignature
     });
     if (!freeQuotaCheck.allowed) {
       setSelectedPackage("palm_150");
-      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip));
+      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip, freeQuotaCheck.reason));
       setShowPaymentSection(true);
       setTimeout(() => {
         document.getElementById("hotel-free-quota-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -3344,7 +3373,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             serviceUsed: "hasta_samudrika",
             hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
             tableNumber: tableNumber || "1",
-            guestName: devoteeName.trim()
+            guestName: devoteeName.trim(),
+            personSignature: palmSignature
           });
         }
       }
@@ -3379,14 +3409,22 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       return;
     }
 
+    const faceSignature: HotelPersonSignatureInput = {
+      serviceMode: "mukha_samudrika",
+      guestName: devoteeName.trim(),
+      gender,
+      photoDigest: buildPhotoDigestForQuota(facePhotoDataUrl)
+    };
+
     setFreeQuotaError(null);
     const freeQuotaCheck = await checkHotelFreePreviewQuota({
       isPaymentVerified,
-      isPaidFamilyUpsell
+      isPaidFamilyUpsell,
+      personSignature: faceSignature
     });
     if (!freeQuotaCheck.allowed) {
       setSelectedPackage("face_150");
-      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip));
+      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip, freeQuotaCheck.reason));
       setShowPaymentSection(true);
       setTimeout(() => {
         document.getElementById("hotel-free-quota-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -3415,7 +3453,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             serviceUsed: "mukha_samudrika",
             hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
             tableNumber: tableNumber || "1",
-            guestName: devoteeName.trim()
+            guestName: devoteeName.trim(),
+            personSignature: faceSignature
           });
         }
       }
@@ -3438,14 +3477,24 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       return;
     }
 
+    const prashnaSignature: HotelPersonSignatureInput = {
+      serviceMode: "prashna_shastra",
+      guestName: devoteeName.trim(),
+      gender,
+      placeName: selectedCityName,
+      prashnaDomain,
+      horarySeedNumber
+    };
+
     setFreeQuotaError(null);
     const freeQuotaCheck = await checkHotelFreePreviewQuota({
       isPaymentVerified,
-      isPaidFamilyUpsell
+      isPaidFamilyUpsell,
+      personSignature: prashnaSignature
     });
     if (!freeQuotaCheck.allowed) {
       setSelectedPackage("prashna_200");
-      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip));
+      setFreeQuotaError(getFreeQuotaExhaustedMessage(m25SevenLang, freeQuotaCheck.ip, freeQuotaCheck.reason));
       setShowPaymentSection(true);
       setTimeout(() => {
         document.getElementById("hotel-free-quota-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -3507,7 +3556,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             serviceUsed: "prashna_shastra",
             hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
             tableNumber: tableNumber || "1",
-            guestName: devoteeName.trim()
+            guestName: devoteeName.trim(),
+            personSignature: prashnaSignature
           });
         }
       }
@@ -3807,6 +3857,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             <p className="text-xs sm:text-sm text-stone-600 max-w-md mx-auto leading-relaxed font-medium">
               {ui.langSelectSubtitle}
             </p>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-900 text-[11px] font-bold">
+              <span>✨</span>
+              <span>తెలుగు • தமிழ் • ಕನ್ನಡ • English — 100% Free Live Insights</span>
+            </div>
           </div>
 
           {/* 7-Language Interactive Grid */}
@@ -3974,36 +4028,36 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           </p>
         </div>
 
-        {/* ── MOBILE-FIRST 4-SERVICE SELECTOR HUB ── */}
+        {/* ── MOBILE-FIRST 4-SERVICE SELECTOR HUB (All Services Show FREE Initially — Zero Upfront Price) ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {([
             {
               id: "hasta_samudrika" as HotelServiceMode,
               icon: "✋",
-              price: `₹${HOTEL_PALM_PRICE_INR}`,
+              badge: pick7({ kn: "ಉಚಿತ", en: "FREE", hi: "मुफ़्त", mr: "मोफत", te: "ఉచితం", ta: "இலவசம்", ml: "സൗജന്യം" }, m25SevenLang),
               title: pick7({ kn: "ಹಸ್ತ / ಕೈ ಸಾಮುದ್ರಿಕ", en: "Hasta Samudrika", hi: "हस्त सामुद्रिक", mr: "हस्त सामुद्रिक", te: "హస్త సాముద్రికం", ta: "ஹஸ்த சாமுத்ரிகா", ml: "ഹസ്തസാമുദ്രികം" }, m25SevenLang),
-              sub: pick7({ kn: "ಅಂಗೈ ರೇಖೆ • ೨ ಉಚಿತ", en: "Palm Photo • 2 Free", hi: "हथेली फोटो • २ मुफ़्त", mr: "तळहात • २ मोफत", te: "అరచేయి • 2 ఉచితం", ta: "கைரேகை • 2 இலவசம்", ml: "കൈരേഖ • 2 സൗജന്യം" }, m25SevenLang)
+              sub: pick7({ kn: "ಅಂಗೈ ರೇಖೆ • ಉಚಿತ ದರ್ಶನ", en: "Palm Reading • Free", hi: "हथेली फोटो • मुफ़्त", mr: "तळहात • मोफत झलक", te: "అరచేయి • ఉచితం", ta: "கைரேகை • இலவசம்", ml: "കൈരേഖ • സൗജന്യം" }, m25SevenLang)
             },
             {
               id: "mukha_samudrika" as HotelServiceMode,
               icon: "👤",
-              price: `₹${HOTEL_FACE_PRICE_INR}`,
+              badge: pick7({ kn: "ಉಚಿತ", en: "FREE", hi: "मुफ़्त", mr: "मोफत", te: "ఉచితం", ta: "இலவசம்", ml: "സൗജന്യം" }, m25SevenLang),
               title: pick7({ kn: "ಮುಖ ಸಾಮುದ್ರಿಕ", en: "Mukha Samudrika", hi: "मुख सामुद्रिक", mr: "मुख सामुद्रिक", te: "ముఖ సాముద్రికం", ta: "முக சாமுத்ரிகா", ml: "മുഖസാമുദ്രികം" }, m25SevenLang),
-              sub: pick7({ kn: "ಮುಖ ಲಕ್ಷಣ • ೨ ಉಚಿತ", en: "Face Selfie • 2 Free", hi: "चेहरा फोटो • २ मुफ़्त", mr: "चेहरा • २ मोफत", te: "ముఖం • 2 ఉచితం", ta: "முகம் • 2 இலவசம்", ml: "മുഖം • 2 സൗജന്യം" }, m25SevenLang)
+              sub: pick7({ kn: "ಮುಖ ಲಕ್ಷಣ • ಉಚಿತ ದರ್ಶನ", en: "Face Reading • Free", hi: "चेहरा फोटो • मुफ़्त", mr: "चेहरा • मोफत झलक", te: "ముఖం • ఉచితం", ta: "முகம் • இலவசம்", ml: "മുഖം • സൗജന്യം" }, m25SevenLang)
             },
             {
               id: "prashna_shastra" as HotelServiceMode,
               icon: "🔮",
-              price: `₹${HOTEL_PRASHNA_PRICE_INR}`,
+              badge: pick7({ kn: "ಉಚಿತ", en: "FREE", hi: "मुफ़्त", mr: "मोफत", te: "ఉచితం", ta: "இலவசம்", ml: "സൗജന്യം" }, m25SevenLang),
               title: pick7({ kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ", en: "Prashna Shastra", hi: "प्रश्न शास्त्र", mr: "प्रश्न शास्त्र", te: "ప్రశ్న శాస్త్రం", ta: "பிரசன்ன சாஸ்திரம்", ml: "പ്രശ്നശാസ്ത്രം" }, m25SevenLang),
-              sub: pick7({ kn: "೧–೧೦೮ ಉತ್ತರ • ೨ ಉಚಿತ", en: "1–108 Horary • 2 Free", hi: "१–१०८ उत्तर • २ मुफ़्त", mr: "१–१०८ उत्तर • २ मोफत", te: "1–108 ప్రశ్న • 2 ఉచితం", ta: "1–108 பதில் • 2 இலவசம்", ml: "1–108 ഉത്തരം • 2 സൗജന്യം" }, m25SevenLang)
+              sub: pick7({ kn: "೧–೧೦೮ ಪ್ರಶ್ನೆ • ಉಚಿತ", en: "1–108 Question • Free", hi: "१–१०८ प्रश्न • मुफ़्त", mr: "१–१०८ प्रश्न • मोफत", te: "1–108 ప్రశ్న • ఉచితం", ta: "1–108 கேள்வி • இலவசம்", ml: "1–108 ചോദ്യം • സൗജന്യം" }, m25SevenLang)
             },
             {
               id: "kundli" as HotelServiceMode,
               icon: "📜",
-              price: `₹${HOTEL_PDF_PRICE_INR}`,
-              title: pick7({ kn: "ಜನ್ಮ ಕುಂಡಲಿ (೨೫ ಅಧ್ಯಾಯ)", en: "Janma Kundali", hi: "जन्म कुंडली", mr: "जन्म कुंडली", te: "జన్మ కుండలి", ta: "ஜென்ம குண்டலி", ml: "ജന്മകുണ്ഡലി" }, m25SevenLang),
-              sub: pick7({ kn: "ಸಮಯ ಗೊತ್ತಿಲ್ಲದವರಿಗೂ ಸಿದ್ಧ", en: "25-Ch Master PDF", hi: "२५-अध्याय महा PDF", mr: "२५-अध्याय PDF", te: "25-అధ్యాయ PDF", ta: "25-அத்தியாய PDF", ml: "25-അധ്യായ PDF" }, m25SevenLang)
+              badge: pick7({ kn: "ಉಚಿತ", en: "FREE", hi: "मुफ़्त", mr: "मोफत", te: "ఉచితం", ta: "இலவசம்", ml: "സൗജന്യം" }, m25SevenLang),
+              title: pick7({ kn: "ಜನ್ಮ ಕುಂಡಲಿ", en: "Janma Kundali", hi: "जन्म कुंडली", mr: "जन्म कुंडली", te: "జన్మ కుండలి", ta: "ஜென்ம குண்டலி", ml: "ജന്മകുണ്ഡലി" }, m25SevenLang),
+              sub: pick7({ kn: "ಸಂಪೂರ್ಣ ರಹಸ್ಯ • ಉಚಿತ", en: "Secret & Chart • Free", hi: "गुप्त रहस्य • मुफ़्त", mr: "कुंडली झलक • मोफत", te: "రహస్యం & చార్ట్ • ఉచితం", ta: "ஜாதக ரகசியம் • இலவசம்", ml: "രഹസ്യം & ചാർട്ട് • സൗജന്യം" }, m25SevenLang)
             }
           ]).map((svc) => {
             const active = serviceMode === svc.id;
@@ -4020,8 +4074,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               >
                 <div className="flex items-center justify-between gap-1">
                   <span className="text-xl">{svc.icon}</span>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${active ? "bg-stone-950 text-amber-300" : "bg-amber-100 text-amber-900"}`}>
-                    {svc.price}
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${active ? "bg-stone-950 text-emerald-300" : "bg-emerald-100 text-emerald-900 border border-emerald-300"}`}>
+                    {svc.badge}
                   </span>
                 </div>
                 <div className="mt-1">
@@ -4986,7 +5040,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                             : pick7({ kn: "ಪ್ರತ್ಯೇಕ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ PDF", en: "Separate Prashna Shastra PDF", hi: "पृथक प्रश्न शास्त्र PDF", mr: "स्वतंत्र प्रश्न शास्त्र PDF", te: "ప్రత్యేక ప్రశ్న శాస్త్ర PDF", ta: "தனி பிரசன்ன சாஸ்திர PDF", ml: "പ്രത്യേക പ്രശ്നശാസ്ത്ര PDF" }, m25SevenLang)}
                       </span>
                       <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-black">
-                        ₹{serviceMode === "prashna_shastra" ? HOTEL_PRASHNA_PRICE_INR : HOTEL_PALM_PRICE_INR}
+                        {pick7({ kn: "ಪ್ರತ್ಯೇಕ PDF", en: "Separate PDF", hi: "पृथक PDF", mr: "स्वतंत्र PDF", te: "ప్రత్యేక PDF", ta: "தனி PDF", ml: "പ്രത്യേക PDF" }, m25SevenLang)}
                       </span>
                     </div>
                     <p className="text-[11px] text-stone-700 leading-relaxed font-semibold">
@@ -5004,13 +5058,13 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                     <p className="text-[11px] text-amber-900 leading-relaxed">
                       💬{" "}
                       {pick7({
-                        kn: "ಹೆಚ್ಚಿನ ಪ್ರಶ್ನೆಗಳು ಮತ್ತು ಸಂಪೂರ್ಣ ಉತ್ತರಗಳಿಗಾಗಿ ಕೆಳಗೆ ಪಾವತಿಸಿ ಪ್ರತ್ಯೇಕ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.",
-                        en: "To ask further questions and receive complete answers, pay below and download this separate PDF.",
-                        hi: "आगे के प्रश्नों और पूर्ण उत्तरों के लिए नीचे भुगतान कर यह पृथक PDF डाउनलोड करें।",
-                        mr: "पुढील प्रश्न आणि संपूर्ण उत्तरांसाठी खाली पेमेंट करून ही स्वतंत्र PDF डाउनलोड करा.",
-                        te: "తదుపరి ప్రశ్నలు & పూర్తి సమాధానాల కోసం క్రింద చెల్లించి ఈ ప్రత్యేక PDF డൗన్‌లోడ్ చేయండి.",
-                        ta: "மேலும் கேள்விகள் & முழு பதில்களுக்கு கீழே கட்டணம் செலுத்தி இந்தத் தனி PDF-ஐ பதிவிறக்கவும்.",
-                        ml: "കൂടുതൽ ചോദ്യങ്ങൾക്കും പൂർണ്ണ ഉത്തരങ്ങൾക്കുമായി താഴെ പണമടച്ച് ഈ പ്രത്യേക PDF ഡൗൺലോഡ് ചെയ്യുക."
+                        kn: "ಹೆಚ್ಚಿನ ಪ್ರಶ್ನೆಗಳು ಮತ್ತು ಸಂಪೂರ್ಣ ಉತ್ತರಗಳಿಗಾಗಿ ಕೆಳಗೆ ಈ ಪ್ರತ್ಯೇಕ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.",
+                        en: "To ask further questions and receive complete answers, scroll below and download this separate PDF.",
+                        hi: "आगे के प्रश्नों और पूर्ण उत्तरों के लिए नीचे जाकर यह पृथक PDF डाउनलोड करें।",
+                        mr: "पुढील प्रश्न आणि संपूर्ण उत्तरांसाठी खाली जाऊन ही स्वतंत्र PDF डाउनलोड करा.",
+                        te: "తదుపరి ప్రశ్నలు & పూర్తి సమాధానాల కోసం క్రిందికి వెళ్లి ఈ ప్రత్యేక PDF డൗన్‌లోడ్ చేయండి.",
+                        ta: "மேலும் கேள்விகள் & முழு பதில்களுக்கு கீழே சென்று இந்தத் தனி PDF-ஐ பதிவிறக்கவும்.",
+                        ml: "കൂടുതൽ ചോദ്യങ്ങൾക്കും പൂർണ്ണ ഉത്തരങ്ങൾക്കുമായി താഴെ ഈ പ്രത്യേക PDF ഡൗൺലോഡ് ചെയ്യുക."
                       }, m25SevenLang)}
                     </p>
                   </div>
@@ -5033,7 +5087,16 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                       }}
                       className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-sm shadow-lg cursor-pointer"
                     >
-                      {ui.payUnlockCta} (₹{packagePrice})
+                      📥{" "}
+                      {pick7({
+                        kn: "ಸಂಪೂರ್ಣ ಪ್ರತ್ಯೇಕ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+                        en: "Download Complete Separate PDF Report",
+                        hi: "सम्पूर्ण पृथक PDF रिपोर्ट डाउनलोड करें",
+                        mr: "संपूर्ण स्वतंत्र PDF अहवाल डाउनलोड करा",
+                        te: "సంపూర్ణ ప్రత్యేక PDF రిపోర్ట్ డౌన్‌లోడ్ చేయండి",
+                        ta: "முழு தனி PDF அறிக்கையை பதிவிறக்கவும்",
+                        ml: "സമ്പൂർണ്ണ പ്രത്യേക PDF റിപ്പോർട്ട് ഡൗൺലോഡ് ചെയ്യൂ"
+                      }, m25SevenLang)}
                     </button>
                   )}
                 </div>
@@ -6112,16 +6175,19 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                           type="button"
                           onClick={() => {
                             if (!isPaymentVerified) {
-                              alert(ui.unpaidWarning);
-                              document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                              setSelectedPackage("palm_150");
+                              setShowPaymentSection(true);
+                              setTimeout(() => {
+                                document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                              }, 80);
                               return;
                             }
                             void handleDownloadPalmPdf();
                           }}
-                          disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.palm || 0) >= 3 || Boolean(downloadedPdfs.palm)}
+                          disabled={isGeneratingPdf || (downloadCounts.palm || 0) >= 3 || Boolean(downloadedPdfs.palm)}
                           className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
                             !isPaymentVerified
-                              ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300 cursor-not-allowed"
+                              ? "bg-amber-50 hover:bg-amber-100 text-amber-950 border-2 border-amber-400 cursor-pointer"
                               : "bg-gradient-to-r from-emerald-600 to-teal-600 text-white cursor-pointer"
                           }`}
                         >
@@ -6165,16 +6231,19 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                           type="button"
                           onClick={() => {
                             if (!isPaymentVerified) {
-                              alert(ui.unpaidWarning);
-                              document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                              setSelectedPackage("face_150");
+                              setShowPaymentSection(true);
+                              setTimeout(() => {
+                                document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                              }, 80);
                               return;
                             }
                             void handleDownloadFacePdf();
                           }}
-                          disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.face || 0) >= 3 || Boolean(downloadedPdfs.face)}
+                          disabled={isGeneratingPdf || (downloadCounts.face || 0) >= 3 || Boolean(downloadedPdfs.face)}
                           className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
                             !isPaymentVerified
-                              ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300 cursor-not-allowed"
+                              ? "bg-amber-50 hover:bg-amber-100 text-amber-950 border-2 border-amber-400 cursor-pointer"
                               : "bg-gradient-to-r from-amber-600 to-yellow-600 text-white cursor-pointer"
                           }`}
                         >
@@ -6218,16 +6287,19 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                           type="button"
                           onClick={() => {
                             if (!isPaymentVerified) {
-                              alert(ui.unpaidWarning);
-                              document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                              setSelectedPackage("prashna_200");
+                              setShowPaymentSection(true);
+                              setTimeout(() => {
+                                document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                              }, 80);
                               return;
                             }
                             void handleDownloadPrashnaPdf();
                           }}
-                          disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.prashna || 0) >= 3 || Boolean(downloadedPdfs.prashna)}
+                          disabled={isGeneratingPdf || (downloadCounts.prashna || 0) >= 3 || Boolean(downloadedPdfs.prashna)}
                           className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
                             !isPaymentVerified
-                              ? "bg-stone-100 text-stone-500 border-2 border-dashed border-indigo-300 cursor-not-allowed"
+                              ? "bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border-2 border-indigo-400 cursor-pointer"
                               : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white cursor-pointer"
                           }`}
                         >

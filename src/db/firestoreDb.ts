@@ -4018,16 +4018,17 @@ const memoryFreeUsageLedger = new Map<string, HotelFreeUsageDoc>();
 
 export async function getHotelFreeUsageRecord(
   ipDocId: string,
-  deviceDocId: string
+  deviceDocId: string,
+  extraDocIds: string[] = []
 ): Promise<HotelFreeUsageDoc | null> {
-  if (ipDocId && memoryFreeUsageLedger.has(ipDocId)) {
-    return memoryFreeUsageLedger.get(ipDocId)!;
-  }
-  if (deviceDocId && memoryFreeUsageLedger.has(deviceDocId)) {
-    return memoryFreeUsageLedger.get(deviceDocId)!;
+  const candidateIds = [ipDocId, deviceDocId, ...extraDocIds].filter(Boolean);
+  for (const id of candidateIds) {
+    if (memoryFreeUsageLedger.has(id)) {
+      return memoryFreeUsageLedger.get(id)!;
+    }
   }
 
-  for (const id of [ipDocId, deviceDocId].filter(Boolean)) {
+  for (const id of candidateIds) {
     try {
       const ref = doc(firestore, HOTEL_FREE_USAGE_COL, id);
       const snap = await getDoc(ref);

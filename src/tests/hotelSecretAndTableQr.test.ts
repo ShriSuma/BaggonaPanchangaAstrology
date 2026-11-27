@@ -596,7 +596,8 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
       expect(preview.lockedYears[0].yearNum).toBe(2);
       expect(preview.lockedYears[0].gregorianRange).toBe("2027 - 2028");
       expect(preview.lockedYears[0].headlineQuestion).toContain("?");
-      expect(preview.lockedYears[0].teaserCta).toContain("೩೫೦");
+      expect(preview.lockedYears[0].teaserCta).toContain("ಪೂರ್ಣ");
+      expect(preview.lockedYears[0].teaserCta).not.toContain("350");
 
       expect(preview.lockedYears[1].yearNum).toBe(3);
       expect(preview.lockedYears[2].yearNum).toBe(4);

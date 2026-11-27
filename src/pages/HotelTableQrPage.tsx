@@ -73,7 +73,7 @@ export default function HotelTableQrPage(): JSX.Element {
   const [batchStart, setBatchStart] = useState<number>(1);
   const [batchEnd, setBatchEnd] = useState<number>(10);
   const [cardFormat, setCardFormat] = useState<CardFormat>("table_tent");
-  const [cardLang, setCardLang] = useState<"bilingual" | "kn" | "en">("bilingual");
+  const [cardLang, setCardLang] = useState<"south4" | "te_ta" | "bilingual" | "te" | "ta" | "kn" | "en">("south4");
 
   // Output cards
   const [generatedCards, setGeneratedCards] = useState<TableCardData[]>([]);
@@ -612,42 +612,31 @@ export default function HotelTableQrPage(): JSX.Element {
             {/* Language Selector */}
             <div>
               <label className="block text-xs text-stone-700 font-semibold mb-1">
-                ಕಾರ್ಡ್ ಭಾಷೆ (Card Language)
+                ಕಾರ್ಡ್ ಭಾಷೆ (Standee Language — Telugu & Tamil Default)
               </label>
-              <div className="grid grid-cols-3 gap-1.5 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setCardLang("bilingual")}
-                  className={`py-1.5 rounded-xl border font-semibold cursor-pointer ${
-                    cardLang === "bilingual"
-                      ? "bg-amber-400 text-stone-950 border-amber-500 shadow-sm"
-                      : "bg-white border-amber-200 text-stone-700 hover:border-amber-400"
-                  }`}
-                >
-                  ಕನ್ನಡ + English
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCardLang("kn")}
-                  className={`py-1.5 rounded-xl border font-semibold cursor-pointer ${
-                    cardLang === "kn"
-                      ? "bg-amber-400 text-stone-950 border-amber-500 shadow-sm"
-                      : "bg-white border-amber-200 text-stone-700 hover:border-amber-400"
-                  }`}
-                >
-                  ಕನ್ನಡ ಮಾತ್ರ
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCardLang("en")}
-                  className={`py-1.5 rounded-xl border font-semibold cursor-pointer ${
-                    cardLang === "en"
-                      ? "bg-amber-400 text-stone-950 border-amber-500 shadow-sm"
-                      : "bg-white border-amber-200 text-stone-700 hover:border-amber-400"
-                  }`}
-                >
-                  English Only
-                </button>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px]">
+                {[
+                  { id: "south4" as const, label: "తెలుగు + தமிழ் + ಕನ್ನಡ + EN" },
+                  { id: "te_ta" as const, label: "తెలుగు + தமிழ் + EN" },
+                  { id: "bilingual" as const, label: "ಕನ್ನಡ + English" },
+                  { id: "te" as const, label: "తెలుగు మాత్రమే" },
+                  { id: "ta" as const, label: "தமிழ் மட்டும்" },
+                  { id: "kn" as const, label: "ಕನ್ನಡ ಮಾತ್ರ" },
+                  { id: "en" as const, label: "English Only" }
+                ].map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setCardLang(opt.id)}
+                    className={`py-1.5 px-2 rounded-xl border font-semibold cursor-pointer ${
+                      cardLang === opt.id
+                        ? "bg-amber-400 text-stone-950 border-amber-500 shadow-sm"
+                        : "bg-white border-amber-200 text-stone-700 hover:border-amber-400"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -669,10 +658,10 @@ export default function HotelTableQrPage(): JSX.Element {
               <span>ಹೋಟೆಲ್ ಟೇಬಲ್ QR ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ?</span>
             </h3>
             <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-stone-700">
-              <li>ಈ ಕಾರ್ಡ್‌ಗಳನ್ನು ಪ್ರಿಂಟ್ ಮಾಡಿ ಹೋಟೆಲ್‌ನ ಪ್ರತಿ ಟೇಬಲ್ ಮೇಲೆ ಇರಿಸಿ.</li>
-              <li>ಗ್ರಾಹಕರು ಊಟಕ್ಕೆ ಕಾಯುವ ಸಮಯದಲ್ಲಿ ಮೊಬೈಲ್ ಕ್ಯಾಮೆರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡುತ್ತಾರೆ.</li>
-              <li>ಅವರ ಜನ್ಮ ವಿವರ ನೀಡಿ ೧-ಕ್ಲಿಕ್‌ನಲ್ಲಿ ಅಂತರಂಗದ ಗುಪ್ತ ಸತ್ಯವನ್ನು ಉಚಿತವಾಗಿ ತಿಳಿಯುತ್ತಾರೆ.</li>
-              <li>ನಂತರ ಸಂಪೂರ್ಣ ೫ ವರ್ಷಗಳ ಜಾತಕಕ್ಕಾಗಿ ₹೩೫೦ ಪಾವತಿಸಿ ತಕ್ಷಣ iPhone/ಮೊಬೈಲ್‌ನಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿಕೊಳ್ಳುತ್ತಾರೆ!</li>
+              <li>ಈ ಕಾರ್ಡ್‌ಗಳನ್ನು ಪ್ರಿಂಟ್ ಮಾಡಿ ಹೋಟೆಲ್‌ನ ಪ್ರತಿ ಟೇಬಲ್ ಮೇಲೆ ಇರಿಸಿ (ಬೆಲೆ ಪಟ್ಟಿ ಇಲ್ಲದೆ ಸಂಪೂರ್ಣ ಉಚಿತ ಆಹ್ವಾನ!).</li>
+              <li>ಗ್ರಾಹಕರು ಊಟಕ್ಕೆ ಕಾಯುವ ಸಮಯದಲ್ಲಿ ಕ್ಯಾಮೆರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಹಸ್ತ, ಮುಖ, ಪ್ರಶ್ನ ಅಥವಾ ಕುಂಡಲಿ ನೋಡುತ್ತಾರೆ.</li>
+              <li>ಪ್ರಥಮ ದರ್ಶನ ಎಲ್ಲರಿಗೂ ಉಚಿತವಾಗಿದ್ದು, ಪುನರಾವರ್ತಿತ ಉಚಿತ ದುರ್ಬಳಕೆಗೆ IP/ವ್ಯಕ್ತಿ ರಕ್ಷಣೆ ಇರುತ್ತದೆ.</li>
+              <li>ಸಂಪೂರ್ಣ PDF ಡೌನ್‌ಲೋಡ್ ಹಂತಕ್ಕೆ ಬಂದಾಗ ಮಾತ್ರ ಶುಲ್ಕ (₹150 / ₹200 / ₹350) ಕಾಣಿಸುತ್ತದೆ!</li>
             </ol>
           </div>
         </div>
@@ -723,14 +712,28 @@ export default function HotelTableQrPage(): JSX.Element {
                   </span>
                 </div>
 
-                {/* Main Enticing Hook Header */}
-                <div className="text-center space-y-1 mb-4">
-                  <h3 className="text-lg sm:text-xl font-black text-red-950 font-serif leading-tight">
-                    ಊಟ ಮಾಡುವ ಮುನ್ನ ನಿಮ್ಮ ಅಂತರಂಗದ ಸತ್ಯ ತಿಳಿಯಿರಿ!
-                  </h3>
-                  <p className="text-xs text-amber-900 font-sans font-semibold">
-                    (Waiting for your food? Scan to reveal what's hidden in your mind & heart - 100% Free!)
-                  </p>
+                {/* Main Enticing Hook Header (100% Free Invitation — Zero Price Mentioned) */}
+                <div className="text-center space-y-1.5 mb-3">
+                  {(cardLang === "south4" || cardLang === "te_ta" || cardLang === "te") && (
+                    <div className="text-base sm:text-lg font-black text-red-950 leading-snug">
+                      భోజనం వచ్చేలోపు ఉచితంగా మీ జాతక, హస్తరేఖ, ముఖ &amp; ప్రశ్న ఫలితం చూడండి!
+                    </div>
+                  )}
+                  {(cardLang === "south4" || cardLang === "te_ta" || cardLang === "ta") && (
+                    <div className="text-sm sm:text-base font-black text-amber-950 leading-snug">
+                      உணவு வருவதற்குள் இலவசமாக உங்கள் ஜாதகம், கைரேகை, முகம் &amp; பிரசன்ன பலன் அறியுங்கள்!
+                    </div>
+                  )}
+                  {(cardLang === "south4" || cardLang === "bilingual" || cardLang === "kn") && (
+                    <div className="text-sm font-bold text-red-950 font-serif leading-tight">
+                      ಊಟ ಬರುವಷ್ಟರಲ್ಲಿ ಉಚಿತವಾಗಿ ನಿಮ್ಮ ಅಂತರಂಗದ ಸತ್ಯ, ಹಸ್ತ, ಮುಖ &amp; ಪ್ರಶ್ನ ಫಲ ತಿಳಿಯಿರಿ!
+                    </div>
+                  )}
+                  {(cardLang === "south4" || cardLang === "te_ta" || cardLang === "bilingual" || cardLang === "en") && (
+                    <p className="text-[11px] text-amber-900 font-sans font-bold">
+                      100% FREE Live Preview while waiting • Palm • Face • 1–108 Question • Janma Kundali
+                    </p>
+                  )}
                 </div>
 
                 {/* Prominent High-Contrast Scannable QR Code */}
@@ -741,27 +744,29 @@ export default function HotelTableQrPage(): JSX.Element {
                     className="w-48 h-48 sm:w-52 sm:h-52 object-contain"
                   />
                   <div className="mt-2 text-[11px] font-sans font-bold text-stone-800 tracking-wide text-center">
-                    📸 ಮೊಬೈಲ್ ಕ್ಯಾಮೆರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ (Scan with Camera)
+                    📸 {cardLang === "te" ? "కెమెరాతో స్కాన్ చేయండి" : cardLang === "ta" ? "கேமராவில் ஸ்கேன் செய்யவும்" : "Scan with Phone Camera (ఉచితం / இலவசம் / Free)"}
                   </div>
                 </div>
 
                 {/* 3-Step Simple Instructions */}
                 <div className="bg-amber-100/90 border border-amber-800/30 rounded-xl p-3 my-3 text-xs text-amber-950 font-sans space-y-1">
                   <div className="font-bold text-center text-amber-900 mb-1">
-                    ೩ ಸುಲಭ ಹಂತಗಳಲ್ಲಿ (3 Simple Steps):
+                    {cardLang === "south4" || cardLang === "te_ta"
+                      ? "3 సులభ దశలు • 3 எளிய படிகள் (Free Live Reading):"
+                      : "೩ ಸುಲಭ ಹಂತಗಳಲ್ಲಿ (3 Simple Steps):"}
                   </div>
                   <div className="grid grid-cols-3 gap-1 text-center text-[10px] sm:text-[11px]">
-                    <div className="p-1 rounded bg-white/70">
-                      <span className="block font-bold text-amber-900">೧. ಸ್ಕ್ಯಾನ್ ಮಾಡಿ</span>
-                      <span className="text-stone-600">Scan QR Code</span>
+                    <div className="p-1.5 rounded bg-white/80">
+                      <span className="block font-bold text-amber-900">1. స్కాన్ / ஸ்கேன்</span>
+                      <span className="text-stone-600">Scan QR &amp; Language</span>
                     </div>
-                    <div className="p-1 rounded bg-white/70">
-                      <span className="block font-bold text-amber-900">೨. ಜನ್ಮ ಸಮಯ ನೀಡಿ</span>
-                      <span className="text-stone-600">Enter Birth Time</span>
+                    <div className="p-1.5 rounded bg-white/80">
+                      <span className="block font-bold text-amber-900">2. ఎంపిక / தேர்வு</span>
+                      <span className="text-stone-600">Palm, Face, Question or Kundali</span>
                     </div>
-                    <div className="p-1 rounded bg-white/70">
-                      <span className="block font-bold text-amber-900">೩. ಸತ್ಯ ತಿಳಿಯಿರಿ</span>
-                      <span className="text-stone-600">Get Dark Secret!</span>
+                    <div className="p-1.5 rounded bg-white/80">
+                      <span className="block font-bold text-emerald-800">3. ఉచితం / Free</span>
+                      <span className="text-stone-600">Instant Live Answers!</span>
                     </div>
                   </div>
                 </div>
@@ -807,7 +812,7 @@ export default function HotelTableQrPage(): JSX.Element {
       <AntarangaAstrologicalScreenLoader
         isOpen={screenLoaderOpen}
         stage={screenLoaderStage}
-        lang={cardLang === "en" ? "en" : "kn"}
+        lang={cardLang === "en" ? "en" : cardLang === "te" || cardLang === "south4" || cardLang === "te_ta" ? "te" : cardLang === "ta" ? "ta" : "kn"}
         progressPercent={screenLoaderProgress}
       />
     </div>

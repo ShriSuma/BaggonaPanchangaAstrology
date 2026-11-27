@@ -1133,13 +1133,13 @@ export function generateAntarangaSatya(
               : baseLang === "ta" ? "முக்கியமான காரியங்கள் 99% முடிவடையும் போது, இந்த மாந்தி தோஷம் இறுதி கணத்தில் எதிர்பாராத தாமதத்தை ஏற்படுத்துகிறது."
                 : baseLang === "ml" ? "പ്രധാനപ്പെട്ട കാര്യങ്ങൾ 99% എത്തുമ്പോൾ, ഈ മാന്ദി ദോഷം അവസാന നിമിഷം അപ്രതീക്ഷിത തടസ്സം സൃഷ്ടിക്കുന്നു."
                   : "Whenever key endeavors reach the 99% milestone, this shadow node triggers an unexpected last-minute obstacle.",
-      lockedCta: baseLang === "kn" ? "🔒 ಈ ಮಾಂದಿ ಗಂಟು ಕಳಚುವ ಗೋಕರ್ಣ ಶಾಂತಿ ಪರಿಹಾರ ರಹಸ್ಯ ₹೩೫೦ ವರದಿಯಲ್ಲಿದೆ"
-        : baseLang === "hi" ? "🔒 इस मान्दि ग्रंथि को खोलने का गोकर्ण शांति उपाय ₹३५० सम्पूर्ण रिपोर्ट में उपलब्ध है"
-          : baseLang === "mr" ? "🔒 ही मांदी गाठ सोडवणारा गोकर्ण शांती उपाय ₹३५० संपूर्ण अहवालात उपलब्ध आहे"
-            : baseLang === "te" ? "🔒 ఈ మాంది ముడిని తొలగించే గోకర్ణ శాంతి పరిహారం ₹350 సంపూర్ణ నివేదికలో లభిస్తుంది"
-              : baseLang === "ta" ? "🔒 இந்த மாந்தி முடிச்சை அவிழ்க்கும் கோகர்ணம் சாந்தி பரிகாரம் ₹350 முழு அறிக்கையில் உள்ளது"
-                : baseLang === "ml" ? "🔒 ഈ മാന്ദി ഗ്രന്ഥി മാറ്റുന്ന ഗോകർണം ശാന്തി പരിഹാരം ₹350 സമ്പൂർണ്ണ റിപ്പോർട്ടിൽ ലഭ്യമാണ്"
-                  : "🔒 Sacred Gokarna Maandi Shanti untying remedy unlocked in ₹350 Master Report"
+      lockedCta: baseLang === "kn" ? "🔒 ಈ ಮಾಂದಿ ಗಂಟು ಕಳಚುವ ಗೋಕರ್ಣ ಶಾಂತಿ ಪರಿಹಾರ ರಹಸ್ಯ ಸಂಪೂರ್ಣ ವರದಿಯಲ್ಲಿದೆ"
+        : baseLang === "hi" ? "🔒 इस मान्दि ग्रंथि को खोलने का गोकर्ण शांति उपाय सम्पूर्ण रिपोर्ट PDF में उपलब्ध है"
+          : baseLang === "mr" ? "🔒 ही मांदी गाठ सोडवणारा गोकर्ण शांती उपाय संपूर्ण अहवालात उपलब्ध आहे"
+            : baseLang === "te" ? "🔒 ఈ మాంది ముడిని తొలగించే గోకర్ణ శాంతి పరిహారం సంపూర్ణ నివేదిక PDF లో లభిస్తుంది"
+              : baseLang === "ta" ? "🔒 இந்த மாந்தி முடிச்சை அவிழ்க்கும் கோகர்ணம் சாந்தி பரிகாரம் முழு அறிக்கை PDF-இல் உள்ளது"
+                : baseLang === "ml" ? "🔒 ഈ മാന്ദി ഗ്രന്ഥി മാറ്റുന്ന ഗോകർണം ശാന്തി പരിഹാരം സമ്പൂർണ്ണ റിപ്പോർട്ട് PDF-ൽ ലഭ്യമാണ്"
+                  : "🔒 Sacred Gokarna Maandi Shanti untying remedy unlocked in Complete Report PDF"
     },
     yogiCard: {
       yogiPlanet: localizedYogi,
@@ -1158,13 +1158,13 @@ export function generateAntarangaSatya(
               : baseLang === "ta" ? "யோகி கிரகம் உங்கள் வாழ்வில் தன ஆகர்ஷண சக்தியாகும், அவயோகி கிரகம் மறைமுக தடைகளின் எச்சரிக்கையாகும்."
                 : baseLang === "ml" ? "യോഗി ഗ്രഹം നിങ്ങളുടെ ജീവിതത്തിൽ ഐശ്വര്യം ആകർഷിക്കുമ്പോൾ, അവയോഗി ഗ്രഹം അപ്രതീക്ഷിത തടസ്സങ്ങളെ സൂചിപ്പിക്കുന്നു."
                   : "Your Yogi planet is your supreme financial catalyst, while your Avayogi planet warns of hidden leaks and friction.",
-      lockedCta: baseLang === "kn" ? "🔒 ಯೋಗಿ ಗ್ರಹದ ಸಂಪೂರ್ಣ ಧನ ಆಕರ್ಷಣಾ ಮುಹೂರ್ತ ₹೩೫೦ ವರದಿಯಲ್ಲಿದೆ"
-        : baseLang === "hi" ? "🔒 योगी ग्रह का सम्पूर्ण धन आकर्षण मुहूर्त ₹३५० रिपोर्ट में उपलब्ध है"
-          : baseLang === "mr" ? "🔒 योगी ग्रहाचा संपूर्ण धन आकर्षण मुहूर्त ₹३५० अहवालात उपलब्ध आहे"
-            : baseLang === "te" ? "🔒 యోగి గ్రహ సంపూర్ణ ధన ఆకర్షణ ముహూర్తం ₹350 నివేదికలో లభిస్తుంది"
-              : baseLang === "ta" ? "🔒 யோகி கிரகத்தின் முழு தன ஆகர்ஷண முகூர்த்தம் ₹350 அறிக்கையில் உள்ளது"
-                : baseLang === "ml" ? "🔒 യോഗി ഗ്രഹത്തിന്റെ പൂർണ്ണ ധന ആകർഷണ മുഹൂർത്തം ₹350 റിപ്പോർട്ടിൽ ലഭ്യമാണ്"
-                  : "🔒 Full Yogi wealth frequency alignment unlocked in ₹350 Master Report"
+      lockedCta: baseLang === "kn" ? "🔒 ಯೋಗಿ ಗ್ರಹದ ಸಂಪೂರ್ಣ ಧನ ಆಕರ್ಷಣಾ ಮುಹೂರ್ತ ಪೂರ್ಣ ವರದಿಯಲ್ಲಿದೆ"
+        : baseLang === "hi" ? "🔒 योगी ग्रह का सम्पूर्ण धन आकर्षण मुहूर्त पूर्ण रिपोर्ट PDF में उपलब्ध है"
+          : baseLang === "mr" ? "🔒 योगी ग्रहाचा संपूर्ण धन आकर्षण मुहूर्त पूर्ण अहवालात उपलब्ध आहे"
+            : baseLang === "te" ? "🔒 యోగి గ్రహ సంపూర్ణ ధన ఆకర్షణ ముహూర్తం సంపూర్ణ నివేదిక PDF లో లభిస్తుంది"
+              : baseLang === "ta" ? "🔒 யோகி கிரகத்தின் முழு தன ஆகர்ஷண முகூர்த்தம் முழு அறிக்கை PDF-இல் உள்ளது"
+                : baseLang === "ml" ? "🔒 യോഗി ഗ്രഹത്തിന്റെ പൂർണ്ണ ധന ആകർഷണ മുഹൂർത്തം സമ്പൂർണ്ണ റിപ്പോർട്ട് PDF-ൽ ലഭ്യമാണ്"
+                  : "🔒 Full Yogi wealth frequency alignment unlocked in Complete Report PDF"
     }
   };
 
@@ -1758,35 +1758,35 @@ export function calculateFiveYearPreviewHorizon(
     ml: "2026-2027: കർമ്മ പരിവർത്തനവും പുതിയ അവസരങ്ങളും"
   };
 
-  // Locked Years 2 to 5 Teasers (High Curiosity Hooks)
+  // Locked Years 2 to 5 Teasers (High Curiosity Hooks — zero upfront price shown before Download section)
   const lockedTeasersKn = [
     {
       yearNum: 2,
       gregorianRange: "2027 - 2028",
       headlineQuestion: "ಗುರು ಗೋಚಾರ ಪರಿವರ್ತನೆ: ನಿಮ್ಮ ಆರ್ಥಿಕ ಹಾಗೂ ಉದ್ಯೋಗದ ಯಾವ ೩ ತಿಂಗಳುಗಳು ಅನಿರೀಕ್ಷಿತ ಮಹಾ ಭಾಗ್ಯೋದಯ ನೀಡಲಿವೆ?",
       keyTheme: "ಆರ್ಥಿಕ ಮಹಾ ತಿರುವು & ಧನ ಸಮೃದ್ಧಿ",
-      teaserCta: "🔒 ₹೩೫೦ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಪೂರ್ಣ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
+      teaserCta: "🔒 ಪೂರ್ಣ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜು PDF ನಲ್ಲಿ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
     },
     {
       yearNum: 3,
       gregorianRange: "2028 - 2029",
       headlineQuestion: "ಭೂಮಿ, ಆಸ್ತಿ ಖರೀದಿ, ನೂತನ ವಾಹನ ಅಥವಾ ಕೌಟುಂಬಿಕ ಮಂಗಳ ಕಾರ್ಯದ ನಿಖರ ಯೋಗ ಕಾಲಾವಧಿ ಯಾವುದು?",
       keyTheme: "ಆಸ್ತಿ ಯೋಗ & ಗೃಹ ನಿರ್ಮಾಣ",
-      teaserCta: "🔒 ₹೩೫೦ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಪೂರ್ಣ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
+      teaserCta: "🔒 ಪೂರ್ಣ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜು PDF ನಲ್ಲಿ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
     },
     {
       yearNum: 4,
       gregorianRange: "2029 - 2030",
       headlineQuestion: "ರಾಹು-ಕೇತು ಅಕ್ಷ ಸಂಚಾರ: ನಿಮ್ಮ ಆರೋಗ್ಯ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿಗೆ ತೆಗೆದುಕೊಳ್ಳಬೇಕಾದ ಅತ್ಯಂತ ಪ್ರಮುಖ ಮುನ್ನೆಚ್ಚರಿಕೆಗಳೇನು?",
       keyTheme: "ಆರೋಗ್ಯ ರಕ್ಷಾ ಕವಚ & ಕರ್ಮಿಕ ಪರಿಹಾರ",
-      teaserCta: "🔒 ₹೩೫೦ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಪೂರ್ಣ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
+      teaserCta: "🔒 ಪೂರ್ಣ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜು PDF ನಲ್ಲಿ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
     },
     {
       yearNum: 5,
       gregorianRange: "2030 - 2031",
       headlineQuestion: "ಪೂರ್ಣ ರಾಜಯೋಗ ಫಲ: ನಿಮ್ಮ ಜೀವನದ ಸರ್ವಶ್ರೇಷ್ಠ ಶಿಖರಾವಧಿಯ ಸುವರ್ಣ ತಿರುವು ಯಾವ ಋತುವಿನಲ್ಲಿ ಆರಂಭವಾಗುತ್ತದೆ?",
       keyTheme: "ಪೂರ್ಣ ರಾಜಯೋಗ ಶಿಖರಾವಧಿ",
-      teaserCta: "🔒 ₹೩೫೦ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜಿನಲ್ಲಿ ಪೂರ್ಣ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
+      teaserCta: "🔒 ಪೂರ್ಣ ಪ್ರೀಮಿಯಂ ದಸ್ತಾವೇಜು PDF ನಲ್ಲಿ ತಿಂಗಳವಾರು ವಿವರ ಪಡೆಯಿರಿ"
     }
   ];
 
@@ -1796,28 +1796,28 @@ export function calculateFiveYearPreviewHorizon(
       gregorianRange: "2027 - 2028",
       headlineQuestion: "Jupiter Transit Shift: Which 3 pivotal months will unlock an unexpected financial and career surge for you?",
       keyTheme: "Wealth Expansion & Career Catalyst",
-      teaserCta: "🔒 Unlocked in full ₹350 Master 5-Year Dossier"
+      teaserCta: "🔒 Unlocked in Complete 5-Year Master Report PDF"
     },
     {
       yearNum: 3,
       gregorianRange: "2028 - 2029",
       headlineQuestion: "Real Estate, Vehicle Acquisition & Auspicious Family Milestones: What is your exact astrological window?",
       keyTheme: "Property Yogam & Domestic Elevation",
-      teaserCta: "🔒 Unlocked in full ₹350 Master 5-Year Dossier"
+      teaserCta: "🔒 Unlocked in Complete 5-Year Master Report PDF"
     },
     {
       yearNum: 4,
       gregorianRange: "2029 - 2030",
       headlineQuestion: "Rahu-Ketu Axis Transformation: What vital longevity safeguards and mental health shields must you adopt?",
       keyTheme: "Longevity Shield & Karmic Pacification",
-      teaserCta: "🔒 Unlocked in full ₹350 Master 5-Year Dossier"
+      teaserCta: "🔒 Unlocked in Complete 5-Year Master Report PDF"
     },
     {
       yearNum: 5,
       gregorianRange: "2030 - 2031",
       headlineQuestion: "Peak Raja Yoga Culmination: In which sacred season will your life's greatest crowning triumph unfold?",
       keyTheme: "Supreme Raja Yoga Zenith",
-      teaserCta: "🔒 Unlocked in full ₹350 Master 5-Year Dossier"
+      teaserCta: "🔒 Unlocked in Complete 5-Year Master Report PDF"
     }
   ];
 
@@ -1827,28 +1827,28 @@ export function calculateFiveYearPreviewHorizon(
       gregorianRange: "2027 - 2028",
       headlineQuestion: "गुरु गोचर परिवर्तन: आपके आर्थिक एवं कार्यक्षेत्र के कौन से ३ महीने अप्रत्याशित महा भाग्योदय लाएंगे?",
       keyTheme: "आर्थिक महा मोड़ एवं धन समृद्धि",
-      teaserCta: "🔒 ₹३५० सम्पूर्ण महा कुंडली में विस्तार से जानें"
+      teaserCta: "🔒 सम्पूर्ण महा कुंडली PDF में विस्तार से जानें"
     },
     {
       yearNum: 3,
       gregorianRange: "2028 - 2029",
       headlineQuestion: "भूमि, भवन क्रय, नवीन वाहन या मांगलिक कार्य का सटीक ज्योतिषीय समय कौन सा है?",
       keyTheme: "संपत्ति योग एवं पारिवारिक उत्सव",
-      teaserCta: "🔒 ₹३५० सम्पूर्ण महा कुंडली में विस्तार से जानें"
+      teaserCta: "🔒 सम्पूर्ण महा कुंडली PDF में विस्तार से जानें"
     },
     {
       yearNum: 4,
       gregorianRange: "2029 - 2030",
       headlineQuestion: "राहु-केतु अक्ष परिवर्तन: आपके स्वास्थ्य एवं मानसिक शांति हेतु कौन से उपाय अनिवार्य हैं?",
       keyTheme: "स्वास्थ्य रक्षा कवच एवं कर्मिक उपाय",
-      teaserCta: "🔒 ₹३५० सम्पूर्ण महा कुंडली में विस्तार से जानें"
+      teaserCta: "🔒 सम्पूर्ण महा कुंडली PDF में विस्तार से जानें"
     },
     {
       yearNum: 5,
       gregorianRange: "2030 - 2031",
       headlineQuestion: "पूर्ण राजयोग फल: आपके जीवन की सर्वोच्च शिखर सफलता किस पावन ऋतु में आरंभ होगी?",
       keyTheme: "सर्वोच्च राजयोग शिखर",
-      teaserCta: "🔒 ₹३५० सम्पूर्ण महा कुंडली में विस्तार से जानें"
+      teaserCta: "🔒 सम्पूर्ण महा कुंडली PDF में विस्तार से जानें"
     }
   ];
 
@@ -1858,28 +1858,28 @@ export function calculateFiveYearPreviewHorizon(
       gregorianRange: "2027 - 2028",
       headlineQuestion: "गुरू गोचर परिवर्तन: आपल्या आर्थिक व करिअरचे कोणते ३ महिने अचानक मोठे भाग्योदय घडवणार?",
       keyTheme: "आर्थिक मोठा टप्पा व धन समृद्धी",
-      teaserCta: "🔒 ₹३५० संपूर्ण महा पत्रिकेत सविस्तर पहा"
+      teaserCta: "🔒 संपूर्ण महा पत्रिका PDF मध्ये सविस्तर पहा"
     },
     {
       yearNum: 3,
       gregorianRange: "2028 - 2029",
       headlineQuestion: "जमीन, घर खरेदी, नवीन वाहन किंवा कुटुंबातील मंगल कार्याचा अचूक ज्योतिषीय काळ कोणता?",
       keyTheme: "मालमत्ता योग व कौटुंबिक उत्सव",
-      teaserCta: "🔒 ₹३५० संपूर्ण महा पत्रिकेत सविस्तर पहा"
+      teaserCta: "🔒 संपूर्ण महा पत्रिका PDF मध्ये सविस्तर पहा"
     },
     {
       yearNum: 4,
       gregorianRange: "2029 - 2030",
       headlineQuestion: "राहू-केतू अक्ष भ्रमण: आपल्या आरोग्यासाठी व मानसिक शांततेसाठी कोणत्या सावधगिरीच्या उपाययोजना आवश्यक आहेत?",
       keyTheme: "आरोग्य संरक्षण कवच व कर्मिक उपाय",
-      teaserCta: "🔒 ₹३५० संपूर्ण महा पत्रिकेत सविस्तर पहा"
+      teaserCta: "🔒 संपूर्ण महा पत्रिका PDF मध्ये सविस्तर पहा"
     },
     {
       yearNum: 5,
       gregorianRange: "2030 - 2031",
       headlineQuestion: "पूर्ण राजयोग फळ: आपल्या जीवनातील सर्वोत्तम शिखर यश कोणत्या शुभ ऋतूत सुरू होणार?",
       keyTheme: "सर्वोच्च राजयोग शिखर",
-      teaserCta: "🔒 ₹३५० संपूर्ण महा पत्रिकेत सविस्तर पहा"
+      teaserCta: "🔒 संपूर्ण महा पत्रिका PDF मध्ये सविस्तर पहा"
     }
   ];
 
@@ -1889,28 +1889,28 @@ export function calculateFiveYearPreviewHorizon(
       gregorianRange: "2027 - 2028",
       headlineQuestion: "గురు గోచార మార్పు: మీ ఆర్థిక మరియు వృత్తి జీవితంలో ఏ 3 నెలలు ఊహించని మహా భాగ్యోదయాన్ని ఇస్తాయి?",
       keyTheme: "ఆర్థిక మహా మలుపు & ధన సమృద్ధి",
-      teaserCta: "🔒 ₹350 సంపూర్ణ జాతకంలో వివరంగా చూడండి"
+      teaserCta: "🔒 సంపూర్ణ జాతక PDF లో వివరంగా చూడండి"
     },
     {
       yearNum: 3,
       gregorianRange: "2028 - 2029",
       headlineQuestion: "భూమి, గృహ కొనుగోలు, నూతన వాహనం లేదా కుటుంబంలో శుభకార్యాల ఖచ్చితమైన సమయం ఏది?",
       keyTheme: "ఆస్తి యోగం & గృహ నిర్మాణం",
-      teaserCta: "🔒 ₹350 సంపూర్ణ జాతకంలో వివరంగా చూడండి"
+      teaserCta: "🔒 సంపూర్ణ జాతక PDF లో వివరంగా చూడండి"
     },
     {
       yearNum: 4,
       gregorianRange: "2029 - 2030",
       headlineQuestion: "రాహు-కేతు అక్ష సంచారం: మీ ఆరోగ్యం మరియు మానసిక ప్రశాంతత కొరకు తీసుకోవలసిన రక్షణ చర్యలేమిటి?",
       keyTheme: "ఆరోగ్య రక్షా కవచం & కర్మిక పరిహారాలు",
-      teaserCta: "🔒 ₹350 సంపూర్ణ జాతకంలో వివరంగా చూడండి"
+      teaserCta: "🔒 సంపూర్ణ జాతక PDF లో వివరంగా చూడండి"
     },
     {
       yearNum: 5,
       gregorianRange: "2030 - 2031",
       headlineQuestion: "సంపూర్ణ రాజయోగ ఫలం: మీ జీవితంలో అత్యున్నత శిఖర విజయం ఏ పవిత్ర ఋతువులో ప్రారంభమవుతుంది?",
       keyTheme: "అత్యున్నత రాజయోగ శిఖరం",
-      teaserCta: "🔒 ₹350 సంపూర్ణ జాతకంలో వివరంగా చూడండి"
+      teaserCta: "🔒 సంపూర్ణ జాతక PDF లో వివరంగా చూడండి"
     }
   ];
 
@@ -1920,28 +1920,28 @@ export function calculateFiveYearPreviewHorizon(
       gregorianRange: "2027 - 2028",
       headlineQuestion: "குரு பெயர்ச்சி மாற்றம்: உங்கள் நிதி மற்றும் தொழில் வாழ்க்கையில் எந்த 3 மாதங்கள் எதிர்பாராத பெரும் யோகத்தைத் தரும்?",
       keyTheme: "பொருளாதார பெரும் திருப்பம் & தனவிருத்தி",
-      teaserCta: "🔒 ₹350 முழு ஜாதகத்தில் விரிவாகப் பார்க்கவும்"
+      teaserCta: "🔒 முழு ஜாதக PDF-இல் விரிவாகப் பார்க்கவும்"
     },
     {
       yearNum: 3,
       gregorianRange: "2028 - 2029",
       headlineQuestion: "நிலம், வீடு வாங்குதல், புதிய வாகனம் அல்லது குடும்ப சுபகாரியங்களின் துல்லியமான ஜோதிட காலம் எது?",
       keyTheme: "சொத்து யோகம் & குடும்ப மங்கள நிகழ்வு",
-      teaserCta: "🔒 ₹350 முழு ஜாதகத்தில் விரிவாகப் பார்க்கவும்"
+      teaserCta: "🔒 முழு ஜாதக PDF-இல் விரிவாகப் பார்க்கவும்"
     },
     {
       yearNum: 4,
       gregorianRange: "2029 - 2030",
       headlineQuestion: "ராகு-கேது பெயர்ச்சி: உங்கள் உடல்நலம் மற்றும் மன அமைதிக்காக எடுக்க வேண்டிய முக்கிய தற்காப்பு பரிகாரங்கள் யாவை?",
       keyTheme: "ஆரோக்கிய ரக்ஷா கவசம் & கர்ம பரிகாரம்",
-      teaserCta: "🔒 ₹350 முழு ஜாதகத்தில் விரிவாகப் பார்க்கவும்"
+      teaserCta: "🔒 முழு ஜாதக PDF-இல் விரிவாகப் பார்க்கவும்"
     },
     {
       yearNum: 5,
       gregorianRange: "2030 - 2031",
       headlineQuestion: "முழு ராஜயோக பலன்: உங்கள் வாழ்வின் உச்சக்கட்ட வெற்றி எந்த சுப பருவத்தில் துவங்குகிறது?",
       keyTheme: "உச்சபட்ச ராஜயோக வெற்றி",
-      teaserCta: "🔒 ₹350 முழு ஜாதகத்தில் விரிவாகப் பார்க்கவும்"
+      teaserCta: "🔒 முழு ஜாதக PDF-இல் விரிவாகப் பார்க்கவும்"
     }
   ];
 
@@ -1951,28 +1951,28 @@ export function calculateFiveYearPreviewHorizon(
       gregorianRange: "2027 - 2028",
       headlineQuestion: "വ്യാഴമാറ്റം: നിങ്ങളുടെ സാമ്പത്തിക, തൊഴിൽ രംഗങ്ങളിൽ അപ്രതീക്ഷിത ഭാഗ്യോദയം നൽകുന്ന 3 മാസങ്ങൾ ഏതെല്ലാമാണ്?",
       keyTheme: "സാമ്പത്തിക വലിയ വഴിത്തിരിവ്",
-      teaserCta: "🔒 ₹350 സമ്പൂർണ്ണ ജാതകത്തിൽ വിശദമായി കാണുക"
+      teaserCta: "🔒 സമ്പൂർണ്ണ ജാതക PDF-ൽ വിശദമായി കാണുക"
     },
     {
       yearNum: 3,
       gregorianRange: "2028 - 2029",
       headlineQuestion: "ഭൂമി, ഭവന നിർമ്മാണം, പുതിയ വാഹനം, കുടുംബത്തിലെ മംഗള കർമ്മങ്ങൾ എന്നിവയുടെ കൃത്യമായ സമയം ഏതാണ്?",
       keyTheme: "വസ്തു യോഗവും കുടുംബ നേട്ടങ്ങളും",
-      teaserCta: "🔒 ₹350 സമ്പൂർണ്ണ ജാതകത്തിൽ വിശദമായി കാണുക"
+      teaserCta: "🔒 സമ്പൂർണ്ണ ജാതക PDF-ൽ വിശദമായി കാണുക"
     },
     {
       yearNum: 4,
       gregorianRange: "2029 - 2030",
       headlineQuestion: "രാഹു-കേതു സംക്രമണം: നിങ്ങളുടെ ആരോഗ്യത്തിനും മനഃസമാധാനത്തിനും സ്വീകരിക്കേണ്ട പ്രധാന പ്രതിവിധികൾ ഏവ?",
       keyTheme: "ആരോഗ്യ സംരക്ഷണ കവചം & കർമ്മ പരിഹാരം",
-      teaserCta: "🔒 ₹350 സമ്പൂർണ്ണ ജാതകത്തിൽ വിശദമായി കാണുക"
+      teaserCta: "🔒 സമ്പൂർണ്ണ ജാതക PDF-ൽ വിശദമായി കാണുക"
     },
     {
       yearNum: 5,
       gregorianRange: "2030 - 2031",
       headlineQuestion: "പൂർണ്ണ രാജയോഗ ഫലം: നിങ്ങളുടെ ജീവിതത്തിലെ ഏറ്റവും വലിയ സുവർണ്ണ വിജയം ഏത് ഋതുവിൽ ആരംഭിക്കും?",
       keyTheme: "ഉന്നത രാജയോഗ വിജയം",
-      teaserCta: "🔒 ₹350 സമ്പൂർണ്ണ ജാതകത്തിൽ വിശദമായി കാണുക"
+      teaserCta: "🔒 സമ്പൂർണ്ണ ജാതക PDF-ൽ വിശദമായി കാണുക"
     }
   ];
 
@@ -2105,7 +2105,7 @@ export function getDiningConversionOffer(lang: AntarangaLang = "kn"): DiningConv
       headline: "ಊಟ ಬರುವಷ್ಟರಲ್ಲಿ ಕೇವಲ ೧೦ ಸೆಕೆಂಡುಗಳಲ್ಲಿ ನಿಮ್ಮ ಮೊಬೈಲ್‌ಗೆ ನೇರ ಡೌನ್‌ಲೋಡ್!",
       subheadline: "ಪಂಡಿತ್ ಪ್ಯಾಲೆಟ್‌ನಲ್ಲಿ ಊಟ ಮಾಡುತ್ತಿರುವ ೮೪% ಅತಿಥಿಗಳು ಈ ೫-ವರ್ಷಗಳ ಮಹಾ ದಸ್ತಾವೇಜನ್ನು ಇಂದೇ ಪಡೆದುಕೊಂಡಿದ್ದಾರೆ.",
       socialProof: "ಊಟದ ಮೇಜಿನಲ್ಲೇ ೧-ಕ್ಲಿಕ್ ಪಾವತಿ & ತಕ್ಷಣದ PDF ಡೌನ್‌ಲೋಡ್ ಗ್ಯಾರಂಟಿ",
-      instantDeliveryText: "ಕೇವಲ ₹೩೫೦ ನೀಡಿ ಸಂಪೂರ್ಣ ೫-ವರ್ಷಗಳ ಸುವರ್ಣ ಕಾಲ, ಆರ್ಥಿಕ ದಿಕ್ಕೂಚಿ & ೧೦೦ ವರ್ಷಗಳ ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಇಂದೇ ಪಡೆಯಿರಿ!",
+      instantDeliveryText: "ಸಂಪೂರ್ಣ ೫-ವರ್ಷಗಳ ಸುವರ್ಣ ಕಾಲ, ಆರ್ಥಿಕ ದಿಕ್ಕೂಚಿ & ೧೦೦ ವರ್ಷಗಳ ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿ PDF ಅನ್ನು ಇಂದೇ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ!",
       features: [
         "ಪೂರ್ಣ ೫-ವರ್ಷಗಳ ವರ್ಷವಾರು ಮಹಾ ಭವಿಷ್ಯ (೪ ಋತುಗಳು, ಆರ್ಥಿಕ ದಿಕ್ಕೂಚಿ & ಮುನ್ನೆಚ್ಚರಿಕೆ)",
         "೧೦೦-ವರ್ಷಗಳ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿ (೧೬ ವರ್ಗಗಳು, ದಶಾ-ಅಂತರ್ದಶಾ ಕೋಷ್ಟಕ)",
@@ -2119,7 +2119,7 @@ export function getDiningConversionOffer(lang: AntarangaLang = "kn"): DiningConv
       headline: "भोजन आने तक मात्र १० सेकंड में सीधे आपके मोबाइल पर डाउनलोड!",
       subheadline: "पंडित पैलेट के ८४% अतिथि इस ५-वर्षीय महा कुंडली को आज ही प्राप्त कर चुके हैं।",
       socialProof: "डाइनिंग टेबल पर ही १-क्लिक भुगतान एवं त्वरित PDF डाउनलोड गारंटी",
-      instantDeliveryText: "मात्र ₹३५० में आगामी ५ वर्षों का स्वर्णिम काल, वित्तीय रोडमैप एवं १०० वर्षीय जन्म पत्रिका प्राप्त करें!",
+      instantDeliveryText: "आगामी ५ वर्षों का स्वर्णिम काल, वित्तीय रोडमैप एवं १०० वर्षीय जन्म पत्रिका PDF अभी डाउनलोड करें!",
       features: [
         "सम्पूर्ण ५-वर्षीय वर्षवार महा भविष्य (४ ऋतुओं का फल, धन व स्वास्थ्य रोडमैप)",
         "१०० वर्षीय प्रामाणिक बग्गोण जन्म कुंडली (१६ वर्ग एवं दशा-अंतर्दशा)",
@@ -2133,7 +2133,7 @@ export function getDiningConversionOffer(lang: AntarangaLang = "kn"): DiningConv
       headline: "जेवण येईपर्यंत अवघ्या १० सेकंदात थेट आपल्या मोबाईलवर डाऊनलोड!",
       subheadline: "पंडित पॅलेटमधील ८४% पाहुण्यांनी ही ५-वर्षांची महा पत्रिका आजच मिळवली आहे.",
       socialProof: "डायनिंग टेबलवरच १-क्लिक पेमेंट व तात्काळ PDF डाऊनलोड गॅरंटी",
-      instantDeliveryText: "फक्त ₹३५० मध्ये पुढील ५ वर्षांचा सुवर्ण काळ, आर्थिक दिशा व १०० वर्षांची जन्म पत्रिका मिळवा!",
+      instantDeliveryText: "पुढील ५ वर्षांचा सुवर्ण काळ, आर्थिक दिशा व १०० वर्षांची जन्म पत्रिका PDF आताच डाऊनलोड करा!",
       features: [
         "संपूर्ण ५-वर्षांची वर्षवार महा पत्रिका (४ ऋतूंचे फळ, आर्थिक व आरोग्य दिशा)",
         "१०० वर्षांची अधिकृत बग्गोण जन्म पत्रिका (१६ वर्ग व दशा कोष्टक)",
@@ -2147,7 +2147,7 @@ export function getDiningConversionOffer(lang: AntarangaLang = "kn"): DiningConv
       headline: "భోజనం వచ్చేలోపు కేవలం 10 సెకన్లలో నేరుగా మీ మొబైల్‌కు డౌన్‌లోడ్!",
       subheadline: "పండిట్ ప్యాలెట్‌లో భోజనం చేస్తున్న 84% అతిథులు ఈ 5 సంవత్సరాల జాతకాన్ని పొందారు.",
       socialProof: "టేబుల్ వద్దే 1-క్లిక్ చెల్లింపు మరియు తక్షణ PDF డౌన్‌లోడ్ గ్యారంటీ",
-      instantDeliveryText: "కేవలం ₹350 తో రాబోయే 5 సంవత్సరాల సువర్ణ కాలం, ఆర్థిక మార్గదర్శనం & జన్మ కుండలి పొందండి!",
+      instantDeliveryText: "రాబోయే 5 సంవత్సరాల సువర్ణ కాలం, ఆర్థిక మార్గదర్శనం & 100 సంవత్సరాల జన్మ కుండలి PDF ఇప్పుడే డౌన్‌లోడ్ చేయండి!",
       features: [
         "సంపూర్ణ 5 సంవత్సరాల వార్షిక జాతకం (4 ఋతువులు, ఆర్థిక & ఆరోగ్య రక్ష)",
         "100 సంవత్సరాల అధికారిక బగ్గోణ జన్మ కుండలి (16 వర్గాలు & దశా పట్టిక)",
@@ -2161,7 +2161,7 @@ export function getDiningConversionOffer(lang: AntarangaLang = "kn"): DiningConv
       headline: "உணவு வருவதற்குள் வெறும் 10 வினாடிகளில் உங்கள் மொபைலில் நேரடி பதிவிறக்கம்!",
       subheadline: "பண்டிட் பேலட்டில் உணவு உண்ணும் 84% விருந்தினர்கள் இந்த 5 ஆண்டு ஜாதகத்தை பெற்றுள்ளனர்.",
       socialProof: "டேபிளிலேயே 1-கிளிக் கட்டணம் மற்றும் உடனடி PDF பதிவிறக்க உத்தரவாதம்",
-      instantDeliveryText: "வெறும் ₹350-ல் அடுத்த 5 ஆண்டுகளின் பொற்காலம், நிதி வழிகாட்டி மற்றும் ஜென்ம குண்டலியைப் பெறுங்கள்!",
+      instantDeliveryText: "அடுத்த 5 ஆண்டுகளின் பொற்காலம், நிதி வழிகாட்டி மற்றும் 100 ஆண்டு ஜென்ம குண்டலி PDF-ஐ இப்போதே பதிவிறக்கவும்!",
       features: [
         "முழு 5 ஆண்டு விரிவான பலன்கள் (4 பருவங்கள், நிதி & ஆரோக்கிய கவசம்)",
         "100 ஆண்டு பாரம்பரிய பக்கோணா ஜென்ம குண்டலி (16 வர்க்கங்கள் & தசா அட்டவணை)",
@@ -2175,7 +2175,7 @@ export function getDiningConversionOffer(lang: AntarangaLang = "kn"): DiningConv
       headline: "ഭക്ഷണം എത്തുന്നതിന് മുമ്പ് വെറും 10 സെക്കൻഡിൽ മൊബൈലിലേക്ക് നേരിട്ട് ഡൗൺലോഡ്!",
       subheadline: "പണ്ഡിറ്റ് പാലറ്റിൽ ഭക്ഷണം കഴിക്കുന്ന 84% അതിഥികളും ഈ 5 വർഷത്തെ ജാതകം നേടിയിട്ടുണ്ട്.",
       socialProof: "ഡൈനിംഗ് ടേബിളിൽ തന്നെ 1-ക്ലിക്ക് പേയ്‌മെന്റും തൽക്ഷണ PDF ഡൗൺലോഡും",
-      instantDeliveryText: "വെറും ₹350-ൽ അടുത്ത 5 വർഷത്തെ സുവർണ്ണ കാലവും 100 വർഷത്തെ ജന്മ കുണ്ഡലിയും സ്വന്തമാക്കൂ!",
+      instantDeliveryText: "അടുത്ത 5 വർഷത്തെ സുവർണ്ണ കാലവും 100 വർഷത്തെ ജന്മ കുണ്ഡലി PDF-ഉം ഇപ്പോൾ തന്നെ ഡൗൺലോഡ് ചെയ്യൂ!",
       features: [
         "പൂർണ്ണ 5 വർഷത്തെ വാർഷിക ഭവിഷ്യത്ത് (4 ഋതുക്കൾ, ധന & ആരോഗ്യ മാർഗ്ഗരേഖ)",
         "100 വർഷത്തെ ആധികാരിക ബഗ്ഗോണ ജന്മ കുണ്ഡലി (16 വർഗ്ഗങ്ങൾ & ദശാ പട്ടിക)",
@@ -2188,7 +2188,7 @@ export function getDiningConversionOffer(lang: AntarangaLang = "kn"): DiningConv
     headline: "Direct download to your mobile in just 10 seconds before your meal arrives!",
     subheadline: "84% of Pandit Palette dining guests download this 5-Year Master Horizon at their table.",
     socialProof: "1-Tap Table Payment with Instant High-Speed PDF Download Guarantee",
-    instantDeliveryText: "For only ₹350, unlock your complete 5-Year Master Golden Roadmap, Financial Radar & 100-Year Baggona Janma Kundali!",
+    instantDeliveryText: "Scroll below to download your complete 5-Year Master Golden Roadmap, Financial Radar & 100-Year Baggona Janma Kundali PDF!",
     features: [
       "Complete 5-Year Year-by-Year Roadmap (4 Seasonal Breakdowns, Wealth Timing & Health Shield)",
       "100-Year Authentic Baggona Janma Kundali (16 Shodashavargas & Dasha-Bhukti Tables)",
@@ -2504,7 +2504,7 @@ export async function verifyHotelPaymentUtr(
     },
     success: {
       kn: `✓ ₹${String(amountInr).replace(/\d/g, (d) => "೦೧೨೩೪೫೬೭೮೯"[Number(d)])} ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! ನಿಮ್ಮ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...`,
-      en: `✓ ₹${amountInr} Payment verified successfully! Your report PDF is generating...`,
+      en: `✓ ₹${amountInr} Payment verified successfully! ${amountInr >= 450 ? "Generating your Master Horoscope & Sacred Remedy PDF..." : "Your report PDF is generating..."}`,
       hi: `✓ ₹${amountInr} भुगतान सफलतापूर्वक सत्यापित! आपकी रिपोर्ट PDF तैयार हो रही है...`,
       te: `✓ ₹${amountInr} చెల్లింపు విజయవంతంగా ధృవీకరించబడింది! మీ PDF సిద్ధమవుతోంది...`,
       ta: `✓ ₹${amountInr} கட்டணம் வெற்றிகரமாக சரிபார்க்கப்பட்டது! உங்கள் PDF தயாராகிறது...`,
