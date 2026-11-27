@@ -7,12 +7,14 @@ export type PalmReadingPdfTemplateProps = {
   personName?: string;
   lang?: string;
   messages?: Array<{ sender: string; text: string; timestamp?: string }>;
+  containerId?: string;
 };
 
 export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
   result,
   personName = "ಶ್ರೀಯುತ ಭಕ್ತರು",
-  lang = "kn"
+  lang = "kn",
+  containerId = "palm-reading-pdf-container"
 }) => {
   const code = (lang || "kn").slice(0, 2);
 
@@ -35,6 +37,12 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
       page1Sub: "भाग १: हस्त तत्त्व, पंच मुख्य रेखाएं, नवग्रह पर्वत एवं शुभ योग (बृहत् संहिता)",
       page2Sub: "भाग २: कालक्रम जीवन चरण, विस्तृत फलादेश एवं गोकर्ण महाबलेश्वर सिद्ध उपाय"
     },
+    mr: {
+      top: "॥ श्री गोकर्ण महाबळेश्वर स्वामी प्रसन्न ॥",
+      main: "॥ बग्गोण हस्तसामुद्रिक शास्त्र दिव्य अहवाल ॥",
+      page1Sub: "भाग १: हस्त तत्त्व, पंच मुख्य रेषा, सप्त ग्रह पर्वत व शुभ योग (बृहत्संहिता)",
+      page2Sub: "भाग २: जीवन काळानुसार फलादेश, संपूर्ण मार्गदर्शन व श्री गोकर्ण उपाय"
+    },
     te: {
       top: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ప్రసన్న ॥",
       main: "॥ బగ్గోణ హస్త రేఖ శాస్త్ర దైవిక నివేదిక ॥",
@@ -46,6 +54,12 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
       main: "॥ பக்கோண ஹஸ்த ரேகை சாஸ்திர திவ்ய அறிக்கை ॥",
       page1Sub: "பகுதி 1: கை தத்துவம், பஞ்ச ரேகைகள், கிரக மேடுகள் & சாமுத்ரிகா யோகங்கள்",
       page2Sub: "பகுதி 2: வயதுக் காலக்கட்டங்கள், முழு பலன்கள் & கோகர்ண மகாபலேஸ்வரர் பரிகாரம்"
+    },
+    ml: {
+      top: "॥ ശ്രീ ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമി പ്രസന്ന ॥",
+      main: "॥ ബഗ്ഗോണ ഹസ്തരേഖാ ശാസ്ത്ര ദിവ്യ റിപ്പോർട്ട് ॥",
+      page1Sub: "ഭാഗം 1: ഹസ്ത തത്ത്വം, പഞ്ച രേഖകൾ, സപ്ത ഗ്രഹമണ്ഡലങ്ങൾ & സാമുദ്രിക യോഗങ്ങൾ",
+      page2Sub: "ഭാഗം 2: ജീവിത ഘട്ടങ്ങൾ, സമ്പൂർണ്ണ പ്രവചനം & ഗോകർണ്ണ ക്ഷേത്ര പരിഹാരം"
     }
   };
 
@@ -55,8 +69,10 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
     kn: { title: "👤 ಭಕ್ತರ ವಿವರಗಳು", devotee: "ಭಕ್ತರು:", hand: "ಆಯ್ಕೆಮಾಡಿದ ಹಸ್ತ:", defaultDev: "ಶ್ರೀಯುತ ಭಕ್ತರು" },
     en: { title: "👤 Devotee Details", devotee: "Devotee:", hand: "Inspected Hand:", defaultDev: "Devotee" },
     hi: { title: "👤 भक्त विवरण", devotee: "भक्त:", hand: "परीक्षित हस्त:", defaultDev: "भक्त" },
+    mr: { title: "👤 जातक तपशील", devotee: "नाव:", hand: "तपासलेला हात:", defaultDev: "जातक" },
     te: { title: "👤 భక్తుని వివరాలు", devotee: "భక్తులు:", hand: "పరిశీలించిన చేయి:", defaultDev: "భక్తులు" },
-    ta: { title: "👤 பக்தர் விவரங்கள்", devotee: "பக்தர்:", hand: "ஆய்வு செய்த கை:", defaultDev: "பக்தர்" }
+    ta: { title: "👤 பக்தர் விவரங்கள்", devotee: "பக்தர்:", hand: "ஆய்வு செய்த கை:", defaultDev: "பக்தர்" },
+    ml: { title: "👤 ഭക്ത വിവരങ്ങൾ", devotee: "പേര്:", hand: "പരിശോധിച്ച കൈ:", defaultDev: "ഭക്തൻ" }
   };
 
   const dLabels = devLabels[code] || devLabels.en;
@@ -76,6 +92,10 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
       top: '"ॐ गोकर्ण महाबलेश्वर संनिधि सिद्ध हस्तरेखा प्रकाश · सर्व दोष शमनम"',
       priest: "श्रीराम पंडित · मुख्य अर्चक, गोकर्ण क्षेत्र (दूरभाष: +91 99723 39362)"
     },
+    mr: {
+      top: '"ॐ गोकर्ण महाबळेश्वर सान्निध्य सिद्ध हस्तरेखा प्रकाश · सर्व दोष शमनम्"',
+      priest: "श्रीराम पंडित · मुख्य अर्चक, गोकर्ण क्षेत्र (फोन: +91 99723 39362)"
+    },
     te: {
       top: '"ఓం గోకర్ణ మహాబలేశ్వర సన్నిధి సిద్ధ హస్త రేఖా ప్రకాశం · సర్వ దోష శమనం"',
       priest: "శ్రీరామ్ పండిత్ · ముఖ్య అర్చకులు, గోకర్ణ క్షేత్రం (ఫోన్: +91 99723 39362)"
@@ -83,6 +103,10 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
     ta: {
       top: '"ஓம் கோகர்ண மகாபலேஸ்வரர் சன்னதி திவ்ய ஹஸ்த ரேகை ஒளி · சர்வ தோஷ சமனம்"',
       priest: "ஶ்ரீராம் பண்டிதர் · முதன்மை அர்ச்சகர், கோகர்ண க்ஷேத்திரம் (தொலைபேசி: +91 99723 39362)"
+    },
+    ml: {
+      top: '"ഓം ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധി ദിവ്യ ഹസ്തരേഖാ പ്രകാശം · സർവ്വ ദോഷ ശമനം"',
+      priest: "ശ്രീറാം പണ്ഡിത് · മുഖ്യ അർച്ചകൻ, ഗോകർണ്ണ ക്ഷേത്രം (ഫോൺ: +91 99723 39362)"
     }
   };
 
@@ -92,7 +116,7 @@ export const PalmReadingPdfTemplate: React.FC<PalmReadingPdfTemplateProps> = ({
 
   return (
     <div
-      id="palm-reading-pdf-container"
+      id={containerId}
       style={{
         width: "794px",
         background: "#FFFDF7",

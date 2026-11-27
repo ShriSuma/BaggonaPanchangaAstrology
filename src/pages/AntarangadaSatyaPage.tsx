@@ -13,6 +13,11 @@ import {
   verifyHotelPaymentInstant,
   checkHotelPaymentWebhookStatus,
   generateHotelOrderId,
+  HOTEL_PALM_PRICE_INR,
+  HOTEL_FACE_PRICE_INR,
+  HOTEL_PRASHNA_PRICE_INR,
+  HOTEL_SAMUDRIKA_COMBO_INR,
+  HOTEL_TRINETRA_ALL3_INR,
   HOTEL_EXPRESS_PRICE_INR,
   HOTEL_PDF_PRICE_INR,
   HOTEL_REMEDY_ADDON_INR,
@@ -49,6 +54,15 @@ import {
   captureHotelExpressWalkInPdf,
   type HotelExpressWalkInPayload
 } from "../components/hotelSecret/HotelExpressWalkInPdfTemplate";
+import {
+  HotelPrashnaPdfTemplate,
+  captureHotelPrashnaPdf,
+  type HotelPrashnaPdfPayload
+} from "../components/hotelSecret/HotelPrashnaPdfTemplate";
+import { PalmReadingPdfTemplate } from "../components/palmreading/PalmReadingPdfTemplate";
+import { FaceReadingPdfTemplate } from "../components/facereading/FaceReadingPdfTemplate";
+import { validatePalmImageSlot } from "../features/palmreading/palmValidator";
+import { validateFaceImage } from "../features/facereading/faceValidator";
 import { executePalmReading, type PalmReadingResult } from "../features/palmreading/palmReadingEngine";
 import { executeFaceReading, type FaceReadingResult } from "../features/facereading/faceReadingEngine";
 import { pick7, toNativeDigits7L } from "../services/sampoornaMaster25Locale7L";
@@ -1691,6 +1705,8 @@ function renderPsychologicalAntarangaText(
   return <span>{fullText}</span>;
 }
 
+export type HotelServiceMode = "kundli" | "hasta_samudrika" | "mukha_samudrika" | "prashna_shastra";
+
 export default function AntarangadaSatyaPage(): JSX.Element {
   // 1. Context from Table QR Code URL
   const [tableNumber, setTableNumber] = useState<string>("");
@@ -1701,17 +1717,41 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const [selectedLang, setSelectedLang] = useState<AntarangaLang>("kn");
   const ui = ANTARANGA_UI_STRINGS[selectedLang] || ANTARANGA_UI_STRINGS.en;
 
-  // 3. Unique Order Session ID & Package Tier Selection (₹149 Express / ₹250 Family / ₹350 Standard / ₹450 Remedy)
+  // 2B. Mobile 4-Service Standalone Mode (Hasta / Mukha / Prashna / Janma Kundali)
+  const [serviceMode, setServiceMode] = useState<HotelServiceMode>("kundli");
+  const [handSide, setHandSide] = useState<"right" | "left">("right");
+  const [palmValidationMsg, setPalmValidationMsg] = useState<string | null>(null);
+  const [faceValidationMsg, setFaceValidationMsg] = useState<string | null>(null);
+  const [standalonePrashnaPayload, setStandalonePrashnaPayload] = useState<HotelPrashnaPdfPayload | null>(null);
+  const prashnaPdfRef = useRef<HTMLDivElement>(null);
+  const [palmPdfUrl, setPalmPdfUrl] = useState<string | null>(null);
+  const [facePdfUrl, setFacePdfUrl] = useState<string | null>(null);
+  const [prashnaPdfUrl, setPrashnaPdfUrl] = useState<string | null>(null);
+  const [liveCameraTarget, setLiveCameraTarget] = useState<"palm" | "face" | null>(null);
+  const videoPreviewRef = useRef<HTMLVideoElement>(null);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
+
+  // 3. Unique Order Session ID & Package Tier Selection (₹150 Hasta/Mukha / ₹200 Prashna / ₹249 Combo / ₹349 All-3 / ₹350 Kundali / ₹450 Remedy)
   const [activeOrderId, setActiveOrderId] = useState<string>(() => generateHotelOrderId("1"));
   const [selectedPackage, setSelectedPackage] = useState<HotelPackageType>("standard_350");
   const packagePrice =
-    selectedPackage === "express_149"
-      ? HOTEL_EXPRESS_PRICE_INR
-      : selectedPackage === "remedy_450"
-        ? HOTEL_PREMIUM_REMEDY_PRICE_INR
-        : selectedPackage === "family_250"
-          ? HOTEL_FAMILY_UPSELL_PRICE_INR
-          : HOTEL_PDF_PRICE_INR;
+    selectedPackage === "palm_150"
+      ? HOTEL_PALM_PRICE_INR
+      : selectedPackage === "face_150"
+        ? HOTEL_FACE_PRICE_INR
+        : selectedPackage === "prashna_200"
+          ? HOTEL_PRASHNA_PRICE_INR
+          : selectedPackage === "samudrika_combo_249"
+            ? HOTEL_SAMUDRIKA_COMBO_INR
+            : selectedPackage === "trinetra_all3_349"
+              ? HOTEL_TRINETRA_ALL3_INR
+              : selectedPackage === "express_149"
+                ? HOTEL_EXPRESS_PRICE_INR
+                : selectedPackage === "remedy_450"
+                  ? HOTEL_PREMIUM_REMEDY_PRICE_INR
+                  : selectedPackage === "family_250"
+                    ? HOTEL_FAMILY_UPSELL_PRICE_INR
+                    : HOTEL_PDF_PRICE_INR;
 
   const [hasClickedPaymentApp, setHasClickedPaymentApp] = useState<boolean>(false);
   const [returnedFromPaymentApp, setReturnedFromPaymentApp] = useState<boolean>(false);
@@ -1762,6 +1802,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     remedy?: number;
     master25?: number;
     express?: number;
+    palm?: number;
+    face?: number;
+    prashna?: number;
     all?: number;
   }>(() => {
     if (typeof window === "undefined") return {};
@@ -1808,6 +1851,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     kundli?: boolean;
     remedy?: boolean;
     express?: boolean;
+    palm?: boolean;
+    face?: boolean;
+    prashna?: boolean;
     all?: boolean;
   }>(() => {
     if (typeof window === "undefined") return {};
@@ -1924,7 +1970,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
     if (timePrecision === "approx_window" && btrWindowResult) {
       const { selected, confidencePct } = resolveBtrSelection(btrWindowResult, btrQ1Choice, btrQ2Choice);
-      const btrBadge = `~${selected.sampleTime} • ${selected.lagnaName} (${confidencePct}%)`;
+      const btrBadge = `~${selected.sampleTime} • ${selected.lagnaName} • ${selected.pranapadaRashiName} (${confidencePct}%)`;
       return { effTime: selected.sampleTime, unknownFlag: false, btrBadge };
     }
     if (timePrecision === "date_only_chandra" && lunarStability) {
@@ -1938,13 +1984,105 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     return { effTime: "12:00", unknownFlag: true };
   };
 
+  const stopCameraStream = () => {
+    if (cameraStreamRef.current) {
+      cameraStreamRef.current.getTracks().forEach((tr) => tr.stop());
+      cameraStreamRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopCameraStream();
+    };
+  }, []);
+
+  const openLiveCamera = async (target: "palm" | "face") => {
+    try {
+      stopCameraStream();
+      setLiveCameraTarget(target);
+      if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: target === "face" ? "user" : "environment" },
+          audio: false
+        });
+        cameraStreamRef.current = stream;
+        setTimeout(() => {
+          if (videoPreviewRef.current) {
+            videoPreviewRef.current.srcObject = stream;
+            void videoPreviewRef.current.play();
+          }
+        }, 120);
+      }
+    } catch {
+      setLiveCameraTarget(null);
+      alert(
+        pick7({
+          kn: "ಕ್ಯಾಮೆರಾ ಅನುಮತಿ ದೊರೆಯಲಿಲ್ಲ — ದಯವಿಟ್ಟು ಕೆಳಗಿನ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ / ಕ್ಯಾಮೆರಾ ಬಟನ್ ಬಳಸಿ.",
+          en: "Live viewfinder blocked by browser — please tap the Camera or Upload button below.",
+          hi: "कैमरा अनुमति नहीं मिली — कृपया नीचे दिए कैमरा या अपलोड बटन का उपयोग करें।",
+          mr: "कॅमेरा परवानगी मिळाली नाही — कृपया खालील कॅमेरा किंवा अपलोड बटण वापरा.",
+          te: "కెమెరా అనుమతి లభించలేదు — దయచేసి క్రింది ఫోటో బటన్‌ను ఉపయోగించండి.",
+          ta: "கேமரா அனுமதி கிடைக்கவில்லை — கீழே உள்ள பதிவேற்ற பொத்தானைப் பயன்படுத்தவும்.",
+          ml: "ക്യാമറ അനുമതി ലഭിച്ചില്ല — താഴെയുള്ള ഫോട്ടോ ബട്ടൺ ഉപയോഗിക്കുക."
+        }, m25SevenLang)
+      );
+    }
+  };
+
+  const captureLiveFrame = () => {
+    const vid = videoPreviewRef.current;
+    const target = liveCameraTarget;
+    if (!vid || !target) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = vid.videoWidth || 720;
+    canvas.height = vid.videoHeight || 720;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      if (target === "palm") {
+        setPalmPhotoDataUrl(dataUrl);
+        setPalmValidationMsg("✓");
+      } else {
+        setFacePhotoDataUrl(dataUrl);
+        setFaceValidationMsg("✓");
+      }
+    }
+    stopCameraStream();
+    setLiveCameraTarget(null);
+  };
+
+  const switchServiceMode = (mode: HotelServiceMode) => {
+    setServiceMode(mode);
+    if (!isPaymentVerified) {
+      if (mode === "hasta_samudrika") setSelectedPackage("palm_150");
+      else if (mode === "mukha_samudrika") setSelectedPackage("face_150");
+      else if (mode === "prashna_shastra") setSelectedPackage("prashna_200");
+      else setSelectedPackage("standard_350");
+    }
+  };
+
   const handlePhotoUpload = (kind: "palm" | "face", file?: File) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       const res = typeof reader.result === "string" ? reader.result : null;
-      if (kind === "palm") setPalmPhotoDataUrl(res);
-      else setFacePhotoDataUrl(res);
+      if (!res) return;
+      const activeGeminiKey = useAppStore.getState?.()?.geminiApiKey || "";
+      if (kind === "palm") {
+        setPalmPhotoDataUrl(res);
+        setPalmValidationMsg(null);
+        void validatePalmImageSlot(res, "front", activeGeminiKey, selectedLang).then((v) => {
+          setPalmValidationMsg(selectedLang === "kn" ? v.messageKn : v.messageEn);
+        }).catch(() => {});
+      } else {
+        setFacePhotoDataUrl(res);
+        setFaceValidationMsg(null);
+        void validateFaceImage(res, activeGeminiKey, selectedLang).then((v) => {
+          setFaceValidationMsg(selectedLang === "kn" ? v.messageKn : v.messageEn);
+        }).catch(() => {});
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -2481,6 +2619,40 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         const insights = generateDynamicLifeInsights(profile, publicKundliLang);
         setPublicKundliInsights(insights);
       } catch {}
+    } else if (prashnaResult && devoteeName.trim()) {
+      const m25Lang: SevenLang = normalizeSevenLang(selectedLang);
+      const todayIso = new Date().toISOString().split("T")[0];
+      const deepPrashna = computeDeepPrashnaHoraryReading({
+        devoteeName: devoteeName.trim(),
+        questionDomain: prashnaDomain,
+        horaryNumber: horarySeedNumber,
+        latitude,
+        longitude,
+        lang: m25Lang
+      });
+      setPrashnaResult(deepPrashna);
+      if (sankhyaProfile) {
+        setStandalonePrashnaPayload((prev) =>
+          prev
+            ? {
+                ...prev,
+                lang: m25Lang,
+                prashna: deepPrashna,
+                aiParagraphs: [deepPrashna.verdictSummary, deepPrashna.remedialAction]
+              }
+            : {
+                devoteeName: devoteeName.trim(),
+                lang: m25Lang,
+                tableNumber: tableNumber || "1",
+                hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+                generatedDateStr: todayIso,
+                placeName: selectedCityName,
+                prashna: deepPrashna,
+                sankhya: sankhyaProfile,
+                aiParagraphs: [deepPrashna.verdictSummary, deepPrashna.remedialAction]
+              }
+        );
+      }
     }
   }, [selectedLang]);
 
@@ -2998,11 +3170,341 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
+  // 5B. Standalone Mobile Service Runners (Hasta Samudrika ₹150, Mukha Samudrika ₹150, Prashna Shastra ₹200)
+  const syncStandaloneOrderFirestore = (pkg: HotelPackageType, amt: number) => {
+    const upiUri = getHotelPaymentUpiUri(amt, activeOrderId);
+    void saveHotelOrderInitiated({
+      id: activeOrderId,
+      orderId: activeOrderId,
+      tableNumber: tableNumber || "1",
+      hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+      devoteeName: devoteeName.trim() || "Hotel Guest",
+      amountInr: amt,
+      packageType: pkg,
+      status: isPaymentVerified ? "VERIFIED" : "INITIATED",
+      selectedLang,
+      paymentLink: upiUri,
+      paymentId: `PAY_${activeOrderId}`,
+      placeName: selectedCityName,
+      latitude,
+      longitude,
+      gender,
+      createdAt: new Date().toISOString()
+    });
+  };
+
+  const handleAnalyzeStandalonePalm = async () => {
+    if (!devoteeName.trim()) {
+      alert(ui.nameRequiredError);
+      return;
+    }
+    if (!palmPhotoDataUrl) {
+      alert(pick7({
+        kn: "ದಯವಿಟ್ಟು ಮೊದಲು ನಿಮ್ಮ ಹಸ್ತದ ಫೋಟೋ ಸೆರೆಹಿಡಿಯಿರಿ ಅಥವಾ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
+        en: "Please capture or upload a clear photo of your palm first.",
+        hi: "कृपया पहले अपनी हथेली की स्पष्ट फोटो लें या अपलोड करें।",
+        mr: "कृपया आधी तळहाताचा स्पष्ट फोटो काढा किंवा अपलोड करा.",
+        te: "దయచేసి ముందుగా మీ అరచేతి ఫోటో తీయండి లేదా అప్‌లోడ్ చేయండి.",
+        ta: "முதலில் உங்கள் உள்ளங்கை புகைப்படத்தை எடுக்கவும் அல்லது பதிவேற்றவும்.",
+        ml: "ദയവായി ആദ്യം നിങ്ങളുടെ കൈപ്പത്തിയുടെ ഫോട്ടോ എടുക്കുകയോ അപ്‌ലോഡ് ചെയ്യുകയോ ചെയ്യുക."
+      }, m25SevenLang));
+      return;
+    }
+    setIsCalculating(true);
+    triggerScreenLoader("antaranga_calc", undefined, { progress: 35 });
+    try {
+      const activeGeminiKey = useAppStore.getState?.()?.geminiApiKey || "";
+      const res = await executePalmReading(
+        palmPhotoDataUrl,
+        handSide,
+        devoteeName.trim(),
+        selectedLang,
+        activeGeminiKey,
+        undefined,
+        undefined,
+        undefined,
+        gender === "female" ? "Female" : "Male"
+      );
+      setPalmResult(res);
+      if (!isPaymentVerified && selectedPackage !== "samudrika_combo_249" && selectedPackage !== "trinetra_all3_349") {
+        setSelectedPackage("palm_150");
+        syncStandaloneOrderFirestore("palm_150", HOTEL_PALM_PRICE_INR);
+      }
+      setScreenLoaderProgress(100);
+      setTimeout(() => {
+        document.getElementById("standalone-service-preview")?.scrollIntoView({ behavior: "smooth" });
+      }, 160);
+    } catch (err) {
+      console.error("Standalone palm reading error:", err);
+      alert(ui.calcError);
+    } finally {
+      setIsCalculating(false);
+      closeScreenLoader();
+    }
+  };
+
+  const handleAnalyzeStandaloneFace = async () => {
+    if (!devoteeName.trim()) {
+      alert(ui.nameRequiredError);
+      return;
+    }
+    if (!facePhotoDataUrl) {
+      alert(pick7({
+        kn: "ದಯವಿಟ್ಟು ಮೊದಲು ನಿಮ್ಮ ಮುಖದ ಸೆಲ್ಫಿ ತೆಗೆಯಿರಿ ಅಥವಾ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
+        en: "Please capture or upload a clear front-facing photo first.",
+        hi: "कृपया पहले अपनी स्पष्ट सामने की फोटो लें या अपलोड करें।",
+        mr: "कृपया आधी तुमचा स्पष्ट सेल्फी फोटो काढा किंवा अपलोड करा.",
+        te: "దయచేసి ముందుగా మీ ముఖం ఫోటో తీయండి లేదా అప్‌లోడ్ చేయండి.",
+        ta: "முதலில் உங்கள் முகப் புகைப்படத்தை எடுக்கவும் அல்லது பதிவேற்றவும்.",
+        ml: "ദയവായി ആദ്യം നിങ്ങളുടെ മുഖത്തിന്റെ ഫോട്ടോ എടുക്കുകയോ അപ്‌ലോഡ് ചെയ്യുകയോ ചെയ്യുക."
+      }, m25SevenLang));
+      return;
+    }
+    setIsCalculating(true);
+    triggerScreenLoader("antaranga_calc", undefined, { progress: 35 });
+    try {
+      const activeGeminiKey = useAppStore.getState?.()?.geminiApiKey || "";
+      const res = await executeFaceReading(
+        facePhotoDataUrl,
+        devoteeName.trim(),
+        selectedLang,
+        activeGeminiKey
+      );
+      setFaceResult(res);
+      if (!isPaymentVerified && selectedPackage !== "samudrika_combo_249" && selectedPackage !== "trinetra_all3_349") {
+        setSelectedPackage("face_150");
+        syncStandaloneOrderFirestore("face_150", HOTEL_FACE_PRICE_INR);
+      }
+      setScreenLoaderProgress(100);
+      setTimeout(() => {
+        document.getElementById("standalone-service-preview")?.scrollIntoView({ behavior: "smooth" });
+      }, 160);
+    } catch (err) {
+      console.error("Standalone face reading error:", err);
+      alert(ui.calcError);
+    } finally {
+      setIsCalculating(false);
+      closeScreenLoader();
+    }
+  };
+
+  const handleAnalyzeStandalonePrashna = async () => {
+    if (!devoteeName.trim()) {
+      alert(ui.nameRequiredError);
+      return;
+    }
+    setIsCalculating(true);
+    triggerScreenLoader("antaranga_calc", undefined, { progress: 35 });
+    try {
+      const todayIso = new Date().toISOString().split("T")[0];
+      const syntheticKundli = calculateKundli({
+        name: devoteeName.trim(),
+        birthDate: todayIso,
+        birthTime: `${String(new Date().getHours()).padStart(2, "0")}:${String(new Date().getMinutes()).padStart(2, "0")}`,
+        latitude,
+        longitude,
+        gender: gender === "female" ? "Female" : "Male"
+      });
+      const sankhya = buildChandraSankhyaProfile(devoteeName.trim(), todayIso, syntheticKundli, m25SevenLang);
+      setSankhyaProfile(sankhya);
+
+      const deepPrashna = computeDeepPrashnaHoraryReading({
+        devoteeName: devoteeName.trim(),
+        questionDomain: prashnaDomain,
+        horaryNumber: horarySeedNumber,
+        latitude,
+        longitude,
+        lang: m25SevenLang
+      });
+      setPrashnaResult(deepPrashna);
+
+      const activeGeminiKey = useAppStore.getState?.()?.geminiApiKey || "";
+      const aiParas = await generateExpressWalkInAiNarrative({
+        devoteeName: devoteeName.trim(),
+        lang: m25SevenLang,
+        prashna: deepPrashna,
+        sankhya,
+        apiKey: activeGeminiKey
+      });
+      setStandalonePrashnaPayload({
+        devoteeName: devoteeName.trim(),
+        lang: m25SevenLang,
+        tableNumber: tableNumber || "1",
+        hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+        generatedDateStr: todayIso,
+        placeName: selectedCityName,
+        prashna: deepPrashna,
+        sankhya,
+        aiParagraphs: aiParas
+      });
+      if (!isPaymentVerified && selectedPackage !== "trinetra_all3_349") {
+        setSelectedPackage("prashna_200");
+        syncStandaloneOrderFirestore("prashna_200", HOTEL_PRASHNA_PRICE_INR);
+      }
+      setScreenLoaderProgress(100);
+      setTimeout(() => {
+        document.getElementById("standalone-service-preview")?.scrollIntoView({ behavior: "smooth" });
+      }, 160);
+    } catch (err) {
+      console.error("Standalone prashna reading error:", err);
+      alert(ui.calcError);
+    } finally {
+      setIsCalculating(false);
+      closeScreenLoader();
+    }
+  };
+
+  const handleDownloadPalmPdf = async () => {
+    if (!(await ensurePaymentVerified())) return;
+    const currentCount = downloadCounts.palm || 0;
+    if (currentCount >= 3 || downloadedPdfs.palm) {
+      alert(ui.alreadyDownloadedAlert);
+      return;
+    }
+    if (!palmResult) {
+      alert("Please analyze palm first.");
+      return;
+    }
+    setIsGeneratingPdf(true);
+    triggerScreenLoader("pdf_download_kundli", undefined, { progress: 40 });
+    try {
+      const cleanName = (devoteeName || "Devotee").replace(/\s+/g, "_");
+      const fileName = `Baggona_Hasta_Samudrika_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
+      const pdf = await generatePDFFromElement("hotel-palm-pdf-render", fileName, true);
+      try {
+        const blob = new Blob([pdf.output("arraybuffer")], { type: "application/pdf" });
+        setPalmPdfUrl(URL.createObjectURL(blob));
+      } catch {}
+      setPdfDownloadReady(true);
+      setScreenLoaderProgress(100);
+      const nextCount = currentCount + 1;
+      setDownloadCounts((prev) => {
+        const next = { ...prev, palm: nextCount };
+        try { sessionStorage.setItem(`baggona_hotel_download_counts_${activeOrderId}`, JSON.stringify(next)); } catch {}
+        return next;
+      });
+      if (nextCount >= 3) {
+        setDownloadedPdfs((prev) => {
+          const next = { ...prev, palm: true };
+          try { sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next)); } catch {}
+          return next;
+        });
+      }
+      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+    } catch (err: any) {
+      alert(`Palm PDF error: ${err?.message || "Please retry."}`);
+    } finally {
+      setIsGeneratingPdf(false);
+      closeScreenLoader();
+    }
+  };
+
+  const handleDownloadFacePdf = async () => {
+    if (!(await ensurePaymentVerified())) return;
+    const currentCount = downloadCounts.face || 0;
+    if (currentCount >= 3 || downloadedPdfs.face) {
+      alert(ui.alreadyDownloadedAlert);
+      return;
+    }
+    if (!faceResult) {
+      alert("Please analyze face first.");
+      return;
+    }
+    setIsGeneratingPdf(true);
+    triggerScreenLoader("pdf_download_kundli", undefined, { progress: 40 });
+    try {
+      const cleanName = (devoteeName || "Devotee").replace(/\s+/g, "_");
+      const fileName = `Baggona_Mukha_Samudrika_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
+      const pdf = await generatePDFFromElement("hotel-face-pdf-render", fileName, true);
+      try {
+        const blob = new Blob([pdf.output("arraybuffer")], { type: "application/pdf" });
+        setFacePdfUrl(URL.createObjectURL(blob));
+      } catch {}
+      setPdfDownloadReady(true);
+      setScreenLoaderProgress(100);
+      const nextCount = currentCount + 1;
+      setDownloadCounts((prev) => {
+        const next = { ...prev, face: nextCount };
+        try { sessionStorage.setItem(`baggona_hotel_download_counts_${activeOrderId}`, JSON.stringify(next)); } catch {}
+        return next;
+      });
+      if (nextCount >= 3) {
+        setDownloadedPdfs((prev) => {
+          const next = { ...prev, face: true };
+          try { sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next)); } catch {}
+          return next;
+        });
+      }
+      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+    } catch (err: any) {
+      alert(`Face PDF error: ${err?.message || "Please retry."}`);
+    } finally {
+      setIsGeneratingPdf(false);
+      closeScreenLoader();
+    }
+  };
+
+  const handleDownloadPrashnaPdf = async () => {
+    if (!(await ensurePaymentVerified())) return;
+    const currentCount = downloadCounts.prashna || 0;
+    if (currentCount >= 3 || downloadedPdfs.prashna) {
+      alert(ui.alreadyDownloadedAlert);
+      return;
+    }
+    if (!prashnaPdfRef.current || !standalonePrashnaPayload) {
+      alert("Please analyze Prashna first.");
+      return;
+    }
+    setIsGeneratingPdf(true);
+    triggerScreenLoader("pdf_download_5year", undefined, { progress: 40 });
+    try {
+      const cleanName = (devoteeName || "Devotee").replace(/\s+/g, "_");
+      const fileName = `Baggona_Prashna_Shastra_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
+      const pdf = await captureHotelPrashnaPdf(prashnaPdfRef.current, fileName, true);
+      try {
+        const blob = new Blob([pdf.output("arraybuffer")], { type: "application/pdf" });
+        setPrashnaPdfUrl(URL.createObjectURL(blob));
+      } catch {}
+      setPdfDownloadReady(true);
+      setScreenLoaderProgress(100);
+      const nextCount = currentCount + 1;
+      setDownloadCounts((prev) => {
+        const next = { ...prev, prashna: nextCount };
+        try { sessionStorage.setItem(`baggona_hotel_download_counts_${activeOrderId}`, JSON.stringify(next)); } catch {}
+        return next;
+      });
+      if (nextCount >= 3) {
+        setDownloadedPdfs((prev) => {
+          const next = { ...prev, prashna: true };
+          try { sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next)); } catch {}
+          return next;
+        });
+      }
+      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+    } catch (err: any) {
+      alert(`Prashna PDF error: ${err?.message || "Please retry."}`);
+    } finally {
+      setIsGeneratingPdf(false);
+      closeScreenLoader();
+    }
+  };
+
   // 6. Open PDF in New Tab (Safe for iPhone Safari popup blocker & direct viewing)
-  const handleOpenInNewTab = async (pdfType: "fiveYear" | "kundli" | "remedy" | "express") => {
+  const handleOpenInNewTab = async (
+    pdfType: "fiveYear" | "kundli" | "remedy" | "express" | "palm" | "face" | "prashna"
+  ) => {
     if (!(await ensurePaymentVerified())) return;
 
-    if (pdfType === "express") {
+    if (pdfType === "palm") {
+      if (palmPdfUrl) window.open(palmPdfUrl, "_blank");
+      else await handleDownloadPalmPdf();
+    } else if (pdfType === "face") {
+      if (facePdfUrl) window.open(facePdfUrl, "_blank");
+      else await handleDownloadFacePdf();
+    } else if (pdfType === "prashna") {
+      if (prashnaPdfUrl) window.open(prashnaPdfUrl, "_blank");
+      else await handleDownloadPrashnaPdf();
+    } else if (pdfType === "express") {
       if (expressPdfUrl) {
         window.open(expressPdfUrl, "_blank");
       } else {
@@ -3031,6 +3533,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
   // 7. Start Family Member at This Table Upsell (₹250 special table offer)
   const handleStartFamilyUpsell = () => {
+    setServiceMode("kundli");
     setDevoteeName("");
     setGender("male");
     setBirthDate("");
@@ -3040,12 +3543,18 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     setResolvedBtrLabel(undefined);
     setPrashnaResult(null);
     setSankhyaProfile(null);
+    setStandalonePrashnaPayload(null);
     setPalmPhotoDataUrl(null);
     setFacePhotoDataUrl(null);
+    setPalmValidationMsg(null);
+    setFaceValidationMsg(null);
     setPalmResult(null);
     setFaceResult(null);
     setExpressPdfPayload(null);
     setExpressPdfUrl(null);
+    setPalmPdfUrl(null);
+    setFacePdfUrl(null);
+    setPrashnaPdfUrl(null);
     setSelectedCityName("Gokarna");
     setCustomCitySearch("");
     setComputedKundli(null);
@@ -3286,12 +3795,122 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           </p>
         </div>
 
+        {/* ── MOBILE-FIRST 4-SERVICE SELECTOR HUB ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {([
+            {
+              id: "hasta_samudrika" as HotelServiceMode,
+              icon: "✋",
+              price: `₹${HOTEL_PALM_PRICE_INR}`,
+              title: pick7({ kn: "ಹಸ್ತ / ಕೈ ಸಾಮುದ್ರಿಕ", en: "Hasta Samudrika", hi: "हस्त सामुद्रिक", mr: "हस्त सामुद्रिक", te: "హస్త సాముద్రికం", ta: "ஹஸ்த சாமுத்ரிகா", ml: "ഹസ്തസാമുദ്രികം" }, m25SevenLang),
+              sub: pick7({ kn: "ಅಂಗೈ ರೇಖೆ • ೨ ಉಚಿತ", en: "Palm Photo • 2 Free", hi: "हथेली फोटो • २ मुफ़्त", mr: "तळहात • २ मोफत", te: "అరచేయి • 2 ఉచితం", ta: "கைரேகை • 2 இலவசம்", ml: "കൈരേഖ • 2 സൗജന്യം" }, m25SevenLang)
+            },
+            {
+              id: "mukha_samudrika" as HotelServiceMode,
+              icon: "👤",
+              price: `₹${HOTEL_FACE_PRICE_INR}`,
+              title: pick7({ kn: "ಮುಖ ಸಾಮುದ್ರಿಕ", en: "Mukha Samudrika", hi: "मुख सामुद्रिक", mr: "मुख सामुद्रिक", te: "ముఖ సాముద్రికం", ta: "முக சாமுத்ரிகா", ml: "മുഖസാമുദ്രികം" }, m25SevenLang),
+              sub: pick7({ kn: "ಮುಖ ಲಕ್ಷಣ • ೨ ಉಚಿತ", en: "Face Selfie • 2 Free", hi: "चेहरा फोटो • २ मुफ़्त", mr: "चेहरा • २ मोफत", te: "ముఖం • 2 ఉచితం", ta: "முகம் • 2 இலவசம்", ml: "മുഖം • 2 സൗജന്യം" }, m25SevenLang)
+            },
+            {
+              id: "prashna_shastra" as HotelServiceMode,
+              icon: "🔮",
+              price: `₹${HOTEL_PRASHNA_PRICE_INR}`,
+              title: pick7({ kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ", en: "Prashna Shastra", hi: "प्रश्न शास्त्र", mr: "प्रश्न शास्त्र", te: "ప్రశ్న శాస్త్రం", ta: "பிரசன்ன சாஸ்திரம்", ml: "പ്രശ്നശാസ്ത്രം" }, m25SevenLang),
+              sub: pick7({ kn: "೧–೧೦೮ ಉತ್ತರ • ೨ ಉಚಿತ", en: "1–108 Horary • 2 Free", hi: "१–१०८ उत्तर • २ मुफ़्त", mr: "१–१०८ उत्तर • २ मोफत", te: "1–108 ప్రశ్న • 2 ఉచితం", ta: "1–108 பதில் • 2 இலவசம்", ml: "1–108 ഉത്തരം • 2 സൗജന്യം" }, m25SevenLang)
+            },
+            {
+              id: "kundli" as HotelServiceMode,
+              icon: "📜",
+              price: `₹${HOTEL_PDF_PRICE_INR}`,
+              title: pick7({ kn: "ಜನ್ಮ ಕುಂಡಲಿ (೨೫ ಅಧ್ಯಾಯ)", en: "Janma Kundali", hi: "जन्म कुंडली", mr: "जन्म कुंडली", te: "జన్మ కుండలి", ta: "ஜென்ம குண்டலி", ml: "ജന്മകുണ്ഡലി" }, m25SevenLang),
+              sub: pick7({ kn: "ಸಮಯ ಗೊತ್ತಿಲ್ಲದವರಿಗೂ ಸಿದ್ಧ", en: "25-Ch Master PDF", hi: "२५-अध्याय महा PDF", mr: "२५-अध्याय PDF", te: "25-అధ్యాయ PDF", ta: "25-அத்தியாய PDF", ml: "25-അധ്യായ PDF" }, m25SevenLang)
+            }
+          ]).map((svc) => {
+            const active = serviceMode === svc.id;
+            return (
+              <button
+                key={svc.id}
+                type="button"
+                onClick={() => switchServiceMode(svc.id)}
+                className={`min-h-[82px] p-2.5 sm:p-3 rounded-2xl border-2 text-left flex flex-col justify-between transition-all cursor-pointer active:scale-[0.98] ${
+                  active
+                    ? "bg-gradient-to-br from-amber-500 via-amber-400 to-yellow-400 border-amber-700 text-stone-950 shadow-lg ring-2 ring-amber-400/60"
+                    : "bg-white/95 border-amber-200 hover:border-amber-400 text-stone-800 shadow-sm"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-xl">{svc.icon}</span>
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${active ? "bg-stone-950 text-amber-300" : "bg-amber-100 text-amber-900"}`}>
+                    {svc.price}
+                  </span>
+                </div>
+                <div className="mt-1">
+                  <div className="text-xs font-black leading-tight">{svc.title}</div>
+                  <div className={`text-[10px] mt-0.5 leading-tight ${active ? "text-stone-900 font-semibold" : "text-stone-500"}`}>
+                    {svc.sub}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Live Camera Viewfinder Modal (Desktop + Mobile Browser Friendly) */}
+        {liveCameraTarget && (
+          <div className="fixed inset-0 z-50 bg-stone-950/90 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-[#FFFDF7] border-2 border-[#D4AF37] rounded-2xl p-4 space-y-3 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-black text-amber-950">
+                  {liveCameraTarget === "palm"
+                    ? pick7({ kn: "✋ ಹಸ್ತದ ಫೋಟೋ ಸೆರೆಹಿಡಿಯಿರಿ", en: "✋ Capture Palm Photo", hi: "✋ हथेली फोटो लें", mr: "✋ तळहाताचा फोटो घ्या", te: "✋ అరచేయి ఫోటో తీయండి", ta: "✋ உள்ளங்கை படம் எடுக்கவும்", ml: "✋ കൈപ്പത്തി ഫോട്ടോ എടുക്കുക" }, m25SevenLang)
+                    : pick7({ kn: "👤 ಮುಖದ ಸೆಲ್ಫಿ ಸೆರೆಹಿಡಿಯಿರಿ", en: "👤 Capture Face Selfie", hi: "👤 चेहरा सेल्फी लें", mr: "👤 चेहऱ्याचा सेल्फी घ्या", te: "👤 ముఖం ఫోటో తీయండి", ta: "👤 முக செல்ஃபி எடுக்கவும்", ml: "👤 മുഖം സെൽഫി എടുക്കുക" }, m25SevenLang)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopCameraStream();
+                    setLiveCameraTarget(null);
+                  }}
+                  className="text-xs font-bold px-2.5 py-1 rounded-lg bg-stone-200 text-stone-800 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+              <video
+                ref={videoPreviewRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-64 object-cover rounded-xl bg-stone-900 border border-amber-300"
+              />
+              <button
+                type="button"
+                onClick={captureLiveFrame}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-stone-950 font-black text-sm shadow-lg cursor-pointer"
+              >
+                📸 {pick7({ kn: "ಫೋಟೋ ಕ್ಲಿಕ್ ಮಾಡಿ", en: "Snap Photo Now", hi: "फोटो खींचें", mr: "फोटो काढा", te: "ఫోటో తీయండి", ta: "படம் எடு", ml: "ഫോട്ടോ എടുക്കുക" }, m25SevenLang)}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── STEP 1: Devotee Free Input Form ── */}
         <section className="bg-white/95 border-2 border-[#D4AF37] rounded-2xl p-4 sm:p-5 shadow-[0_8px_30px_rgba(217,119,6,0.12)] space-y-4">
           <div className="flex items-center justify-between border-b border-amber-200 pb-2">
             <h3 className="text-sm font-bold text-amber-950 flex items-center gap-1.5">
-              <span>👤</span>
-              <span>{ui.formHeader}</span>
+              <span>
+                {serviceMode === "hasta_samudrika" ? "✋" : serviceMode === "mukha_samudrika" ? "👤" : serviceMode === "prashna_shastra" ? "🔮" : "📜"}
+              </span>
+              <span>
+                {serviceMode === "hasta_samudrika"
+                  ? pick7({ kn: "ಹಸ್ತ / ಕೈ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ ಪರೀಕ್ಷೆ", en: "Hasta Samudrika (Palm Reading)", hi: "हस्त सामुद्रिक परीक्षण", mr: "हस्तसामुद्रिक परीक्षण", te: "హస్త సాముద్రిక పరీక్ష", ta: "ஹஸ்த சாமுத்ரிகா சோதனை", ml: "ഹസ്തസാമുദ്രിക പരിശോധന" }, m25SevenLang)
+                  : serviceMode === "mukha_samudrika"
+                    ? pick7({ kn: "ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ ಪರೀಕ್ಷೆ", en: "Mukha Samudrika (Face Reading)", hi: "मुख सामुद्रिक परीक्षण", mr: "मुख सामुद्रिक परीक्षण", te: "ముఖ సాముద్రిక పరీక్ష", ta: "முக சாமுத்ரிகா சோதனை", ml: "മുഖസാമുദ്രിക പരിശോധന" }, m25SevenLang)
+                    : serviceMode === "prashna_shastra"
+                      ? pick7({ kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ (೧–೧೦೮ ಕೇರಳ & ತಾಜಿಕ)", en: "Prashna Shastra (1–108 Horary)", hi: "प्रश्न शास्त्र (१–१०८ केरल व ताजिक)", mr: "प्रश्न शास्त्र (१–१०८ केरळ व ताजिक)", te: "ప్రశ్న శాస్త్రం (1–108)", ta: "பிரசன்ன சாஸ்திரம் (1–108)", ml: "പ്രശ്നശാസ്ത്രം (1–108)" }, m25SevenLang)
+                      : ui.formHeader}
+              </span>
             </h3>
             <span className="text-[11px] text-emerald-800 font-bold bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 rounded-full shadow-sm">
               {ui.freeTag}
@@ -3312,6 +3931,229 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2.5 text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-500 font-medium shadow-sm"
               />
             </div>
+
+            {serviceMode === "hasta_samudrika" && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setGender("male")}
+                    className={`py-2.5 rounded-xl border-2 font-bold cursor-pointer ${gender === "male" ? "bg-amber-500 text-white border-amber-600" : "bg-white border-amber-200 text-stone-700"}`}
+                  >
+                    👨 {ui.maleLabel}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGender("female")}
+                    className={`py-2.5 rounded-xl border-2 font-bold cursor-pointer ${gender === "female" ? "bg-amber-500 text-white border-amber-600" : "bg-white border-amber-200 text-stone-700"}`}
+                  >
+                    👩 {ui.femaleLabel}
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setHandSide("right")}
+                    className={`py-2 rounded-xl border-2 font-bold cursor-pointer ${handSide === "right" ? "bg-amber-100 border-amber-600 text-amber-950" : "bg-white border-amber-200 text-stone-700"}`}
+                  >
+                    ✋ {pick7({ kn: "ಬಲ ಹಸ್ತ (Right)", en: "Right Palm", hi: "दाहिना हाथ", mr: "उजवा हात", te: "కుడి చేయి", ta: "வலது கை", ml: "വലതു കൈ" }, m25SevenLang)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHandSide("left")}
+                    className={`py-2 rounded-xl border-2 font-bold cursor-pointer ${handSide === "left" ? "bg-amber-100 border-amber-600 text-amber-950" : "bg-white border-amber-200 text-stone-700"}`}
+                  >
+                    🤚 {pick7({ kn: "ಎಡ ಹಸ್ತ (Left)", en: "Left Palm", hi: "बायां हाथ", mr: "डावा हात", te: "ఎడమ చేయి", ta: "இடது கை", ml: "ഇടതു കൈ" }, m25SevenLang)}
+                  </button>
+                </div>
+                <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-3 space-y-2.5">
+                  <div className="font-bold text-amber-950">
+                    📸 {pick7({ kn: "ಹಸ್ತದ ಸ್ಪಷ್ಟ ಫೋಟೋ ಸೆರೆಹಿಡಿಯಿರಿ / ಅಪ್‌ಲೋಡ್ ಮಾಡಿ", en: "Capture Camera Photo or Upload Clear Palm Image", hi: "हथेली की स्पष्ट फोटो लें या अपलोड करें", mr: "तळहाताचा स्पष्ट फोटो काढा किंवा अपलोड करा", te: "అరచేతి ఫోటో తీయండి లేదా అప్‌లోడ్ చేయండి", ta: "உள்ளங்கை படம் எடுக்கவும் அல்லது பதிவேற்றவும்", ml: "കൈപ്പത്തിയുടെ ഫോട്ടോ എടുക്കുകയോ അപ്‌ലോഡ് ചെയ്യുകയോ ചെയ്യുക" }, m25SevenLang)}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <label className="py-3 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-center cursor-pointer shadow flex items-center justify-center gap-1.5">
+                      <span>📷</span>
+                      <span>{pick7({ kn: "ಕ್ಯಾಮೆರಾ (Camera)", en: "Mobile Camera", hi: "कैमरा", mr: "कॅमेरा", te: "కెమెరా", ta: "கேமரா", ml: "ക്യാമറ" }, m25SevenLang)}</span>
+                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handlePhotoUpload("palm", e.target.files?.[0])} />
+                    </label>
+                    <label className="py-3 px-3 rounded-xl bg-white hover:bg-amber-50 border-2 border-amber-300 text-amber-950 font-bold text-center cursor-pointer flex items-center justify-center gap-1.5">
+                      <span>📁</span>
+                      <span>{pick7({ kn: "ಗ್ಯಾಲರಿ ಅಪ್‌ಲೋಡ್", en: "Upload Photo", hi: "अपलोड करें", mr: "अपलोड करा", te: "అప్‌లోడ్", ta: "பதிவேற்றம்", ml: "അപ്‌ലോഡ്" }, m25SevenLang)}</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload("palm", e.target.files?.[0])} />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => void openLiveCamera("palm")}
+                      className="py-3 px-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-amber-300 font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>🎥</span>
+                      <span>{pick7({ kn: "ಲೈವ್ ಕ್ಯಾಮ್", en: "Live Cam", hi: "लाइव कैम", mr: "लाइव्ह कॅम", te: "లైవ్ క్యామ్", ta: "லைவ் கேம்", ml: "ലൈവ് ക്യാം" }, m25SevenLang)}</span>
+                    </button>
+                  </div>
+                  {palmPhotoDataUrl && (
+                    <div className="flex items-center gap-3 bg-white border border-emerald-300 rounded-xl p-2">
+                      <img src={palmPhotoDataUrl} alt="Palm preview" className="w-16 h-16 rounded-lg object-cover border border-amber-300" />
+                      <div className="text-[11px] font-bold text-emerald-800">
+                        ✓ {palmValidationMsg || pick7({ kn: "ಹಸ್ತದ ಚಿತ್ರ ಸಿದ್ಧವಾಗಿದೆ", en: "Palm image captured & verified", hi: "हथेली फोटो तैयार", mr: "तळहाताचा फोटो तयार", te: "అరచేతి చిత్రం సిద్ధం", ta: "படம் தயார்", ml: "ചിത്രം തയ്യാർ" }, m25SevenLang)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleAnalyzeStandalonePalm()}
+                  disabled={isCalculating}
+                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 text-white font-black text-sm sm:text-base shadow-xl cursor-pointer"
+                >
+                  {isCalculating ? ui.calculatingCta : pick7({
+                    kn: "✋ ಹಸ್ತ ಸಾಮುದ್ರಿಕ ವಿಶ್ಲೇಷಿಸಿ (ಮೊದಲ ೨ ಫಲ ಉಚಿತ)",
+                    en: "✋ Analyze Palm Now (First 2 Insights Free)",
+                    hi: "✋ हस्त सामुद्रिक देखें (प्रथम २ फल मुफ़्त)",
+                    mr: "✋ हस्तसामुद्रिक पहा (पहिले २ फलादेश मोफत)",
+                    te: "✋ హస్త సాముద్రికం చూడండి (మొదటి 2 ఉచితం)",
+                    ta: "✋ கைரேகை பார்க்கவும் (முதல் 2 இலவசம்)",
+                    ml: "✋ ഹസ്തസാമുദ്രികം കാണുക (ആദ്യ 2 ഫലം സൗജന്യം)"
+                  }, m25SevenLang)}
+                </button>
+              </div>
+            )}
+
+            {serviceMode === "mukha_samudrika" && (
+              <div className="space-y-3">
+                <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-3 space-y-2.5">
+                  <div className="font-bold text-amber-950">
+                    🤳 {pick7({ kn: "ಮುಖದ ಸ್ಪಷ್ಟ ಸೆಲ್ಫಿ ತೆಗೆಯಿರಿ / ಅಪ್‌ಲೋಡ್ ಮಾಡಿ", en: "Capture Selfie Camera or Upload Clear Face Photo", hi: "सामने की स्पष्ट सेल्फी लें या अपलोड करें", mr: "चेहऱ्याचा स्पष्ट सेल्फी घ्या किंवा अपलोड करा", te: "స్పష్టమైన ముఖం సెల్ఫీ తీయండి లేదా అప్‌లోడ్ చేయండి", ta: "தெளிவான முக செல்ஃபி எடுக்கவும் / பதிவேற்றவும்", ml: "മുഖത്തിന്റെ വ്യക്തമായ സെൽഫി എടുക്കുക / അപ്‌ലോഡ് ചെയ്യുക" }, m25SevenLang)}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <label className="py-3 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-center cursor-pointer shadow flex items-center justify-center gap-1.5">
+                      <span>🤳</span>
+                      <span>{pick7({ kn: "ಸೆಲ್ಫಿ ಕ್ಯಾಮೆರಾ", en: "Selfie Camera", hi: "सेल्फी कैमरा", mr: "सेल्फी कॅमेरा", te: "సెల్ఫీ కెమెరా", ta: "செல்ஃபி கேமரா", ml: "സെൽഫി ക്യാമറ" }, m25SevenLang)}</span>
+                      <input type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => handlePhotoUpload("face", e.target.files?.[0])} />
+                    </label>
+                    <label className="py-3 px-3 rounded-xl bg-white hover:bg-amber-50 border-2 border-amber-300 text-amber-950 font-bold text-center cursor-pointer flex items-center justify-center gap-1.5">
+                      <span>📁</span>
+                      <span>{pick7({ kn: "ಗ್ಯಾಲರಿ ಅಪ್‌ಲೋಡ್", en: "Upload Photo", hi: "अपलोड करें", mr: "अपलोड करा", te: "అప్‌లోడ్", ta: "பதிவேற்றம்", ml: "അപ്‌ലോഡ്" }, m25SevenLang)}</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload("face", e.target.files?.[0])} />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => void openLiveCamera("face")}
+                      className="py-3 px-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-amber-300 font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>🎥</span>
+                      <span>{pick7({ kn: "ಲೈವ್ ಕ್ಯಾಮ್", en: "Live Cam", hi: "लाइव कैम", mr: "लाइव्ह कॅम", te: "లైవ్ క్యామ్", ta: "லைவ் கேம்", ml: "ലൈവ് ക്യാം" }, m25SevenLang)}</span>
+                    </button>
+                  </div>
+                  {facePhotoDataUrl && (
+                    <div className="flex items-center gap-3 bg-white border border-emerald-300 rounded-xl p-2">
+                      <img src={facePhotoDataUrl} alt="Face preview" className="w-16 h-16 rounded-lg object-cover border border-amber-300" />
+                      <div className="text-[11px] font-bold text-emerald-800">
+                        ✓ {faceValidationMsg || pick7({ kn: "ಮುಖದ ಚಿತ್ರ ಸಿದ್ಧವಾಗಿದೆ", en: "Face photo captured & verified", hi: "चेहरा फोटो तैयार", mr: "चेहऱ्याचा फोटो तयार", te: "ముఖం చిత్రం సిద్ధం", ta: "படம் தயார்", ml: "ചിത്രം തയ്യാർ" }, m25SevenLang)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleAnalyzeStandaloneFace()}
+                  disabled={isCalculating}
+                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 text-white font-black text-sm sm:text-base shadow-xl cursor-pointer"
+                >
+                  {isCalculating ? ui.calculatingCta : pick7({
+                    kn: "👤 ಮುಖ ಸಾಮುದ್ರಿಕ ವಿಶ್ಲೇಷಿಸಿ (ಮೊದಲ ೨ ಫಲ ಉಚಿತ)",
+                    en: "👤 Analyze Face Now (First 2 Insights Free)",
+                    hi: "👤 मुख सामुद्रिक देखें (प्रथम २ फल मुफ़्त)",
+                    mr: "👤 मुख सामुद्रिक पहा (पहिले २ फलादेश मोफत)",
+                    te: "👤 ముఖ సాముద్రికం చూడండి (మొదటి 2 ఉచితం)",
+                    ta: "👤 முக சாமுத்ரிகா பார்க்கவும் (முதல் 2 இலவசம்)",
+                    ml: "👤 മുഖസാമുദ്രികം കാണുക (ആദ്യ 2 ഫലം സൗജന്യം)"
+                  }, m25SevenLang)}
+                </button>
+              </div>
+            )}
+
+            {serviceMode === "prashna_shastra" && (
+              <div className="space-y-3">
+                <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-3 space-y-3">
+                  <div>
+                    <label className="block text-amber-950 font-bold mb-1">
+                      🔮 {pick7({ kn: "ನಿಮ್ಮ ತುರ್ತು ಪ್ರಶ್ನೆ ವಿಷಯ ಆಯ್ಕೆಮಾಡಿ", en: "Choose Your Prashna Question Domain", hi: "अपना प्रश्न विषय चुनें", mr: "तुमच्या प्रश्नाचा विषय निवडा", te: "మీ ప్రశ్న అంశాన్ని ఎంచుకోండి", ta: "உங்கள் கேள்வித் துறையைத் தேர்ந்தெடுக்கவும்", ml: "നിങ്ങളുടെ ചോദ്യ വിഷയം തിരഞ്ഞെടുക്കുക" }, m25SevenLang)}
+                    </label>
+                    <select
+                      value={prashnaDomain}
+                      onChange={(e) => setPrashnaDomain(e.target.value as PrashnaQuestionDomain)}
+                      className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2.5 text-stone-900 font-semibold"
+                    >
+                      {getPrashnaDomainOptions(m25SevenLang).map((d) => (
+                        <option key={d.id} value={d.id}>{d.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-amber-950 font-bold mb-1">
+                      🔢 {pick7({ kn: "ಮನಸ್ಸಿನಲ್ಲಿ ತೋಚಿದ ಪವಿತ್ರ ಸಂಖ್ಯೆ (೧ – ೧೦೮)", en: "Intuitive Prashna Seed Number (1–108)", hi: "पवित्र प्रश्न संख्या (१–१०८)", mr: "पवित्र प्रश्न अंक (१–१०८)", te: "పవిత్ర ప్రశ్న సంఖ్య (1–108)", ta: "பிரசன்ன புனித எண் (1–108)", ml: "പ്രശ്ന സംഖ്യ (1–108)" }, m25SevenLang)}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        max={108}
+                        value={horarySeedNumber}
+                        onChange={(e) => setHorarySeedNumber(Math.max(1, Math.min(108, Number(e.target.value) || 1)))}
+                        className="w-24 bg-white border-2 border-amber-300 rounded-xl px-2.5 py-2.5 text-center font-black text-amber-950"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setHorarySeedNumber(Math.floor(Math.random() * 108) + 1)}
+                        className="flex-1 py-2.5 px-3 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold cursor-pointer"
+                      >
+                        🎲 {pick7({ kn: "ಆಕಸ್ಮಿಕ ಸಂಖ್ಯೆ", en: "Pick Intuitive #", hi: "नया अंक चुनें", mr: "नवीन अंक", te: "కొత్త సంఖ్య", ta: "புதிய எண்", ml: "പുതിയ സംഖ്യ" }, m25SevenLang)}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-stone-700 font-semibold mb-1">
+                      📍 {selectedCityName}
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {currentCities.map((c) => (
+                        <button
+                          key={c.name}
+                          type="button"
+                          onClick={() => handleSelectQuickCity(c)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] border-2 cursor-pointer ${
+                            selectedCityName === c.name
+                              ? "bg-amber-200 border-amber-500 text-amber-950 font-black"
+                              : "bg-white border-amber-200 text-stone-700"
+                          }`}
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleAnalyzeStandalonePrashna()}
+                  disabled={isCalculating}
+                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 text-white font-black text-sm sm:text-base shadow-xl cursor-pointer"
+                >
+                  {isCalculating ? ui.calculatingCta : pick7({
+                    kn: "🔮 ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ ಉತ್ತರ ಪಡೆಯಿರಿ (ಮೊದಲ ೨ ಫಲ ಉಚಿತ)",
+                    en: "🔮 Reveal Prashna Answer (First 2 Insights Free)",
+                    hi: "🔮 प्रश्न शास्त्र उत्तर देखें (प्रथम २ फल मुफ़्त)",
+                    mr: "🔮 प्रश्न शास्त्र उत्तर पहा (पहिले २ फलादेश मोफत)",
+                    te: "🔮 ప్రశ్న శాస్త్రం చూడండి (మొదటి 2 ఉచితం)",
+                    ta: "🔮 பிரசன்ன பதில் பார்க்கவும் (முதல் 2 இலவசம்)",
+                    ml: "🔮 പ്രശ്നശാസ്ത്ര ഉത്തരം കാണുക (ആദ്യ 2 സൗജന്യം)"
+                  }, m25SevenLang)}
+                </button>
+              </div>
+            )}
+
+            {serviceMode === "kundli" && (
+            <>
 
             {/* Birth Timing Knowledge Selector (Preserves Exact Time 100%, adds Rough Window / Date-Only / No-DOB) */}
             <div className="space-y-2.5 bg-amber-50/70 border border-amber-200 rounded-xl p-3">
@@ -3789,7 +4631,6 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 />
               </div>
             </div>
-          </div>
 
           {/* Big Golden Action Button */}
           <button
@@ -3810,14 +4651,196 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               <span>{ui.revealSecretCta}</span>
             )}
           </button>
+            </>
+            )}
+          </div>
         </section>
 
-        {/* ── STEP 2: The Two 100% Accurate Paragraphs Result ── */}
-        {secretResult && (
+        {/* ── STEP 2: Result Card (Unified Host for Standalone 2-Free-Insights OR Janma Kundali Secrets) ── */}
+        {((serviceMode === "kundli" && secretResult) ||
+          (serviceMode !== "kundli" && (palmResult || faceResult || standalonePrashnaPayload))) && (
           <section
             id="antaranga-result-card"
             className="bg-[#FFFDF7] border-2 border-[#D4AF37] rounded-2xl p-5 sm:p-6 shadow-[0_12px_45px_rgba(217,119,6,0.18)] space-y-4 animate-in fade-in duration-300"
           >
+            {/* Standalone Service Preview (Hasta / Mukha / Prashna -> First 2 Insights Free + Paid Standalone PDF & Bundle Options) */}
+            {serviceMode !== "kundli" && (
+              <div id="standalone-service-preview" className="space-y-4">
+                {serviceMode === "hasta_samudrika" && palmResult && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2">
+                      <h3 className="text-lg font-black text-amber-950 font-serif">
+                        ✋ {devoteeName.trim()} — {pick7({ kn: "ಹಸ್ತ ಸಾಮುದ್ರಿಕ ಪ್ರಥಮ ೨ ಉಚಿತ ದರ್ಶನ", en: "Hasta Samudrika (First 2 Insights Free)", hi: "हस्त सामुद्रिक (प्रथम २ फल मुफ़्त)", mr: "हस्तसामुद्रिक (पहिले २ फलादेश मोफत)", te: "హస్త సాముద్రికం (మొదటి 2 ఉచితం)", ta: "ஹஸ்த சாமுத்ரிகா (முதல் 2 இலவசம்)", ml: "ഹസ്തസാമുദ്രികം (ആദ്യ 2 സൗജന്യം)" }, m25SevenLang)}
+                      </h3>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black">
+                        {toNativeDigits7L(palmResult.overallScore, m25SevenLang)}%
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                      <div className="bg-emerald-50/80 border border-emerald-300 rounded-xl p-3 space-y-1">
+                        <div className="font-black text-emerald-950">
+                          ✓ 1. {palmResult.chironomyHandType?.element?.[selectedLang] || palmResult.chironomyHandType?.element?.en}
+                        </div>
+                        <p className="text-stone-700 leading-relaxed">
+                          {palmResult.chironomyHandType?.traits?.[selectedLang] || palmResult.chironomyHandType?.traits?.en}
+                        </p>
+                      </div>
+                      <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 space-y-1">
+                        <div className="font-black text-amber-950">
+                          ✓ 2. {palmResult.verdictTitle?.[selectedLang] || palmResult.verdictTitle?.en}
+                        </div>
+                        <p className="text-stone-700 leading-relaxed">
+                          {palmResult.lifeLine?.indication?.[selectedLang] || palmResult.lifeLine?.indication?.en}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {serviceMode === "mukha_samudrika" && faceResult && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2">
+                      <h3 className="text-lg font-black text-amber-950 font-serif">
+                        👤 {devoteeName.trim()} — {pick7({ kn: "ಮುಖ ಸಾಮುದ್ರಿಕ ಪ್ರಥಮ ೨ ಉಚಿತ ದರ್ಶನ", en: "Mukha Samudrika (First 2 Insights Free)", hi: "मुख सामुद्रिक (प्रथम २ फल मुफ़्त)", mr: "मुख सामुद्रिक (पहिले २ फलादेश मोफत)", te: "ముఖ సాముద్రికం (మొదటి 2 ఉచితం)", ta: "முக சாமுத்ரிகா (முதல் 2 இலவசம்)", ml: "മുഖസാമുദ്രികം (ആദ്യ 2 സൗജന്യം)" }, m25SevenLang)}
+                      </h3>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black">
+                        {toNativeDigits7L(faceResult.overallTejasScore, m25SevenLang)}% Tejas
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                      <div className="bg-emerald-50/80 border border-emerald-300 rounded-xl p-3 space-y-1">
+                        <div className="font-black text-emerald-950">
+                          ✓ 1. {faceResult.facialConstitution?.mahapurushaArchetype?.[selectedLang] || faceResult.facialConstitution?.mahapurushaArchetype?.en}
+                        </div>
+                        <p className="text-stone-700 leading-relaxed">
+                          {faceResult.facialConstitution?.auraGlow?.[selectedLang] || faceResult.facialConstitution?.auraGlow?.en}
+                        </p>
+                      </div>
+                      <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 space-y-1">
+                        <div className="font-black text-amber-950">
+                          ✓ 2. {faceResult.features?.[0]?.name?.[selectedLang] || faceResult.features?.[0]?.name?.en}
+                        </div>
+                        <p className="text-stone-700 leading-relaxed">
+                          {faceResult.features?.[0]?.vedicIndication?.[selectedLang] || faceResult.features?.[0]?.vedicIndication?.en}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {serviceMode === "prashna_shastra" && prashnaResult && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-2">
+                      <h3 className="text-lg font-black text-amber-950 font-serif">
+                        🔮 {devoteeName.trim()} — {pick7({ kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ ಪ್ರಥಮ ೨ ಉಚಿತ ಉತ್ತರಗಳು", en: "Prashna Shastra (First 2 Answers Free)", hi: "प्रश्न शास्त्र (प्रथम २ उत्तर मुफ़्त)", mr: "प्रश्न शास्त्र (पहिले २ उत्तरे मोफत)", te: "ప్రశ్న శాస్త్రం (మొదటి 2 ఉచితం)", ta: "பிரசன்ன சாஸ்திரம் (முதல் 2 இலவசம்)", ml: "പ്രശ്നശാസ്ത്രം (ആദ്യ 2 സൗജന്യം)" }, m25SevenLang)}
+                      </h3>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black">
+                        {toNativeDigits7L(prashnaResult.ithasalaHarmonyScore, m25SevenLang)}%
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                      <div className="bg-emerald-50/80 border border-emerald-300 rounded-xl p-3 space-y-1">
+                        <div className="font-black text-emerald-950">
+                          ✓ 1. {prashnaResult.verdictTitle}
+                        </div>
+                        <p className="text-stone-700 leading-relaxed">
+                          {prashnaResult.tajikaYogaLabel} • {prashnaResult.udayaLagnaName} ({prashnaResult.udayaLagnaLordName})
+                        </p>
+                      </div>
+                      <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 space-y-1">
+                        <div className="font-black text-amber-950">
+                          ✓ 2. ⏳ {prashnaResult.timingForecast}
+                        </div>
+                        <p className="text-stone-700 leading-relaxed">
+                          #{toNativeDigits7L(prashnaResult.horaryNumber, m25SevenLang)} ({prashnaResult.seedLagnaName} / {prashnaResult.seedNakshatraName})
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Locked Full PDF Unlock Card + Optional Combo Switcher */}
+                <div className="bg-amber-50/90 border-2 border-[#D4AF37] rounded-2xl p-4 space-y-3">
+                  <div className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                    <span>🔒</span>
+                    <span>
+                      {serviceMode === "hasta_samudrika"
+                        ? pick7({ kn: "ಸಂಪೂರ್ಣ ಹಸ್ತ ಸಾಮುದ್ರಿಕ PDF ನಲ್ಲಿ: ಸಪ್ತ ಪರ್ವತ, ಪಂಚ ರೇಖೆ, ವಿವಾಹ & ಗೋಕರ್ಣ ಪರಿಹಾರ", en: "Unlock Full Hasta PDF: 7 Mounts, 5 Lines, Marriage Line, 100-Yr Milestones & Remedy", hi: "पूर्ण हस्त PDF में: ७ पर्वत, ५ रेखाएं, विवाह समय एवं गोकर्ण उपाय", mr: "पूर्ण हस्त PDF मध्ये: ७ पर्वत, ५ रेषा, विवाह काळ व उपाय", te: "పూర్తి హస్త PDF: 7 పర్వతాలు, 5 రేఖలు & గోకర్ణ పరిహారం", ta: "முழு ஹஸ்த PDF: 7 மேடுகள், 5 ரேகைகள் & பரிகாரம்", ml: "പൂർണ്ണ ഹസ്ത PDF: 7 മണ്ഡലങ്ങൾ, 5 രേഖകൾ & പരിഹാരം" }, m25SevenLang)
+                        : serviceMode === "mukha_samudrika"
+                          ? pick7({ kn: "ಸಂಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ PDF ನಲ್ಲಿ: ಸಪ್ತ ಲಲಾಟ ರೇಖೆ, ೧೦೦-ವರ್ಷ ಕಾಲಚಕ್ರ, ತಿಲಕ ಫಲ & ಪರಿಹಾರ", en: "Unlock Full Mukha PDF: 7 Forehead Lines, Vertical Thirds, 100-Yr Milestones & Remedy", hi: "पूर्ण मुख PDF में: ७ ललाट रेखाएं, त्रिवर्ग, तिल फल एवं उपाय", mr: "पूर्ण मुख PDF मध्ये: ७ ललाट रेषा, वय-टप्पे व उपाय", te: "పూర్తి ముఖ PDF: 7 లలాట రేఖలు, తిలక ఫలం & పరిహారం", ta: "முழு முக PDF: 7 நெற்றி ரேகைகள், மச்ச பலன் & பரிகாரம்", ml: "പൂർണ്ണ മുഖ PDF: 7 നെറ്റി രേഖകൾ, കാലചക്രം & പരിഹാരം" }, m25SevenLang)
+                          : pick7({ kn: "ಸಂಪೂರ್ಣ ಪ್ರಶ್ನ PDF ನಲ್ಲಿ: ತ್ರಿಸ್ಫುಟ, ಚತುಃಸ್ಫುಟ, ಛತ್ರ ರಾಶಿ, ಪಂಚಪಕ್ಷಿ ಬಲ & ಶಾಂತಿ ಪರಿಹಾರ", en: "Unlock Full Prashna PDF: Trisphuta, Chatusphuta, Chatra Rashi, Pancha Pakshi & Remedy", hi: "पूर्ण प्रश्न PDF में: त्रिस्फुट, चतुःस्फुट, छत्र राशि, पंचपक्षी व उपाय", mr: "पूर्ण प्रश्न PDF मध्ये: त्रिस्फुट, चतुःस्फुट, छत्र राशी व पंचपक्षी", te: "పూర్తి ప్రశ్న PDF: త్రిస్ఫుట, ఛత్ర రాశి & పంచపక్షి", ta: "முழு பிரசன்ன PDF: திரிஸ்புடம், சத்ர ராசி & பஞ்சபட்சி", ml: "പൂർണ്ണ പ്രശ്ന PDF: ത്രിസ്ഫുടം, ഛത്രരാശി & പഞ്ചപക്ഷി" }, m25SevenLang)}
+                    </span>
+                  </div>
+
+                  {/* Single Report vs Bundle Choice */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const pkg: HotelPackageType =
+                          serviceMode === "hasta_samudrika" ? "palm_150" : serviceMode === "mukha_samudrika" ? "face_150" : "prashna_200";
+                        setSelectedPackage(pkg);
+                      }}
+                      className={`p-2.5 rounded-xl border-2 text-left cursor-pointer ${
+                        selectedPackage === "palm_150" || selectedPackage === "face_150" || selectedPackage === "prashna_200"
+                          ? "bg-white border-emerald-600 ring-2 ring-emerald-400"
+                          : "bg-white/80 border-amber-200"
+                      }`}
+                    >
+                      <div className="font-black text-emerald-900">
+                        {serviceMode === "prashna_shastra" ? "₹200" : "₹150"} • {pick7({ kn: "ಈ ಸಂಪೂರ್ಣ PDF ಮಾತ್ರ", en: "This Full PDF Only", hi: "केवल यही PDF", mr: "फक्त ही पूर्ण PDF", te: "ఈ పూర్తి PDF మాత్రమే", ta: "இந்த முழு PDF மட்டும்", ml: "ഈ പൂർണ്ണ PDF മാത്രം" }, m25SevenLang)}
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPackage("samudrika_combo_249")}
+                      className={`p-2.5 rounded-xl border-2 text-left cursor-pointer ${
+                        selectedPackage === "samudrika_combo_249"
+                          ? "bg-white border-amber-600 ring-2 ring-amber-400"
+                          : "bg-white/80 border-amber-200"
+                      }`}
+                    >
+                      <div className="font-black text-amber-950">
+                        ₹249 • {pick7({ kn: "ಹಸ್ತ + ಮುಖ ೨ PDF ಪ್ಯಾಕ್", en: "Palm + Face (2 PDFs)", hi: "हस्त + मुख (२ PDF)", mr: "हस्त + मुख (२ PDF)", te: "హస్త + ముఖ (2 PDFs)", ta: "கை + முக (2 PDFs)", ml: "ഹസ്ത + മുഖ (2 PDFs)" }, m25SevenLang)}
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPackage("trinetra_all3_349")}
+                      className={`p-2.5 rounded-xl border-2 text-left cursor-pointer ${
+                        selectedPackage === "trinetra_all3_349"
+                          ? "bg-white border-amber-600 ring-2 ring-amber-400"
+                          : "bg-white/80 border-amber-200"
+                      }`}
+                    >
+                      <div className="font-black text-amber-950">
+                        ₹349 • {pick7({ kn: "ಹಸ್ತ + ಮುಖ + ಪ್ರಶ್ನ ೩ PDF", en: "All 3 Separate PDFs", hi: "सभी ३ अलग PDF", mr: "तिन्ही ३ स्वतंत्र PDF", te: "అన్ని 3 విడి PDFలు", ta: "மூன்று தனி PDFகள்", ml: "3 പ്രത്യേക PDF-കൾ" }, m25SevenLang)}
+                      </div>
+                    </button>
+                  </div>
+
+                  {!showPaymentSection && !isPaymentVerified && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPaymentSection(true);
+                        setTimeout(() => {
+                          document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                        }, 100);
+                      }}
+                      className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-sm shadow-lg cursor-pointer"
+                    >
+                      {ui.payUnlockCta} (₹{packagePrice})
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {serviceMode === "kundli" && secretResult && (
+            <>
             {/* Header Badge */}
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3">
               <div>
@@ -4693,6 +5716,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 )}
               </div>
             </div>
+            </>
+            )}
 
             {/* ── STEP 4: STRICT PAYMENT GATE SECTION (₹350 or ₹450) ── */}
             {showPaymentSection && (
@@ -4731,7 +5756,23 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                       <div className="text-[11px] text-stone-600 font-mono">
                         UPI ID: <span className="font-semibold text-stone-700">{PRIEST_UPI_ID}</span> · <span className="text-emerald-700 font-bold text-sm">₹{packagePrice}</span>
                         <span className="ml-1 text-[10px] text-stone-500">
-                          ({selectedPackage === "express_149" ? "Express Walk-In" : selectedPackage === "remedy_450" ? "Destiny + Remedy" : selectedPackage === "family_250" ? "Family Special" : "Standard"})
+                          ({selectedPackage === "palm_150"
+                            ? "Hasta Samudrika"
+                            : selectedPackage === "face_150"
+                              ? "Mukha Samudrika"
+                              : selectedPackage === "prashna_200"
+                                ? "Prashna Shastra"
+                                : selectedPackage === "samudrika_combo_249"
+                                  ? "Palm + Face Combo"
+                                  : selectedPackage === "trinetra_all3_349"
+                                    ? "All-3 Separate PDFs"
+                                    : selectedPackage === "express_149"
+                                      ? "Express Walk-In"
+                                      : selectedPackage === "remedy_450"
+                                        ? "Destiny + Remedy"
+                                        : selectedPackage === "family_250"
+                                          ? "Family Special"
+                                          : "Standard"})
                         </span>
                       </div>
                     </div>
@@ -4932,7 +5973,179 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 </p>
               </div>
 
-              {selectedPackage === "express_149" ? (
+              {selectedPackage === "palm_150" ||
+              selectedPackage === "face_150" ||
+              selectedPackage === "prashna_200" ||
+              selectedPackage === "samudrika_combo_249" ||
+              selectedPackage === "trinetra_all3_349" ? (
+                <div className="flex flex-col gap-3 max-w-lg mx-auto">
+                  {(selectedPackage === "palm_150" ||
+                    selectedPackage === "samudrika_combo_249" ||
+                    selectedPackage === "trinetra_all3_349") && (
+                    <div className="flex flex-col gap-1.5">
+                      {palmResult ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!isPaymentVerified) {
+                                alert(ui.unpaidWarning);
+                                document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                                return;
+                              }
+                              void handleDownloadPalmPdf();
+                            }}
+                            disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.palm || 0) >= 3 || Boolean(downloadedPdfs.palm)}
+                            className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                              !isPaymentVerified
+                                ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300 cursor-not-allowed"
+                                : "bg-gradient-to-r from-emerald-600 to-teal-600 text-white cursor-pointer"
+                            }`}
+                          >
+                            <span>
+                              ✋{" "}
+                              {!isPaymentVerified
+                                ? `${pick7({ kn: "ಸಂಪೂರ್ಣ ಹಸ್ತ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Hasta Samudrika PDF", hi: "संपूर्ण हस्त सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण हस्तसामुद्रिक PDF डाउनलोड", te: "హస్త సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு ஹஸ்த சாமுத்ரிகா PDF", ml: "ഹസ്തസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                                : `${pick7({ kn: "ಸಂಪೂರ್ಣ ಹಸ್ತ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Hasta Samudrika PDF", hi: "संपूर्ण हस्त सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण हस्तसामुद्रिक PDF डाउनलोड", te: "హస్త సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு ஹஸ்த சாமுத்ரிகா PDF", ml: "ഹസ്തസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)}${downloadCounts.palm ? ` (${downloadCounts.palm}/3)` : ""}`}
+                            </span>
+                          </button>
+                          {isPaymentVerified && (
+                            <button
+                              type="button"
+                              onClick={() => void handleOpenInNewTab("palm")}
+                              disabled={isGeneratingPdf}
+                              className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-emerald-100 text-emerald-950 border border-emerald-300 cursor-pointer"
+                            >
+                              {SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setServiceMode("hasta_samudrika");
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="py-3 px-4 rounded-xl bg-amber-100 border-2 border-amber-400 text-amber-950 font-bold text-xs cursor-pointer"
+                        >
+                          ✋ {pick7({ kn: "ಹಸ್ತದ ಫೋಟೋ ಸೇರಿಸಿ PDF ಪಡೆಯಿರಿ", en: "Tap to Capture Palm Photo for Your Bundle PDF", hi: "बंडल PDF हेतु हथेली की फोटो लें", mr: "बंडल PDF साठी तळहाताचा फोटो घ्या", te: "అరచేతి ఫోటో తీయండి", ta: "கை படம் எடுக்க தட்டவும்", ml: "കൈപ്പത്തി ഫോട്ടോ എടുക്കുക" }, m25SevenLang)}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {(selectedPackage === "face_150" ||
+                    selectedPackage === "samudrika_combo_249" ||
+                    selectedPackage === "trinetra_all3_349") && (
+                    <div className="flex flex-col gap-1.5">
+                      {faceResult ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!isPaymentVerified) {
+                                alert(ui.unpaidWarning);
+                                document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                                return;
+                              }
+                              void handleDownloadFacePdf();
+                            }}
+                            disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.face || 0) >= 3 || Boolean(downloadedPdfs.face)}
+                            className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                              !isPaymentVerified
+                                ? "bg-stone-100 text-stone-500 border-2 border-dashed border-amber-300 cursor-not-allowed"
+                                : "bg-gradient-to-r from-amber-600 to-yellow-600 text-white cursor-pointer"
+                            }`}
+                          >
+                            <span>
+                              👤{" "}
+                              {!isPaymentVerified
+                                ? `${pick7({ kn: "ಸಂಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Mukha Samudrika PDF", hi: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", te: "ముఖ సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு முக சாமுத்ரிகா PDF", ml: "മുഖസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                                : `${pick7({ kn: "ಸಂಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Mukha Samudrika PDF", hi: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", mr: "संपूर्ण मुख सामुद्रिक PDF डाउनलोड", te: "ముఖ సాముద్రిక PDF డౌన్‌లోడ్", ta: "முழு முக சாமுத்ரிகா PDF", ml: "മുഖസാമുദ്രിക PDF ഡൗൺലോഡ്" }, m25SevenLang)}${downloadCounts.face ? ` (${downloadCounts.face}/3)` : ""}`}
+                            </span>
+                          </button>
+                          {isPaymentVerified && (
+                            <button
+                              type="button"
+                              onClick={() => void handleOpenInNewTab("face")}
+                              disabled={isGeneratingPdf}
+                              className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-amber-100 text-amber-950 border border-amber-300 cursor-pointer"
+                            >
+                              {SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setServiceMode("mukha_samudrika");
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="py-3 px-4 rounded-xl bg-amber-100 border-2 border-amber-400 text-amber-950 font-bold text-xs cursor-pointer"
+                        >
+                          🤳 {pick7({ kn: "ಮುಖದ ಸೆಲ್ಫಿ ಸೇರಿಸಿ PDF ಪಡೆಯಿರಿ", en: "Tap to Capture Face Selfie for Your Bundle PDF", hi: "बंडल PDF हेतु चेहरा सेल्फी लें", mr: "बंडल PDF साठी सेल्फी घ्या", te: "ముఖం ఫోటో తీయండి", ta: "முக செல்ஃபி எடுக்க தட்டவும்", ml: "മുഖം സെൽഫി എടുക്കുക" }, m25SevenLang)}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {(selectedPackage === "prashna_200" || selectedPackage === "trinetra_all3_349") && (
+                    <div className="flex flex-col gap-1.5">
+                      {standalonePrashnaPayload ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!isPaymentVerified) {
+                                alert(ui.unpaidWarning);
+                                document.getElementById("hotel-payment-box")?.scrollIntoView({ behavior: "smooth" });
+                                return;
+                              }
+                              void handleDownloadPrashnaPdf();
+                            }}
+                            disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.prashna || 0) >= 3 || Boolean(downloadedPdfs.prashna)}
+                            className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                              !isPaymentVerified
+                                ? "bg-stone-100 text-stone-500 border-2 border-dashed border-indigo-300 cursor-not-allowed"
+                                : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white cursor-pointer"
+                            }`}
+                          >
+                            <span>
+                              🔮{" "}
+                              {!isPaymentVerified
+                                ? `${pick7({ kn: "ಸಂಪೂರ್ಣ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Prashna Shastra PDF", hi: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", mr: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", te: "సంపూర్ణ ప్రశ్న శాస్త్ర PDF డౌన్‌లోడ్", ta: "முழு பிரசன்ன சாஸ்திர PDF", ml: "പ്രശ്നശാസ്ത്ര PDF ഡൗൺലോഡ്" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                                : `${pick7({ kn: "ಸಂಪೂರ್ಣ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Complete Prashna Shastra PDF", hi: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", mr: "संपूर्ण प्रश्न शास्त्र PDF डाउनलोड", te: "సంపూర్ణ ప్రశ్న శాస్త్ర PDF డౌన్‌లోడ్", ta: "முழு பிரசன்ன சாஸ்திர PDF", ml: "പ്രശ്നശാസ്ത്ര PDF ഡൗൺലോഡ്" }, m25SevenLang)}${downloadCounts.prashna ? ` (${downloadCounts.prashna}/3)` : ""}`}
+                            </span>
+                          </button>
+                          {isPaymentVerified && (
+                            <button
+                              type="button"
+                              onClick={() => void handleOpenInNewTab("prashna")}
+                              disabled={isGeneratingPdf}
+                              className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-indigo-100 text-indigo-950 border border-indigo-300 cursor-pointer"
+                            >
+                              {SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setServiceMode("prashna_shastra");
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="py-3 px-4 rounded-xl bg-indigo-50 border-2 border-indigo-300 text-indigo-950 font-bold text-xs cursor-pointer"
+                        >
+                          🔮 {pick7({ kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ ಗಣಿಸಿ PDF ಪಡೆಯಿರಿ", en: "Tap to Generate Your Bundle Prashna PDF", hi: "प्रश्न शास्त्र PDF तैयार करें", mr: "प्रश्न शास्त्र PDF तयार करा", te: "ప్రశ్న శాస్త్రం లెక్కించండి", ta: "பிரசன்ன PDF உருவாக்கவும்", ml: "പ്രശ്നശാസ്ത്ര PDF തയ്യാറാക്കുക" }, m25SevenLang)}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : selectedPackage === "express_149" ? (
                 <div className="flex flex-col gap-2 max-w-lg mx-auto">
                   <button
                     type="button"
@@ -5236,6 +6449,37 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         {expressPdfPayload && (
           <div ref={expressPdfRef} id="hotel-express-pdf-render">
             <HotelExpressWalkInPdfTemplate data={expressPdfPayload} />
+          </div>
+        )}
+
+        {/* 5. Standalone Hasta Samudrika PDF Template (₹150 / Bundle) */}
+        {palmResult && (
+          <div style={{ width: "794px", background: "#FFFDF7" }}>
+            <PalmReadingPdfTemplate
+              result={palmResult}
+              personName={devoteeName.trim() || "Devotee"}
+              lang={selectedLang}
+              containerId="hotel-palm-pdf-render"
+            />
+          </div>
+        )}
+
+        {/* 6. Standalone Mukha Samudrika PDF Template (₹150 / Bundle) */}
+        {faceResult && (
+          <div style={{ width: "794px", background: "#FFFDF7" }}>
+            <FaceReadingPdfTemplate
+              result={faceResult}
+              devoteeName={devoteeName.trim() || "Devotee"}
+              lang={selectedLang}
+              containerId="hotel-face-pdf-render"
+            />
+          </div>
+        )}
+
+        {/* 7. Standalone Prashna Shastra Complete PDF Template (₹200 / Bundle) */}
+        {standalonePrashnaPayload && (
+          <div ref={prashnaPdfRef}>
+            <HotelPrashnaPdfTemplate data={standalonePrashnaPayload} />
           </div>
         )}
       </div>

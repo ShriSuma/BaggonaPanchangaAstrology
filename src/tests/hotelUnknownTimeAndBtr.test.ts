@@ -11,11 +11,21 @@ import {
   getPrashnaDomainOptions
 } from "../features/hotelSecret/hotelUnknownTimeEngine";
 import {
+  HOTEL_PALM_PRICE_INR,
+  HOTEL_FACE_PRICE_INR,
+  HOTEL_PRASHNA_PRICE_INR,
+  HOTEL_SAMUDRIKA_COMBO_INR,
+  HOTEL_TRINETRA_ALL3_INR,
   HOTEL_EXPRESS_PRICE_INR,
   HOTEL_PDF_PRICE_INR,
   HOTEL_PREMIUM_REMEDY_PRICE_INR,
   verifyHotelPaymentInstant
 } from "../features/hotelSecret/antarangaService";
+import { executePalmReading } from "../features/palmreading/palmReadingEngine";
+import { executeFaceReading } from "../features/facereading/faceReadingEngine";
+import { PalmReadingPdfTemplate } from "../components/palmreading/PalmReadingPdfTemplate";
+import { FaceReadingPdfTemplate } from "../components/facereading/FaceReadingPdfTemplate";
+import { HotelPrashnaPdfTemplate } from "../components/hotelSecret/HotelPrashnaPdfTemplate";
 import { prepareSampoornaMaster25Data } from "../services/sampoornaMaster25Service";
 import { SampoornaMaster25PdfTemplate } from "../components/sampoornaMaster25/SampoornaMaster25PdfTemplate";
 import { HotelExpressWalkInPdfTemplate } from "../components/hotelSecret/HotelExpressWalkInPdfTemplate";
@@ -211,6 +221,94 @@ describe("Hotel QR Unknown-Time, BTR, Prashna & Express ₹149 Verification", ()
       expect(container.querySelector("#hotel-express-walkin-pdf")).not.toBeNull();
       expect(container.textContent).toContain("Raghavendra");
       expect(container.textContent).toContain("94821 09844");
+      cleanup();
+    }
+  });
+
+  it("7. Computes Pranapada, Tattva Shodhana, Kunda, Trisphuta, Chatusphuta, Chatra Rashi & Pancha Pakshi across 7 languages", () => {
+    for (const lang of SEVEN_LANGS) {
+      const btrMale = buildBtrWindowCandidates("1995-05-15", "morning_7_11", 14.5479, 74.3188, lang, undefined, "Male");
+      const btrFemale = buildBtrWindowCandidates("1995-05-15", "morning_7_11", 14.5479, 74.3188, lang, undefined, "Female");
+      expect(btrMale.candidates[0].pranapadaRashiName).toBeTruthy();
+      expect(btrMale.candidates[0].kundaRashiName).toBeTruthy();
+      expect(btrMale.candidates[0].tattvaLabel).toBeTruthy();
+      expect(btrFemale.candidates[0].tattvaLabel).toBeTruthy();
+
+      const prashna = computeDeepPrashnaHoraryReading({
+        devoteeName: "Meenakshi",
+        questionDomain: "career_wealth",
+        horaryNumber: 42,
+        latitude: 14.5479,
+        longitude: 74.3188,
+        lang,
+        now: new Date("2026-11-27T13:15:00+05:30")
+      });
+      expect(prashna.trisphutaRashiName).toBeTruthy();
+      expect(prashna.trisphutaNakshatraName).toBeTruthy();
+      expect(prashna.chatusphutaRashiName).toBeTruthy();
+      expect(prashna.chatraRashiName).toBeTruthy();
+      expect(prashna.panchaPakshiBird).toBeTruthy();
+      expect(prashna.panchaPakshiState).toBeTruthy();
+      expect(prashna.tajikaYogaLabel).toBeTruthy();
+    }
+  });
+
+  it("8. Validates standalone ₹150 Palm/Face, ₹200 Prashna, Combos & 7-Language separate PDF rendering", async () => {
+    expect(HOTEL_PALM_PRICE_INR).toBe(150);
+    expect(HOTEL_FACE_PRICE_INR).toBe(150);
+    expect(HOTEL_PRASHNA_PRICE_INR).toBe(200);
+    expect(HOTEL_SAMUDRIKA_COMBO_INR).toBe(249);
+    expect(HOTEL_TRINETRA_ALL3_INR).toBe(349);
+
+    const dummyImg = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AVN//2Q==";
+    const kundli = calculateKundli(sampleKundliInput);
+
+    for (const lang of SEVEN_LANGS) {
+      const pPalm = await verifyHotelPaymentInstant("ORD_P_1", "Meenakshi", 150, lang, "palm_150");
+      const pPrashna = await verifyHotelPaymentInstant("ORD_PR_1", "Meenakshi", 200, lang, "prashna_200");
+      expect(pPalm.success).toBe(true);
+      expect(pPrashna.success).toBe(true);
+      expect(pPalm.message).toMatch(/150|೧೫೦|१५०/);
+      expect(pPrashna.message).toMatch(/200|೨೦೦|२००/);
+
+      const palmRes = await executePalmReading(dummyImg, "right", "Meenakshi", lang, "");
+      const faceRes = await executeFaceReading(dummyImg, "Meenakshi", lang, "");
+      const sankhya = buildChandraSankhyaProfile("Meenakshi", "1995-05-15", kundli, lang);
+      const prashna = computeDeepPrashnaHoraryReading({
+        devoteeName: "Meenakshi",
+        questionDomain: "family_peace",
+        horaryNumber: 72,
+        latitude: 14.5479,
+        longitude: 74.3188,
+        lang,
+        now: new Date("2026-11-27T13:15:00+05:30")
+      });
+
+      const r1 = render(React.createElement(PalmReadingPdfTemplate, { result: palmRes, personName: "Meenakshi", lang, containerId: "hotel-palm-pdf-render" }));
+      expect(r1.container.querySelector("#hotel-palm-pdf-render")).not.toBeNull();
+      cleanup();
+
+      const r2 = render(React.createElement(FaceReadingPdfTemplate, { result: faceRes, devoteeName: "Meenakshi", lang, containerId: "hotel-face-pdf-render" }));
+      expect(r2.container.querySelector("#hotel-face-pdf-render")).not.toBeNull();
+      cleanup();
+
+      const r3 = render(
+        React.createElement(HotelPrashnaPdfTemplate, {
+          data: {
+            devoteeName: "Meenakshi",
+            lang,
+            tableNumber: "3",
+            hotelName: "Pandit Palette",
+            generatedDateStr: "2026-11-27",
+            placeName: "Gokarna",
+            prashna,
+            sankhya,
+            aiParagraphs: [prashna.verdictSummary]
+          }
+        })
+      );
+      expect(r3.container.querySelector("#hotel-prashna-pdf-render")).not.toBeNull();
+      expect(r3.container.textContent).toContain(prashna.trisphutaRashiName);
       cleanup();
     }
   });

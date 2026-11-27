@@ -199,6 +199,10 @@ export interface BtrCandidate {
   lagnaLordHouse: number;
   elementKey: "fire" | "earth" | "air" | "water";
   elementLabel: string;
+  pranapadaRashiName: string;
+  kundaRashiName: string;
+  tattvaLabel: string;
+  tattvaGenderMatch: boolean;
   kundli: KundliOutput;
 }
 
@@ -251,6 +255,14 @@ export interface DeepPrashnaHoraryResult {
   karyaLordName: string;
   ithasalaHarmonyScore: number; // 35..98
   ithasalaType: "direct_sambandha" | "supportive_trine" | "patient_effort" | "delay_obstacle";
+  tajikaYogaLabel: string;
+  isMuthasilaExact: boolean;
+  trisphutaRashiName: string;
+  trisphutaNakshatraName: string;
+  chatusphutaRashiName: string;
+  chatraRashiName: string;
+  panchaPakshiBird: string;
+  panchaPakshiState: string;
   timingForecast: string;
   verdictTitle: string;
   verdictSummary: string;
@@ -439,6 +451,93 @@ export function analyzeDailyLunarStability(
 /**
  * 2. SOLAR-ANCHORED 2-TAP BIRTH TIME RECTIFICATION (BTR) FOR ROUGH WINDOW USERS
  */
+const TATTVA_LABELS_7L: Array<{
+  key: "prithvi" | "jala" | "agni" | "vayu" | "akasha";
+  mins: number;
+  maleFriendly: boolean;
+  labels: Record<SevenLang, string>;
+}> = [
+  {
+    key: "prithvi",
+    mins: 6,
+    maleFriendly: true,
+    labels: { kn: "ಪೃಥ್ವಿ ತತ್ತ್ವ (ಭೂಮಿ)", en: "Prithvi Tattva (Earth)", hi: "पृथ्वी तत्त्व", mr: "पृथ्वी तत्त्व", te: "పృథ్వీ తత్త్వం", ta: "பிருத்வி தத்துவம்", ml: "പൃഥ്വി തത്ത്വം" }
+  },
+  {
+    key: "jala",
+    mins: 12,
+    maleFriendly: false,
+    labels: { kn: "ಜಲ ತತ್ತ್ವ (ನೀರು)", en: "Jala Tattva (Water)", hi: "जल तत्त्व", mr: "जल तत्त्व", te: "జల తత్త్వం", ta: "ஜல தத்துவம்", ml: "ജല തത്ത്വം" }
+  },
+  {
+    key: "agni",
+    mins: 18,
+    maleFriendly: true,
+    labels: { kn: "ಅಗ್ನಿ ತತ್ತ್ವ (ತೇಜಸ್ಸು)", en: "Agni Tattva (Fire)", hi: "अग्नि तत्त्व", mr: "अग्नि तत्त्व", te: "అగ్ని తత్త్వం", ta: "அக்னி தத்துவம்", ml: "അഗ്നി തത്ത്വം" }
+  },
+  {
+    key: "vayu",
+    mins: 24,
+    maleFriendly: false,
+    labels: { kn: "ವಾಯು ತತ್ತ್ವ (ಗಾಳಿ)", en: "Vayu Tattva (Air)", hi: "वायु तत्त्व", mr: "वायव्य तत्त्व", te: "వాయు తత్త్వం", ta: "வாயு தத்துவம்", ml: "വായു തത്ത്വം" }
+  },
+  {
+    key: "akasha",
+    mins: 30,
+    maleFriendly: true,
+    labels: { kn: "ಆಕಾಶ ತತ್ತ್ವ (ಚೇತನ)", en: "Akasha Tattva (Ether)", hi: "आकाश तत्त्व", mr: "आकाश तत्त्व", te: "ఆకాశ తత్త్వం", ta: "ஆகாச தத்துவம்", ml: "ஆകാശ തത്ത്വം" }
+  }
+];
+
+function computeBtrPranapadaTattvaKundaMetrics(
+  timeStr: string,
+  k: KundliOutput,
+  gender: "Male" | "Female",
+  lang: SevenLang
+): {
+  pranapadaRashiName: string;
+  kundaRashiName: string;
+  tattvaLabel: string;
+  tattvaGenderMatch: boolean;
+} {
+  const [hhStr, mmStr] = timeStr.split(":");
+  const minsOfDay = (Number(hhStr) || 12) * 60 + (Number(mmStr) || 0);
+  // Elapsed minutes from approximate 06:00 AM Sunrise
+  const minsFromSunrise = ((minsOfDay - 360) + 1440) % 1440;
+  // Classical Tattva Shodhana (6:12:18:24:30 min cycles summing to 90 mins)
+  const mod90 = minsFromSunrise % 90;
+  let acc = 0;
+  let activeTattva = TATTVA_LABELS_7L[0];
+  for (const t of TATTVA_LABELS_7L) {
+    acc += t.mins;
+    if (mod90 < acc) {
+      activeTattva = t;
+      break;
+    }
+  }
+  const tattvaGenderMatch = gender === "Male" ? activeTattva.maleFriendly : !activeTattva.maleFriendly;
+
+  // Pranapada Lagna (PPL): 1 Pala = 0.4 min -> palasFromSunrise = minsFromSunrise * 2.5
+  const palasFromSunrise = minsFromSunrise * 2.5;
+  const sunDeg = k.planets.find((p) => p.name === PlanetName.Sun)?.degree ?? ((k.sunSign?.index ?? 0) * 30 + 15);
+  const sunSign = Math.floor(((sunDeg % 360) + 360) % 360 / 30);
+  const modalityOffset = sunSign % 3 === 0 ? 0 : sunSign % 3 === 1 ? 240 : 120; // Movable->Sun, Fixed->9th, Dual->5th
+  const pranapadaDeg = (sunDeg + modalityOffset + (palasFromSunrise * 2)) % 360;
+  const pranapadaRashiIdx = Math.floor(((pranapadaDeg % 360) + 360) % 360 / 30) % 12;
+
+  // Kunda Lagna: (Lagna Longitude * 81) % 360
+  const lagnaDeg = typeof k.ascendant === "number" ? k.ascendant : ((k.lagnaRashi?.index ?? 0) * 30 + 15);
+  const kundaDeg = (lagnaDeg * 81) % 360;
+  const kundaRashiIdx = Math.floor(((kundaDeg % 360) + 360) % 360 / 30) % 12;
+
+  return {
+    pranapadaRashiName: RASHI_7L[pranapadaRashiIdx]?.[lang] || RASHI_7L[0].en,
+    kundaRashiName: RASHI_7L[kundaRashiIdx]?.[lang] || RASHI_7L[0].en,
+    tattvaLabel: activeTattva.labels[lang] || activeTattva.labels.en,
+    tattvaGenderMatch
+  };
+}
+
 export function buildBtrWindowCandidates(
   birthDate: string,
   windowId: ApproxTimeWindowId,
@@ -458,9 +557,9 @@ export function buildBtrWindowCandidates(
     pincode
   };
 
-  // Sample every 45 mins inside window
+  // Sample every 15 mins inside window so Tattva Shodhana + Pranapada can select the finest minute per Lagna
   const rawSamples: Array<{ timeStr: string; k: KundliOutput; lagnaIdx: number }> = [];
-  for (let h = win.startHour + 0.5; h < win.endHour; h += 0.75) {
+  for (let h = win.startHour + 0.25; h < win.endHour; h += 0.25) {
     const wrappedH = h >= 24 ? h - 24 : h;
     const hh = String(Math.floor(wrappedH)).padStart(2, "0");
     const mm = String(Math.round((wrappedH - Math.floor(wrappedH)) * 60) % 60).padStart(2, "0");
@@ -470,7 +569,7 @@ export function buildBtrWindowCandidates(
     rawSamples.push({ timeStr, k, lagnaIdx: lIdx });
   }
 
-  // Deduplicate by Lagna Rashi index keeping midpoint sample per Lagna sign
+  // Deduplicate by Lagna Rashi index picking the best Tattva-gender matched sample closest to midpoint
   const groupedByLagna = new Map<number, typeof rawSamples>();
   for (const s of rawSamples) {
     const arr = groupedByLagna.get(s.lagnaIdx) || [];
@@ -480,14 +579,30 @@ export function buildBtrWindowCandidates(
 
   const candidates: BtrCandidate[] = [];
   for (const [lIdx, items] of groupedByLagna.entries()) {
-    const mid = items[Math.floor(items.length / 2)];
+    const midIdx = Math.floor(items.length / 2);
+    let chosen = items[midIdx];
+    let chosenMetrics = computeBtrPranapadaTattvaKundaMetrics(chosen.timeStr, chosen.k, gender, lang);
+    // Prefer a sample near midpoint whose Tattva strictly satisfies gender alignment (Tattva Shodhana)
+    for (let offset = 0; offset < items.length; offset++) {
+      const idx = midIdx + (offset % 2 === 0 ? Math.floor(offset / 2) : -Math.ceil(offset / 2));
+      if (idx >= 0 && idx < items.length) {
+        const candidateSample = items[idx];
+        const m = computeBtrPranapadaTattvaKundaMetrics(candidateSample.timeStr, candidateSample.k, gender, lang);
+        if (m.tattvaGenderMatch) {
+          chosen = candidateSample;
+          chosenMetrics = m;
+          break;
+        }
+      }
+    }
+
     const rIdx = lIdx as RashiIndex;
     const lordG = signLord(rIdx);
-    const lordP = mid.k.planets.find((p) => p.name === lordG);
+    const lordP = chosen.k.planets.find((p) => p.name === lordG);
     const placedHouse = lordP ? (((lordP.rashi.index - lIdx + 12) % 12) + 1) : 1;
     const elemKey = getElementKeyFromRashi(lIdx);
     candidates.push({
-      sampleTime: mid.timeStr,
+      sampleTime: chosen.timeStr,
       lagnaRashiIdx: lIdx,
       lagnaName: RASHI_7L[lIdx]?.[lang] || RASHI_7L[0].en,
       lagnaLord: lordG,
@@ -495,7 +610,11 @@ export function buildBtrWindowCandidates(
       lagnaLordHouse: placedHouse,
       elementKey: elemKey,
       elementLabel: ELEMENT_NAMES_7L[elemKey]?.[lang] || elemKey,
-      kundli: mid.k
+      pranapadaRashiName: chosenMetrics.pranapadaRashiName,
+      kundaRashiName: chosenMetrics.kundaRashiName,
+      tattvaLabel: chosenMetrics.tattvaLabel,
+      tattvaGenderMatch: chosenMetrics.tattvaGenderMatch,
+      kundli: chosen.k
     });
   }
 
@@ -838,6 +957,60 @@ export function computeDeepPrashnaHoraryReading(params: {
   else if ([2, 3, 4].includes(mutualBhava)) ithasalaType = "patient_effort";
   else ithasalaType = "delay_obstacle";
 
+  // Classical Kerala Prashna Sphuta Matrix & Pancha Pakshi Biorhythm
+  const udayaDeg = typeof prashnaKundli.ascendant === "number" ? prashnaKundli.ascendant : udayaLagnaIdx * 30 + 15;
+  const moonDeg = prashnaKundli.planets.find((p) => p.name === PlanetName.Moon)?.degree ?? prashnaMoonIdx * 30 + 15;
+  const sunDeg = prashnaKundli.planets.find((p) => p.name === PlanetName.Sun)?.degree ?? 0;
+  const gulikaDeg = (prashnaKundli as any).maandi?.degree ?? ((((udayaLagnaIdx + 6) % 12) * 30) + 15);
+  const trisphutaDeg = ((udayaDeg + moonDeg + gulikaDeg) % 360 + 360) % 360;
+  const chatusphutaDeg = ((trisphutaDeg + sunDeg) % 360 + 360) % 360;
+  const trisphutaRashiIdx = Math.floor(trisphutaDeg / 30) % 12;
+  const trisphutaNakIdx = Math.floor(trisphutaDeg / (360 / 27)) % 27;
+  const chatusphutaRashiIdx = Math.floor(chatusphutaDeg / 30) % 12;
+  const sunRashiIdx = Math.floor((((sunDeg % 360) + 360) % 360) / 30) % 12;
+  const chatraRashiIdx = ((udayaLagnaIdx + ((seedLagnaIdx - sunRashiIdx + 12) % 12)) % 12);
+
+  // Tajika Muthasila (partile orb <= 5° between Udaya Lord and Karya Lord degree-in-sign)
+  const uDegInSign = ((udayaLordPos?.degree ?? 15) % 30 + 30) % 30;
+  const kDegInSign = ((karyaLordPos?.degree ?? 15) % 30 + 30) % 30;
+  const isMuthasilaExact = [1, 3, 5, 7, 9, 10, 11].includes(mutualBhava) && Math.abs(uDegInSign - kDegInSign) <= 5;
+  if (isMuthasilaExact) score = Math.min(98, score + 4);
+
+  const tajikaYogaLabel = isMuthasilaExact
+    ? pick7({ kn: "ಪೂರ್ಣ ಮುತಸಿಲ ಇತ್ಥಸಾಲ ಯೋಗ (ಶೀಘ್ರ ಸಿದ್ಧಿ)", en: "Muthasila Partile Ithasala Yoga (Immediate)", hi: "पूर्ण मुतसिल इत्थसाल योग (शीघ्र सिद्धि)", mr: "पूर्ण मुतसिल इत्थसाल योग (तातडीने सिद्धी)", te: "పూర్ణ ముతసిల ఇత్థసాల యోగం", ta: "முழு முத்தசில இத்தசால யோகம்", ml: "പൂർണ്ണ മുതസില ഇത്ഥസാല യോഗം" }, lang)
+    : ithasalaType === "direct_sambandha" || ithasalaType === "supportive_trine"
+      ? pick7({ kn: "ಶುಭ ತಾಜಿಕ ಇತ್ಥಸಾಲ ಯೋಗ", en: "Auspicious Tajika Ithasala Yoga", hi: "शुभ ताजिक इत्थसाल योग", mr: "शुभ ताजिक इत्थसाल योग", te: "శుభ తాజిక ఇత్థసాల యోగం", ta: "சுப தாஜிக இத்தசால யோகம்", ml: "ശുഭ താജിക ഇത്ഥസാല യോഗം" }, lang)
+      : ithasalaType === "patient_effort"
+        ? pick7({ kn: "ಶ್ರಮ-ಸಹಿತ ನಕ್ತ ಯೋಗ (ತಾಳ್ಮೆ)", en: "Nakta / Effort-Backed Yoga", hi: "नक्त / प्रयास-साध्य योग", mr: "नक्त / प्रयत्न-साध्य योग", te: "నక్త / ప్రయత్న యోగం", ta: "நக்த / முயற்சி யோகம்", ml: "നക്ത / പരിശ്രമ യോഗം" }, lang)
+        : pick7({ kn: "ಇಸರಫ ವಿಳಂಬ ಯೋಗ (ಎಚ್ಚರಿಕೆ)", en: "Isarapha Separation Signal (Wait)", hi: "इसरफ विलंब योग (प्रतीक्षा)", mr: "इसरफ विलंब योग (प्रतीक्षा)", te: "ఇసరఫ ఆలస్య యోగం", ta: "இசரப தாமத யோகம்", ml: "ഇസരഫ കാലതാമസ യോഗം" }, lang);
+
+  // Pancha Pakshi Shastra Bird & Current 5-Yaama State
+  const birdIndex = Math.floor(seedNakIdx / 6) % 5; // 5 Tamil Siddha Pakshis
+  const pakshiBirds: Array<Record<SevenLang, string>> = [
+    { kn: "ಗರುಡ (ಭೇರುಂಡ / Vulture)", en: "Vulture (Vallooru)", hi: "गरुड़ / वल्लूरु पक्षी", mr: "गरुड / वल्लूरू पक्षी", te: "గరుడ పక్షి", ta: "வல்லூறு பட்சி", ml: "വല്ലൂറു പക്ഷി" },
+    { kn: "ಗೂಬೆ (ಉಲೂಕ / Owl)", en: "Owl (Aanthai)", hi: "उलूक / आंथै पक्षी", mr: "उलूक / आंथै पक्षी", te: "ఉలూక పక్షి", ta: "ஆந்தை பட்சி", ml: "ആന്ത പക്ഷി" },
+    { kn: "ಕಾಗೆ (ಕಾಕ / Crow)", en: "Crow (Kagam)", hi: "काक / कागम पक्षी", mr: "काक / कागम पक्षी", te: "కాక పక్షి", ta: "காகம் பட்சி", ml: "കാകം പക്ഷി" },
+    { kn: "ಕೋಳಿ (ಕುಕ್ಕುಟ / Cock)", en: "Cock (Kozhi)", hi: "कुक्कुट / कोझी पक्षी", mr: "कुक्कुट / कोझी पक्षी", te: "కుక్కుట పక్షి", ta: "கோழி பட்சி", ml: "കോഴി പക്ഷി" },
+    { kn: "ನವಿಲು (ಮಯೂರ / Peacock)", en: "Peacock (Mayil)", hi: "मयूर / मयिल पक्षी", mr: "मयूर / मयिल पक्षी", te: "మయూర పక్షి", ta: "மயில் பட்சி", ml: "മയിൽ പക്ഷി" }
+  ];
+  const minsSince6 = (((now.getHours() * 60 + now.getMinutes()) - 360) + 1440) % 720;
+  const yaamaIdx = Math.floor(minsSince6 / 144) % 5; // 5 Yaamas of ~2h 24m
+  const pakshiStateIdx = (birdIndex + now.getDay() + yaamaIdx) % 5;
+  const pakshiStates: Array<Record<SevenLang, string>> = [
+    { kn: "ರಾಜ್ಯ (ಆಡಳಿತ – ೧೦೦% ಶುಭ)", en: "Rajya (Ruling – Peak Power)", hi: "राज्य (अत्यंत बलवान)", mr: "राज्य (अत्यंत बलवान)", te: "రాజ్య స్థితి (అత్యుత్తమం)", ta: "அரசு (உச்ச பலம்)", ml: "രാജ്യാവസ്ഥ (അത്യുത്തമം)" },
+    { kn: "ಭಕ್ಷಣ (ಪೋಷಣೆ – ಲಾಭದಾಯಕ)", en: "Bhakshana (Feeding – Gainful)", hi: "भक्षण (लाभदायक स्थिति)", mr: "भक्षण (लाभदायक स्थिती)", te: "భక్షణ స్థితి (లాభం)", ta: "ஊண் (லாபகரம்)", ml: "ഭക്ഷണാവസ്ഥ (ലാഭകരം)" },
+    { kn: "ಗಮನ (ಸಂಚಾರ – ಮಧ್ಯಮ)", en: "Gamana (Walking – Steady)", hi: "गमन (संतुलित गति)", mr: "गमन (संतुलित गती)", te: "గమన స్థితి (మధ్యమం)", ta: "நடை (நடுநிலை)", ml: "ഗമനാവസ്ഥ (മധ്യമം)" },
+    { kn: "ನಿದ್ರಾ (ವಿಶ್ರಾಂತಿ – ನಿಧಾನ)", en: "Nidra (Sleeping – Low Drive)", hi: "निद्रा (विश्राम / धीमा)", mr: "निद्रा (संथ गती)", te: "నిద్రా స్థితి (నెమ్మది)", ta: "துயில் (மந்த நிலை)", ml: "നിദ്രാവസ്ഥ (മന്ദഗതി)" },
+    { kn: "ಶಾಂತ (ಮೌನ – ಪರಿಶೀಲನಾ ಸಮಯ)", en: "Resting / Caution – Verify First", hi: "विश्राम – सोचकर कदम बढ़ाएं", mr: "विश्राम – विचारपूर्वक पाऊल टाका", te: "జాగ్రత్త సమయం", ta: "எச்சரிக்கை நிலை", ml: "ജാഗ്രതാ സമയം" }
+  ];
+
+  const trisphutaRashiName = RASHI_7L[trisphutaRashiIdx]?.[lang] || RASHI_7L[0].en;
+  const trisphutaNakshatraName = NAKSHATRA_7L[trisphutaNakIdx]?.[lang] || NAKSHATRA_7L[0].en;
+  const chatusphutaRashiName = RASHI_7L[chatusphutaRashiIdx]?.[lang] || RASHI_7L[0].en;
+  const chatraRashiName = RASHI_7L[chatraRashiIdx]?.[lang] || RASHI_7L[0].en;
+  const panchaPakshiBird = pakshiBirds[birdIndex]?.[lang] || pakshiBirds[0].en;
+  const panchaPakshiState = pakshiStates[pakshiStateIdx]?.[lang] || pakshiStates[0].en;
+
   const udayaLagnaName = RASHI_7L[udayaLagnaIdx]?.[lang] || RASHI_7L[0].en;
   const udayaLagnaLordName = GRAHA_7L[udayaLordPlanet]?.[lang] || String(udayaLordPlanet);
   const seedLagnaName = RASHI_7L[seedLagnaIdx]?.[lang] || RASHI_7L[0].en;
@@ -957,6 +1130,14 @@ export function computeDeepPrashnaHoraryReading(params: {
     karyaLordName,
     ithasalaHarmonyScore: score,
     ithasalaType,
+    tajikaYogaLabel,
+    isMuthasilaExact,
+    trisphutaRashiName,
+    trisphutaNakshatraName,
+    chatusphutaRashiName,
+    chatraRashiName,
+    panchaPakshiBird,
+    panchaPakshiState,
     timingForecast,
     verdictTitle,
     verdictSummary,

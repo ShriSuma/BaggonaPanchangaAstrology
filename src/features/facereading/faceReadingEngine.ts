@@ -99,24 +99,29 @@ function base64ToGenerativePart(dataUrl: string) {
   };
 }
 
-/** Helper to ensure pure 5-language localization without English fallback leakage in Indic text */
+/** Helper to ensure pure 7-language localization without English fallback leakage in Indic text */
 function getLocalized(val: any, fallback: Record<string, string>, targetLang: string): Record<string, string> {
   if (!val) return fallback;
+  const pickFallback = (c: string) => fallback[c] || (c === "mr" ? fallback.hi : c === "ml" ? fallback.kn : fallback.en) || fallback.en || fallback.kn;
   if (typeof val === "string") {
     return {
-      kn: targetLang === "kn" ? val : fallback.kn,
-      en: targetLang === "en" ? val : fallback.en,
-      hi: targetLang === "hi" ? val : fallback.hi,
-      te: targetLang === "te" ? val : fallback.te,
-      ta: targetLang === "ta" ? val : fallback.ta
+      kn: targetLang === "kn" ? val : pickFallback("kn"),
+      en: targetLang === "en" ? val : pickFallback("en"),
+      hi: targetLang === "hi" ? val : pickFallback("hi"),
+      mr: targetLang === "mr" ? val : pickFallback("mr"),
+      te: targetLang === "te" ? val : pickFallback("te"),
+      ta: targetLang === "ta" ? val : pickFallback("ta"),
+      ml: targetLang === "ml" ? val : pickFallback("ml")
     };
   }
   return {
-    kn: val.kn || val.kannada || fallback.kn,
-    en: val.en || val.english || fallback.en,
-    hi: val.hi || val.hindi || fallback.hi,
-    te: val.te || val.telugu || fallback.te,
-    ta: val.ta || val.tamil || fallback.ta
+    kn: val.kn || val.kannada || pickFallback("kn"),
+    en: val.en || val.english || pickFallback("en"),
+    hi: val.hi || val.hindi || pickFallback("hi"),
+    mr: val.mr || val.marathi || pickFallback("mr"),
+    te: val.te || val.telugu || pickFallback("te"),
+    ta: val.ta || val.tamil || pickFallback("ta"),
+    ml: val.ml || val.malayalam || pickFallback("ml")
   };
 }
 
@@ -190,21 +195,20 @@ NATAL ASTRONOMICAL KUNDALI SYNC:
 - Current Dasha: ${kundliData.dasha}
 ` : ""}
 
-CRITICAL SAMUDRIKA SHASTRA RULES (Brihat Samhita & Garuda Purana):
-1. THREE HORIZONTAL LIFE ZONES (Tribhuvana):
-   - Upper Zone (Hairline to Brows): Ages 15-30, intellect, education, ancestry.
-   - Middle Zone (Brows to Base of Nose): Ages 31-50, career peak, marriage, social status, Kuber wealth.
-   - Lower Zone (Base of Nose to Chin): Ages 51-75+, family blessings, land assets (Bhoomi), longevity.
+CRITICAL SAMUDRIKA SHASTRA MATHEMATICAL RULES (Brihat Samhita, Golden Ratio φ & Garuda Purana):
+1. RULE OF VERTICAL THIRDS (Tribhuvana & φ ≈ 1.618 Ratio):
+   - Measure proportional balance across Hairline->Brows (Lalata, Ages 15-30), Brows->Nose Base (Nasika, Ages 31-50), and Nose Base->Chin Tip (Chibuka, Ages 51-75+).
+   - Evaluate total Face Length-to-Width harmony against classical Samata (Golden Ratio ~1.618 symmetry) and eye-spacing / inner-brow to nostril vertical alignment.
 2. PANCHA MAHABHUTA & MAHAPURUSHA ARCHETYPE:
    - Identify Element: Agni (Triangle/V), Prithvi (Square/Jaw), Jala (Round/Oval), Vayu (Oblong), Akasha (Delicate/Translucent).
    - Identify Mahapurusha: Hamsa (Jupiter), Ruchaka (Mars), Bhadra (Mercury), Malavya (Venus), Sasa (Saturn).
-3. DETAILED 7 FACIAL FEATURES:
-   a) Forehead (Lalata): Width, hairline arch, Tri-Rekha (Saturn, Jupiter, Mars lines).
-   b) Eyes (Netra): Shape (Padma/Lotus, Matsya/Fish, Mriga/Deer, Gaja/Deep), Sclera luster (Ojas).
-   c) Nose (Nasika): Dhana Rekha bridge, Kuber Sthana bulbous tip, enclosed nostrils.
-   d) Lips & Mouth (Oshtha): Cupid's bow symmetry, Vak Siddhi (eloquence).
-   e) Philtrum (Brahma Rekha): Sub-nasal groove depth (vitality, long life, offspring blessing).
-   f) Chin & Jaw (Chibuka/Hanu): Willpower, real estate ownership (Bhoomi Yoga), late-life serenity.
+3. DETAILED 7 FACIAL FEATURES & METOPOSCOPY:
+   a) Forehead (Lalata Sapta Graha Rekha): Width, hairline arch, unbroken Saturn/Jupiter/Mars horizontal lines.
+   b) Eyes (Netra): Shape (Padma/Lotus, Matsya/Fish, Mriga/Deer, Gaja/Deep), Sclera luster (Ojas), inner-brow alignment.
+   c) Nose (Nasika): Dhana Rekha bridge length vs Upper Third, Kuber Sthana tip fullness, enclosed nostrils.
+   d) Lips & Mouth (Oshtha): Cupid's bow symmetry (~1.618 mouth-to-nose width), Vak Siddhi (eloquence).
+   e) Philtrum (Brahma Rekha): Sub-nasal groove depth (vitality, Prana lifespan, offspring blessing).
+   f) Chin & Jaw (Chibuka/Hanu): Lower lip vertical tangent projection, real estate ownership (Bhoomi Yoga), late-life serenity.
    g) Ears (Karna): Earlobe thickness (spiritual longevity).
 4. ESTIMATE CHRONOLOGICAL AGE (~XX years) from skin elasticity, brow lines, and facial tone.
 5. DECODE FACIAL MOLES (Tilaka): Inspect forehead, cheeks, nose, and chin for auspicious marks. If none, confirm Nishkalanka Tejas (flawless face).
@@ -273,7 +277,8 @@ Return ONLY a strict JSON object (no markdown wrapping):
   ],
   "overallTejasScore": 89,
   "verdictTitle": "🌟 ರಾಜಲಕ್ಷಣ ಯುಕ್ತ ತೇಜಸ್ವಿ ಮುಖ ಸಾಮುದ್ರಿಕ ಯೋಗ",
-  "detailedPredictionText": "A rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script.",
+  "detailedPredictionText": "A rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "mr" ? "Marathi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : langCode === "ml" ? "Malayalam" : "English"} script.",
+  "detailedPredictionText": "A rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "mr" ? "Marathi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : langCode === "ml" ? "Malayalam" : "English"} script.",
   "remedy": "ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಶ್ರೀ ಗಾಯತ್ರೀ ಮಹಾಮಂತ್ರವನ್ನು ೨೪ ಬಾರಿ ಜಪಿಸಿ."
 }
 `;
@@ -507,8 +512,10 @@ Return ONLY a strict JSON object (no markdown wrapping):
       kn: `ನಮಸ್ಕಾರ ${devoteeName}. ಪ್ರಾಚೀನ ಮುಖ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರದ (ಬೃಹತ್ ಸಂಹಿತಾ & ಗರುಡ ಪುರಾಣ ಪದ್ಧತಿ) ಪ್ರಕಾರ ನಿಮ್ಮ ಮುಖ ಮಂಡಲವು ಪರಮ ಪವಿತ್ರ ಬೃಹಸ್ಪತಿ (ಗುರು) ಅಧಿಪತ್ಯದ ಹಂಸ ಮಹಾಪುರುಷ ಲಕ್ಷಣಗಳನ್ನು ಹೊಂದಿದೆ.\n\n👑 **ದೈವಿಕ ಸಂವಿಧಾನ & ತೇಜಸ್ಸು:** ವಿಶಾಲವಾದ ಲಲಾಟ ಹಾಗೂ ಆಕರ್ಷಕ ನಾಸಿಕ ಸೇತುವೆಯು ನಿಮ್ಮಲ್ಲಿ ಉನ್ನತ ಆಧ್ಯಾತ್ಮಿಕ ಅಂತಃಸ್ಫೂರ್ತಿ, ನಾಯಕತ್ವ ಹಾಗೂ ಸ್ವತಂತ್ರ ಆಡಳಿತ ಶಕ್ತಿಯನ್ನು ಪ್ರತಿಬಿಂಬಿಸುತ್ತದೆ.\n\n👁️ **ಸಾತ್ವಿಕ ಮುಖ ಕಾಂತಿ:** ನೇತ್ರಗಳ ಸಾತ್ವಿಕ ಕಾಂತಿ ಹಾಗೂ ಮುಖದ ಸಮತೋಲನವು ನ್ಯಾಯನಿಷ್ಠೆ, ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಅಗ್ರಸ್ಥಾನ ಹಾಗೂ ನಿರಂತರ ದೈವಿಕ ರಕ್ಷಣೆಯನ್ನು ನೀಡುತ್ತದೆ.\n\n🪔 **ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆಶೀರ್ವಾದ:** ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಸಿ ನಿಮ್ಮ ಮುಖದಲ್ಲಿ ಸದಾ ಮಂಗಳಕರ ದೈವಿಕ ತೇಜಸ್ಸು ಬೆಳಗಲಿ.`,
       en: `Greetings ${devoteeName}. According to classical Vedic Muka Samudrika Shastra, your facial features reflect the revered Hamsa Mahapurusha archetype governed by Jupiter.\n\n👑 **Vedic Constitution & Tejas:** A broad, luminous forehead and noble nasal bridge indicate profound spiritual intuition, strategic leadership, and administrative dignity.\n\n👁️ **Sattvic Radiance:** Your eyes and harmonious facial contours demonstrate truthfulness, high academic intellect, and unbroken divine grace.\n\n🪔 **Gokarna Kshetra Blessings:** May Lord Mahabaleshwara of Gokarna remove all obstacles and bestow everlasting wisdom, Tejas, and peace upon you.`,
       hi: `नमस्ते ${devoteeName}। प्राचीन वैदिक मुख सामुद्रिक शास्त्र के अनुसार आपका मुख मंडल देवगुरु बृहस्पति के पावन हंस महापुरुष लक्षण को दर्शाता है।\n\n👑 **दैवीय प्रकृति एवं तेज:** विशाल ललाट एवं उन्नत नासिका सेतु आपके भीतर उच्च आध्यात्मिक अंतर्दृष्टि, नेतृत्व एवं प्रशासनिक गरिमा को प्रकट करते हैं।\n\n👁️ **सात्विक कांति:** नयनों की निर्मल आभा एवं मुख का संतुलन सत्यनिष्ठा, विद्यार्जन में सफलता एवं निरंतर ईश्वरीय कृपा का द्योतक है।\n\n🪔 **गोकर्ण महाबलेश्वर आशीर्वाद:** भगवान महाबलेश्वर के आशीर्वाद से आपके जीवन में ज्ञान, ऐश्वर्य एवं अखंड शांति का संचार हो।`,
+      mr: `नमस्कार ${devoteeName}. प्राचीन वैदिक मुख सामुद्रिक शास्त्रानुसार (बृहत्संहिता व गरुड पुराण) तुमचे मुखमंडळ देवगुरू बृहस्पतीच्या हंस महापुरुष योगाचे तेज दर्शवते.\n\n👑 **दैवी प्रकृती व तेज:** विशाल ललाट आणि सरळ नासिका उच्च बुद्धिमत्ता, नेतृत्वगुण आणि समाजात सन्मान प्राप्त करून देतात.\n\n👁️ **सात्विक मुखकांती:** नेत्रातील तेज व चेहऱ्याचा समतोल सत्यनिष्ठा, विद्या व स्थिर भाग्याचे प्रतीक आहे.\n\n🪔 **गोकर्ण महाबळेश्वर आशीर्वाद:** श्री महाबळेश्वर स्वामींच्या कृपेने सर्व अडथळे दूर होऊन यश व शांतता लाभो.`,
       te: `నమస్కారం ${devoteeName}. ప్రాచీన వైదిక ముఖ సాముద్రిక శాస్త్రం ప్రకారం మీ ముఖం దేవగురు బృహస్పతి పాలిత హంస మహాపురుష దివ్య లక్షణాలను కలిగి ఉంది.\n\n👑 **దివ్య సంవిధానం & వర్చస్సు:** విశాలమైన లలాటం & ఉన్నత నాసిక మీలోని ఉత్కృష్ట ఆధ్యాత్మిక దృష్టి, నాయకత్వం & పరిపాలనా దక్షతను తెలియజేస్తున్నాయి.\n\n👁️ **సాత్విక వర్చస్సు:** నేత్రాలలోని పవిత్ర కాంతి & ముఖ సౌందర్యం న్యాయనిష్ఠ, విద్యా విజయం & నిరంతర దైవానుగ్రహాన్ని అందిస్తాయి.\n\n🪔 **గోకర్ణ మహాబలేశ్వర ఆశీస్సులు:** గోకర్ణ మహాబలేశ్వరుని దివ్య కటాక్షంతో మీకు సదా ఆయురారోగ్య ఐశ్వర్యాలు సిద్ధించుగాక.`,
-      ta: `வணக்கம் ${devoteeName}. பழங்கால வேத சாமுத்ரிகா சாஸ்திரப்படி உங்கள் முகம் குரு பகவானின் அம்சமான ஹம்ச மகாபுருஷ லட்சணத்தைக் கொண்டுள்ளது.\n\n👑 **தெய்வீக அமைப்பு & தேஜஸ்:** அகன்ற நெற்றியும் கம்பீரமான மூக்கும் உங்கள் உயர் ஆன்மீக அறிவு, தலைமைப் பண்பு மற்றும் நிர்வாகத் திறனைக் காட்டுகின்றன.\n\n👁️ **சாத்வீக முக ஒளி:** கண்களின் தூய ஒளியும் முக அமைப்பும் நேர்மை, சிறந்த கல்வி மற்றும் நிலையான தெய்வ அருளை அளிக்கின்றன.\n\n🪔 **கோகர்ண மகாபலேஸ்வரர் அருள்:** கோகர்ண மகாபலேஸ்வர சுவாமியின் பேரருளால் உங்கள் வாழ்வில் அமைதியும் புகழும் தேஜஸும் பெருகட்டும்.`
+      ta: `வணக்கம் ${devoteeName}. பழங்கால வேத சாமுத்ரிகா சாஸ்திரப்படி உங்கள் முகம் குரு பகவானின் அம்சமான ஹம்ச மகாபுருஷ லட்சணத்தைக் கொண்டுள்ளது.\n\n👑 **தெய்வீக அமைப்பு & தேஜஸ்:** அகன்ற நெற்றியும் கம்பீரமான மூக்கும் உங்கள் உயர் ஆன்மீக அறிவு, தலைமைப் பண்பு மற்றும் நிர்வாகத் திறனைக் காட்டுகின்றன.\n\n👁️ **சாத்வீக முக ஒளி:** கண்களின் தூய ஒளியும் முக அமைப்பும் நேர்மை, சிறந்த கல்வி மற்றும் நிலையான தெய்வ அருளை அளிக்கின்றன.\n\n🪔 **கோகர்ண மகாபலேஸ்வரர் அருள்:** கோகர்ண மகாபலேஸ்வர சுவாமியின் பேரருளால் உங்கள் வாழ்வில் அமைதியும் புகழும் தேஜஸும் பெருகட்டும்.`,
+      ml: `നമസ്കാരം ${devoteeName}. പ്രാചീന മുഖ സാമുദ്രിക ശാസ്ത്രപ്രകാരം (ബൃഹത് സംഹിത) നിങ്ങളുടെ മുഖം വ്യാഴത്തിന്റെ ഹംസ മഹാപുരുഷ യോഗത്തിന്റെ തേജസ്സ് കാണിക്കുന്നു.\n\n👑 **ദൈവിക തേജസ്സ്:** വിശാലമായ നെറ്റിയും സുന്ദരമായ നാസികയും ഉന്നത ബുദ്ധിശക്തിയും നേതൃപാടവവും സൂചിപ്പിക്കുന്നു.\n\n👁️ **സാത്വിക കാന്തി:** നേത്രങ്ങളിലെ പ്രകാശവും മുഖത്തിന്റെ സന്തുലനവും സത്യസന്ധതയും ഐശ്വര്യവും നൽകുന്നു.\n\n🪔 **ഗോകർണ്ണ മഹാബലേശ്വര അനുഗ്രഹം:** ശ്രീ മഹാബലേശ്വരന്റെ കൃപയാൽ നിങ്ങൾക്ക് സർവ്വ വിജയവും ശാന്തിയും ലഭിക്കട്ടെ.`
     },
     ruchaka: {
       kn: `ನಮಸ್ಕಾರ ${devoteeName}. ಪ್ರಾಚೀನ ಮುಖ ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ನಿಮ್ಮ ಮುಖ ಮಂಡಲವು ಪರಾಕ್ರಮಿ ಮಂಗಳ ಅಧಿಪತ್ಯದ ರುಚಕ ಮಹಾಪುರುಷ ಲಕ್ಷಣಗಳನ್ನು ಪ್ರತಿಬಿಂಬಿಸುತ್ತದೆ.\n\n👑 **ದೈವಿಕ ಸಂವಿಧಾನ & ತೇಜಸ್ಸು:** ತೇಜಸ್ವಿ ಚಿಬುಕ, ದೃಢ ಹನು ಹಾಗೂ ನೇರ ನಾಸಿಕ ರೇಖೆಯು ನಿಮ್ಮಲ್ಲಿ ಅದಮ್ಯ ಧೈರ್ಯ, ನಿರ್ಭಯ ವ್ಯಕ್ತಿತ್ವ ಹಾಗೂ ಭೂಮಿ-ವಾಹನ ಯೋಗವನ್ನು ಸಾರುತ್ತದೆ.\n\n👁️ **ಸಾತ್ವಿಕ ಮುಖ ಕಾಂತಿ:** ತೀಕ್ಷ್ಣ ನೇತ್ರಗಳು ಹಾಗೂ ರಕ್ತವರ್ಣದ ಆಂತರಿಕ ಕಾಂತಿಯು ಕಾರ್ಯಸಾಧನೆ, ಸವಾಲುಗಳನ್ನು ಜಯಿಸುವ ಶಕ್ತಿ ಹಾಗೂ ಶತ್ರು ಜಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ.\n\n🪔 **ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆಶೀರ್ವಾದ:** ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಹಾಗೂ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹದಿಂದ ಸರ್ವ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿರಂತರ ಜಯ ಲಭಿಸಲಿ.`,

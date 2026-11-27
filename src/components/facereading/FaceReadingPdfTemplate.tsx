@@ -7,6 +7,7 @@ type Props = {
   personName?: string;
   lang?: string;
   messages?: any[];
+  containerId?: string;
 };
 
 const PDF_HEADERS: Record<string, { top: string; main: string; sub: string }> = {
@@ -25,6 +26,11 @@ const PDF_HEADERS: Record<string, { top: string; main: string; sub: string }> = 
     main: "वैदिक मुख सामुद्रिक शास्त्र",
     sub: "वराहमिहिर बृहत्संहिता व गरुड़ पुराण परंपरा · प्रामाणिक मुख लक्षण फलादेश"
   },
+  mr: {
+    top: "॥ श्री गोकर्ण महाबळेश्वर प्रसन्न ॥",
+    main: "वैदिक मुख सामुद्रिक शास्त्र",
+    sub: "वराहमिहिर बृहत्संहिता व गरुड पुराण परंपरा · दिव्य मुखलक्षण अहवाल"
+  },
   te: {
     top: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర ప్రసన్న ॥",
     main: "వైదిక ముఖ సాముద్రిక శాస్త్రం",
@@ -34,6 +40,11 @@ const PDF_HEADERS: Record<string, { top: string; main: string; sub: string }> = 
     top: "॥ ஶ்ரீ கோகர்ண மகாபலேஸ்வரர் பிரசன்னம் ॥",
     main: "வேத முக சாமுத்ரிகா சாஸ்திரம்",
     sub: "பிருஹத் சம்ஹிதை & கருட புராணம் முறை · தெய்வீக முக லட்சண அறிக்கை"
+  },
+  ml: {
+    top: "॥ ശ്രീ ഗോകർണ്ണ മഹാബലേശ്വര പ്രസന്ന ॥",
+    main: "വൈദിക മുഖ സാമുദ്രിക ശാസ്ത്രം",
+    sub: "വരാഹമിഹിര ബൃഹത് സംഹിത & ഗരുഡപുരാണം · ദിവ്യ മുഖ ലക്ഷണ റിപ്പോർട്ട്"
   }
 };
 
@@ -41,104 +52,130 @@ const DEVOTEE_DETAILS_TITLES: Record<string, string> = {
   kn: "👤 ಭಕ್ತರ ವಿವರಗಳು",
   en: "👤 Devotee Details",
   hi: "👤 जातक विवरण",
+  mr: "👤 जातक तपशील",
   te: "👤 భక్తుల వివరాలు",
-  ta: "👤 பக்தர் விவரங்கள்"
+  ta: "👤 பக்தர் விவரங்கள்",
+  ml: "👤 ഭക്ത വിവരങ്ങൾ"
 };
 
 const ESTIMATED_AGE_TITLES: Record<string, string> = {
   kn: "ಅಂದಾಜು ಮುಖ ವಯಸ್ಸು:",
   en: "Estimated Face Age:",
   hi: "अनुमानित मुख आयु:",
+  mr: "अंदाजित मुख वय:",
   te: "అంచనా వేసిన ముఖ వయస్సు:",
-  ta: "கணிக்கப்பட்ட முக வயது:"
+  ta: "கணிக்கப்பட்ட முக வயது:",
+  ml: "കണക്കാക്കിയ മുഖ പ്രായം:"
 };
 
 const YEARS_LABELS: Record<string, string> = {
   kn: "ವರ್ಷಗಳು",
   en: "Years",
   hi: "वर्ष",
+  mr: "वर्षे",
   te: "సంవత్సరాలు",
-  ta: "ஆண்டுகள்"
+  ta: "ஆண்டுகள்",
+  ml: "വർഷം"
 };
 
 const MAHAPURUSHA_TITLES: Record<string, string> = {
   kn: "ಮಹಾಪುರುಷ ಯೋಗ:",
   en: "Mahapurusha Archetype:",
   hi: "महापुरुष योग:",
+  mr: "महापुरुष योग:",
   te: "మహాపురుష యోగం:",
-  ta: "மகாபுருஷ யோகம்:"
+  ta: "மகாபுருஷ யோகம்:",
+  ml: "മഹാപുരുഷ യോഗം:"
 };
 
 const TEJAS_TITLES: Record<string, string> = {
   kn: "ತೇಜಸ್ಸು & ಕಾಂತಿ ಬಲ:",
   en: "Tejas Radiance Score:",
   hi: "तेज व कांति बल:",
+  mr: "तेज व कांती बळ:",
   te: "వర్చస్సు & కాంతి బలం:",
-  ta: "தேஜஸ் & காந்தி பலம்:"
+  ta: "தேஜஸ் & காந்தி பலம்:",
+  ml: "തേജസ്സും കാന്തി ബലവും:"
 };
 
 const FEATURES_HEADINGS: Record<string, string> = {
   kn: "👁️ ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು & ನವಗ್ರಹ ಅಧಿಪತ್ಯ (Brihat Samhita):",
   en: "👁️ 7 Facial Features & Graha Governance (Brihat Samhita):",
   hi: "👁️ सप्त मुख लक्षण एवं नवग्रह अधिपत्य (बृहत्संहिता):",
+  mr: "👁️ सप्त मुखलक्षणे व नवग्रह अधिपत्य (बृहत्संहिता):",
   te: "👁️ సప్త ముఖ లక్షణాలు & నవగ్రహ ఆధిపత్యం (బృహత్ సంహిత):",
-  ta: "👁️ ஏழு முக லட்சணங்கள் & நவகிரக ஆதிக்கம் (பிருஹத் சம்ஹிதை):"
+  ta: "👁️ ஏழு முக லட்சணங்கள் & நவகிரக ஆதிக்கம் (பிருஹத் சம்ஹிதை):",
+  ml: "👁️ സപ്ത മുഖ ലക്ഷണങ്ങളും നവഗ്രഹ അധിപത്യവും:"
 };
 
 const MILESTONES_HEADINGS: Record<string, string> = {
   kn: "⏳ ೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರ ನಕ್ಷೆ (Facial Age Timeline):",
   en: "⏳ 100-Year Facial Chronology Milestones:",
   hi: "⏳ 100-वर्षीय मुख कालचक्र मानचित्र (आयु फलादेश):",
+  mr: "⏳ १००-वर्षीय मुख कालचक्र नकाशा (आयु फलादेश):",
   te: "⏳ 100-సంవత్సరాల ముఖ కాలచక్ర పటం (ఆయుష్షు ఫలాలు):",
-  ta: "⏳ 100-ஆண்டு முக காலச்சக்கரம் (ஆயுள் பலன் காலக்கோடு):"
+  ta: "⏳ 100-ஆண்டு முக காலச்சக்கரம் (ஆயுள் பலன் காலக்கோடு):",
+  ml: "⏳ 100-വർഷത്തെ മുഖ കാലചക്രം (ആയുസ്സ് ഫലങ്ങൾ):"
 };
 
 const PREDICTIONS_HEADINGS: Record<string, string> = {
   kn: "📜 ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ ಪೂರ್ಣ ಫಲ ಹಾಗೂ ಭವಿಷ್ಯ ವರದಿ:",
   en: "📜 Vedic Face Reading Guidance & Comprehensive Prediction:",
   hi: "📜 मुख सामुद्रिक शास्त्र विस्तृत फलादेश व भविष्य कथन:",
+  mr: "📜 मुख सामुद्रिक शास्त्र सखोल फलादेश व भविष्य कथन:",
   te: "📜 ముఖ సాముద్రిక శాస్త్ర సంపూర్ణ ఫలాలు & భవిష్యత్తు నివేదిక:",
-  ta: "📜 முக சாமுத்ரிகா சாஸ்திர முழுமையான பலன்கள் & எதிர்கால அறிக்கை:"
+  ta: "📜 முக சாமுத்ரிகா சாஸ்திர முழுமையான பலன்கள் & எதிர்கால அறிக்கை:",
+  ml: "📜 മുഖ സാമുദ്രിക ശാസ്ത്ര സമ്പൂർണ്ണ ഫലവും ഭാവി റിപ്പോർട്ടും:"
 };
 
 const REMEDY_HEADINGS: Record<string, string> = {
   kn: "🪔 ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದೈವಿಕ ಪರಿಹಾರ:",
   en: "🪔 Sacred Gokarna Kshetra Divine Remedy:",
   hi: "🪔 श्री गोकर्ण महाबलेश्वर दिव्य उपाय:",
+  mr: "🪔 श्री गोकर्ण महाबळेश्वर दिव्य उपाय:",
   te: "🪔 శ్రీ గోకర్ణ మహాబలేశ్వర దివ్య పరిహారం:",
-  ta: "🪔 ஶ்ரீ கோகர்ண மகாபலேஸ்வரர் திவ்ய பரிகாரம்:"
+  ta: "🪔 ஶ்ரீ கோகர்ண மகாபலேஸ்வரர் திவ்ய பரிகாரம்:",
+  ml: "🪔 ശ്രീ ഗോകർണ്ണ മഹാബലേശ്വര ദിവ്യ പരിഹാരം:"
 };
 
 const FOOTER_BLESSINGS: Record<string, string> = {
   kn: '"ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಜ್ಞ ಮುಖ ಸಾಮುದ್ರಿಕ ಪ್ರಕಾಶ · ಸಕಲ ಕಾರ್ಯ ಸಿದ್ಧಿಃ"',
   en: '"Om Gokarna Mahabaleshwara Sacred Face Reading Blessing · Victory & Peace"',
   hi: '"ॐ गोकर्ण महाबलेश्वर सन्निधि का धर्मज्ञ मुख सामुद्रिक प्रकाश · सर्वकार्य सिद्धिः"',
+  mr: '"ॐ गोकर्ण महाबळेश्वर सान्निध्याचा मुख सामुद्रिक प्रकाश · सर्वकार्य सिद्धिः"',
   te: '"ఓం గోకర్ణ మహాబలేశ్వర సన్నిధి ధర్మజ్ఞ ముఖ సాముద్రిక ప్రకాశం · సర్వకార్య సిద్ధిః"',
-  ta: '"ஓம் கோகர்ண மகாபலேஸ்வரர் சந்நிதி தர்மஜ்ஞ முக சாமுத்ரிகா ஒளி · சகல காரிய சித்திಃ"'
+  ta: '"ஓம் கோகர்ண மகாபலேஸ்வரர் சந்நிதி தர்மஜ்ஞ முக சாமுத்ரிகா ஒளி · சகல காரிய சித்திಃ"',
+  ml: '"ഓം ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധി മുഖ സാമുദ്രിക പ്രകാശം · സർവ്വകാര്യ സിദ്ധിഃ"'
 };
 
 const PRIEST_CONTACT_LABELS: Record<string, string> = {
   kn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ · ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (ದೂರವಾಣಿ: +91 99723 39362)",
   en: "Sri Shreeram Pandit · Chief Priest, Gokarna Kshetra (Phone: +91 99723 39362)",
   hi: "श्रीराम पंडित · मुख्य अर्चक, गोकर्ण क्षेत्र (फोन: +91 99723 39362)",
+  mr: "श्रीराम पंडित · मुख्य अर्चक, गोकर्ण क्षेत्र (फोन: +91 99723 39362)",
   te: "శ్రీరామ్ పండిట్ · ప్రధాన అర్చకులు, గోకర్ణ క్షేత్రం (ఫోన్: +91 99723 39362)",
-  ta: "ஸ்ரீராம் பண்டிட் · தலைமை அர்ச்சகர், கோகர்ண க்ஷேத்திரம் (தொலைபேசி: +91 99723 39362)"
+  ta: "ஸ்ரீராம் பண்டிட் · தலைமை அர்ச்சகர், கோகர்ண க்ஷேத்திரம் (தொலைபேசி: +91 99723 39362)",
+  ml: "ശ്രീറാം പണ്ഡിത് · മുഖ്യ അർച്ചകൻ, ഗോകർണ്ണ ക്ഷേത്രം (ഫോൺ: +91 99723 39362)"
 };
 
 const DEFAULT_NAMES: Record<string, string> = {
   kn: "ಭಕ್ತರು",
   en: "Devotee",
   hi: "जातक",
+  mr: "जातक",
   te: "భక్తులు",
-  ta: "பக்தர்"
+  ta: "பக்தர்",
+  ml: "ഭക്തൻ"
 };
 
 const CURRENT_PHASE_LABELS: Record<string, string> = {
   kn: "⚡ ಪ್ರಸ್ತುತ",
   en: "⚡ Active",
   hi: "⚡ सक्रिय",
+  mr: "⚡ सक्रिय",
   te: "⚡ ప్రస్తుత",
-  ta: "⚡ தற்போதைய"
+  ta: "⚡ தற்போதைய",
+  ml: "⚡ ഇപ്പോൾ"
 };
 
 function isAgeInPhase(idx: number, age: number): boolean {
@@ -151,17 +188,19 @@ function isAgeInPhase(idx: number, age: number): boolean {
 function formatText(value: Record<string, string> | string | undefined, lang: string): string {
   if (!value) return "";
   if (typeof value === "string") return value;
-  return value[lang] || value.kn || value.en || "";
+  const fallbackLang = lang === "mr" ? "hi" : lang === "ml" ? "kn" : "en";
+  return value[lang] || value[fallbackLang] || value.en || value.kn || "";
 }
 
 export const FaceReadingPdfTemplate: React.FC<Props> = ({
   result,
   devoteeName,
   personName,
-  lang = "kn"
+  lang = "kn",
+  containerId = "facereading-pdf-printable"
 }) => {
   const code = lang || "kn";
-  const header = PDF_HEADERS[code] || PDF_HEADERS.kn;
+  const header = PDF_HEADERS[code] || PDF_HEADERS.en;
   const devoteeDisplayName = devoteeName || personName || result.devoteeName || DEFAULT_NAMES[code] || "Devotee";
 
   const cleanPrediction = result.aiPrediction
@@ -173,7 +212,7 @@ export const FaceReadingPdfTemplate: React.FC<Props> = ({
 
   return (
     <div
-      id="facereading-pdf-printable"
+      id={containerId}
       style={{
         width: "794px",
         minHeight: "1123px",

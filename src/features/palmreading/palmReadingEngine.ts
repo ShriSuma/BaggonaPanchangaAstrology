@@ -1016,10 +1016,24 @@ export function generateDynamicOfflinePalmReading(
   ];
   const chosenRemedy = remedies[seed % remedies.length];
 
-  // 13. Rich Multi-Paragraph Prediction Text
-  const aiPrediction = langCode === "kn"
-    ? `ನಮಸ್ಕಾರ ${devoteeName}. ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರದ (ಬೃಹತ್ ಸಂಹಿತಾ & ಗರುಡ ಪುರಾಣ ಪರಂಪರೆ) ಪ್ರಕಾರ ನಿಮ್ಮ ${handLabel.kn} ದೈವಿಕ ರೇಖೆಗಳು ಹಾಗೂ ಪರ್ವತ ಬಲವನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.\n\n🖐️ **ಹಸ್ತ ತತ್ತ್ವ & ಆಯುಷ್ಯ:** ನಿಮ್ಮ ಹಸ್ತವು ${chironomyHandType.element.kn} ಲಕ್ಷಣ ಹೊಂದಿದ್ದು, ${lifeLine.status.kn} ಕಂಡುಬಂದಿದೆ. ಇದು ${lifeLine.indication.kn}\n\n💡 **ಬುದ್ಧಿ ಹಾಗೂ ವೃತ್ತಿ ಸಾಮರ್ಥ್ಯ:** ${headLine.status.kn} ಇದ್ದು, ${headLine.indication.kn} ಹೆಬ್ಬೆರಳಿನಲ್ಲಿ ${thumbAnalysis.yavaSign.kn} ಸಿದ್ಧಿಸಿದೆ.\n\n❤️ **ಭಾವನಾತ್ಮಕ ದಾಂಪತ್ಯ & ಬಾಂಧವ್ಯ:** ${heartLine.status.kn} ರಾರಾಜಿಸುತ್ತಿದ್ದು, ವಿವಾಹ ಯೋಗವು ${chosenMarr.windowKn} ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿದೆ. ${chosenMarr.spouseKn}.\n\n🪔 **ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ದೈವಿಕ ಆಶೀರ್ವಾದ & ಪರಿಹಾರ:** ${chosenRemedy.kn}`
-    : `Greetings ${devoteeName}. Based on classical Vedic Hastarekha Shastra (Brihat Samhita & Garuda Purana traditions), your ${handLabel.en} reveals distinct ${chironomyHandType.element.en} traits.\n\n🖐️ **Vitality & Lifespan:** Your hand exhibits ${lifeLine.status.en}. This indicates: ${lifeLine.indication.en}\n\n💡 **Intellect & Career:** The Head Line demonstrates ${headLine.status.en}. Supported by ${thumbAnalysis.yavaSign.en}, your vocational acumen is primed for steady expansion.\n\n❤️ **Marriage & Bonds:** The Heart Line shows ${heartLine.status.en}, pointing to an auspicious union window around ${chosenMarr.windowEn}. Expected partner qualities: ${chosenMarr.spouseEn}.\n\n🪔 **Sacred Gokarna Blessing & Remedy:** ${chosenRemedy.en}`;
+  // 13. Rich Multi-Paragraph Prediction Text across all 7 Languages
+  const L = (rec: Record<string, string>, fallbackKey: "kn" | "en" = "en") =>
+    rec[langCode] || (langCode === "mr" ? rec.hi : langCode === "ml" ? rec.kn : undefined) || rec[fallbackKey] || rec.en || rec.kn || "";
+
+  const aiPrediction =
+    langCode === "kn"
+      ? `ನಮಸ್ಕಾರ ${devoteeName}. ಸಾಮುದ್ರಿಕ ಲಕ್ಷ್ಮೀ ಶಾಸ್ತ್ರದ (ಬೃಹತ್ ಸಂಹಿತಾ & ಗರುಡ ಪುರಾಣ ಪರಂಪರೆ) ಪ್ರಕಾರ ನಿಮ್ಮ ${L(handLabel, "kn")} ದೈವಿಕ ರೇಖೆಗಳು ಹಾಗೂ ಪರ್ವತ ಬಲವನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.\n\n🖐️ **ಹಸ್ತ ತತ್ತ್ವ & ಆಯುಷ್ಯ:** ನಿಮ್ಮ ಹಸ್ತವು ${L(chironomyHandType.element, "kn")} ಲಕ್ಷಣ ಹೊಂದಿದ್ದು, ${L(lifeLine.status, "kn")} ಕಂಡುಬಂದಿದೆ. ಇದು ${L(lifeLine.indication, "kn")}\n\n💡 **ಬುದ್ಧಿ ಹಾಗೂ ವೃತ್ತಿ ಸಾಮರ್ಥ್ಯ:** ${L(headLine.status, "kn")} ಇದ್ದು, ${L(headLine.indication, "kn")} ಹೆಬ್ಬೆರಳಿನಲ್ಲಿ ${L(thumbAnalysis.yavaSign, "kn")} ಸಿದ್ಧಿಸಿದೆ.\n\n❤️ **ಭಾವನಾತ್ಮಕ ದಾಂಪತ್ಯ & ಬಾಂಧವ್ಯ:** ${L(heartLine.status, "kn")} ರಾರಾಜಿಸುತ್ತಿದ್ದು, ವಿವಾಹ ಯೋಗವು ${chosenMarr.windowKn} ಅತ್ಯಂತ ಪ್ರಬಲವಾಗಿದೆ. ${chosenMarr.spouseKn}.\n\n🪔 **ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ದೈವಿಕ ಆಶೀರ್ವಾದ & ಪರಿಹಾರ:** ${L(chosenRemedy, "kn")}`
+      : langCode === "hi"
+      ? `नमस्ते ${devoteeName}। प्राचीन वैदिक हस्तरेखा शास्त्र (बृहत् संहिता एवं गरुड़ पुराण परंपरा) के अनुसार आपके ${L(handLabel)} की रेखाओं, पर्वतों एवं अंगुलि अनुपात का सूक्ष्म निरीक्षण किया गया है।\n\n🖐️ **हस्त तत्त्व एवं आयु रेखा:** आपका हस्त ${L(chironomyHandType.element)} श्रेणी का है और जीवन रेखा ${L(lifeLine.status)} है। यह दर्शाता है: ${L(lifeLine.indication)}\n\n💡 **बुद्धि एवं करियर:** मस्तिष्क रेखा ${L(headLine.status)} है एवं अंगुष्ठ पर ${L(thumbAnalysis.yavaSign)} विद्यमान है। ${L(headLine.indication)}\n\n❤️ **विवाह एवं पारिवारिक जीवन:** हृदय रेखा ${L(heartLine.status)} है। ${L(chosenRemedy)}`
+      : langCode === "mr"
+      ? `नमस्कार ${devoteeName}. प्राचीन बृहत्संहिता आणि गरुड पुराण सामुद्रिक शास्त्रानुसार तुमच्या तळहातावरील रेषा, ग्रहपर्वत आणि बोटांच्या प्रमाणांचे अचूक परीक्षण केले आहे.\n\n🖐️ **हस्त तत्त्व व आयुष्य:** तुमचा तळहात ${L(chironomyHandType.element)} असून जीवनरेषा ${L(lifeLine.status)} आहे. ${L(lifeLine.indication)}\n\n💡 **बुद्धिमत्ता व करिअर:** मस्तक रेषा ${L(headLine.status)} असून अंगठ्यावर ${L(thumbAnalysis.yavaSign)} आहे. ${L(headLine.indication)}\n\n🪔 **श्री गोकर्ण महाबळेश्वर उपाय:** ${L(chosenRemedy)}`
+      : langCode === "te"
+      ? `నమస్కారం ${devoteeName}. ప్రాచీన బృహత్ సంహిత & గరుడ పురాణ హస్తసాముద్రిక శాస్త్రం ప్రకారం మీ చేతి రేఖలు, గ్రహ పర్వతాలు & వేళ్ల నిష్పత్తులను పరిశీలించబడింది.\n\n🖐️ **హస్త తత్త్వం & ఆయుర్దాయం:** మీ చేయి ${L(chironomyHandType.element)} లక్షణం కలిగి ఉంది. ${L(lifeLine.status)} — ${L(lifeLine.indication)}\n\n💡 **మేధస్సు & వృత్తి:** ${L(headLine.status)} — ${L(headLine.indication)}\n\n🪔 **గోకర్ణ దివ్య పరిహారం:** ${L(chosenRemedy)}`
+      : langCode === "ta"
+      ? `வணக்கம் ${devoteeName}. பழங்கால பிருஹத் சம்ஹிதை & கருட புராண ஹஸ்த சாமுத்ரிகா சாஸ்திரப்படி உங்கள் உள்ளங்கை ரேகைகள் மற்றும் கிரக மேடுகள் ஆய்வு செய்யப்பட்டன.\n\n🖐️ **கை தத்துவம் & ஆயுள்:** உங்கள் கை ${L(chironomyHandType.element)} வகையைச் சேர்ந்தது. ${L(lifeLine.status)} — ${L(lifeLine.indication)}\n\n💡 **புத்திசாலித்தனம் & தொழில்:** ${L(headLine.status)} — ${L(headLine.indication)}\n\n🪔 **கோகர்ண திவ்ய பரிகாரம்:** ${L(chosenRemedy)}`
+      : langCode === "ml"
+      ? `നമസ്കാരം ${devoteeName}. പ്രാചീന ബൃഹത് സംഹിതയും ഗരുഡപുരാണ ഹസ്തസാമുദ്രിക ശാസ്ത്രവുമനുസരിച്ച് നിങ്ങളുടെ കൈരേഖകളും ഗ്രഹമണ്ഡലങ്ങളും പരിശോധിച്ചിരിക്കുന്നു.\n\n🖐️ **ഹസ്ത തത്ത്വവും ആയുസ്സും:** നിങ്ങളുടെ കൈ ${L(chironomyHandType.element)} സ്വഭാവമുള്ളതാണ്. ${L(lifeLine.status)} — ${L(lifeLine.indication)}\n\n💡 **ബുദ്ധിയും തൊഴിൽ ഭാഗ്യവും:** ${L(headLine.status)} — ${L(headLine.indication)}\n\n🪔 **ഗോകർണ്ണ പരിഹാരം:** ${L(chosenRemedy)}`
+      : `Greetings ${devoteeName}. Based on classical Vedic Hastarekha Shastra (Brihat Samhita & Garuda Purana traditions), your ${handLabel.en} reveals distinct ${chironomyHandType.element.en} traits.\n\n🖐️ **Vitality & Lifespan:** Your hand exhibits ${lifeLine.status.en}. This indicates: ${lifeLine.indication.en}\n\n💡 **Intellect & Career:** The Head Line demonstrates ${headLine.status.en}. Supported by ${thumbAnalysis.yavaSign.en}, your vocational acumen is primed for steady expansion.\n\n❤️ **Marriage & Bonds:** The Heart Line shows ${heartLine.status.en}, pointing to an auspicious union window around ${chosenMarr.windowEn}. Expected partner qualities: ${chosenMarr.spouseEn}.\n\n🪔 **Sacred Gokarna Blessing & Remedy:** ${chosenRemedy.en}`;
 
   return {
     handSide,
@@ -1131,13 +1145,17 @@ EXACT MULTI-SLOT INSPECTION DIRECTIVES:
 Examine up to 3 image slots provided in this request:
 
 SLOT 1 (IMAGE 1 - FRONT PALM / KARANTALA):
-1. PALM SHAPE & CHIRONOMY ELEMENT:
-   - Carefully compute Palm Length vs Width ratio, and Finger Length vs Palm Length ratio:
-     * Square Palm + Short Sturdy Fingers = Prithvi (Earth Hand)
-     * Square Palm + Long Fingers = Vayu (Air Hand)
-     * Long Rectangular Palm + Short Fingers = Agni (Fire Hand)
-     * Long Rectangular Palm + Long Slender Fingers = Jala (Water Hand)
-     * Conical / Balanced Contours = Sankirna (Royal Mixed Hand)
+1. PALM SHAPE, TALA / ANGULA RATIO & CHIRONOMY ELEMENT:
+   - Compute Classical Brihat Samhita Tala/Angula Proportions explicitly:
+     * Middle Finger (Madhyama) to Palm Length Ratio (~0.75 ideal Tala symmetry).
+     * 2D:4D Ratio (Index Guru Finger vs Ring Surya Finger): Index >= Ring denotes administrative command & ambition; Ring > Index denotes artistic charisma, enterprise & public acclaim.
+     * Little Finger (Kanishthika / Mercury): Check whether tip clears the distal phalange joint of Ring Finger (speech eloquence & business prudence).
+     * Palm Length vs Width ratio, paired with finger length:
+       - Square Palm + Short Sturdy Fingers = Prithvi (Earth Hand)
+       - Square Palm + Long Fingers = Vayu (Air Hand)
+       - Long Rectangular Palm + Short Fingers = Agni (Fire Hand)
+       - Long Rectangular Palm + Long Slender Fingers = Jala (Water Hand)
+       - Conical / Balanced Contours = Sankirna (Royal Mixed Hand)
    Do NOT default to Earth Hand! Choose the genuine elemental type matching the image.
 2. ANGUSHTHA (THUMB) & DERMATOGLYPHICS:
    - Inspect 1st phalanx (willpower length), 2nd phalanx (logic length), and whether there is an open or closed Yava / Eye of Shiva (Shiva Netra) on the joint.

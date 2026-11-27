@@ -3754,8 +3754,17 @@ export interface HotelTableOrderDoc {
   tableNumber: string;
   hotelName: string;
   devoteeName: string;
-  amountInr: number; // 149, 250, 350, or 450
-  packageType: "express_149" | "standard_350" | "remedy_450" | "family_250";
+  amountInr: number; // 149, 150, 200, 249, 250, 349, 350, or 450
+  packageType:
+    | "palm_150"
+    | "face_150"
+    | "prashna_200"
+    | "samudrika_combo_249"
+    | "trinetra_all3_349"
+    | "express_149"
+    | "standard_350"
+    | "remedy_450"
+    | "family_250";
   status: "INITIATED" | "PAID" | "VERIFIED";
   selectedLang: string;
   utr?: string;
@@ -3806,6 +3815,17 @@ export async function updateHotelOrderVerified(
   paymentId?: string
 ): Promise<HotelTableOrderDoc | null> {
   const normId = orderId.toUpperCase();
+  const inferPkgFromAmount = (amt: number): HotelTableOrderDoc["packageType"] => {
+    if (amt === 150) return "palm_150";
+    if (amt === 200) return "prashna_200";
+    if (amt === 249) return "samudrika_combo_249";
+    if (amt === 349) return "trinetra_all3_349";
+    if (amt === 149) return "express_149";
+    if (amt === 250) return "family_250";
+    if (amt >= 450) return "remedy_450";
+    return "standard_350";
+  };
+
   const existing = memoryHotelOrders.get(normId) || {
     id: orderId,
     orderId,
@@ -3813,7 +3833,7 @@ export async function updateHotelOrderVerified(
     hotelName: "Pandit Palette",
     devoteeName: "Hotel Devotee",
     amountInr,
-    packageType: amountInr === 149 ? "express_149" : amountInr === 250 ? "family_250" : amountInr >= 450 ? "remedy_450" : "standard_350",
+    packageType: inferPkgFromAmount(amountInr),
     status: "VERIFIED",
     selectedLang: "kn",
     createdAt: new Date().toISOString()
@@ -3829,7 +3849,7 @@ export async function updateHotelOrderVerified(
     transactionId: effectiveTxn,
     paymentId: effectivePaymentId,
     amountInr,
-    packageType: amountInr === 149 ? "express_149" : amountInr === 250 ? "family_250" : amountInr >= 450 ? "remedy_450" : "standard_350",
+    packageType: existing.packageType || inferPkgFromAmount(amountInr),
     paymentMethod,
     verifiedAt: new Date().toISOString()
   };
