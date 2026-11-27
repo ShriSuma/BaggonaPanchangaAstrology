@@ -189,11 +189,12 @@ export interface AntarangaSecretResult {
   diningOffer?: DiningConversionOfferData;
 }
 
+export const HOTEL_EXPRESS_PRICE_INR = 149;
 export const HOTEL_PDF_PRICE_INR = 350;
 export const HOTEL_REMEDY_ADDON_INR = 100;
 export const HOTEL_PREMIUM_REMEDY_PRICE_INR = 450;
 export const HOTEL_FAMILY_UPSELL_PRICE_INR = 250;
-export type HotelPackageType = "standard_350" | "remedy_450" | "family_250";
+export type HotelPackageType = "express_149" | "standard_350" | "remedy_450" | "family_250";
 
 export const PRIEST_UPI_ID = DEFAULT_PRIEST_UPI_ID; // "9108135387@ybl"
 export const PRIEST_UPI_NAME = DEFAULT_PRIEST_UPI_NAME; // "Sumana Ranganath Maarigoli"
@@ -2230,19 +2231,23 @@ export async function verifyHotelPaymentInstant(
   devoteeName: string = "Hotel Devotee",
   amountInr: number = HOTEL_PDF_PRICE_INR,
   lang: AntarangaLang = "kn",
-  packageType: HotelPackageType = amountInr >= 450 ? "remedy_450" : "standard_350"
+  packageType: HotelPackageType = amountInr === 149 ? "express_149" : amountInr >= 450 ? "remedy_450" : amountInr === 250 ? "family_250" : "standard_350"
 ): Promise<PaymentVerificationResult> {
   const cleanOrderId = (orderId || `ORD_${Date.now()}`).trim();
   const txnId = `TXN_${cleanOrderId}`;
 
+  const knAmt = amountInr === 149 ? "೧೪೯" : amountInr === 250 ? "೨೫೦" : amountInr === 450 ? "೪೫೦" : "೩೫೦";
+  const mrAmt = amountInr === 149 ? "१४९" : amountInr === 250 ? "२५०" : amountInr === 450 ? "४५०" : "३५०";
+  const isExpress = packageType === "express_149" || amountInr === 149;
+
   const instantSuccessMsgs: Record<AntarangaLang, string> = {
-    kn: `✓ ₹${amountInr === 450 ? "೪೫೦" : "೩೫೦"} ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! (ಆರ್ಡರ್: ${cleanOrderId}) ನಿಮ್ಮ ${amountInr === 450 ? "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ, ಜನ್ಮ ಕುಂಡಲಿ & ದೈವಿಕ ಪರಿಹಾರ" : "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ & ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿ"} PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...`,
-    en: `✓ ₹${amountInr} Payment confirmed successfully! (Order: ${cleanOrderId}) Generating your ${amountInr === 450 ? "5-Year Master Horoscope, Janma Kundali & Sacred Remedy" : "5-Year Master Horoscope & Baggona Janma Kundali"} PDF...`,
-    hi: `✓ ₹${amountInr} भुगतान सफलतापूर्वक स्वीकृत! (ऑर्डर: ${cleanOrderId}) आपकी ${amountInr === 450 ? "5-वर्षीय महा कुंडली, जन्म कुंडली एवं दैविक उपाय" : "5-वर्षीय महा कुंडली एवं जन्म पत्रिका"} तैयार हो रही है...`,
-    te: `✓ ₹${amountInr} చెల్లింపు విజయవంతంగా స్వీకరించబడింది! (ఆర్డర్: ${cleanOrderId}) మీ ${amountInr === 450 ? "5 సంవత్సరాల జాతకం, జన్మ కుండలి మరియు దైవిక పరిహార" : "5 సంవత్సరాల జాతకం మరియు జన్మ కుండలి"} PDF సిద్ధమవుతోంది...`,
-    ta: `✓ ₹${amountInr} கட்டணம் வெற்றிகரமாக பெறப்பட்டது! (ஆர்டர்: ${cleanOrderId}) உங்கள் ${amountInr === 450 ? "5 ஆண்டு ஜாதகம், ஜென்ம குண்டலி & பரிகார" : "5 ஆண்டு ஜாதகம் & ஜென்ம குண்டலி"} PDF தயாராகிறது...`,
-    ml: `✓ ₹${amountInr} പേയ്‌മെന്റ് വിജയകരമായി സ്വീകരിച്ചു! (ഓർഡർ: ${cleanOrderId}) നിങ്ങളുടെ ${amountInr === 450 ? "5 വർഷത്തെ ജാതകം, ജന്മ കുണ്ഡലി & ദൈവിക പരിഹാര" : "5 വർഷത്തെ ജാതകം & ജന്മ കുണ്ഡലി"} PDF തയ്യാറാകുന്നു...`,
-    mr: `✓ ₹${amountInr === 450 ? "४५०" : "३५०"} पेमेंट यशस्वीरीत्या प्राप्त झाले! (ऑर्डर: ${cleanOrderId}) आपली ${amountInr === 450 ? "५-वर्षांची महा पत्रिका, जन्म पत्रिका व दैवी उपाय" : "५-वर्षांची महा पत्रिका व जन्म पत्रिका"} PDF तयार होत आहे...`
+    kn: `✓ ₹${knAmt} ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! (ಆರ್ಡರ್: ${cleanOrderId}) ನಿಮ್ಮ ${isExpress ? "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ, ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ & ಸಾಮುದ್ರಿಕ ವಿಶೇಷ" : amountInr === 450 ? "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ, ಜನ್ಮ ಕುಂಡಲಿ & ದೈವಿಕ ಪರಿಹಾರ" : "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ & ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿ"} PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...`,
+    en: `✓ ₹${amountInr} Payment confirmed successfully! (Order: ${cleanOrderId}) Generating your ${isExpress ? "Prashna Shastra, Sankhya & Samudrika Express Walk-In" : amountInr === 450 ? "5-Year Master Horoscope, Janma Kundali & Sacred Remedy" : "5-Year Master Horoscope & Baggona Janma Kundali"} PDF...`,
+    hi: `✓ ₹${amountInr} भुगतान सफलतापूर्वक स्वीकृत! (ऑर्डर: ${cleanOrderId}) आपकी ${isExpress ? "प्रश्न शास्त्र, संख्या शास्त्र एवं सामुद्रिक एक्सप्रेस" : amountInr === 450 ? "5-वर्षीय महा कुंडली, जन्म कुंडली एवं दैविक उपाय" : "5-वर्षीय महा कुंडली एवं जन्म पत्रिका"} PDF तैयार हो रही है...`,
+    te: `✓ ₹${amountInr} చెల్లింపు విజయవంతంగా స్వీకరించబడింది! (ఆర్డర్: ${cleanOrderId}) మీ ${isExpress ? "ప్రశ్న శాస్త్రం, సంఖ్యా శాస్త్రం & సాముద్రిక ఎక్స్‌ప్రెస్" : amountInr === 450 ? "5 సంవత్సరాల జాతకం, జన్మ కుండలి మరియు దైవిక పరిహార" : "5 సంవత్సరాల జాతకం మరియు జన్మ కుండలి"} PDF సిద్ధమవుతోంది...`,
+    ta: `✓ ₹${amountInr} கட்டணம் வெற்றிகரமாக பெறப்பட்டது! (ஆர்டர்: ${cleanOrderId}) உங்கள் ${isExpress ? "பிரஸ்ன சாஸ்திரம், எண் கணிதம் & சாமுத்திரிகா விரைவு" : amountInr === 450 ? "5 ஆண்டு ஜாதகம், ஜென்ம குண்டலி & பரிகார" : "5 ஆண்டு ஜாதகம் & ஜென்ம குண்டலி"} PDF தயாராகிறது...`,
+    ml: `✓ ₹${amountInr} പേയ്‌മെന്റ് വിജയകരമായി സ്വീകരിച്ചു! (ഓർഡർ: ${cleanOrderId}) നിങ്ങളുടെ ${isExpress ? "പ്രശ്ന ശാസ്ത്രം, സംഖ്യാ ശാസ്ത്രം & സാമുദ്രിക എക്സ്പ്രസ്" : amountInr === 450 ? "5 വർഷത്തെ ജാതകം, ജന്മ കുണ്ഡലി & ദൈവിക പരിഹാര" : "5 വർഷത്തെ ജാതകം & ജന്മ കുണ്ഡലി"} PDF തയ്യാറാകുന്നു...`,
+    mr: `✓ ₹${mrAmt} पेमेंट यशस्वीरीत्या प्राप्त झाले! (ऑर्डर: ${cleanOrderId}) आपली ${isExpress ? "प्रश्न शास्त्र, संख्या शास्त्र व सामुद्रिक एक्सप्रेस" : amountInr === 450 ? "५-वर्षांची महा पत्रिका, जन्म पत्रिका व दैवी उपाय" : "५-वर्षांची महा पत्रिका व जन्म पत्रिका"} PDF तयार होत आहे...`
   };
 
   // 1. Notify serverless webhook engine in background
@@ -2358,7 +2363,7 @@ export async function verifyHotelPaymentUtr(
   amountInr: number = HOTEL_PDF_PRICE_INR,
   lang: AntarangaLang = "kn",
   orderId?: string,
-  packageType: HotelPackageType = amountInr >= 450 ? "remedy_450" : "standard_350"
+  packageType: HotelPackageType = amountInr === 149 ? "express_149" : amountInr >= 450 ? "remedy_450" : amountInr === 250 ? "family_250" : "standard_350"
 ): Promise<PaymentVerificationResult> {
   const cleanUtr = (rawUtr || "").trim().replace(/[^a-zA-Z0-9]/g, "");
 
@@ -2391,13 +2396,13 @@ export async function verifyHotelPaymentUtr(
       mr: "हा UTR नंबर आधीच वापरला गेला आहे. कृपया नवीन पावतीवरील UTR नंबर टाका."
     },
     success: {
-      kn: `✓ ₹${amountInr === 450 ? "೪೫೦" : "೩೫೦"} ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! ನಿಮ್ಮ ${amountInr === 450 ? "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ, ಜನ್ಮ ಕುಂಡಲಿ & ಪರಿಹಾರ" : "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ & ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿ"} PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...`,
-      en: `✓ ₹${amountInr} Payment verified successfully! Your ${amountInr === 450 ? "5-Year Master Horoscope, Janma Kundali & Remedy" : "5-Year Master Horoscope & Baggona Janma Kundali"} PDF is generating...`,
-      hi: `✓ ₹${amountInr} भुगतान सफलतापूर्वक सत्यापित! आपकी ${amountInr === 450 ? "5-वर्षीय महा कुंडली, जन्म कुंडली एवं उपाय" : "5-वर्षीय महा कुंडली एवं जन्म पत्रिका"} PDF तैयार हो रही है...`,
-      te: `✓ ₹${amountInr} చెల్లింపు విజయవంతంగా ధృవీకరించబడింది! మీ ${amountInr === 450 ? "5 సంవత్సరాల జాతకం, జన్మ కుండలి మరియు పరిహార" : "5 సంవత్సరాల మహా జాతకం & జన్మ కుండలి"} సిద్ధమవుతోంది...`,
-      ta: `✓ ₹${amountInr} கட்டணம் வெற்றிகரமாக சரிபார்க்கப்பட்டது! உங்கள் ${amountInr === 450 ? "5 ஆண்டு ஜாதகம், ஜென்ம குண்டலி & பரிகார" : "5 ஆண்டு ஜாதகம் & ஜென்ம குண்டலி"} PDF தயாராகிறது...`,
-      ml: `✓ ₹${amountInr} പേയ്മെന്റ് വിജയകരമായി സ്ഥിരീകരിച്ചു! നിങ്ങളുടെ ${amountInr === 450 ? "5 വർഷത്തെ ജാതകം, ജന്മ കുണ്ഡലി & പരിഹാര" : "5 വർഷത്തെ ജാതക & ജന്മ കുണ്ഡലി"} PDF തയ്യാറാകുന്നു...`,
-      mr: `✓ ₹${amountInr === 450 ? "४५०" : "३५०"} पेमेंट यशस्वीरीत्या पडताळले गेले! आपली ${amountInr === 450 ? "५-वर्षांची महा पत्रिका, जन्म पत्रिका व उपाय" : "५-वर्षांची महा पत्रिका & जन्म पत्रिका"} PDF तयार होत आहे...`
+      kn: `✓ ₹${amountInr === 149 ? "೧೪೯" : amountInr === 250 ? "೨೫೦" : amountInr === 450 ? "೪೫೦" : "೩೫೦"} ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! ನಿಮ್ಮ ${amountInr === 149 ? "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ, ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ & ಸಾಮುದ್ರಿಕ ವಿಶೇಷ" : amountInr === 450 ? "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ, ಜನ್ಮ ಕುಂಡಲಿ & ಪರಿಹಾರ" : "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ & ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿ"} PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...`,
+      en: `✓ ₹${amountInr} Payment verified successfully! Your ${amountInr === 149 ? "Prashna Shastra, Sankhya & Samudrika Express Walk-In" : amountInr === 450 ? "5-Year Master Horoscope, Janma Kundali & Remedy" : "5-Year Master Horoscope & Baggona Janma Kundali"} PDF is generating...`,
+      hi: `✓ ₹${amountInr} भुगतान सफलतापूर्वक सत्यापित! आपकी ${amountInr === 149 ? "प्रश्न शास्त्र, संख्या शास्त्र एवं सामुद्रिक एक्सप्रेस" : amountInr === 450 ? "5-वर्षीय महा कुंडली, जन्म कुंडली एवं उपाय" : "5-वर्षीय महा कुंडली एवं जन्म पत्रिका"} PDF तैयार हो रही है...`,
+      te: `✓ ₹${amountInr} చెల్లింపు విజయవంతంగా ధృవీకరించబడింది! మీ ${amountInr === 149 ? "ప్రశ్న శాస్త్రం, సంఖ్యా శాస్త్రం & సాముద్రిక ఎక్స్‌ప్రెస్" : amountInr === 450 ? "5 సంవత్సరాల జాతకం, జన్మ కుండలి మరియు పరిహార" : "5 సంవత్సరాల మహా జాతకం & జన్మ కుండలి"} సిద్ధమవుతోంది...`,
+      ta: `✓ ₹${amountInr} கட்டணம் வெற்றிகரமாக சரிபார்க்கப்பட்டது! உங்கள் ${amountInr === 149 ? "பிரஸ்ன சாஸ்திரம், எண் கணிதம் & சாமுத்திரிகா விரைவு" : amountInr === 450 ? "5 ஆண்டு ஜாதகம், ஜென்ம குண்டலி & பரிகார" : "5 ஆண்டு ஜாதகம் & ஜென்ம குண்டலி"} PDF தயாராகிறது...`,
+      ml: `✓ ₹${amountInr} പേയ്മെന്റ് വിജയകരമായി സ്ഥിരീകരിച്ചു! നിങ്ങളുടെ ${amountInr === 149 ? "പ്രശ്ന ശാസ്ത്രം, സംഖ്യാ ശാസ്ത്രം & സാമുദ്രിക എക്സ്പ്രസ്" : amountInr === 450 ? "5 വർഷത്തെ ജാതകം, ജന്മ കുണ്ഡലി & പരിഹാര" : "5 വർഷത്തെ ജാതക & ജന്മ കുണ്ഡലി"} PDF തയ്യാറാകുന്നു...`,
+      mr: `✓ ₹${amountInr === 149 ? "१४९" : amountInr === 250 ? "२५०" : amountInr === 450 ? "४५०" : "३५०"} पेमेंट यशस्वीरीत्या पडताळले गेले! आपली ${amountInr === 149 ? "प्रश्न शास्त्र, संख्या शास्त्र व सामुद्रिक एक्सप्रेस" : amountInr === 450 ? "५-वर्षांची महा पत्रिका, जन्म पत्रिका व उपाय" : "५-वर्षांची महा पत्रिका & जन्म पत्रिका"} PDF तयार होत आहे...`
     }
   };
 
@@ -2462,7 +2467,7 @@ export async function verifyHotelPaymentUtr(
         orderId: effectiveOrderId,
         amountInr: amountInr,
         coins: amountInr * 10,
-        packageKey: packageType === "remedy_450" ? "hotel_antaranga_450" : "hotel_antaranga_350",
+        packageKey: packageType === "remedy_450" ? "hotel_antaranga_450" : packageType === "express_149" ? "hotel_express_149" : packageType === "family_250" ? "hotel_family_250" : "hotel_antaranga_350",
         paymentMethod: "PhonePe / GPay UPI (Hotel Table QR Instant)"
       })
     }).catch(() => null);

@@ -233,6 +233,10 @@ export interface SampoornaMaster25Payload {
   isAiGenerated?: boolean;
   aiRunId?: string;
   aiChaptersCount?: number;
+  timePrecision?: "exact" | "approx_window" | "date_only_chandra" | "no_dob_instant";
+  precisionBadgeText?: string;
+  sankhyaSummary?: string;
+  laterTimeUpdateUrl?: string;
 
   // 15-Day Personal Daily Darshana Google Calendar QR Section
   calendarQrSection?: CalendarQrSectionData;
@@ -434,8 +438,14 @@ export async function prepareSampoornaMaster25Data(
     narrativeVariant?: number;
     enableAi?: boolean;
     geminiApiKey?: string;
+    timePrecision?: "exact" | "approx_window" | "date_only_chandra" | "no_dob_instant";
+    resolvedBtrSummary?: string;
+    sankhyaSummary?: string;
+    laterTimeUpdateUrl?: string;
   }
 ): Promise<SampoornaMaster25Payload> {
+  const timePrecision = options?.timePrecision || "exact";
+  const isChandraBasisOnly = timePrecision === "date_only_chandra" || timePrecision === "no_dob_instant";
   const targetLang: SevenLang = normalizeSevenLang(langArg || (sessionOrData?.targetLanguage as string) || "kn");
   options?.onProgress?.(10, pick7({
     kn: "೧. ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಜಾತಕ ಗಣಿತ ಪರಿಶೀಲನೆ...",
@@ -526,8 +536,10 @@ export async function prepareSampoornaMaster25Data(
   const mercP = result.planets.find(p => p.name === PlanetName.Mercury) || result.planets[3];
   const venP = result.planets.find(p => p.name === PlanetName.Venus) || result.planets[5];
 
-  const lagnaRashiIdx = (((result.lagnaRashi?.index ?? 0) % 12) + 12) % 12 as RashiIndex;
   const moonRashiIdx = (((result.moonSign?.index ?? 0) % 12) + 12) % 12 as RashiIndex;
+  const rawLagnaRashiIdx = (((result.lagnaRashi?.index ?? 0) % 12) + 12) % 12 as RashiIndex;
+  // When time is unknown (date_only_chandra), mathematically anchor Bhavas to Chandra Lagna rather than fake noon Lagna
+  const lagnaRashiIdx = (isChandraBasisOnly ? moonRashiIdx : rawLagnaRashiIdx) as RashiIndex;
 
   const sunLon = (sunP.rashi.index * 30) + (((sunP.degree || 0) % 30 + 30) % 30);
   const moonLon = (moonP.rashi.index * 30) + (((moonP.degree || 0) % 30 + 30) % 30);
@@ -887,7 +899,17 @@ export async function prepareSampoornaMaster25Data(
     now
   });
 
-  const lagnaNameLocalized = RASHI_7L[lagnaRashiIdx]?.[targetLang] || "Aries";
+  const rawLagnaLocalized = RASHI_7L[lagnaRashiIdx]?.[targetLang] || "Aries";
+  const chandraTagLocalized = pick7({
+    kn: "ಚಂದ್ರ ಲಗ್ನ ಆಧಾರಿತ",
+    en: "Chandra Lagna Basis",
+    hi: "चन्द्र लग्न आधारित",
+    mr: "चंद्र लग्न आधारित",
+    te: "చంద్ర లగ్న ఆధారితం",
+    ta: "சந்திர லக்ன அடிப்படை",
+    ml: "ചന്ദ്രലഗ്ന അടിസ്ഥാനം"
+  }, targetLang);
+  const lagnaNameLocalized = isChandraBasisOnly ? `${rawLagnaLocalized} (${chandraTagLocalized})` : rawLagnaLocalized;
   const moonRashiLocalized = RASHI_7L[moonRashiIdx]?.[targetLang] || "Taurus";
 
   // Compute Authentic Strongest Hero Planet & Physically Closest Colleague inside THIS Birth Chart
@@ -1023,6 +1045,17 @@ export async function prepareSampoornaMaster25Data(
   };
 
   const coverPage: BookletCoverContent = buildDynamicBookletCover(storyCtx);
+  if (isChandraBasisOnly) {
+    coverPage.personalAssurancePara1 = pick7({
+      kn: `ಪ್ರೀತಿಯ ${localizedDevoteeName}, ಈ ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಗ್ರಂಥವನ್ನು ${toNativeDigits(birthDate, targetLang)} ರಂದು ${birthPlace} ಪುಣ್ಯಭೂಮಿಯ ಖಗೋಳ ಗ್ರಹಸ್ಥಿತಿ ಮತ್ತು ನಿಖರ ಚಂದ್ರ ಲಗ್ನ (${moonRashiLocalized}) ಹಾಗೂ ${nakshatraName} ನಕ್ಷತ್ರದ ಆಧಾರದ ಮೇಲೆ ಕೇವಲ ನಿಮಗಾಗಿ ಮಾತ್ರ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ.`,
+      mr: `प्रिय ${localizedDevoteeName}, ही २५ अध्यायांची महा-पत्रिका दिनांक ${toNativeDigits(birthDate, targetLang)} रोजी ${birthPlace} येथील अचूक ग्रहस्थिती, चंद्र लग्न (${moonRashiLocalized}) आणि ${nakshatraName} नक्षत्राच्या आधारे केवळ आपल्यासाठी तयार केली आहे.`,
+      hi: `प्रिय ${localizedDevoteeName}, यह संपूर्ण २५-अध्यायीय महा-कुंडली पुस्तिका दिनांक ${toNativeDigits(birthDate, targetLang)} को ${birthPlace} की शुद्ध खगोलीय ग्रहस्थिति, सटीक चंद्र लग्न (${moonRashiLocalized}) एवं ${nakshatraName} नक्षत्र के आधार पर केवल आपके लिए निर्मित की गई है।`,
+      te: `ప్రియమైన ${localizedDevoteeName}, ఈ 25 అధ్యాయాల సంపూర్ణ జాతక పుస్తకం ${toNativeDigits(birthDate, targetLang)} నాడు ${birthPlace} వద్ద ఉన్న ఖచ్చితమైన గ్రహ స్థితి, చంద్ర లగ్నం (${moonRashiLocalized}) మరియు ${nakshatraName} ఆధారంగా కేవలం మీ కోసం రూపొందించబడింది.`,
+      ta: `அன்புள்ள ${localizedDevoteeName}, இந்த 25 அத்தியாய மகா ஜாதக நூல் ${toNativeDigits(birthDate, targetLang)} அன்று ${birthPlace} வானியல் கிரக நிலை, துல்லிய சந்திர லக்னம் (${moonRashiLocalized}) மற்றும் ${nakshatraName} அடிப்படையில் உங்களுக்காக மட்டுமே உருவாக்கப்பட்டது.`,
+      ml: `പ്രിയ ${localizedDevoteeName}, ${toNativeDigits(birthDate, targetLang)} തീയതി ${birthPlace}-ലെ കൃത്യമായ ഗ്രഹനിലയും ചന്ദ്രലഗ്നവും (${moonRashiLocalized}) ${nakshatraName} നക്ഷത്രവും അടിസ്ഥാനമാക്കി നിങ്ങൾക്കായി മാത്രം ഒരുക്കിയ 25 അധ്യായ ഗ്രന്ഥമാണിത്.`,
+      en: `Dear ${localizedDevoteeName}, this 25-Chapter Sampoorna Destiny Booklet is crafted solely for you from the true planetary sky over ${birthPlace} on ${birthDate}, mathematically anchored via your authentic Chandra Lagna (${moonRashiLocalized}) and ${nakshatraName}.`
+    }, targetLang);
+  }
   const activeDoshaProfiles: ActiveDoshaProfile[] = buildConsolidatedDoshaProfiles(storyCtx);
   const chartVisualMetrics: ChartVisualMetrics = computeChartVisualMetrics(storyCtx);
 
@@ -1137,6 +1170,9 @@ export async function prepareSampoornaMaster25Data(
         chartVisualMetrics,
         narrativeVariant,
         houseSummaryLines: houseSummaryStr,
+        timePrecision,
+        btrSummary: options?.resolvedBtrSummary,
+        sankhyaSummary: options?.sankhyaSummary,
       },
       resolvedApiKey,
       (aiPct, aiMsg) => {
@@ -1628,11 +1664,28 @@ export async function prepareSampoornaMaster25Data(
   }
   initialChapterPages[25] = 29; // P28 is 15-day Calendar QR, P29 is Ch 25
 
+  const precisionBadgeText = isChandraBasisOnly
+    ? chandraTagLocalized
+    : timePrecision === "approx_window"
+      ? (options?.resolvedBtrSummary || pick7({
+          kn: "BTR ಪರಿಷ್ಕೃತ ಸಮಯ",
+          en: "BTR Rectified Window",
+          hi: "BTR संशोधित समय",
+          mr: "BTR निश्चित वेळ",
+          te: "BTR సవరించిన సమయం",
+          ta: "BTR திருத்தப்பட்ட நேரம்",
+          ml: "BTR നിർണ്ണയിച്ച സമയം"
+        }, targetLang))
+      : undefined;
+
+  const suryaRashiNameLocalized = RASHI_7L[((sunP.rashi.index % 12) + 12) % 12]?.[targetLang] || "";
+  const effectiveDisplayTime = isChandraBasisOnly ? chandraTagLocalized : timePrecision === "approx_window" && options?.resolvedBtrSummary ? `${birthTime} (${options.resolvedBtrSummary})` : birthTime;
+
   return {
     devoteeName: localizedDevoteeName,
     rawName,
     birthDate,
-    birthTime,
+    birthTime: effectiveDisplayTime,
     birthPlace,
     gender,
     maritalStatus,
@@ -1653,8 +1706,8 @@ export async function prepareSampoornaMaster25Data(
     karanaName,
     sunriseTime,
     sunsetTime,
-    horaLord: horaLordName,
-    janmaHora,
+    horaLord: isChandraBasisOnly ? `${suryaRashiNameLocalized}` : horaLordName,
+    janmaHora: isChandraBasisOnly ? `${suryaRashiNameLocalized}` : janmaHora,
     livePrashnaHora,
     ayanamsha: ayanamshaName,
     currentMahadasha,
@@ -1676,9 +1729,9 @@ export async function prepareSampoornaMaster25Data(
     bhriguBinduDegreeFormatted: `${bhriguDeg}°`,
     bhriguBinduRashi: bhriguBinduRashiName,
     bhriguBinduTurningWindow: `${now.getFullYear() + 1} - ${now.getFullYear() + 2}`,
-    maandiHouse,
-    maandiRashi: maandiRashiName,
-    hasMaandiKnot: true,
+    maandiHouse: isChandraBasisOnly ? (((sunP.rashi.index - lagnaRashiIdx + 12) % 12) + 1) : maandiHouse,
+    maandiRashi: isChandraBasisOnly ? (options?.sankhyaSummary || suryaRashiNameLocalized) : maandiRashiName,
+    hasMaandiKnot: !isChandraBasisOnly,
     maandiDomainAffected: MAANDI_DOMAIN_MAP[maandiHouse]?.[targetLang] || MAANDI_DOMAIN_MAP[1][targetLang],
     shaniTransitRashi,
     shaniHouseFromMoon,
@@ -1712,6 +1765,10 @@ export async function prepareSampoornaMaster25Data(
     isAiGenerated: Boolean(aiResult?.isAiGenerated),
     aiRunId: aiResult?.aiRunId,
     aiChaptersCount: aiResult?.aiChaptersCount ?? 0,
+    timePrecision,
+    precisionBadgeText,
+    sankhyaSummary: options?.sankhyaSummary,
+    laterTimeUpdateUrl: options?.laterTimeUpdateUrl,
     calendarQrSection,
     familyProtectionHook,
     priestBooking,

@@ -532,8 +532,13 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 lang
               )}
             </span>
-            <span style={{ fontSize: "15px", fontWeight: 700, color: "#92400e" }}>
-              {data.ayanamsha}
+            <span style={{ fontSize: "15px", fontWeight: 700, color: "#92400e", display: "flex", alignItems: "center", gap: "8px" }}>
+              {data.precisionBadgeText && (
+                <span style={{ backgroundColor: "#FEF3C7", border: "1px solid #d97706", borderRadius: "9999px", padding: "2px 10px", fontSize: "12.5px", fontWeight: 800 }}>
+                  {data.precisionBadgeText}
+                </span>
+              )}
+              <span>{data.ayanamsha}</span>
             </span>
           </div>
 
@@ -640,7 +645,9 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {/* Row 5 */}
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick7({ kn: "ಸೂರ್ಯೋದಯ / ಸೂರ್ಯಾಸ್ತ & ಜನ್ಮ ಹೋರಾ", mr: "सूर्योदय / सूर्यास्त व जन्म होरा", hi: "सूर्योदय / सूर्यास्त एवं जन्म होरा", te: "సూర్యోదయం / సూర్యాస్తమయం & హోర", ta: "சூரிய உதயம் / அஸ்தமனம் & ஹோரை", ml: "സൂര്യോദയം / അസ്തമയം & ഹോര", en: "Sunrise / Sunset & Birth Hora" }, lang)}
+                  {data.timePrecision === "date_only_chandra" || data.timePrecision === "no_dob_instant"
+                    ? pick7({ kn: "ಸೂರ್ಯೋದಯ / ಸೂರ್ಯಾಸ್ತ & ಸೂರ್ಯ ಲಗ್ನ", mr: "सूर्योदय / सूर्यास्त व सूर्य लग्न", hi: "सूर्योदय / सूर्यास्त एवं सूर्य लग्न", te: "సూర్యోదయం / సూర్యాస్తమయం & సూర్య లగ్నం", ta: "சூரிய உதயம் / அஸ்தமனம் & சூரிய லக்னம்", ml: "സൂര്യോദയം / അസ്തമയം & സൂര്യലഗ്നം", en: "Sunrise / Sunset & Surya Axis" }, lang)
+                    : pick7({ kn: "ಸೂರ್ಯೋದಯ / ಸೂರ್ಯಾಸ್ತ & ಜನ್ಮ ಹೋರಾ", mr: "सूर्योदय / सूर्यास्त व जन्म होरा", hi: "सूर्योदय / सूर्यास्त एवं जन्म होरा", te: "సూర్యోదయం / సూర్యాస్తమయం & హోర", ta: "சூரிய உதயம் / அஸ்தமனம் & ஹோரை", ml: "സൂര്യോദയം / അസ്തമയം & ഹോര", en: "Sunrise / Sunset & Birth Hora" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {n(data.sunriseTime)} / {n(data.sunsetTime)} • {data.janmaHora}
@@ -668,10 +675,15 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick7({ kn: "ಯೋಗಿ • ಅವಯೋಗಿ • ಮಾಂದಿ ಸ್ಥಾನ", mr: "योगी • अवयोगी • मांदी स्थान", hi: "योगी • अवयोगी • मांदी स्थिति", te: "యోగి • అవయోగి • మాంది స్థానం", ta: "யோகி • அவயோகி • மாந்தி நிலை", ml: "യോഗി • അവയോഗി • മാന്ദി സ്ഥാനം", en: "Yogi • Avayogi • Maandi" }, lang)}
+                  {data.timePrecision === "date_only_chandra" || data.timePrecision === "no_dob_instant"
+                    ? pick7({ kn: "ಯೋಗಿ • ಅವಯೋಗಿ • ಸಂಖ್ಯಾ & ಸೂರ್ಯ", mr: "योगी • अवयोगी • संख्या व सूर्य", hi: "योगी • अवयोगी • संख्या एवं सूर्य", te: "యోగి • అవయోగి • సంఖ్య & సూర్య", ta: "யோகி • அவயோகி • எண் & சூரியன்", ml: "യോഗി • അവയോഗി • സംഖ്യ & സൂര്യൻ", en: "Yogi • Avayogi • Sankhya Axis" }, lang)
+                    : pick7({ kn: "ಯೋಗಿ • ಅವಯೋಗಿ • ಮಾಂದಿ ಸ್ಥಾನ", mr: "योगी • अवयोगी • मांदी स्थान", hi: "योगी • अवयोगी • मांदी स्थिति", te: "యోగి • అవయోగి • మాంది స్థానం", ta: "யோகி • அவயோகி • மாந்தி நிலை", ml: "യോഗി • അവയോഗി • മാന്ദി സ്ഥാനം", en: "Yogi • Avayogi • Maandi" }, lang)}
                 </div>
                 <div style={{ fontSize: "18.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
-                  ✨ {data.yogiPlanet} • ⚠️ {data.avayogiPlanet} • {houseWord} {n(data.maandiHouse)} ({data.maandiRashi})
+                  ✨ {data.yogiPlanet} • ⚠️ {data.avayogiPlanet} •{" "}
+                  {data.timePrecision === "date_only_chandra" || data.timePrecision === "no_dob_instant"
+                    ? data.maandiRashi
+                    : `${houseWord} ${n(data.maandiHouse)} (${data.maandiRashi})`}
                 </div>
               </div>
 
@@ -1477,6 +1489,20 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               </a>
             </div>
           </div>
+
+          {data.laterTimeUpdateUrl && (
+            <div style={{ padding: "12px 16px", backgroundColor: "#FFFBEB", border: "1.5px solid #d97706", borderRadius: "8px", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#78350f" }}>
+              {pick7({
+                kn: "ನಿಮ್ಮ ನಿಖರ ಜನನ ಸಮಯ ತಿಳಿದ ನಂತರ ಅದೇ ವರದಿಯನ್ನು ಉಚಿತವಾಗಿ ಮರು-ಪರಿಶೀಲಿಸಲು ಬಗ್ಗೋಣ ಟೇಬಲ್ ಕ್ಯೂಆರ್ ಬಳಸಿ.",
+                en: "Free Future Verification: Once you confirm your exact birth time with family, re-scan the portal with your Name & DOB anytime.",
+                hi: "भविष्य में सटीक जन्म समय ज्ञात होने पर आप पुनः अपने लग्न का मिलान निःशुल्क देख सकते हैं।",
+                mr: "पुढे अचूक जन्मवेळ समजल्यास पोर्टलवर तुमचे नेमके लग्न मोफत तपासता येईल.",
+                te: "భవిష్యత్తులో ఖచ్చితమైన జన్మ సమయం తెలిసినప్పుడు మీ అసలు లగ్నాన్ని ఉచితంగా చూసుకోవచ్చు.",
+                ta: "எதிர்காலத்தில் சரியான பிறந்த நேரம் தெரிந்தவுடன் உங்கள் உண்மையான லக்னத்தை இலவசமாக சரிபார்க்கலாம்.",
+                ml: "ഭാവിയിൽ കൃത്യമായ ജനനസമയം അറിയുമ്പോൾ നിങ്ങളുടെ യഥാർത്ഥ ലഗ്നം സൗജന്യമായി പരിശോധിക്കാം."
+              }, lang)}
+            </div>
+          )}
 
           <div
             style={{

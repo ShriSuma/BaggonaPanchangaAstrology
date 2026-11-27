@@ -1082,7 +1082,20 @@ export async function executePalmReading(
     return baseline;
   }
 
-  const targetLangName = langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English";
+  const targetLangName =
+    langCode === "kn"
+      ? "Kannada"
+      : langCode === "hi"
+        ? "Hindi"
+        : langCode === "mr"
+          ? "Marathi"
+          : langCode === "te"
+            ? "Telugu"
+            : langCode === "ta"
+              ? "Tamil"
+              : langCode === "ml"
+                ? "Malayalam"
+                : "English";
 
   // Template-Free, Multi-Slot Schema System Prompt
   const visionPrompt = `

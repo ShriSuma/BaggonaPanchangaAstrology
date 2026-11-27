@@ -160,12 +160,27 @@ export async function executeFaceReading(
   const seededAge = 24 + (Math.abs(seed) % 42); // 24 to 65
   const seededTejas = 82 + (Math.abs(seed) % 16); // 82% to 97%
 
+  const targetLangName =
+    langCode === "kn"
+      ? "Kannada"
+      : langCode === "hi"
+        ? "Hindi"
+        : langCode === "mr"
+          ? "Marathi"
+          : langCode === "te"
+            ? "Telugu"
+            : langCode === "ta"
+              ? "Tamil"
+              : langCode === "ml"
+                ? "Malayalam"
+                : "English";
+
   const visionPrompt = `
 You are Sri Shreeram Pandit, revered Master of Classical Vedic Muka Samudrika Shastra (Physiognomy & Face Reading) from Gokarna Mahabaleshwara Kshetra, trained in the direct lineage of Varahamihira's Brihat Samhita and Garuda Purana.
 
 Perform an authentic, 100% personalized, image-derived Muka Samudrika inspection of the devotee's uploaded facial photograph:
 - Devotee Name: ${devoteeName}
-- Target Language: ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"}
+- Target Language: ${targetLangName}
 
 ${kundliData ? `
 NATAL ASTRONOMICAL KUNDALI SYNC:
@@ -193,7 +208,7 @@ CRITICAL SAMUDRIKA SHASTRA RULES (Brihat Samhita & Garuda Purana):
    g) Ears (Karna): Earlobe thickness (spiritual longevity).
 4. ESTIMATE CHRONOLOGICAL AGE (~XX years) from skin elasticity, brow lines, and facial tone.
 5. DECODE FACIAL MOLES (Tilaka): Inspect forehead, cheeks, nose, and chin for auspicious marks. If none, confirm Nishkalanka Tejas (flawless face).
-6. Provide a rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${langCode === "kn" ? "Kannada" : langCode === "hi" ? "Hindi" : langCode === "te" ? "Telugu" : langCode === "ta" ? "Tamil" : "English"} script.
+6. Provide a rich, deeply empathetic 4-paragraph Vedic reading written purely in native ${targetLangName} script.
 7. Provide a sacred Gokarna Mahabaleshwara temple remedy tailored to the devotee's specific archetype with mantra.
 
 Return ONLY a strict JSON object (no markdown wrapping):

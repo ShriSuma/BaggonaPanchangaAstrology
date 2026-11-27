@@ -3754,8 +3754,8 @@ export interface HotelTableOrderDoc {
   tableNumber: string;
   hotelName: string;
   devoteeName: string;
-  amountInr: number; // 350, 450, or 250
-  packageType: "standard_350" | "remedy_450" | "family_250";
+  amountInr: number; // 149, 250, 350, or 450
+  packageType: "express_149" | "standard_350" | "remedy_450" | "family_250";
   status: "INITIATED" | "PAID" | "VERIFIED";
   selectedLang: string;
   utr?: string;
@@ -3813,7 +3813,7 @@ export async function updateHotelOrderVerified(
     hotelName: "Pandit Palette",
     devoteeName: "Hotel Devotee",
     amountInr,
-    packageType: amountInr === 250 ? "family_250" : amountInr >= 450 ? "remedy_450" : "standard_350",
+    packageType: amountInr === 149 ? "express_149" : amountInr === 250 ? "family_250" : amountInr >= 450 ? "remedy_450" : "standard_350",
     status: "VERIFIED",
     selectedLang: "kn",
     createdAt: new Date().toISOString()
@@ -3829,7 +3829,7 @@ export async function updateHotelOrderVerified(
     transactionId: effectiveTxn,
     paymentId: effectivePaymentId,
     amountInr,
-    packageType: amountInr === 250 ? "family_250" : amountInr >= 450 ? "remedy_450" : "standard_350",
+    packageType: amountInr === 149 ? "express_149" : amountInr === 250 ? "family_250" : amountInr >= 450 ? "remedy_450" : "standard_350",
     paymentMethod,
     verifiedAt: new Date().toISOString()
   };

@@ -13,6 +13,7 @@ import {
   verifyHotelPaymentInstant,
   checkHotelPaymentWebhookStatus,
   generateHotelOrderId,
+  HOTEL_EXPRESS_PRICE_INR,
   HOTEL_PDF_PRICE_INR,
   HOTEL_REMEDY_ADDON_INR,
   HOTEL_PREMIUM_REMEDY_PRICE_INR,
@@ -26,6 +27,32 @@ import {
   type AntarangaSecretResult,
   ANTARANGA_LANGUAGES
 } from "../features/hotelSecret/antarangaService";
+import {
+  APPROX_TIME_WINDOWS,
+  analyzeDailyLunarStability,
+  buildBtrWindowCandidates,
+  resolveBtrSelection,
+  buildChandraSankhyaProfile,
+  computeDeepPrashnaHoraryReading,
+  generateExpressWalkInAiNarrative,
+  getPrashnaDomainOptions,
+  type HotelBirthTimePrecision,
+  type ApproxTimeWindowId,
+  type PrashnaQuestionDomain,
+  type DailyLunarStabilityReport,
+  type BtrWindowResult,
+  type ChandraSankhyaProfile,
+  type DeepPrashnaHoraryResult
+} from "../features/hotelSecret/hotelUnknownTimeEngine";
+import {
+  HotelExpressWalkInPdfTemplate,
+  captureHotelExpressWalkInPdf,
+  type HotelExpressWalkInPayload
+} from "../components/hotelSecret/HotelExpressWalkInPdfTemplate";
+import { executePalmReading, type PalmReadingResult } from "../features/palmreading/palmReadingEngine";
+import { executeFaceReading, type FaceReadingResult } from "../features/facereading/faceReadingEngine";
+import { pick7, toNativeDigits7L } from "../services/sampoornaMaster25Locale7L";
+import { useAppStore } from "../stores/appStore";
 import {
   saveHotelOrderInitiated,
   updateHotelOrderVerified,
@@ -1674,10 +1701,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const [selectedLang, setSelectedLang] = useState<AntarangaLang>("kn");
   const ui = ANTARANGA_UI_STRINGS[selectedLang] || ANTARANGA_UI_STRINGS.en;
 
-  // 3. Unique Order Session ID & Package Tier Selection (₹350 vs ₹450)
+  // 3. Unique Order Session ID & Package Tier Selection (₹149 Express / ₹250 Family / ₹350 Standard / ₹450 Remedy)
   const [activeOrderId, setActiveOrderId] = useState<string>(() => generateHotelOrderId("1"));
   const [selectedPackage, setSelectedPackage] = useState<HotelPackageType>("standard_350");
-  const packagePrice = selectedPackage === "remedy_450" ? HOTEL_PREMIUM_REMEDY_PRICE_INR : selectedPackage === "family_250" ? HOTEL_FAMILY_UPSELL_PRICE_INR : HOTEL_PDF_PRICE_INR;
+  const packagePrice =
+    selectedPackage === "express_149"
+      ? HOTEL_EXPRESS_PRICE_INR
+      : selectedPackage === "remedy_450"
+        ? HOTEL_PREMIUM_REMEDY_PRICE_INR
+        : selectedPackage === "family_250"
+          ? HOTEL_FAMILY_UPSELL_PRICE_INR
+          : HOTEL_PDF_PRICE_INR;
 
   const [hasClickedPaymentApp, setHasClickedPaymentApp] = useState<boolean>(false);
   const [returnedFromPaymentApp, setReturnedFromPaymentApp] = useState<boolean>(false);
@@ -1704,6 +1738,22 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   // 4. User Input State
   const [devoteeName, setDevoteeName] = useState("");
   const [isTimeUnknown, setIsTimeUnknown] = useState<boolean>(false);
+  const [timePrecision, setTimePrecision] = useState<HotelBirthTimePrecision>("exact");
+  const [approxWindowId, setApproxWindowId] = useState<ApproxTimeWindowId>("morning_7_11");
+  const [btrQ1Choice, setBtrQ1Choice] = useState<"A" | "B">("A");
+  const [btrQ2Choice, setBtrQ2Choice] = useState<"A" | "B">("A");
+  const [lunarPickChoice, setLunarPickChoice] = useState<"early" | "late">("early");
+  const [prashnaDomain, setPrashnaDomain] = useState<PrashnaQuestionDomain>("career_wealth");
+  const [horarySeedNumber, setHorarySeedNumber] = useState<number>(27);
+  const [palmPhotoDataUrl, setPalmPhotoDataUrl] = useState<string | null>(null);
+  const [facePhotoDataUrl, setFacePhotoDataUrl] = useState<string | null>(null);
+  const [palmResult, setPalmResult] = useState<PalmReadingResult | null>(null);
+  const [faceResult, setFaceResult] = useState<FaceReadingResult | null>(null);
+  const [prashnaResult, setPrashnaResult] = useState<DeepPrashnaHoraryResult | null>(null);
+  const [sankhyaProfile, setSankhyaProfile] = useState<ChandraSankhyaProfile | null>(null);
+  const [resolvedBtrLabel, setResolvedBtrLabel] = useState<string | undefined>(undefined);
+  const [expressPdfPayload, setExpressPdfPayload] = useState<HotelExpressWalkInPayload | null>(null);
+  const expressPdfRef = useRef<HTMLDivElement>(null);
   const [master25Payload, setMaster25Payload] = useState<SampoornaMaster25Payload | null>(null);
   const master25PdfRef = useRef<HTMLDivElement>(null);
   const [downloadCounts, setDownloadCounts] = useState<{
@@ -1711,6 +1761,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     kundli?: number;
     remedy?: number;
     master25?: number;
+    express?: number;
     all?: number;
   }>(() => {
     if (typeof window === "undefined") return {};
@@ -1756,6 +1807,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     fiveYear?: boolean;
     kundli?: boolean;
     remedy?: boolean;
+    express?: boolean;
     all?: boolean;
   }>(() => {
     if (typeof window === "undefined") return {};
@@ -1792,6 +1844,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   const [fiveYearPdfUrl, setFiveYearPdfUrl] = useState<string | null>(null);
   const [kundliPdfUrl, setKundliPdfUrl] = useState<string | null>(null);
   const [remedyPdfUrl, setRemedyPdfUrl] = useState<string | null>(null);
+  const [expressPdfUrl, setExpressPdfUrl] = useState<string | null>(null);
 
   const fiveYearPdfRef = useRef<HTMLDivElement>(null);
   const kundliPdfRef = useRef<HTMLDivElement>(null);
@@ -1823,6 +1876,77 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
   const closeScreenLoader = () => {
     setScreenLoaderOpen(false);
+  };
+
+  const m25SevenLang: SevenLang = normalizeSevenLang(selectedLang);
+
+  // Isolated Unknown-Time / Approximate-Window Mathematical Resolvers (zero effect when timePrecision === "exact")
+  const lunarStability: DailyLunarStabilityReport | null = React.useMemo(() => {
+    if (timePrecision !== "date_only_chandra" || !birthDate) return null;
+    try {
+      return analyzeDailyLunarStability(
+        birthDate,
+        latitude,
+        longitude,
+        m25SevenLang,
+        undefined,
+        gender === "female" ? "Female" : "Male"
+      );
+    } catch {
+      return null;
+    }
+  }, [timePrecision, birthDate, latitude, longitude, m25SevenLang, gender]);
+
+  const btrWindowResult: BtrWindowResult | null = React.useMemo(() => {
+    if (timePrecision !== "approx_window" || !birthDate) return null;
+    try {
+      return buildBtrWindowCandidates(
+        birthDate,
+        approxWindowId,
+        latitude,
+        longitude,
+        m25SevenLang,
+        undefined,
+        gender === "female" ? "Female" : "Male"
+      );
+    } catch {
+      return null;
+    }
+  }, [timePrecision, birthDate, approxWindowId, latitude, longitude, m25SevenLang, gender]);
+
+  const resolveEffectiveTimeAndFlags = (): {
+    effTime: string;
+    unknownFlag: boolean;
+    btrBadge?: string;
+  } => {
+    if (timePrecision === "exact") {
+      return { effTime: isTimeUnknown ? "12:00" : birthTime, unknownFlag: isTimeUnknown };
+    }
+    if (timePrecision === "approx_window" && btrWindowResult) {
+      const { selected, confidencePct } = resolveBtrSelection(btrWindowResult, btrQ1Choice, btrQ2Choice);
+      const btrBadge = `~${selected.sampleTime} • ${selected.lagnaName} (${confidencePct}%)`;
+      return { effTime: selected.sampleTime, unknownFlag: false, btrBadge };
+    }
+    if (timePrecision === "date_only_chandra" && lunarStability) {
+      const effT = lunarStability.hasMoonShift
+        ? lunarPickChoice === "early"
+          ? lunarStability.earlyCandidate.sampleTime
+          : lunarStability.lateCandidate.sampleTime
+        : "12:00";
+      return { effTime: effT, unknownFlag: true };
+    }
+    return { effTime: "12:00", unknownFlag: true };
+  };
+
+  const handlePhotoUpload = (kind: "palm" | "face", file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const res = typeof reader.result === "string" ? reader.result : null;
+      if (kind === "palm") setPalmPhotoDataUrl(res);
+      else setFacePhotoDataUrl(res);
+    };
+    reader.readAsDataURL(file);
   };
 
   // Map 7-languages to Public Kundli 5-Language & Remedy locale
@@ -1968,7 +2092,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       return;
     }
 
-    if (new Date(birthDate) > new Date()) {
+    if (timePrecision !== "no_dob_instant" && new Date(birthDate) > new Date()) {
       alert(selectedLang === "kn" ? "ಜನನ ದಿನಾಂಕವು ಭವಿಷ್ಯದ್ದಾಗಿರಲು ಸಾಧ್ಯವಿಲ್ಲ." : "Birth date cannot be in the future.");
       return;
     }
@@ -1977,14 +2101,20 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     triggerScreenLoader("antaranga_calc", undefined, { progress: 20 });
 
     try {
-      // Allow user to witness the authentic celestial chakra alignment
-      await new Promise((r) => setTimeout(r, 450));
-      setScreenLoaderProgress(55);
+      await new Promise((r) => setTimeout(r, 400));
+      setScreenLoaderProgress(45);
+
+      const { effTime, unknownFlag, btrBadge } = resolveEffectiveTimeAndFlags();
+      setResolvedBtrLabel(btrBadge);
+      const effectiveBirthDate =
+        timePrecision === "no_dob_instant"
+          ? new Date().toISOString().split("T")[0]
+          : birthDate;
 
       const input: KundliInput = {
         name: devoteeName.trim(),
-        birthDate,
-        birthTime,
+        birthDate: effectiveBirthDate,
+        birthTime: effTime,
         latitude,
         longitude,
         gender: gender === "female" ? "Female" : "Male"
@@ -1993,18 +2123,114 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       const kundli = calculateKundli(input);
       setComputedKundli(kundli);
 
+      // Compute Sankhya Numerology + Classical Deep Prashna Shastra (for all guests; primary for unknown/no-DOB!)
+      const sankhya = buildChandraSankhyaProfile(devoteeName.trim(), effectiveBirthDate, kundli, m25SevenLang);
+      setSankhyaProfile(sankhya);
+      const sankhyaText = `Mulank ${toNativeDigits7L(sankhya.mulank, m25SevenLang)} • Bhagyank ${toNativeDigits7L(sankhya.bhagyank, m25SevenLang)} • ${sankhya.rulingPlanet}`;
+
+      const deepPrashna = computeDeepPrashnaHoraryReading({
+        devoteeName: devoteeName.trim(),
+        questionDomain: prashnaDomain,
+        horaryNumber: horarySeedNumber,
+        latitude,
+        longitude,
+        lang: m25SevenLang
+      });
+      setPrashnaResult(deepPrashna);
+
+      // Optional Palm / Face Biometric Samudrika analysis if uploaded
+      const activeGeminiKey = useAppStore.getState?.()?.geminiApiKey || "";
+      let activePalm: PalmReadingResult | null = null;
+      let activeFace: FaceReadingResult | null = null;
+      if (palmPhotoDataUrl) {
+        try {
+          activePalm = await executePalmReading(
+            palmPhotoDataUrl,
+            gender === "female" ? "left" : "right",
+            devoteeName.trim(),
+            selectedLang,
+            activeGeminiKey,
+            undefined,
+            undefined,
+            undefined,
+            gender === "female" ? "Female" : "Male"
+          );
+          setPalmResult(activePalm);
+        } catch (pErr) {
+          console.warn("Palm biometric fallback warning:", pErr);
+        }
+      } else {
+        setPalmResult(null);
+      }
+
+      if (facePhotoDataUrl) {
+        try {
+          activeFace = await executeFaceReading(
+            facePhotoDataUrl,
+            devoteeName.trim(),
+            selectedLang,
+            activeGeminiKey
+          );
+          setFaceResult(activeFace);
+        } catch (fErr) {
+          console.warn("Face biometric fallback warning:", fErr);
+        }
+      } else {
+        setFaceResult(null);
+      }
+
+      setScreenLoaderProgress(70);
+
+      // Build ₹149 Express Walk-In Payload (Prashna + Sankhya + Optional Palm/Face)
+      const palmElemLabel = activePalm
+        ? (activePalm.chironomyHandType?.element?.[selectedLang] || activePalm.chironomyHandType?.element?.en || "")
+        : "";
+      const palmMountLabel = activePalm
+        ? (activePalm.mounts?.[0]?.mountName?.[selectedLang] || activePalm.mounts?.[0]?.mountName?.en || "")
+        : "";
+      const faceArchLabel = activeFace
+        ? (activeFace.facialConstitution?.mahapurushaArchetype?.[selectedLang] || activeFace.facialConstitution?.mahapurushaArchetype?.en || "")
+        : "";
+      const faceAuraLabel = activeFace
+        ? (activeFace.facialConstitution?.auraGlow?.[selectedLang] || activeFace.facialConstitution?.auraGlow?.en || "")
+        : "";
+      const expressAiParas = await generateExpressWalkInAiNarrative({
+        devoteeName: devoteeName.trim(),
+        lang: m25SevenLang,
+        prashna: deepPrashna,
+        sankhya,
+        palmSummary: activePalm ? `${palmElemLabel} / ${palmMountLabel}` : undefined,
+        faceSummary: activeFace ? `${faceArchLabel} / ${faceAuraLabel}` : undefined,
+        apiKey: activeGeminiKey
+      });
+      setExpressPdfPayload({
+        devoteeName: devoteeName.trim(),
+        lang: m25SevenLang,
+        tableNumber: tableNumber || "1",
+        hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+        generatedDateStr: new Date().toISOString().split("T")[0],
+        prashna: deepPrashna,
+        sankhya,
+        palmReading: activePalm,
+        faceReading: activeFace,
+        aiParagraphs: expressAiParas
+      });
+
+      if (timePrecision === "no_dob_instant") {
+        setSelectedPackage("express_149");
+      }
+
       // 1. Generate Free Dark Secret & Complete 7-Language Free Revelation Suite
-      const effectiveTime = isTimeUnknown ? "12:00" : birthTime;
       const secret = generateAntarangaSatya(
         kundli,
         selectedLang,
         devoteeName.trim(),
         gender,
-        birthDate,
-        effectiveTime,
+        effectiveBirthDate,
+        effTime,
         latitude,
         longitude,
-        isTimeUnknown
+        unknownFlag
       );
       setSecretResult(secret);
 
@@ -2013,8 +2239,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         const pdfLang: SixLang = (selectedLang === "ml" ? "en" : selectedLang) as SixLang;
         const payload = compute5YearMasterPrediction(
           kundli,
-          birthDate,
-          birthTime,
+          effectiveBirthDate,
+          effTime,
           pdfLang,
           devoteeName.trim(),
           new Date().getFullYear(),
@@ -2032,7 +2258,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
       // 3. Pre-compute Baggona Panchanga Janma Kundali Multi-Page Profile
       try {
-        const profile = calculatePublicKundliProfile(kundli, birthDate, birthTime, latitude, longitude);
+        const profile = calculatePublicKundliProfile(kundli, effectiveBirthDate, effTime, latitude, longitude);
         setPublicKundliProfile(profile);
         const insights = generateDynamicLifeInsights(profile, publicKundliLang);
         setPublicKundliInsights(insights);
@@ -2041,6 +2267,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       }
 
       // Precompute Sampoorna Master 25-Chapter Payload (instant deterministic chassis; full Gemini AI runs at download)
+      const updatePortalUrl = `https://baggonapanchanga.com/antaranga?table=${tableNumber || "1"}`;
       try {
         const m25Lang: SevenLang = normalizeSevenLang(selectedLang);
         const m25 = await prepareSampoornaMaster25Data(
@@ -2049,15 +2276,22 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             placeLabel: selectedCityName,
             input: {
               name: devoteeName.trim(),
-              birthDate,
-              birthTime: effectiveTime,
+              birthDate: effectiveBirthDate,
+              birthTime: effTime,
               latitude,
               longitude,
               gender: gender === "female" ? "Female" : "Male"
             }
           },
           m25Lang,
-          { narrativeVariant: downloadCounts.fiveYear || 0, enableAi: false }
+          {
+            narrativeVariant: downloadCounts.fiveYear || 0,
+            enableAi: false,
+            timePrecision,
+            resolvedBtrSummary: btrBadge,
+            sankhyaSummary: sankhyaText,
+            laterTimeUpdateUrl: timePrecision !== "exact" ? updatePortalUrl : undefined
+          }
         );
         setMaster25Payload(m25);
       } catch (m25Err) {
@@ -2115,37 +2349,106 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   // Re-generate secret and profiles when language changes
   useEffect(() => {
     if (computedKundli && devoteeName.trim()) {
-      const effectiveTime = isTimeUnknown ? "12:00" : birthTime;
+      const { effTime, unknownFlag, btrBadge } = resolveEffectiveTimeAndFlags();
+      const effectiveBirthDate =
+        timePrecision === "no_dob_instant"
+          ? new Date().toISOString().split("T")[0]
+          : birthDate;
+      setResolvedBtrLabel(btrBadge);
+
       const updatedSecret = generateAntarangaSatya(
         computedKundli,
         selectedLang,
         devoteeName.trim(),
         gender,
-        birthDate,
-        effectiveTime,
+        effectiveBirthDate,
+        effTime,
         latitude,
         longitude,
-        isTimeUnknown
+        unknownFlag
       );
       setSecretResult(updatedSecret);
 
+      const m25Lang: SevenLang = normalizeSevenLang(selectedLang);
+      let sankhyaSummaryText: string | undefined;
       try {
-        const m25Lang: SevenLang = normalizeSevenLang(selectedLang);
+        const sankhya = buildChandraSankhyaProfile(devoteeName.trim(), effectiveBirthDate, computedKundli, m25Lang);
+        setSankhyaProfile(sankhya);
+        sankhyaSummaryText = `Mulank ${toNativeDigits7L(sankhya.mulank, m25Lang)} • Bhagyank ${toNativeDigits7L(sankhya.bhagyank, m25Lang)} • ${sankhya.rulingPlanet}`;
+
+        const deepPrashna = computeDeepPrashnaHoraryReading({
+          devoteeName: devoteeName.trim(),
+          questionDomain: prashnaDomain,
+          horaryNumber: horarySeedNumber,
+          latitude,
+          longitude,
+          lang: m25Lang
+        });
+        setPrashnaResult(deepPrashna);
+
+        const activeGeminiKey = useAppStore.getState?.()?.geminiApiKey || "";
+        const pElem = palmResult
+          ? (palmResult.chironomyHandType?.element?.[selectedLang] || palmResult.chironomyHandType?.element?.en || "")
+          : "";
+        const pMount = palmResult
+          ? (palmResult.mounts?.[0]?.mountName?.[selectedLang] || palmResult.mounts?.[0]?.mountName?.en || "")
+          : "";
+        const fArch = faceResult
+          ? (faceResult.facialConstitution?.mahapurushaArchetype?.[selectedLang] || faceResult.facialConstitution?.mahapurushaArchetype?.en || "")
+          : "";
+        const fAura = faceResult
+          ? (faceResult.facialConstitution?.auraGlow?.[selectedLang] || faceResult.facialConstitution?.auraGlow?.en || "")
+          : "";
+        void generateExpressWalkInAiNarrative({
+          devoteeName: devoteeName.trim(),
+          lang: m25Lang,
+          prashna: deepPrashna,
+          sankhya,
+          palmSummary: palmResult ? `${pElem} / ${pMount}` : undefined,
+          faceSummary: faceResult ? `${fArch} / ${fAura}` : undefined,
+          apiKey: activeGeminiKey
+        }).then((aiParas) => {
+          setExpressPdfPayload({
+            devoteeName: devoteeName.trim(),
+            lang: m25Lang,
+            tableNumber: tableNumber || "1",
+            hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+            generatedDateStr: new Date().toISOString().split("T")[0],
+            prashna: deepPrashna,
+            sankhya,
+            palmReading: palmResult,
+            faceReading: faceResult,
+            aiParagraphs: aiParas
+          });
+        }).catch(() => {});
+      } catch (uErr) {
+        console.warn("Language switch prashna/sankhya warning:", uErr);
+      }
+
+      const updatePortalUrl = `https://baggonapanchanga.com/antaranga?table=${tableNumber || "1"}`;
+      try {
         void prepareSampoornaMaster25Data(
           {
             kundli: computedKundli,
             placeLabel: selectedCityName,
             input: {
               name: devoteeName.trim(),
-              birthDate,
-              birthTime: effectiveTime,
+              birthDate: effectiveBirthDate,
+              birthTime: effTime,
               latitude,
               longitude,
               gender: gender === "female" ? "Female" : "Male"
             }
           },
           m25Lang,
-          { narrativeVariant: downloadCounts.fiveYear || 0, enableAi: false }
+          {
+            narrativeVariant: downloadCounts.fiveYear || 0,
+            enableAi: false,
+            timePrecision,
+            resolvedBtrSummary: btrBadge,
+            sankhyaSummary: sankhyaSummaryText,
+            laterTimeUpdateUrl: timePrecision !== "exact" ? updatePortalUrl : undefined
+          }
         ).then(setMaster25Payload).catch((e) => console.warn("Master 25 lang update:", e));
       } catch (err) {
         console.warn("Language switch master25 warning:", err);
@@ -2155,8 +2458,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         const pdfLang: SixLang = (selectedLang === "ml" ? "en" : selectedLang) as SixLang;
         const payload = compute5YearMasterPrediction(
           computedKundli,
-          birthDate,
-          birthTime,
+          effectiveBirthDate,
+          effTime,
           pdfLang,
           devoteeName.trim(),
           new Date().getFullYear(),
@@ -2173,7 +2476,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       }
 
       try {
-        const profile = calculatePublicKundliProfile(computedKundli, birthDate, birthTime, latitude, longitude);
+        const profile = calculatePublicKundliProfile(computedKundli, effectiveBirthDate, effTime, latitude, longitude);
         setPublicKundliProfile(profile);
         const insights = generateDynamicLifeInsights(profile, publicKundliLang);
         setPublicKundliInsights(insights);
@@ -2296,15 +2599,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         let activePayload = master25Payload;
         if ((currentCount > 0 || !master25Payload.isAiGenerated || master25Payload.targetLanguage !== m25Lang) && computedKundli) {
           try {
-            const effectiveTime = isTimeUnknown ? "12:00" : birthTime;
+            const { effTime, btrBadge } = resolveEffectiveTimeAndFlags();
+            const effectiveBDate = timePrecision === "no_dob_instant" ? new Date().toISOString().split("T")[0] : birthDate;
+            const sankhyaStr = sankhyaProfile ? `Mulank ${sankhyaProfile.mulank} • Bhagyank ${sankhyaProfile.bhagyank}` : undefined;
             activePayload = await prepareSampoornaMaster25Data(
               {
                 kundli: computedKundli,
                 placeLabel: selectedCityName,
                 input: {
                   name: devoteeName.trim(),
-                  birthDate,
-                  birthTime: effectiveTime,
+                  birthDate: effectiveBDate,
+                  birthTime: effTime,
                   latitude,
                   longitude,
                   gender: gender === "female" ? "Female" : "Male"
@@ -2314,6 +2619,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               {
                 narrativeVariant: currentCount,
                 enableAi: true,
+                timePrecision,
+                resolvedBtrSummary: btrBadge,
+                sankhyaSummary: sankhyaStr,
+                laterTimeUpdateUrl: timePrecision !== "exact" ? `https://baggonapanchanga.com/antaranga?table=${tableNumber || "1"}` : undefined,
                 onProgress: (pct, msg) => {
                   const mapped = Math.max(5, Math.min(48, Math.round((pct / 100) * 48)));
                   setPdfProgress(mapped);
@@ -2398,8 +2707,15 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
       }
 
-      const currentPackagePrice = selectedPackage === "remedy_450" ? 450 : selectedPackage === "family_250" ? 250 : 350;
-      const currentPackageCoins = selectedPackage === "remedy_450" ? 4500 : selectedPackage === "family_250" ? 2500 : 3500;
+      const currentPackagePrice =
+        selectedPackage === "express_149"
+          ? HOTEL_EXPRESS_PRICE_INR
+          : selectedPackage === "remedy_450"
+            ? 450
+            : selectedPackage === "family_250"
+              ? 250
+              : 350;
+      const currentPackageCoins = currentPackagePrice * 10;
 
       // 1. Log download to Firestore for daily summary aggregation & audit
       try {
@@ -2630,11 +2946,69 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 5. Open PDF in New Tab (Safe for iPhone Safari popup blocker & direct viewing)
-  const handleOpenInNewTab = async (pdfType: "fiveYear" | "kundli" | "remedy") => {
+  // 5. Download ₹149 Express Walk-In Prashna + Sankhya + Samudrika PDF
+  const handleDownloadExpressWalkInPdf = async () => {
+    if (!(await ensurePaymentVerified())) return;
+    const currentCount = downloadCounts.express || 0;
+    if (currentCount >= 3 || downloadedPdfs.express) {
+      alert(ui.alreadyDownloadedAlert);
+      return;
+    }
+    if (!expressPdfRef.current || !expressPdfPayload) {
+      alert("Express PDF template preparing. Please retry.");
+      return;
+    }
+    setIsGeneratingPdf(true);
+    triggerScreenLoader("pdf_download_5year", undefined, { progress: 40 });
+    try {
+      const cleanName = (devoteeName || "Guest").replace(/\s+/g, "_");
+      const fileName = `Pandit_Palette_Prashna_Samudrika_Express_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
+      const pdf = await captureHotelExpressWalkInPdf(expressPdfRef.current, fileName, true);
+      try {
+        const arrayBuf = pdf.output("arraybuffer");
+        const blob = new Blob([arrayBuf], { type: "application/pdf" });
+        setExpressPdfUrl(URL.createObjectURL(blob));
+      } catch {}
+      setPdfDownloadReady(true);
+      setScreenLoaderProgress(100);
+
+      const nextCount = currentCount + 1;
+      setDownloadCounts((prev) => {
+        const next = { ...prev, express: nextCount };
+        try {
+          sessionStorage.setItem(`baggona_hotel_download_counts_${activeOrderId}`, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      if (nextCount >= 3) {
+        setDownloadedPdfs((prev) => {
+          const next = { ...prev, express: true };
+          try {
+            sessionStorage.setItem(`baggona_hotel_downloads_${activeOrderId}`, JSON.stringify(next));
+          } catch {}
+          return next;
+        });
+      }
+      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+    } catch (err: any) {
+      alert(`Express PDF error: ${err?.message || "Please retry."}`);
+    } finally {
+      setIsGeneratingPdf(false);
+      closeScreenLoader();
+    }
+  };
+
+  // 6. Open PDF in New Tab (Safe for iPhone Safari popup blocker & direct viewing)
+  const handleOpenInNewTab = async (pdfType: "fiveYear" | "kundli" | "remedy" | "express") => {
     if (!(await ensurePaymentVerified())) return;
 
-    if (pdfType === "fiveYear") {
+    if (pdfType === "express") {
+      if (expressPdfUrl) {
+        window.open(expressPdfUrl, "_blank");
+      } else {
+        await handleDownloadExpressWalkInPdf();
+      }
+    } else if (pdfType === "fiveYear") {
       if (fiveYearPdfUrl) {
         window.open(fiveYearPdfUrl, "_blank");
       } else {
@@ -2655,13 +3029,23 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   };
 
-  // 6. Start Family Member at This Table Upsell (₹250 special table offer)
+  // 7. Start Family Member at This Table Upsell (₹250 special table offer)
   const handleStartFamilyUpsell = () => {
     setDevoteeName("");
     setGender("male");
     setBirthDate("");
     setBirthTime("");
     setIsTimeUnknown(false);
+    setTimePrecision("exact");
+    setResolvedBtrLabel(undefined);
+    setPrashnaResult(null);
+    setSankhyaProfile(null);
+    setPalmPhotoDataUrl(null);
+    setFacePhotoDataUrl(null);
+    setPalmResult(null);
+    setFaceResult(null);
+    setExpressPdfPayload(null);
+    setExpressPdfUrl(null);
     setSelectedCityName("Gokarna");
     setCustomCitySearch("");
     setComputedKundli(null);
@@ -2929,49 +3313,405 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               />
             </div>
 
-            {/* Birth Date & Birth Time */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-stone-700 font-semibold mb-1">
-                  {ui.dateLabel}
+            {/* Birth Timing Knowledge Selector (Preserves Exact Time 100%, adds Rough Window / Date-Only / No-DOB) */}
+            <div className="space-y-2.5 bg-amber-50/70 border border-amber-200 rounded-xl p-3">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-[11px] font-black uppercase tracking-wider text-amber-950">
+                  {pick7({
+                    kn: "ಜನನ ಸಮಯದ ನಿಖರತೆ ಆಯ್ಕೆಮಾಡಿ",
+                    en: "Do you know exact Birth Time?",
+                    hi: "क्या आपको सटीक जन्म समय पता है?",
+                    mr: "तुम्हाला अचूक जन्मवेळ माहित आहे का?",
+                    te: "మీకు ఖచ్చితమైన జన్మ సమయం తెలుసా?",
+                    ta: "சரியான பிறந்த நேரம் தெரியுமா?",
+                    ml: "കൃത്യമായ ജനന സമയം അറിയാമോ?"
+                  }, m25SevenLang)}
                 </label>
-                <input
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-500 font-medium shadow-sm"
-                />
               </div>
-              <div>
-                <label className="block text-stone-700 font-semibold mb-1">
-                  {ui.timeLabel}
-                </label>
-                <input
-                  type="time"
-                  value={birthTime}
-                  onChange={(e) => setBirthTime(e.target.value)}
-                  disabled={isTimeUnknown}
-                  className={`w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-500 font-medium shadow-sm ${
-                    isTimeUnknown ? "opacity-60 cursor-not-allowed bg-stone-100" : ""
-                  }`}
-                />
-                <div className="mt-1.5 flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="time-unknown-check"
-                    checked={isTimeUnknown}
-                    onChange={(e) => {
-                      setIsTimeUnknown(e.target.checked);
-                      if (e.target.checked) setBirthTime("12:00");
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                {([
+                  {
+                    id: "exact" as HotelBirthTimePrecision,
+                    icon: "⏱️",
+                    label: pick7({ kn: "ನಿಖರ ಸಮಯ ಗೊತ್ತು", en: "Exact Time", hi: "सटीक समय", mr: "अचूक वेळ", te: "ఖచ్చిత సమయం", ta: "சரியான நேரம்", ml: "കൃത്യ സമയം" }, m25SevenLang)
+                  },
+                  {
+                    id: "approx_window" as HotelBirthTimePrecision,
+                    icon: "🌤️",
+                    label: pick7({ kn: "ಅಂದಾಜು ಸಮಯ", en: "Rough Window", hi: "अनुमानित समय", mr: "अंदाजे वेळ", te: "సుమారు సమయం", ta: "தோராய நேரம்", ml: "ഏകദേശ സമയം" }, m25SevenLang)
+                  },
+                  {
+                    id: "date_only_chandra" as HotelBirthTimePrecision,
+                    icon: "📅",
+                    label: pick7({ kn: "ದಿನಾಂಕ ಮಾತ್ರ", en: "Date Only", hi: "केवल तारीख", mr: "फक्त तारीख", te: "తేదీ మాత్రమే", ta: "தேதி மட்டும்", ml: "തീയതി മാത്രം" }, m25SevenLang)
+                  },
+                  {
+                    id: "no_dob_instant" as HotelBirthTimePrecision,
+                    icon: "🔮",
+                    label: pick7({ kn: "ದಿನಾಂಕ/ಸಮಯ ಇಲ್ಲ", en: "No Date/Time", hi: "जन्म विवरण नहीं", mr: "तारीख/वेळ नाही", te: "తేదీ/సమయం లేదు", ta: "தேதி/நேரம் இல்லை", ml: "വിവരങ്ങൾ ഇല്ല" }, m25SevenLang)
+                  }
+                ]).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      setTimePrecision(opt.id);
+                      if (opt.id === "exact") {
+                        setIsTimeUnknown(false);
+                      } else if (opt.id === "approx_window") {
+                        setIsTimeUnknown(false);
+                      } else {
+                        setIsTimeUnknown(true);
+                        if (opt.id === "no_dob_instant" && !isPaymentVerified) {
+                          setSelectedPackage("express_149");
+                        }
+                      }
                     }}
-                    className="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500 cursor-pointer"
-                  />
-                  <label htmlFor="time-unknown-check" className="text-[11px] text-stone-700 font-medium cursor-pointer select-none">
-                    {TIME_UNKNOWN_LABELS[selectedLang] || TIME_UNKNOWN_LABELS.en}
-                  </label>
-                </div>
+                    className={`py-2 px-2 rounded-xl border-2 text-[11px] font-bold flex items-center justify-center gap-1 transition cursor-pointer ${
+                      timePrecision === opt.id
+                        ? "bg-amber-500 text-stone-950 border-amber-600 shadow-sm"
+                        : "bg-white text-stone-700 border-amber-200 hover:border-amber-400"
+                    }`}
+                  >
+                    <span>{opt.icon}</span>
+                    <span className="truncate">{opt.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Birth Date & Birth Time (Or Prashna No-DOB Instant Banner) */}
+            {timePrecision !== "no_dob_instant" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-stone-700 font-semibold mb-1">
+                    {ui.dateLabel}
+                  </label>
+                  <input
+                    type="date"
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                    className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-500 font-medium shadow-sm"
+                  />
+                </div>
+                {timePrecision === "exact" ? (
+                  <div>
+                    <label className="block text-stone-700 font-semibold mb-1">
+                      {ui.timeLabel}
+                    </label>
+                    <input
+                      type="time"
+                      value={birthTime}
+                      onChange={(e) => setBirthTime(e.target.value)}
+                      disabled={isTimeUnknown}
+                      className={`w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-500 font-medium shadow-sm ${
+                        isTimeUnknown ? "opacity-60 cursor-not-allowed bg-stone-100" : ""
+                      }`}
+                    />
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="time-unknown-check"
+                        checked={isTimeUnknown}
+                        onChange={(e) => {
+                          const chk = e.target.checked;
+                          setIsTimeUnknown(chk);
+                          if (chk) {
+                            setBirthTime("12:00");
+                            setTimePrecision("date_only_chandra");
+                          } else {
+                            setTimePrecision("exact");
+                          }
+                        }}
+                        className="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500 cursor-pointer"
+                      />
+                      <label htmlFor="time-unknown-check" className="text-[11px] text-stone-700 font-medium cursor-pointer select-none">
+                        {TIME_UNKNOWN_LABELS[selectedLang] || TIME_UNKNOWN_LABELS.en}
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-2.5 flex flex-col justify-center">
+                    <span className="text-[11px] font-black text-emerald-900">
+                      ✓ {pick7({
+                        kn: "ಚಂದ್ರ-ಸೂರ್ಯ-ಪ್ರಶ್ನ ೧೦೦% ಗಣಿತ ಆಧಾರಿತ ಲೆಕ್ಕಾಚಾರ ಸಕ್ರಿಯ",
+                        en: "100% Authentic Chandra + Surya + Prashna Math Active",
+                        hi: "१००% प्रामाणिक चंद्र + सूर्य + प्रश्न गणित सक्रिय",
+                        mr: "१००% अचूक चंद्र + सूर्य + प्रश्न गणित सक्रिय",
+                        te: "100% ఖచ్చితమైన చంద్ర + సూర్య + ప్రశ్న గణితం సిద్ధం",
+                        ta: "100% துல்லியமான சந்திர + சூரிய + பிரசன்ன கணிதம்",
+                        ml: "100% കൃത്യമായ ചന്ദ്ര + സൂര്യ + പ്രശ്ന ഗണിതം സജീവം"
+                      }, m25SevenLang)}
+                    </span>
+                    <span className="text-[10px] text-emerald-800 mt-0.5 leading-snug">
+                      {pick7({
+                        kn: "ನಕಲಿ ಮಧ್ಯಾಹ್ನ ೧೨ ಗಂಟೆಯ ಲಗ್ನವಲ್ಲ — ಚಂದ್ರ ರಾಶಿ & ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರದಿಂದ ಶುದ್ಧ ಫಲಿತಾಂಶ.",
+                        en: "Never uses fake 12:00 noon Ascendant — anchored to verified Moon Rashi, Sun Axis & Sankhya.",
+                        hi: "नकली दोपहर १२ बजे का लग्न नहीं — शुद्ध चंद्र राशि और संख्या शास्त्र आधारित।",
+                        mr: "खोटे दुपारचे १२ चे लग्न नाही — शुद्ध चंद्र राशी व संख्याशास्त्र आधारित.",
+                        te: "నకిలీ మధ్యాహ్నం 12 గంటల లగ్నం కాదు — శుద్ధ చంద్ర రాశి & సంఖ్యా ఆధారితం.",
+                        ta: "போலி மதியம் 12 மணி லக்னம் அல்ல — துல்லிய சந்திர ராசி & எண் கணிதம்.",
+                        ml: "വ്യാജ ഉച്ചയ്ക്ക് 12 മണി ലഗ്നമല്ല — ശുദ്ധ ചന്ദ്ര രാശിയും സംഖ്യാശാസ്ത്രവും."
+                      }, m25SevenLang)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-3 text-xs text-indigo-950 space-y-1">
+                <div className="font-black flex items-center gap-1.5">
+                  <span>🔮</span>
+                  <span>
+                    {pick7({
+                      kn: "ಜನ್ಮ ದಿನಾಂಕ/ಸಮಯ ಬೇಡ — ತಕ್ಷಣದ ಶ್ರೀ ಗೋಕರ್ಣ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ & ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ",
+                      en: "No Date or Time Required — Instant Hotel Udaya Prashna (1–108) & Chaldean Numerology",
+                      hi: "जन्मतिथि आवश्यक नहीं — तत्काल उदय प्रश्न (१–१०८) एवं नाम संख्याशास्त्र",
+                      mr: "जन्मतारीख गरजेची नाही — तात्काळ उदय प्रश्न (१–१०८) व नाम संख्याशास्त्र",
+                      te: "జన్మ తేదీ అవసరం లేదు — తక్షణ ఉదయ ప్రశ్న (1–108) & నామ సంఖ్యాశాస్త్రం",
+                      ta: "பிறந்த தேதி தேவையில்லை — உடனடி உதய பிரசன்னம் (1–108) & எண் கணிதம்",
+                      ml: "ജനനത്തീയതി വേണ്ട — തൽക്ഷണ ഉദയ പ്രശ്നം (1–108) & നാമ സംഖ്യാശാസ്ത്രം"
+                    }, m25SevenLang)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Sub-Panel 1: Solar-Anchored 2-Tap BTR when timePrecision === "approx_window" */}
+            {timePrecision === "approx_window" && (
+              <div className="bg-amber-50/90 border-2 border-amber-300 rounded-xl p-3 space-y-3">
+                <div className="text-xs font-black text-amber-950">
+                  🌤️ {pick7({
+                    kn: "ಹಂತ ೧: ಅಂದಾಜು ಸಮಯದ ವ್ಯಾಪ್ತಿ ಆರಿಸಿ",
+                    en: "Step 1: Choose Approximate Birth Window",
+                    hi: "चरण १: अनुमानित जन्म समय चुनें",
+                    mr: "पायरी १: अंदाजे जन्मवेळ निवडा",
+                    te: "దశ 1: సుమారు జనన సమయాన్ని ఎంచుకోండి",
+                    ta: "படி 1: தோராய பிறந்த நேரத்தைத் தேர்ந்தெடுக்கவும்",
+                    ml: "ഘട്ടം 1: ഏകദേശ ജനന സമയം തിരഞ്ഞെടുക്കുക"
+                  }, m25SevenLang)}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  {APPROX_TIME_WINDOWS.map((w) => (
+                    <button
+                      key={w.id}
+                      type="button"
+                      onClick={() => setApproxWindowId(w.id)}
+                      className={`py-2 px-2 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                        approxWindowId === w.id
+                          ? "bg-amber-500 text-stone-950 border-amber-700 shadow"
+                          : "bg-white text-stone-700 border-amber-200 hover:border-amber-400"
+                      }`}
+                    >
+                      {w.labels[m25SevenLang] || w.labels.en}
+                    </button>
+                  ))}
+                </div>
+
+                {btrWindowResult?.requiresTwoTapTieBreak && btrWindowResult.questions && (
+                  <div className="bg-white border border-amber-300 rounded-xl p-2.5 space-y-2.5 text-xs">
+                    <div className="font-bold text-amber-950">
+                      ✨ {pick7({
+                        kn: "ನಿಖರ ಲಗ್ನ ನಿರ್ಧರಿಸಲು ೨ ಸಣ್ಣ ಪ್ರಶ್ನೆಗಳು:",
+                        en: "2 Quick Checks to Lock Your Exact Rising Lagna:",
+                        hi: "सटीक लग्न तय करने हेतु २ सरल प्रश्न:",
+                        mr: "अचूक लग्न ठरवण्यासाठी २ सोपे प्रश्न:",
+                        te: "ఖచ్చితమైన లగ్నాన్ని నిర్ణయించడానికి 2 చిన్న ప్రశ్నలు:",
+                        ta: "துல்லிய லக்னத்தைக் கணிக்க 2 சிறு கேள்விகள்:",
+                        ml: "കൃത്യമായ ലഗ്നം കണ്ടെത്താൻ 2 ചെറിയ ചോദ്യങ്ങൾ:"
+                      }, m25SevenLang)}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-[11px] font-semibold text-stone-800">{btrWindowResult.questions.q1Prompt}</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setBtrQ1Choice("A")}
+                          className={`p-2 rounded-lg border text-left text-[11px] font-medium cursor-pointer ${btrQ1Choice === "A" ? "bg-amber-100 border-amber-600 text-amber-950 font-bold" : "bg-stone-50 border-stone-200 text-stone-700"}`}
+                        >
+                          {btrWindowResult.questions.q1OptionA}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBtrQ1Choice("B")}
+                          className={`p-2 rounded-lg border text-left text-[11px] font-medium cursor-pointer ${btrQ1Choice === "B" ? "bg-amber-100 border-amber-600 text-amber-950 font-bold" : "bg-stone-50 border-stone-200 text-stone-700"}`}
+                        >
+                          {btrWindowResult.questions.q1OptionB}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-[11px] font-semibold text-stone-800">{btrWindowResult.questions.q2Prompt}</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setBtrQ2Choice("A")}
+                          className={`p-2 rounded-lg border text-left text-[11px] font-medium cursor-pointer ${btrQ2Choice === "A" ? "bg-amber-100 border-amber-600 text-amber-950 font-bold" : "bg-stone-50 border-stone-200 text-stone-700"}`}
+                        >
+                          {btrWindowResult.questions.q2OptionA}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBtrQ2Choice("B")}
+                          className={`p-2 rounded-lg border text-left text-[11px] font-medium cursor-pointer ${btrQ2Choice === "B" ? "bg-amber-100 border-amber-600 text-amber-950 font-bold" : "bg-stone-50 border-stone-200 text-stone-700"}`}
+                        >
+                          {btrWindowResult.questions.q2OptionB}
+                        </button>
+                      </div>
+                    </div>
+                    {(() => {
+                      const resolved = resolveBtrSelection(btrWindowResult, btrQ1Choice, btrQ2Choice);
+                      return (
+                        <div className="bg-emerald-50 border border-emerald-300 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-emerald-900">
+                          ✓ ~{resolved.selected.sampleTime} • {resolved.selected.lagnaName} ({toNativeDigits7L(resolved.confidencePct, m25SevenLang)}%)
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sub-Panel 2: Daily Lunar Stability & Tie-Breaker when timePrecision === "date_only_chandra" */}
+            {timePrecision === "date_only_chandra" && lunarStability && (
+              <div className={`border-2 rounded-xl p-3 space-y-2 text-xs ${lunarStability.hasMoonShift ? "bg-amber-50 border-amber-400" : "bg-emerald-50 border-emerald-300"}`}>
+                {lunarStability.hasMoonShift ? (
+                  <>
+                    <div className="font-black text-amber-950">
+                      🌗 {lunarStability.tieBreakerPrompt}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setLunarPickChoice("early")}
+                        className={`p-2.5 rounded-lg border text-left cursor-pointer ${lunarPickChoice === "early" ? "bg-white border-amber-600 ring-2 ring-amber-400" : "bg-white/70 border-amber-200"}`}
+                      >
+                        <div className="font-bold text-amber-950">🌅 {lunarStability.earlyCandidate.moonRashiName} • {lunarStability.earlyCandidate.moonNakName}</div>
+                        <div className="text-[11px] text-stone-700 mt-0.5">{lunarStability.earlyCandidate.traitCue}</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLunarPickChoice("late")}
+                        className={`p-2.5 rounded-lg border text-left cursor-pointer ${lunarPickChoice === "late" ? "bg-white border-amber-600 ring-2 ring-amber-400" : "bg-white/70 border-amber-200"}`}
+                      >
+                        <div className="font-bold text-amber-950">🌙 {lunarStability.lateCandidate.moonRashiName} • {lunarStability.lateCandidate.moonNakName}</div>
+                        <div className="text-[11px] text-stone-700 mt-0.5">{lunarStability.lateCandidate.traitCue}</div>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="font-bold text-emerald-900">
+                    ✅ {lunarStability.earlyCandidate.moonRashiName} ({lunarStability.earlyCandidate.moonNakName}) — {lunarStability.tieBreakerPrompt}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sub-Panel 3: Prashna Shastra Domain + 1-108 Seed + Optional Palm & Face Samudrika (when non-exact) */}
+            {timePrecision !== "exact" && (
+              <div className="bg-amber-50/70 border border-amber-300 rounded-xl p-3 space-y-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-amber-950 font-bold mb-1">
+                      🔮 {pick7({
+                        kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ ವಿಷಯ (ಹಣ/ವಿವಾಹ/ಉದ್ಯೋಗ)",
+                        en: "Urgent Prashna Topic",
+                        hi: "प्रश्न शास्त्र विषय",
+                        mr: "प्रश्न शास्त्र विषय",
+                        te: "ప్రశ్న శాస్త్ర అంశం",
+                        ta: "பிரசன்ன கேள்வி துறை",
+                        ml: "പ്രശ്നശാസ്ത്ര വിഷയം"
+                      }, m25SevenLang)}
+                    </label>
+                    <select
+                      value={prashnaDomain}
+                      onChange={(e) => setPrashnaDomain(e.target.value as PrashnaQuestionDomain)}
+                      className="w-full bg-white border-2 border-amber-300 rounded-xl px-2.5 py-2 text-stone-900 font-semibold focus:outline-none focus:border-amber-500"
+                    >
+                      {getPrashnaDomainOptions(m25SevenLang).map((d) => (
+                        <option key={d.id} value={d.id}>{d.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-amber-950 font-bold mb-1">
+                      🔢 {pick7({
+                        kn: "ಶುಭ ಸಂಖ್ಯೆ (೧ – ೧೦೮)",
+                        en: "Prashna Seed Number (1–108)",
+                        hi: "शुभ संख्या (१–१०८)",
+                        mr: "शुभ अंक (१–१०८)",
+                        te: "శుభ సంఖ్య (1–108)",
+                        ta: "பிரசன்ன எண் (1–108)",
+                        ml: "പ്രശ്ന സംഖ്യ (1–108)"
+                      }, m25SevenLang)}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        max={108}
+                        value={horarySeedNumber}
+                        onChange={(e) => setHorarySeedNumber(Math.max(1, Math.min(108, Number(e.target.value) || 1)))}
+                        className="w-24 bg-white border-2 border-amber-300 rounded-xl px-2.5 py-2 text-center font-black text-amber-950"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setHorarySeedNumber(Math.floor(Math.random() * 108) + 1)}
+                        className="flex-1 py-2 px-2.5 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold transition cursor-pointer"
+                      >
+                        🎲 {pick7({ kn: "ಆಕಸ್ಮಿಕ ಸಂಖ್ಯೆ", en: "Pick Intuitive #", hi: "नया अंक", mr: "नवीन अंक", te: "కొత్త సంఖ్య", ta: "புதிய எண்", ml: "പുതിയ സംഖ്യ" }, m25SevenLang)}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Optional 1-Tap Palm & Selfie Biometric Upload */}
+                <div className="border-t border-amber-200 pt-2.5 space-y-1.5">
+                  <div className="text-[11px] font-bold text-stone-700">
+                    📸 {pick7({
+                      kn: "ಐಚ್ಛಿಕ: ಹಸ್ತ / ಮುಖ ಸಾಮುದ್ರಿಕ ಫೋಟೋ ಸೇರಿಸಿ (ನಿಖರತೆಗಾಗಿ)",
+                      en: "Optional Booster: Upload Palm or Selfie Photo (Hastarekha / Mukha Samudrika)",
+                      hi: "वैकल्पिक: हस्तरेखा या मुख सामुद्रिक फोटो अपलोड करें",
+                      mr: "ऐच्छिक: हस्तरेखा किंवा चेहरा सामुद्रिक फोटो जोडा",
+                      te: "ఐచ్ఛికం: హస్తసాముద్రికం లేదా ముఖ ఫోటో జతచేయండి",
+                      ta: "விருப்பத் தேர்வு: உள்ளங்கை / முக சாமுத்ரிகா புகைப்படம்",
+                      ml: "ഓപ്ഷണൽ: ഹസ്തരേഖ / മുഖ സാമുദ്രിക ഫോട്ടോ"
+                    }, m25SevenLang)}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label className={`flex items-center justify-between px-3 py-2 rounded-xl border-2 cursor-pointer transition ${palmPhotoDataUrl ? "bg-emerald-50 border-emerald-400 text-emerald-900 font-bold" : "bg-white border-amber-200 text-stone-700 hover:border-amber-400"}`}>
+                      <span className="truncate">
+                        {palmPhotoDataUrl ? "✓ " : "✋ "}
+                        {pick7({ kn: "ಹಸ್ತದ ಫೋಟೋ (ಐಚ್ಛಿಕ)", en: "Palm Photo (Optional)", hi: "हथेली फोटो", mr: "तळहात फोटो", te: "అరచేయి ఫోటో", ta: "உள்ளங்கை படம்", ml: "കൈപ്പത്തി ഫോട്ടോ" }, m25SevenLang)}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handlePhotoUpload("palm", e.target.files?.[0])}
+                      />
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold">
+                        {palmPhotoDataUrl ? "✓" : "+"}
+                      </span>
+                    </label>
+                    <label className={`flex items-center justify-between px-3 py-2 rounded-xl border-2 cursor-pointer transition ${facePhotoDataUrl ? "bg-emerald-50 border-emerald-400 text-emerald-900 font-bold" : "bg-white border-amber-200 text-stone-700 hover:border-amber-400"}`}>
+                      <span className="truncate">
+                        {facePhotoDataUrl ? "✓ " : "🤳 "}
+                        {pick7({ kn: "ಮುಖದ ಸೆಲ್ಫಿ (ಐಚ್ಛಿಕ)", en: "Face Selfie (Optional)", hi: "चेहरा सेल्फी", mr: "चेहरा सेल्फी", te: "ముఖ సెల్ఫీ", ta: "முக செல்ஃபி", ml: "മുഖം സെൽഫി" }, m25SevenLang)}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handlePhotoUpload("face", e.target.files?.[0])}
+                      />
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold">
+                        {facePhotoDataUrl ? "✓" : "+"}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Gender Selection */}
             <div>
@@ -3524,6 +4264,144 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               </div>
             )}
 
+            {/* 4B. 🔮 LIVE PRASHNA SHASTRA, SANKHYA NUMEROLOGY & BIOMETRIC ACCURACY CARD */}
+            {(prashnaResult || sankhyaProfile) && (
+              <div className="bg-[#FFFDF7] border-2 border-[#D4AF37] rounded-2xl p-4 sm:p-5 space-y-3 shadow-lg">
+                {timePrecision !== "exact" && (
+                  <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-3 space-y-1 text-xs">
+                    <div className="font-black text-emerald-950 flex items-center justify-between flex-wrap gap-1">
+                      <span>
+                        🛡️{" "}
+                        {timePrecision === "approx_window" && resolvedBtrLabel
+                          ? resolvedBtrLabel
+                          : timePrecision === "date_only_chandra"
+                          ? pick7({
+                              kn: "೧೦೦% ಅಧಿಕೃತ ಚಂದ್ರ ಲಗ್ನ + ಸೂರ್ಯ + ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ ವಿಶ್ಲೇಷಣೆ",
+                              en: "100% Authentic Chandra Lagna + Surya + Sankhya Anchor",
+                              hi: "१००% प्रामाणिक चंद्र लग्न + सूर्य + संख्या शास्त्र विश्लेषण",
+                              mr: "१००% अचूक चंद्र लग्न + सूर्य + संख्याशास्त्र विश्लेषण",
+                              te: "100% ఖచ్చితమైన చంద్ర లగ్నం + సూర్య + సంఖ్యాశాస్త్రం",
+                              ta: "100% துல்லிய சந்திர லக்னம் + சூரிய + எண் கணிதம்",
+                              ml: "100% കൃത്യമായ ചന്ദ്രലഗ്ന + സൂര്യ + സംഖ്യാശാസ്ത്ര ഫലം"
+                            }, m25SevenLang)
+                          : pick7({
+                              kn: "೧೦೦% ತಕ್ಷಣದ ಶ್ರೀ ಗೋಕರ್ಣ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ & ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ",
+                              en: "100% Authentic Table Udaya Prashna (1–108) & Chaldean Numerology",
+                              hi: "१००% प्रामाणिक उदय प्रश्न (१–१०८) एवं चाल्डियन अंकशास्त्र",
+                              mr: "१००% अचूक उदय प्रश्न (१–१०८) व चाल्डियन अंकशास्त्र",
+                              te: "100% ఖచ్చితమైన ఉదయ ప్రశ్న (1–108) & చాల్డియన్ సంఖ్యాశాస్త్రం",
+                              ta: "100% துல்லிய உதய பிரசன்னம் (1–108) & எண் கணிதம்",
+                              ml: "100% കൃത്യമായ ഉദയ പ്രശ്നം (1–108) & ചാൽഡിയൻ സംഖ്യാശാസ്ത്രം"
+                            }, m25SevenLang)}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-950">
+                        {pick7({ kn: "ಶುದ್ಧ ಗಣಿತ", en: "Zero Fake Noon Time", hi: "शुद्ध गणित", mr: "शुद्ध गणित", te: "శుద్ధ గణితం", ta: "துல்லிய கணிதம்", ml: "ശുദ്ധ ഗണിതം" }, m25SevenLang)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-emerald-900 leading-snug">
+                      {pick7({
+                        kn: "ಮುಂದೆ ಪೋಷಕರಿಂದ ನಿಖರ ಸಮಯ ತಿಳಿದರೆ, ಇದೇ ಲಿಂಕ್ ಮೂಲಕ ಪುನಃ ಉಚಿತವಾಗಿ ಪರಿಶೀಲಿಸಬಹುದು.",
+                        en: "If your family confirms exact birth time later, you can return to this QR link anytime for an instant exact-Lagna verification.",
+                        hi: "यदि बाद में सही जन्म समय पता चले, तो इसी QR लिंक से सटीक लग्न पुनः देख सकते हैं।",
+                        mr: "नंतर अचूक जन्मवेळ कळल्यास, याच QR लिंकवर येऊन अचूक लग्न तपासू शकता.",
+                        te: "తర్వాత ఖచ్చితమైన సమయం తెలిస్తే, ఇదే QR లింక్ ద్వారా మళ్లీ సరిచూసుకోవచ్చు.",
+                        ta: "பின்னர் சரியான நேரம் தெரிந்தால், இதே QR இணைப்பில் மீண்டும் சரிபார்க்கலாம்.",
+                        ml: "പിന്നീട് കൃത്യസമയം അറിഞ്ഞാൽ ഇതേ QR ലിങ്കിൽ വീണ്ടും പരിശോധിക്കാം."
+                      }, m25SevenLang)}
+                    </p>
+                  </div>
+                )}
+
+                {prashnaResult && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1">
+                      <div className="font-black text-amber-950 flex items-center justify-between">
+                        <span>🔮 {prashnaResult.questionLabel}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px]">
+                          {toNativeDigits7L(prashnaResult.ithasalaHarmonyScore, m25SevenLang)}%
+                        </span>
+                      </div>
+                      <div className="text-[11px] font-bold text-amber-900">
+                        {prashnaResult.verdictTitle}
+                      </div>
+                      <div className="text-[11px] text-stone-700 leading-snug">
+                        {prashnaResult.udayaLagnaName} ({prashnaResult.udayaLagnaLordName}) • #{toNativeDigits7L(prashnaResult.horaryNumber, m25SevenLang)} ({prashnaResult.seedLagnaName})
+                      </div>
+                      <div className="text-[11px] font-semibold text-emerald-800">
+                        ⏳ {prashnaResult.timingForecast}
+                      </div>
+                    </div>
+
+                    {sankhyaProfile && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1">
+                        <div className="font-black text-amber-950">
+                          🔢 {pick7({
+                            kn: "ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ & ಸೂರ್ಯ ರಾಶಿ",
+                            en: "Chaldean Sankhya & Surya Axis",
+                            hi: "संख्या शास्त्र एवं सूर्य राशि",
+                            mr: "अंकशास्त्र व सूर्य राशी",
+                            te: "సంఖ్యాశాస్త్రం & సూర్య రాశి",
+                            ta: "எண் கணிதம் & சூரிய ராசி",
+                            ml: "സംഖ്യാശാസ്ത്രവും സൂര്യരാശിയും"
+                          }, m25SevenLang)}
+                        </div>
+                        <div className="text-[11px] font-bold text-amber-900">
+                          {pick7({ kn: "ಮೂಲಾಂಕ", en: "Mulank", hi: "मूलांक", mr: "मूलांक", te: "మూలాంకం", ta: "மூல எண்", ml: "മൂലാംകം" }, m25SevenLang)}: {toNativeDigits7L(sankhyaProfile.mulank, m25SevenLang)} •{" "}
+                          {pick7({ kn: "ಭಾಗ್ಯಾಂಕ", en: "Bhagyank", hi: "भाग्यांक", mr: "भाग्यांक", te: "భాగ్యాంకం", ta: "விதி எண்", ml: "ഭാഗ്യാംകം" }, m25SevenLang)}: {toNativeDigits7L(sankhyaProfile.bhagyank, m25SevenLang)}
+                        </div>
+                        <div className="text-[11px] text-stone-700">
+                          {sankhyaProfile.rulingPlanet} • {sankhyaProfile.luckyColor} • {sankhyaProfile.suryaLagnaName}
+                        </div>
+                        <div className="text-[11px] text-stone-700 leading-snug">
+                          ✨ {sankhyaProfile.coreStrengths}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {(palmResult || faceResult) && (
+                  <div className="bg-emerald-50/80 border border-emerald-300 rounded-xl p-2.5 text-[11px] text-emerald-950 flex flex-wrap items-center gap-3">
+                    {palmResult && (
+                      <span>
+                        ✋ {palmResult.chironomyHandType?.element?.[selectedLang] || palmResult.chironomyHandType?.element?.en} • {palmResult.mounts?.[0]?.mountName?.[selectedLang] || palmResult.mounts?.[0]?.mountName?.en}
+                      </span>
+                    )}
+                    {faceResult && (
+                      <span>
+                        👤 {faceResult.facialConstitution?.mahapurushaArchetype?.[selectedLang] || faceResult.facialConstitution?.mahapurushaArchetype?.en} • {faceResult.facialConstitution?.auraGlow?.[selectedLang] || faceResult.facialConstitution?.auraGlow?.en}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* 1-Tap WhatsApp Free Preview Share */}
+                <div className="flex justify-end">
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      `🕉️ ${devoteeName.trim()} — ${hotelName || DEFAULT_HOTEL_FULL_NAME}\n🔮 ${prashnaResult?.verdictTitle || secretResult.moonSignName}\n🔢 ${sankhyaProfile ? `${sankhyaProfile.rulingPlanet} (${sankhyaProfile.luckyColor})` : ""}\n✨ ${typeof window !== "undefined" ? window.location.href : "https://baggonapanchanga.com/antaranga"}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow transition"
+                  >
+                    <span>💬</span>
+                    <span>
+                      {pick7({
+                        kn: "ಉಚಿತ ಫಲಿತಾಂಶ WhatsApp ಹಂಚಿಕೊಳ್ಳಿ",
+                        en: "Share Free Preview on WhatsApp",
+                        hi: "व्हाट्सऐप पर निःशुल्क झलक साझा करें",
+                        mr: "व्हॉट्सॲपवर मोफत झलक शेअर करा",
+                        te: "ఉచిత ఫలితాన్ని WhatsApp లో షేర్ చేయండి",
+                        ta: "இலவச பலனை WhatsApp-இல் பகிரவும்",
+                        ml: "സൗജന്യ ഫലം WhatsApp വഴി പങ്കിടുക"
+                      }, m25SevenLang)}
+                    </span>
+                  </a>
+                </div>
+              </div>
+            )}
+
             {/* 5. 🔥 PANDIT PALETTE DINING CONVERSION OFFER (SOCIAL PROOF & 10-SEC DELIVERY) */}
             {secretResult.diningOffer && (
               <div className="bg-gradient-to-r from-amber-100/90 via-[#FFF9EC] to-amber-100/90 border-2 border-[#D4AF37] rounded-2xl p-4 sm:p-5 text-center space-y-3 shadow-xl">
@@ -3602,7 +4480,71 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               </div>
 
               {/* Comparative Package Selector Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+                {/* Package 0: Express Walk-In Prashna + Sankhya + Samudrika PDF (₹149) */}
+                <div
+                  onClick={() => {
+                    if (selectedPackage !== "express_149") {
+                      triggerScreenLoader("package_switch", 450);
+                      setSelectedPackage("express_149");
+                    }
+                  }}
+                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative ${
+                    selectedPackage === "express_149"
+                      ? "bg-gradient-to-b from-emerald-50 to-white border-emerald-600 shadow-xl shadow-emerald-500/15 ring-2 ring-emerald-500"
+                      : "bg-white/95 border-emerald-200 hover:border-emerald-400 shadow-sm"
+                  }`}
+                >
+                  <div className="absolute -top-2.5 right-4 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow">
+                    {pick7({ kn: "ತಕ್ಷಣ ಪ್ರಶ್ನ", en: "Instant Express", hi: "त्वरित एक्सप्रेस", mr: "तात्काळ एक्सप्रेस", te: "తక్షణ ఎక్స్‌ప్రెస్", ta: "உடனடி சிறப்பு", ml: "തൽക്ഷണ എക്സ്പ്രസ്" }, m25SevenLang)}
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-emerald-100">
+                    <span className="text-xs font-bold text-emerald-950">
+                      {pick7({
+                        kn: "ಪ್ರಶ್ನ & ಸಾಮುದ್ರಿಕ ಎಕ್ಸ್‌ಪ್ರೆಸ್",
+                        en: "Prashna & Samudrika Express",
+                        hi: "प्रश्न व सामुद्रिक एक्सप्रेस",
+                        mr: "प्रश्न व सामुद्रिक एक्सप्रेस",
+                        te: "ప్రశ్న & సాముద్రిక ఎక్స్‌ప్రెస్",
+                        ta: "பிரசன்னம் & சாமுத்ரிகா",
+                        ml: "പ്രശ്ന & സാമുദ്രിക എക്സ്പ്രസ്"
+                      }, m25SevenLang)}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-stone-500 line-through">₹499</span>
+                      <span className="text-lg font-black text-emerald-800">₹149</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-stone-700 mt-2 leading-relaxed">
+                    {pick7({
+                      kn: "ಜನ್ಮ ಸಮಯ ತಿಳಿಯದವರಿಗೆ ತಕ್ಷಣದ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ, ನಾಮ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ & ಹಸ್ತ/ಮುಖ PDF.",
+                      en: "Ideal when birth time/date is unknown: Live 1–108 Prashna, Chaldean Sankhya & optional Palm/Face PDF.",
+                      hi: "बिना जन्म समय के लिए आदर्श: तत्काल १–१०८ प्रश्न, नाम अंकशास्त्र व हस्त/मुख PDF।",
+                      mr: "जन्मवेळ माहित नसल्यास उत्तम: तात्काळ १–१०८ प्रश्न, अंकशास्त्र व हस्त/चेहरा PDF.",
+                      te: "జన్మ సమయం తెలియని వారికి: 1–108 ప్రశ్న, నామ సంఖ్యాశాస్త్రం & హస్త/ముఖ PDF.",
+                      ta: "பிறந்த நேரம் தெரியாதவர்களுக்கு: 1–108 பிரசன்னம், எண் கணிதம் & கை/முக PDF.",
+                      ml: "ജനനസമയം അറിയാത്തവർക്കായി: 1–108 പ്രശ്നം, സംഖ്യാശാസ്ത്രം & കൈ/മുഖ PDF."
+                    }, m25SevenLang)}
+                  </p>
+                  <ul className="mt-3 space-y-1.5 text-[11px] text-stone-800">
+                    <li className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                      <span>✓</span>
+                      <span>{pick7({ kn: "೧–೧೦೮ ತಾಜಿಕ ಪ್ರಶ್ನ ಕುಂಡಲಿ PDF", en: "Live Udaya & 1–108 Tajika Prashna PDF", hi: "तात्कालिक १–१०८ ताजिक प्रश्न PDF", mr: "तात्काळ १–१०८ ताजिक प्रश्न PDF", te: "తక్షణ 1–108 తాజిక ప్రశ్న PDF", ta: "நேரடி 1–108 தாஜிக பிரசன்ன PDF", ml: "തൽക്ഷണ 1–108 താജിക പ്രശ്ന PDF" }, m25SevenLang)}</span>
+                    </li>
+                    <li className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                      <span>✓</span>
+                      <span>{pick7({ kn: "ಚಾಲ್ಡಿಯನ್ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ & ಹಸ್ತ/ಮುಖ ಫಲ", en: "Chaldean Sankhya + Optional Palm/Face", hi: "अंकशास्त्र व हस्त/मुख विश्लेषण", mr: "अंकशास्त्र व हस्त/चेहरा फलादेश", te: "సంఖ్యాశాస్త్రం + హస్త/ముఖ ఫలితం", ta: "எண் கணிதம் + கை/முக பலன்", ml: "സംഖ്യാശാസ്ത്രം + കൈ/മുഖ ഫലം" }, m25SevenLang)}</span>
+                    </li>
+                  </ul>
+                  <div className="mt-3 text-right">
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                      selectedPackage === "express_149" ? "bg-emerald-600 text-white" : "text-stone-500"
+                    }`}>
+                      {selectedPackage === "express_149" ? "✓ Selected" : "Select"}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Package 1: Standard Vedic Destiny (₹350) */}
                 <div
                   onClick={() => {
@@ -3718,11 +4660,19 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 )}
                 <div className="flex items-center justify-center gap-3">
                   <span className="text-xs text-stone-700 font-medium">
-                    {selectedPackage === "remedy_450" ? "5-Year PDF + Kundali + Remedy Dossier" : selectedPackage === "family_250" ? "Family 25-Chapter Master Report + Janma Kundali" : "25-Chapter Master PDF + Janma Kundali"}
+                    {selectedPackage === "express_149"
+                      ? "Express Prashna + Sankhya + Samudrika PDF"
+                      : selectedPackage === "remedy_450"
+                        ? "5-Year PDF + Kundali + Remedy Dossier"
+                        : selectedPackage === "family_250"
+                          ? "Family 25-Chapter Master Report + Janma Kundali"
+                          : "25-Chapter Master PDF + Janma Kundali"}
                   </span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl sm:text-3xl font-black text-amber-900">₹{packagePrice}</span>
-                    <span className="text-xs text-stone-500">({selectedPackage === "remedy_450" ? "INR 450 Only" : selectedPackage === "family_250" ? "INR 250 Only" : "INR 350 Only"})</span>
+                    <span className="text-xs text-stone-500">
+                      ({selectedPackage === "express_149" ? "INR 149 Only" : selectedPackage === "remedy_450" ? "INR 450 Only" : selectedPackage === "family_250" ? "INR 250 Only" : "INR 350 Only"})
+                    </span>
                   </div>
                 </div>
 
@@ -3781,7 +4731,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                       <div className="text-[11px] text-stone-600 font-mono">
                         UPI ID: <span className="font-semibold text-stone-700">{PRIEST_UPI_ID}</span> · <span className="text-emerald-700 font-bold text-sm">₹{packagePrice}</span>
                         <span className="ml-1 text-[10px] text-stone-500">
-                          ({selectedPackage === "remedy_450" ? "Destiny + Remedy" : selectedPackage === "family_250" ? "Family Special" : "Standard"})
+                          ({selectedPackage === "express_149" ? "Express Walk-In" : selectedPackage === "remedy_450" ? "Destiny + Remedy" : selectedPackage === "family_250" ? "Family Special" : "Standard"})
                         </span>
                       </div>
                     </div>
@@ -3982,6 +4932,49 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                 </p>
               </div>
 
+              {selectedPackage === "express_149" ? (
+                <div className="flex flex-col gap-2 max-w-lg mx-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isPaymentVerified) {
+                        alert(ui.unpaidWarning);
+                        const payEl = document.getElementById("hotel-payment-box");
+                        if (payEl) payEl.scrollIntoView({ behavior: "smooth" });
+                        return;
+                      }
+                      void handleDownloadExpressWalkInPdf();
+                    }}
+                    disabled={!isPaymentVerified || isGeneratingPdf || (downloadCounts.express || 0) >= 3 || Boolean(downloadedPdfs.express)}
+                    className={`py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition ${
+                      !isPaymentVerified
+                        ? "bg-stone-100 text-stone-500 border-2 border-dashed border-emerald-400/80 cursor-not-allowed opacity-90"
+                        : (downloadCounts.express || 0) >= 3 || downloadedPdfs.express
+                        ? "bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed opacity-80"
+                        : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white active:scale-[0.99] cursor-pointer"
+                    }`}
+                  >
+                    <span>
+                      {!isPaymentVerified
+                        ? `${pick7({ kn: "ಪ್ರಶ್ನ & ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Express Prashna & Samudrika PDF", hi: "एक्सप्रेस प्रश्न व सामुद्रिक PDF डाउनलोड", mr: "एक्सप्रेस प्रश्न व सामुद्रिक PDF डाउनलोड", te: "ఎక్స్‌ప్రెస్ ప్రశ్న & సాముద్రిక PDF డౌన్‌లోడ్", ta: "விரைவு பிரசன்ன & சாமுத்ரிகா PDF", ml: "എക്സ്പ്രസ് പ്രശ്ന & സാമുദ്രിക PDF" }, m25SevenLang)} (${ui.lockedPdfBtn.replace("{amount}", String(packagePrice))})`
+                        : (downloadCounts.express || 0) >= 3 || downloadedPdfs.express
+                        ? ui.downloadedBtn
+                        : `${pick7({ kn: "ಪ್ರಶ್ನ & ಸಾಮುದ್ರಿಕ PDF ಡೌನ್‌ಲೋಡ್", en: "Download Express Prashna & Samudrika PDF", hi: "एक्सप्रेस प्रश्न व सामुद्रिक PDF डाउनलोड", mr: "एक्सप्रेस प्रश्न व सामुद्रिक PDF डाउनलोड", te: "ఎక్స్‌ప్రెస్ ప్రశ్న & సాముద్రిక PDF డౌన్‌లోడ్", ta: "விரைவு பிரசன்ன & சாமுத்ரிகா PDF", ml: "എക്സ്പ്രസ് പ്രശ്ന & സാമുദ്രിക PDF" }, m25SevenLang)}${downloadCounts.express ? ` (${downloadCounts.express}/3)` : ""}`}
+                    </span>
+                  </button>
+                  {isPaymentVerified && (
+                    <button
+                      type="button"
+                      onClick={() => void handleOpenInNewTab("express")}
+                      disabled={isGeneratingPdf}
+                      className="py-1.5 px-3 rounded-lg text-[11px] font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-300 flex items-center justify-center gap-1 transition shadow-sm active:scale-95 cursor-pointer"
+                      title="iPhone Safari Safe Preview"
+                    >
+                      <span>{SAFARI_OPEN_LABELS[selectedLang] || SAFARI_OPEN_LABELS.en}</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
                 {/* Button 1: 25-Chapter Sampoorna Master Report / 5-Year Destiny PDF */}
                 <div className="flex flex-col gap-1.5">
@@ -4153,6 +5146,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   );
                 })()}
               </div>
+              )}
 
               {/* iPhone Safari Tip */}
               {isPaymentVerified && (
@@ -4237,6 +5231,13 @@ export default function AntarangadaSatyaPage(): JSX.Element {
             </div>
           )}
         </div>
+
+        {/* 4. ₹149 Express Walk-In Prashna + Sankhya + Samudrika PDF Template */}
+        {expressPdfPayload && (
+          <div ref={expressPdfRef} id="hotel-express-pdf-render">
+            <HotelExpressWalkInPdfTemplate data={expressPdfPayload} />
+          </div>
+        )}
       </div>
 
       {/* Footer */}

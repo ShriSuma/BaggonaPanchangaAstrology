@@ -127,6 +127,9 @@ export interface SampoornaAiChartSnapshot {
   chartVisualMetrics: ChartVisualMetrics;
   narrativeVariant: number;
   houseSummaryLines: string;
+  timePrecision?: "exact" | "approx_window" | "date_only_chandra" | "no_dob_instant";
+  btrSummary?: string;
+  sankhyaSummary?: string;
 }
 
 // ============================================================================
@@ -433,8 +436,16 @@ function buildChartGroundingBlock(snap: SampoornaAiChartSnapshot & { isEarlyChil
     ? snap.activeDoshaProfiles.map((d) => `  - [id="${d.id}"] ${d.title} (${d.severityLabel}): Current effect="${d.doingNow}" | Area="${d.affectingArea}" | Remedy focus="${d.exactAction}"`).join("\n")
     : "  - None flagged as high-severity (Kuja/Sarpa/Maandi/Shani balanced or mitigated).";
 
+  const precisionRule =
+    snap.timePrecision === "date_only_chandra" || snap.timePrecision === "no_dob_instant"
+      ? `PRECISION RULE (CHANDRA LAGNA BASIS — TIME UNKNOWN): Birth minute is NOT verified. Houses above are mathematically anchored strictly to Moon Sign (Chandra Lagna) + planetary positions + Gochara + Numerology${snap.sankhyaSummary ? ` (${snap.sankhyaSummary})` : ""}. NEVER mention "12:00 noon", exact rising degree, or hour-dependent Maandi/Hora as fixed birth time facts.`
+      : snap.timePrecision === "approx_window"
+      ? `PRECISION RULE (2-TAP BTR RECTIFIED WINDOW): Narrowed via Solar Window & personality rectification${snap.btrSummary ? ` (${snap.btrSummary})` : ""}. Emphasize Moon Sign, Dasha, Transits, and confirmed Lagna tendencies with balanced clarity.`
+      : "";
+
   return [
     `[DETERMINISTIC VEDIC CHART SNAPSHOT — USE EXACT DATA ONLY, DO NOT ALTER NUMBERS OR SIGNS]`,
+    ...(precisionRule ? [precisionRule] : []),
     `Devotee: ${snap.devoteeName} | Life Stage: ${ageStage}`,
     `Birth: ${snap.birthDate} ${snap.birthTime} at ${snap.birthPlace}`,
     `Ascendant (Lagna): ${snap.lagnaName} (Lord: ${snap.lagnaLord}) | Moon Sign: ${snap.moonRashi} (Lord: ${snap.moonLord})`,
