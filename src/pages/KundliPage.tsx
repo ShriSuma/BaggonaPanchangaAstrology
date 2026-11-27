@@ -16,7 +16,13 @@ import { translateText } from "../utils/translator";
 import JSZip from "jszip";
 import { prepareBhavishyaV1Data, captureBhavishyaV1Pdf, type BhavishyaV1Payload } from "../features/premiumPdf/bhavishyaV1Service";
 import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
-import { prepareSampoornaMaster25Data, captureSampoornaMaster25Pdf, type SampoornaMaster25Payload } from "../services/sampoornaMaster25Service";
+import {
+  prepareSampoornaMaster25Data,
+  captureSampoornaMaster25Pdf,
+  normalizeSevenLang,
+  type SampoornaMaster25Payload,
+  type SevenLang
+} from "../services/sampoornaMaster25Service";
 import { SampoornaMaster25PdfTemplate } from "../components/sampoornaMaster25/SampoornaMaster25PdfTemplate";
 import { prepare5YearPredictionData, captureFiveYearPredictionPdf } from "../features/fiveYearPrediction/fiveYearPredictionService";
 import { type FiveYearPredictionPayload } from "../features/fiveYearPrediction/fiveYearPredictionEngine";
@@ -37,6 +43,7 @@ const getMaster25ButtonLabel = (lang?: string) => {
   if (l.startsWith("mr")) return "संपूर्ण २५-अध्यायांचा महा अहवाल (वर्तमान + पुढील ५ वर्षे)";
   if (l.startsWith("te")) return "సంపూర్ణ 25-అధ్యాయాల మహా నివేదిక (వర్తమానం + రాబోయే 5 సంవత్సరాలు)";
   if (l.startsWith("ta")) return "முழுமையான 25-அத்தியாயங்கள் மகா அறிக்கை (தற்போது + அடுத்த 5 ஆண்டுகள்)";
+  if (l.startsWith("ml")) return "സമ്പൂർണ്ണ 25-അധ്യായ മഹാ റിപ്പോർട്ട് (വർത്തമാനം + അടുത്ത 5 വർഷം)";
   return "Download Complete 25-Chapter Master Report (Present + Next 5 Years)";
 };
 
@@ -47,6 +54,7 @@ const getMaster25ButtonSub = (lang?: string) => {
   if (l.startsWith("mr")) return "वर्तमान गोचर • भृगु बिंदू • ५ वर्षांचे सविस्तर भविष्य • गोकर्ण रक्षा कवच";
   if (l.startsWith("te")) return "ప్రస్తుత గోచారం • భృగు బిందు • 5 సంవత్సరాల భవిష్యత్ దర్శనం • గోకర్ణ రక్షా కవచం";
   if (l.startsWith("ta")) return "தற்போதைய கோச்சாரம் • பிருகு பிந்து • 5 ஆண்டு விரிவான எதிர்காலம் • கோகர்ண ஆசி";
+  if (l.startsWith("ml")) return "വർത്തമാന ഗോചരം • ഭൃഗു ബിന്ദു • 5 വർഷത്തെ സമഗ്ര ഭാവിഫലം • ഗോകർണ്ണ ആശിസ്സ്";
   return "Current Transits • Bhrigu Bindu • 5-Year Future Horizon • Sri Kshetra Gokarna Blessing";
 };
 
@@ -1221,10 +1229,11 @@ export default function KundliPage(): JSX.Element {
     const safeName = (form.name || "Devotee").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
     const safePriest = (priestNameInput || "Shreeram_Pandit").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
     const todayStr = new Date().toISOString().slice(0, 10);
-    const langNames: Record<string, string> = { kn: "Kannada", mr: "Marathi", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
+    const langNames: Record<string, string> = { kn: "Kannada", mr: "Marathi", ta: "Tamil", te: "Telugu", hi: "Hindi", ml: "Malayalam", en: "English" };
     const langName = langNames[pdfLanguage] || "Kannada";
     const rawBundleLang = ((pdfLanguage || i18n.language || "kn").slice(0, 2)).toLowerCase();
     const bundleSixLang: SixLang = (rawBundleLang === "ml" ? "en" : ["kn", "hi", "mr", "te", "ta", "en"].includes(rawBundleLang) ? rawBundleLang : "kn") as SixLang;
+    const master25Lang: SevenLang = normalizeSevenLang(rawBundleLang);
 
     const zip = new JSZip();
     let pdf1Blob: Blob | null = null;
@@ -1503,7 +1512,10 @@ export default function KundliPage(): JSX.Element {
             : "7/7 Generating Sampoorna 25-Chapter Master Booklet PDF..."
         );
 
-        const m25PayloadData = await prepareSampoornaMaster25Data(effectiveSession, bundleSixLang, {
+        const m25GeminiKey = useAppStore.getState().geminiApiKey || "";
+        const m25PayloadData = await prepareSampoornaMaster25Data(effectiveSession, master25Lang, {
+          enableAi: true,
+          geminiApiKey: m25GeminiKey,
           onProgress: (pct, msg) => {
             setBundleProgress(92 + Math.floor((pct / 100) * 3));
             if (msg) setBundleStageText(msg);
@@ -1517,7 +1529,7 @@ export default function KundliPage(): JSX.Element {
         }
         const pdf7 = await captureSampoornaMaster25Pdf(master25PdfRef.current, pdf7FileName, false, {
           payload: m25PayloadData,
-          lang: bundleSixLang,
+          lang: master25Lang,
           onProgress: (_pct, msg) => {
             if (msg) setBundleStageText(msg);
           }
@@ -1593,9 +1605,8 @@ export default function KundliPage(): JSX.Element {
     }
     try {
       setIsGeneratingMaster25Pdf(true);
-      setMaster25Progress(10);
-      const rawLang = ((pdfLanguage || i18n.language || "kn").slice(0, 2)).toLowerCase();
-      const validLang: SixLang = (rawLang === "ml" ? "en" : ["kn", "hi", "mr", "te", "ta", "en"].includes(rawLang) ? rawLang : "kn") as SixLang;
+      setMaster25Progress(5);
+      const validLang: SevenLang = normalizeSevenLang(pdfLanguage || i18n.language || "kn");
 
       setMaster25ProgressMsg(
         validLang === "kn"
@@ -1608,12 +1619,17 @@ export default function KundliPage(): JSX.Element {
           ? "1/4 జన్మ కుండలి మరియు గణిత పరిశీలన..."
           : validLang === "ta"
           ? "1/4 ஜாதக கணித சரிபார்ப்பு..."
+          : validLang === "ml"
+          ? "1/4 ജന്മകുണ്ഡലിയും ജ്യോതിഷ ഗണിതവും പരിശോധിക്കുന്നു..."
           : "1/4 Verifying natal astronomical mathematics..."
       );
 
+      const m25GeminiKey = useAppStore.getState().geminiApiKey || "";
       const payload = await prepareSampoornaMaster25Data(effectiveSession, validLang, {
+        enableAi: true,
+        geminiApiKey: m25GeminiKey,
         onProgress: (pct, msg) => {
-          setMaster25Progress(pct);
+          setMaster25Progress(Math.max(5, Math.min(68, Math.round((pct / 100) * 68))));
           setMaster25ProgressMsg(msg);
         }
       });
@@ -1631,7 +1647,7 @@ export default function KundliPage(): JSX.Element {
         .replace(/[\/\\?%*:|"<>]/g, "")
         .replace(/\s+/g, "_");
       const slugName = cleanDevoteeName.replace(/^-+|-+$/g, "") || "jataka";
-      const fileName = `baggona-sampoorna-25-master-report-${slugName}.pdf`;
+      const fileName = `baggona-sampoorna-25-master-report-${validLang.toUpperCase()}-${slugName}.pdf`;
 
       await captureSampoornaMaster25Pdf(master25PdfRef.current, fileName, true, {
         lang: validLang,
@@ -1648,6 +1664,14 @@ export default function KundliPage(): JSX.Element {
           ? "🎉 ಸಂಪೂರ್ಣ ೨೫-ಅಧ್ಯಾಯಗಳ ಮಹಾ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಪೂರ್ಣಗೊಂಡಿದೆ!"
           : validLang === "hi"
           ? "🎉 संपूर्ण २५-अध्यायों की महा रिपोर्ट डाउनलोड पूर्ण!"
+          : validLang === "mr"
+          ? "🎉 संपूर्ण २५-अध्यायांचा महा अहवाल डाउनलोड पूर्ण!"
+          : validLang === "te"
+          ? "🎉 సంపూర్ణ 25-అధ్యాయాల మహా నివేదిక సిద్ధమైంది!"
+          : validLang === "ta"
+          ? "🎉 முழுமையான 25-அத்தியாய மகா அறிக்கை தயார்!"
+          : validLang === "ml"
+          ? "🎉 സമ്പൂർണ്ണ 25-അധ്യായ മഹാ റിപ്പോർട്ട് ഡൗൺലോഡ് പൂർത്തിയായി!"
           : "🎉 25-Chapter Sampoorna Master Report Ready!"
       );
     } catch (err: any) {
@@ -2505,8 +2529,10 @@ export default function KundliPage(): JSX.Element {
                       { code: "kn", label: "ಕನ್ನಡ" },
                       { code: "en", label: "English" },
                       { code: "hi", label: "हिन्दी" },
+                      { code: "mr", label: "मराठी" },
                       { code: "te", label: "తెలుగు" },
-                      { code: "ta", label: "தமிழ்" }
+                      { code: "ta", label: "தமிழ்" },
+                      { code: "ml", label: "മലയാളം" }
                     ].map(lang => (
                       <button
                         key={lang.code}
@@ -2910,8 +2936,10 @@ export default function KundliPage(): JSX.Element {
                     { code: "kn", label: "ಕನ್ನಡ (Kannada)" },
                     { code: "en", label: "English" },
                     { code: "hi", label: "हिन्दी (Hindi)" },
+                    { code: "mr", label: "मराठी (Marathi)" },
                     { code: "te", label: "తెలుగు (Telugu)" },
-                    { code: "ta", label: "தமிழ் (Tamil)" }
+                    { code: "ta", label: "தமிழ் (Tamil)" },
+                    { code: "ml", label: "മലയാളം (Malayalam)" }
                   ].map(lang => (
                     <button
                       key={lang.code}

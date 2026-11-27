@@ -739,6 +739,14 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
       .replace(/\b(wealth|finance)\b/gi, "செல்வம்")
       .replace(/\b(marriage)\b/gi, "திருமணம்")
       .replace(/\b(children|progeny)\b/gi, "சந்தானம்");
+  } else if (lang.startsWith("ml")) {
+    cleaned = cleaned
+      .replace(/\b(attitude|mindset)\b/gi, "മനോഭാവം")
+      .replace(/\b(career)\b/gi, "തൊഴിൽ")
+      .replace(/\b(health)\b/gi, "ആരോഗ്യം")
+      .replace(/\b(wealth|finance)\b/gi, "സമ്പത്ത്")
+      .replace(/\b(marriage)\b/gi, "വിവാഹം")
+      .replace(/\b(children|progeny)\b/gi, "സന്താനം");
   }
 
   // Common transit English phrases removal from regional text
@@ -809,6 +817,8 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:మీ|మరియు|కాని|ఎందుకంటే|ఈ|ಆ)\s*$/gu, "");
   } else if (lang.startsWith("ta")) {
     cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:உங்கள்|மற்றும்|ஆனால்|ஏனெனில்|இந்த|அந்த)\s*$/gu, "");
+  } else if (lang.startsWith("ml")) {
+    cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:നിങ്ങളുടെ|ഒപ്പം|പക്ഷേ|കാരണം|ഈ|ആ)\s*$/gu, "");
   }
 
   // 5. Clean whitespace & punctuation spacing

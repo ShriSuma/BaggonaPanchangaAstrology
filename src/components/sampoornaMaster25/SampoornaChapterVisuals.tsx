@@ -14,7 +14,7 @@
  */
 
 import React from "react";
-import { type SixLang, pick6, RASHI_6L } from "../../features/fiveYearPrediction/fiveYearLocale";
+import { type SevenLang, pick7, RASHI_7L, toNativeDigits7L, getIndicFontFamily7L } from "../../services/sampoornaMaster25Locale7L";
 import type {
   ActiveDoshaProfile,
   ChapterVisualSummary,
@@ -27,31 +27,22 @@ interface Props {
   visualType?: ChapterVisualType;
   metrics?: ChartVisualMetrics;
   visualSummary?: ChapterVisualSummary;
-  lang: SixLang;
+  lang: SevenLang;
   activeDoshaProfiles?: ActiveDoshaProfile[];
   bhuktiEndDate?: string;
 }
 
-function nDigits(val: number | string, lang: SixLang): string {
-  const s = String(val);
-  if (lang === "en") return s;
-  const map =
-    lang === "kn"
-      ? ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"]
-      : lang === "mr" || lang === "hi"
-      ? ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"]
-      : lang === "te"
-      ? ["౦", "౧", "౨", "౩", "౪", "౫", "౬", "౭", "౮", "౯"]
-      : ["௦", "௧", "௨", "௩", "௪", "௫", "௬", "௭", "௮", "௯"];
-  return s.replace(/\d/g, (d) => map[parseInt(d, 10)] || d);
+function nDigits(val: number | string, lang: SevenLang): string {
+  return toNativeDigits7L(val, lang);
 }
 
-const FONT_STACK: Record<SixLang, string> = {
-  kn: "'Noto Serif Kannada', 'Noto Sans Kannada', sans-serif",
-  mr: "'Noto Sans Devanagari', sans-serif",
-  hi: "'Noto Sans Devanagari', sans-serif",
-  te: "'Noto Sans Telugu', sans-serif",
-  ta: "'Noto Sans Tamil', sans-serif",
+const FONT_STACK: Record<SevenLang, string> = {
+  kn: getIndicFontFamily7L("kn"),
+  mr: getIndicFontFamily7L("mr"),
+  hi: getIndicFontFamily7L("hi"),
+  te: getIndicFontFamily7L("te"),
+  ta: getIndicFontFamily7L("ta"),
+  ml: getIndicFontFamily7L("ml"),
   en: "'Outfit', Georgia, sans-serif",
 };
 
@@ -126,27 +117,28 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
   // ──────────────────────────────────────────────────────────────────────────
   if (chapterNumber === 23 && activeDoshaProfiles && activeDoshaProfiles.length > 0) {
     const cards = activeDoshaProfiles.slice(0, 4);
-    const headerTitle = pick6(
+    const headerTitle = pick7(
       {
         kn: "ಪ್ರಸ್ತುತ ಜಾತಕದ ಪ್ರಮುಖ ದೋಷಗಳು, ಪರಿಣಾಮ ಮತ್ತು ನಿಖರ ಪರಿಹಾರ",
         mr: "कुंडलीतील प्रमुख सक्रिय दोष, सद्यस्थिती आणि नेमके निवारण",
         hi: "कुंडली के प्रमुख सक्रिय दोष, वर्तमान प्रभाव एवं सटीक समाधान",
         te: "జాతకంలోని ప్రధాన క్రియాశీల దోషాలు, ప్రభావం & ఖచ్చిత పరిహారం",
         ta: "ஜாதகத்தின் முக்கிய தோஷங்கள், தாக்கம் மற்றும் சரியான தீர்வு",
+        ml: "ജാതകത്തിലെ പ്രധാന ദോഷങ്ങളും നിലവിലെ ഫലവും കൃത്യമായ പരിഹാരവും",
         en: "Consolidated Active Dosha Highlight: Happening Now, Impact Area & Exact Action",
       },
       lang
     );
-    const lblNow = pick6(
-      { kn: "ಈಗ ಏನಾಗುತ್ತಿದೆ:", mr: "सध्याचा परिणाम:", hi: "अभी क्या हो रहा है:", te: "ప్రస్తుతం జరిగేది:", ta: "இப்போதைய நிலை:", en: "Happening Now:" },
+    const lblNow = pick7(
+      { kn: "ಈಗ ಏನಾಗುತ್ತಿದೆ:", mr: "सध्याचा परिणाम:", hi: "अभी क्या हो रहा है:", te: "ప్రస్తుతం జరిగేది:", ta: "இப்போதைய நிலை:", ml: "ഇപ്പോഴത്തെ അവസ്ഥ:", en: "Happening Now:" },
       lang
     );
-    const lblArea = pick6(
-      { kn: "ಪರಿಣಾಮದ ಕ್ಷೇತ್ರ:", mr: "प्रभावित क्षेत्र:", hi: "प्रभावित क्षेत्र:", te: "ప్రభావిత రంగం:", ta: "பாதிக்கும் துறை:", en: "Phase / Area:" },
+    const lblArea = pick7(
+      { kn: "ಪರಿಣಾಮದ ಕ್ಷೇತ್ರ:", mr: "प्रभावित क्षेत्र:", hi: "प्रभावित क्षेत्र:", te: "ప్రభావిత రంగం:", ta: "பாதிக்கும் துறை:", ml: "സ്വാധീന മേഖല:", en: "Phase / Area:" },
       lang
     );
-    const lblFix = pick6(
-      { kn: "ನಿಖರ ಪರಿಹಾರ:", mr: "योग्य उपाय:", hi: "सटीक समाधान:", te: "సరైన పరిహారం:", ta: "சரியான தீர்வு:", en: "Exact Solution:" },
+    const lblFix = pick7(
+      { kn: "ನಿಖರ ಪರಿಹಾರ:", mr: "योग्य उपाय:", hi: "सटीक समाधान:", te: "సరైన పరిహారం:", ta: "சரியான தீர்வு:", ml: "കൃത്യമായ പരിഹാരം:", en: "Exact Solution:" },
       lang
     );
 
@@ -311,22 +303,23 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
     const nx = cx + 68 * Math.cos(rad);
     const ny = cy + 68 * Math.sin(rad);
 
-    const caption = pick6(
+    const caption = pick7(
       {
         kn: "ನೋಡಿದ ತಕ್ಷಣದ ಚಿತ್ರ: ಜನ್ಮ ಶಕ್ತಿ ಮತ್ತು ಗ್ರಹ ಗೋಚಾರ ದಿಕ್ಸೂಚಿ",
         mr: "तात्काळ दृश्य: जन्म ऊर्जा व ग्रह गोचर स्थिती",
         hi: "तत्काल दृश्य संकेत: जन्म ऊर्जा एवं ग्रह संतुलन सूचकांक",
         te: "చూడగానే అర్థమయ్యే చిత్రం: జన్మ శక్తి & గోచార సూచిక",
         ta: "பார்த்தவுடன் புரியும் படம்: பிறப்பு ஆற்றல் & கோசார அளவி",
+        ml: "തൽക്ഷണ ചിത്രം: ജന്മബലവും ഗ്രഹഗോചര സൂചികയും",
         en: "At-a-Glance Cosmic Gauge: Clarity & Planetary Alignment",
       },
       lang
     );
 
-    const lblClarity = pick6({ kn: "ಪ್ರಸ್ತುತ ಸ್ಪಷ್ಟತೆ", mr: "सध्याची स्पष्टता", hi: "वर्तमान स्पष्टता", te: "ప్రస్తుత స్పష్టత", ta: "தற்போதைய தெளிவு", en: "Clarity Index" }, lang);
-    const lblGuru = pick6({ kn: "ಗುರು ಬಲ ಸ್ಥಾನ", mr: "गुरू अनुकूलता", hi: "गुरु बल भाव", te: "గురు బల స్థానం", ta: "குரு பல இடம்", en: "Jupiter Door" }, lang);
-    const lblShani = pick6({ kn: "ಶನಿ ಶಿಸ್ತು ಸ್ಥಾನ", mr: "शनी स्थैर्य स्थान", hi: "शनि निर्माण भाव", te: "శని స్థిర స్థానం", ta: "சனி உறுதி இடம்", en: "Saturn Anchor" }, lang);
-    const lblMaandi = pick6({ kn: "ಮಾಂದಿ ಗಮನ ಮನೆ", mr: "मांदी सूक्ष्म स्थान", hi: "मांदी सूक्ष्म भाव", te: "మాంది జాగ్రత్త స్థానం", ta: "மாந்தி கவன இடம்", en: "Maandi Focus" }, lang);
+    const lblClarity = pick7({ kn: "ಪ್ರಸ್ತುತ ಸ್ಪಷ್ಟತೆ", mr: "सध्याची स्पष्टता", hi: "वर्तमान स्पष्टता", te: "ప్రస్తుత స్పష్టత", ta: "தற்போதைய தெளிவு", ml: "നിലവിലെ വ്യക്തത", en: "Clarity Index" }, lang);
+    const lblGuru = pick7({ kn: "ಗುರು ಬಲ ಸ್ಥಾನ", mr: "गुरू अनुकूलता", hi: "गुरु बल भाव", te: "గురు బల స్థానం", ta: "குரு பல இடம்", ml: "വ്യാഴ ബല ഭാവം", en: "Jupiter Door" }, lang);
+    const lblShani = pick7({ kn: "ಶನಿ ಶಿಸ್ತು ಸ್ಥಾನ", mr: "शनी स्थैर्य स्थान", hi: "शनि निर्माण भाव", te: "శని స్థిర స్థానం", ta: "சனி உறுதி இடம்", ml: "ശനി സ്ഥിര ഭാവം", en: "Saturn Anchor" }, lang);
+    const lblMaandi = pick7({ kn: "ಮಾಂದಿ ಗಮನ ಮನೆ", mr: "मांदी सूक्ष्म स्थान", hi: "मांदी सूक्ष्म भाव", te: "మాంది జాగ్రత్త స్థానం", ta: "மாந்தி கவன இடம்", ml: "മാന്ദി ശ്രദ്ധാ ഭാവം", en: "Maandi Focus" }, lang);
 
     return wrapBox(
       caption,
@@ -364,23 +357,24 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
 
   // 2. TIMELINE METER (Visual Story Bridge from Past Filter -> Now -> Cycle Switch -> Golden Peak)
   if (visualType === "timeline-meter") {
-    const caption = pick6(
+    const caption = pick7(
       {
         kn: "ನೋಡಿದ ತಕ್ಷಣದ ಚಿತ್ರ: ಕಳೆದ ಪರೀಕ್ಷೆಯಿಂದ ಮುಂದಿನ ಸುವರ್ಣ ಶಿಖರದ ಪಯಣ",
         mr: "तात्काळ दृश्य: कसोटीच्या टप्प्यापासून सुवर्ण वळणापर्यंतचा प्रवास",
         hi: "तत्काल दृश्य: पिछली परीक्षा से स्वर्णिम शिखर की जीवन-रेखा",
         te: "చూడగానే అర్థమయ్యే చిత్రం: గత పరీక్ష నుండి సువర్ణ మలుపు వరకు",
         ta: "பார்த்தவுடன் புரியும் படம்: கடந்த சோதனையிலிருந்து பொற்காலம் வரை",
+        ml: "തൽക്ഷണ ചിത്രം: കടന്ന വെല്ലുവിളികളിൽ നിന്ന് സുവർണ്ണ ഘട്ടത്തിലേക്ക്",
         en: "At-a-Glance Story Bridge: Cleared Past -> Today's Turn -> Golden Crest",
       },
       lang
     );
 
     const nodes = [
-      { x: 92, color: "#9ca3af", status: "✓", yr: `${n(metrics.nowYear - 2)}–${n(metrics.nowYear - 1)}`, lbl: pick6({ kn: "ಹಳೆಯ ಪಾಠ ಮುಕ್ತಾಯ", mr: "जुना टप्पा समाप्त", hi: "पिछली परीक्षा पूर्ण", te: "గత పరీక్ష పూర్తి", ta: "கடந்த சோதனை முடிவு", en: "Past Storm Cleared" }, lang) },
-      { x: 296, color: "#d97706", status: "⚡", yr: `${n(metrics.nowYear)}`, lbl: pick6({ kn: "ಈಗಿನ ತಿರುವು", mr: "सध्याचे वळण", hi: "वर्तमान मोड़", te: "ప్రస్తుత మలుపు", ta: "இப்போதைய திருப்பம்", en: "Live Turning Scene" }, lang) },
-      { x: 500, color: "#0284c7", status: "🔑", yr: n((bhuktiEndDate || `${metrics.nowYear + 1}`).slice(0, 7)), lbl: pick6({ kn: "ದಶಾ ಬದಲಾವಣೆ", mr: "दशा परिवर्तन", hi: "भुक्ति मोड़", te: "దశ మార్పు", ta: "தசா மாற்றம்", en: "Cycle Unlock Date" }, lang) },
-      { x: 700, color: "#15803d", status: "★", yr: `${n(metrics.nowYear + 2)}–${n(metrics.nowYear + 4)}`, lbl: pick6({ kn: "ಸುವರ್ಣ ಶಿಖರ", mr: "सुवर्ण शिखर", hi: "स्वर्णिम शिखर", te: "సువర్ణ శిఖరం", ta: "பொற்கால உச்சம்", en: "Golden Ascent" }, lang) },
+      { x: 92, color: "#9ca3af", status: "✓", yr: `${n(metrics.nowYear - 2)}–${n(metrics.nowYear - 1)}`, lbl: pick7({ kn: "ಹಳೆಯ ಪಾಠ ಮುಕ್ತಾಯ", mr: "जुना टप्पा समाप्त", hi: "पिछली परीक्षा पूर्ण", te: "గత పరీక్ష పూర్తి", ta: "கடந்த சோதனை முடிவு", ml: "പഴയ പരീക്ഷണം കഴിഞ്ഞു", en: "Past Storm Cleared" }, lang) },
+      { x: 296, color: "#d97706", status: "⚡", yr: `${n(metrics.nowYear)}`, lbl: pick7({ kn: "ಈಗಿನ ತಿರುವು", mr: "सध्याचे वळण", hi: "वर्तमान मोड़", te: "ప్రస్తుత మలుపు", ta: "இப்போதைய திருப்பம்", ml: "ഇപ്പോഴത്തെ വഴിത്തിരിവ്", en: "Live Turning Scene" }, lang) },
+      { x: 500, color: "#0284c7", status: "🔑", yr: n((bhuktiEndDate || `${metrics.nowYear + 1}`).slice(0, 7)), lbl: pick7({ kn: "ದಶಾ ಬದಲಾವಣೆ", mr: "दशा परिवर्तन", hi: "भुक्ति मोड़", te: "దశ మార్పు", ta: "தசா மாற்றம்", ml: "ദശാ മാറ്റം", en: "Cycle Unlock Date" }, lang) },
+      { x: 700, color: "#15803d", status: "★", yr: `${n(metrics.nowYear + 2)}–${n(metrics.nowYear + 4)}`, lbl: pick7({ kn: "ಸುವರ್ಣ ಶಿಖರ", mr: "सुवर्ण शिखर", hi: "स्वर्णिम शिखर", te: "సువర్ణ శిఖరం", ta: "பொற்கால உச்சம்", ml: "സുവർണ്ണ ശിഖരം", en: "Golden Ascent" }, lang) },
     ];
 
     return wrapBox(
@@ -402,13 +396,14 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
 
   // 3. RASHI MANDALA (12-Sign Visual Wheel + Active Spot Focus)
   if (visualType === "rashi-mandala") {
-    const caption = pick6(
+    const caption = pick7(
       {
         kn: "ನೋಡಿದ ತಕ್ಷಣದ ಚಿತ್ರ: ದ್ವಾದಶ ರಾಶಿ ಚಕ್ರ ಮತ್ತು ಮುಖ್ಯ ಶಕ್ತಿ ಬಿಂದುಗಳು",
         mr: "तात्काळ दृश्य: द्वादश राशी चक्र व मुख्य ग्रह स्थिती",
         hi: "तत्काल दृश्य: द्वादश राशि चक्र एवं मुख्य शक्ति बिंदु",
         te: "చూడగానే అర్థమయ్యే చిత్రం: 12 రాశుల చక్రం & ముఖ్య స్థానాలు",
         ta: "பார்த்தவுடன் புரியும் படம்: 12 ராசி சக்கரம் & முக்கிய புள்ளிகள்",
+        ml: "തൽക്ഷണ ചിത്രം: പന്ത്രണ്ട് രാശി ചക്രവും പ്രധാന ബിന്ദുക്കളും",
         en: "At-a-Glance 12-Sign Mandala & Key Orbit Markers",
       },
       lang
@@ -421,21 +416,21 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
       if (!markersByRashi[k]) markersByRashi[k] = [];
       markersByRashi[k].push(tag);
     };
-    addM(mp.lagnaRashiIdx, pick6({ kn: "ಲ", mr: "ल", hi: "ल", te: "ల", ta: "ல", en: "Lg" }, lang));
-    addM(mp.moonRashiIdx, pick6({ kn: "ಚಂ", mr: "चं", hi: "चं", te: "చం", ta: "ச", en: "Mo" }, lang));
-    addM(mp.yogiRashiIdx, pick6({ kn: "ಯೋ", mr: "यो", hi: "यो", te: "యో", ta: "யோ", en: "Yg" }, lang));
-    addM(mp.maandiRashiIdx, pick6({ kn: "ಮಾ", mr: "मां", hi: "मां", te: "మాం", ta: "மா", en: "Mn" }, lang));
-    addM(mp.jupiterRashiIdx, pick6({ kn: "ಗು", mr: "गु", hi: "गु", te: "గు", ta: "கு", en: "Ju" }, lang));
-    addM(mp.saturnRashiIdx, pick6({ kn: "ಶ", mr: "श", hi: "श", te: "శ", ta: "சனி", en: "Sa" }, lang));
+    addM(mp.lagnaRashiIdx, pick7({ kn: "ಲ", mr: "ल", hi: "ल", te: "ల", ta: "ல", ml: "ല", en: "Lg" }, lang));
+    addM(mp.moonRashiIdx, pick7({ kn: "ಚಂ", mr: "चं", hi: "चं", te: "చం", ta: "ச", ml: "ച", en: "Mo" }, lang));
+    addM(mp.yogiRashiIdx, pick7({ kn: "ಯೋ", mr: "यो", hi: "यो", te: "యో", ta: "யோ", ml: "യോ", en: "Yg" }, lang));
+    addM(mp.maandiRashiIdx, pick7({ kn: "ಮಾ", mr: "मां", hi: "मां", te: "మాం", ta: "மா", ml: "മാ", en: "Mn" }, lang));
+    addM(mp.jupiterRashiIdx, pick7({ kn: "ಗು", mr: "गु", hi: "गु", te: "గు", ta: "கு", ml: "ഗു", en: "Ju" }, lang));
+    addM(mp.saturnRashiIdx, pick7({ kn: "ಶ", mr: "श", hi: "श", te: "శ", ta: "சனி", ml: "ശ", en: "Sa" }, lang));
 
     const cx = 128;
     const cy = 84;
     const legendItems = [
-      { code: pick6({ kn: "ಲ", mr: "ल", hi: "ल", te: "ల", ta: "ல", en: "Lg" }, lang), label: pick6({ kn: "ಜನ್ಮ ಲಗ್ನ", mr: "जन्म लग्न", hi: "जन्म लग्न", te: "జన్మ లగ్నం", ta: "ஜனன லக்னம்", en: "Natal Lagna" }, lang), val: RASHI_6L[mp.lagnaRashiIdx]?.[lang] || "" },
-      { code: pick6({ kn: "ಚಂ", mr: "चं", hi: "चं", te: "చం", ta: "ச", en: "Mo" }, lang), label: pick6({ kn: "ಚಂದ್ರ ರಾಶಿ", mr: "चंद्र राशी", hi: "चंद्र राशि", te: "చంద్ర రాశి", ta: "சந்திர ராசி", en: "Moon Sign" }, lang), val: RASHI_6L[mp.moonRashiIdx]?.[lang] || "" },
-      { code: pick6({ kn: "ಯೋ", mr: "यो", hi: "यो", te: "యో", ta: "யோ", en: "Yg" }, lang), label: pick6({ kn: "ಯೋಗಿ ಬಲ", mr: "योगी बल", hi: "योगी बल", te: "యోగి బలం", ta: "யோகி பலம்", en: "Yogi Boost" }, lang), val: `${metrics.yogiPlanetName} (${RASHI_6L[mp.yogiRashiIdx]?.[lang] || ""})` },
-      { code: pick6({ kn: "ಮಾ", mr: "मां", hi: "मां", te: "మాం", ta: "மா", en: "Mn" }, lang), label: pick6({ kn: "ಮಾಂದಿ ಕೀಲಿ", mr: "मांदी गाठ", hi: "मांदी कुंजी", te: "మాంది ముడి", ta: "மாந்தி முடிச்சு", en: "Maandi Focus" }, lang), val: `${RASHI_6L[mp.maandiRashiIdx]?.[lang] || ""} (${n(metrics.maandiHouse)})` },
-      { code: pick6({ kn: "ಭೃ", mr: "भृ", hi: "भृ", te: "భృ", ta: "பி", en: "BB" }, lang), label: pick6({ kn: "ಬೃಗು ಬಿಂದು", mr: "भृगु बिंदू", hi: "भृगु बिंदु", te: "భృగు బిందువు", ta: "பிருகு பிந்து", en: "Destiny Bindu" }, lang), val: metrics.bhriguRashiName },
+      { code: pick7({ kn: "ಲ", mr: "ल", hi: "ल", te: "ల", ta: "ல", ml: "ല", en: "Lg" }, lang), label: pick7({ kn: "ಜನ್ಮ ಲಗ್ನ", mr: "जन्म लग्न", hi: "जन्म लग्न", te: "జన్మ లగ్నం", ta: "ஜனன லக்னம்", ml: "ജന്മലഗ്നം", en: "Natal Lagna" }, lang), val: RASHI_7L[mp.lagnaRashiIdx]?.[lang] || "" },
+      { code: pick7({ kn: "ಚಂ", mr: "चं", hi: "चं", te: "చం", ta: "ச", ml: "ച", en: "Mo" }, lang), label: pick7({ kn: "ಚಂದ್ರ ರಾಶಿ", mr: "चंद्र राशी", hi: "चंद्र राशि", te: "చంద్ర రాశి", ta: "சந்திர ராசி", ml: "ചന്ദ്രരാശി", en: "Moon Sign" }, lang), val: RASHI_7L[mp.moonRashiIdx]?.[lang] || "" },
+      { code: pick7({ kn: "ಯೋ", mr: "यो", hi: "यो", te: "యో", ta: "யோ", ml: "യോ", en: "Yg" }, lang), label: pick7({ kn: "ಯೋಗಿ ಬಲ", mr: "योगी बल", hi: "योगी बल", te: "యోగి బలం", ta: "யோகி பலம்", ml: "യോഗി ബലം", en: "Yogi Boost" }, lang), val: `${metrics.yogiPlanetName} (${RASHI_7L[mp.yogiRashiIdx]?.[lang] || ""})` },
+      { code: pick7({ kn: "ಮಾ", mr: "मां", hi: "मां", te: "మాం", ta: "மா", ml: "മാ", en: "Mn" }, lang), label: pick7({ kn: "ಮಾಂದಿ ಕೀಲಿ", mr: "मांदी गाठ", hi: "मांदी कुंजी", te: "మాంది ముడి", ta: "மாந்தி முடிச்சு", ml: "മാന്ദി സ്ഥാനം", en: "Maandi Focus" }, lang), val: `${RASHI_7L[mp.maandiRashiIdx]?.[lang] || ""} (${n(metrics.maandiHouse)})` },
+      { code: pick7({ kn: "ಭೃ", mr: "भृ", hi: "भृ", te: "భృ", ta: "பி", ml: "ഭൃ", en: "BB" }, lang), label: pick7({ kn: "ಬೃಗು ಬಿಂದು", mr: "भृगु बिंदू", hi: "भृगु बिंदु", te: "భృగు బిందువు", ta: "பிருகு பிந்து", ml: "ഭൃഗു ബിന്ദു", en: "Destiny Bindu" }, lang), val: metrics.bhriguRashiName },
     ];
 
     return wrapBox(
@@ -444,7 +439,7 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
         <circle cx={cx} cy={cy} r="74" fill="#fffbeb" stroke="#d97706" strokeWidth="2" />
         <circle cx={cx} cy={cy} r="40" fill="#fef3c7" stroke="#f59e0b" strokeWidth="1.5" />
         <text x={cx} y={cy + 5} textAnchor="middle" fill="#78350f" fontSize="12.5" fontWeight="800">
-          {RASHI_6L[mp.lagnaRashiIdx]?.[lang] || ""}
+          {RASHI_7L[mp.lagnaRashiIdx]?.[lang] || ""}
         </text>
         {Array.from({ length: 12 }).map((_, i) => {
           const deg = -90 + i * 30;
@@ -495,23 +490,24 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
 
   // 4. ELEMENT RADAR (Panchabhuta Superpower Visual Bars)
   if (visualType === "element-radar") {
-    const caption = pick6(
+    const caption = pick7(
       {
         kn: "ನೋಡಿದ ತಕ್ಷಣದ ಚಿತ್ರ: ಪಂಚಭೂತ ಸ್ವಭಾವ ಶಕ್ತಿ ಪ್ರಮಾಣ (★ = ಪ್ರಮುಖ ಬಲ)",
         mr: "तात्काळ दृश्य: पंचमहाभूत स्वभाव शक्ती संतुलन (★ = मुख्य बळ)",
         hi: "तत्काल दृश्य: पंचभूत स्वभाव शक्ति अनुपात (★ = प्रमुख बल)",
         te: "చూడగానే అర్థమయ్యే చిత్రం: పంచభూత స్వభావ బలం (★ = ప్రధాన శక్తి)",
         ta: "பார்த்தவுடன் புரியும் படம்: பஞ்சபூத இயல்பு பலம் (★ = முதன்மை பலம்)",
+        ml: "തൽക്ഷണ ചിത്രം: പഞ്ചഭൂത സ്വഭാവ ശക്തി അനുപാതം (★ = പ്രധാന ബലം)",
         en: "At-a-Glance Elemental Signature (★ = Primary Superpower)",
       },
       lang
     );
 
     const elems = [
-      { key: "fire" as const, pct: metrics.elemPercentages.fire, color: "#dc2626", bg: "#fee2e2", name: pick6({ kn: "🔥 ಅಗ್ನಿ (ಉತ್ಸಾಹ & ಧೈರ್ಯ)", mr: "🔥 अग्नी (नेतृत्व व ऊर्जा)", hi: "🔥 अग्नि (उत्साह व साहस)", te: "🔥 అగ్ని (ధైర్యం & చొరవ)", ta: "🔥 அக்னி (ஆற்றல் & துணிவு)", en: "🔥 Fire (Drive & Boldness)" }, lang) },
-      { key: "earth" as const, pct: metrics.elemPercentages.earth, color: "#b45309", bg: "#fef3c7", name: pick6({ kn: "🌍 ಪೃಥ್ವಿ (ಸ್ಥಿರತೆ & ಆಸ್ತಿ)", mr: "🌍 पृथ्वी (स्थैर्य व व्यवहार)", hi: "🌍 पृथ्वी (स्थिरता व संपत्ति)", te: "🌍 పృథ్వి (స్థిరత్వం & ఆచరణ)", ta: "🌍 பூமி (நிலைத்தன்மை)", en: "🌍 Earth (Grounded Wealth)" }, lang) },
-      { key: "air" as const, pct: metrics.elemPercentages.air, color: "#0284c7", bg: "#e0f2fe", name: pick6({ kn: "💨 ವಾಯು (ಬುದ್ಧಿ & ಸಂಪರ್ಕ)", mr: "💨 वायू (विचार व संवाद)", hi: "💨 वायु (विवेक व संपर्क)", te: "💨 వాయు (తెలివి & మాట)", ta: "💨 வாயு (அறிவு & தொடர்பு)", en: "💨 Air (Strategy & Voice)" }, lang) },
-      { key: "water" as const, pct: metrics.elemPercentages.water, color: "#0d9488", bg: "#ccfbf1", name: pick6({ kn: "💧 ಜಲ (ಅಂತಃಪ್ರಜ್ಞೆ & ಪ್ರೀತಿ)", mr: "💧 जल (अंतर्ज्ञान व प्रेम)", hi: "💧 जल (अंतर्दृष्टि व भाव)", te: "💧 జల (అంతర్దృష్టి & ప్రేమ)", ta: "💧 நீர் (உள்ளுணர்வு & அன்பு)", en: "💧 Water (Intuition & Heart)" }, lang) },
+      { key: "fire" as const, pct: metrics.elemPercentages.fire, color: "#dc2626", bg: "#fee2e2", name: pick7({ kn: "🔥 ಅಗ್ನಿ (ಉತ್ಸಾಹ & ಧೈರ್ಯ)", mr: "🔥 अग्नी (नेतृत्व व ऊर्जा)", hi: "🔥 अग्नि (उत्साह व साहस)", te: "🔥 అగ్ని (ధైర్యం & చొరవ)", ta: "🔥 அக்னி (ஆற்றல் & துணிவு)", ml: "🔥 അഗ്നി (ഊർജ്ജവും ധൈര്യവും)", en: "🔥 Fire (Drive & Boldness)" }, lang) },
+      { key: "earth" as const, pct: metrics.elemPercentages.earth, color: "#b45309", bg: "#fef3c7", name: pick7({ kn: "🌍 ಪೃಥ್ವಿ (ಸ್ಥಿರತೆ & ಆಸ್ತಿ)", mr: "🌍 पृथ्वी (स्थैर्य व व्यवहार)", hi: "🌍 पृथ्वी (स्थिरता व संपत्ति)", te: "🌍 పృథ్వి (స్థిరత్వం & ఆచరణ)", ta: "🌍 பூமி (நிலைத்தன்மை)", ml: "🌍 ഭൂമി (സ്ഥിരതയും സമ്പത്തും)", en: "🌍 Earth (Grounded Wealth)" }, lang) },
+      { key: "air" as const, pct: metrics.elemPercentages.air, color: "#0284c7", bg: "#e0f2fe", name: pick7({ kn: "💨 ವಾಯು (ಬುದ್ಧಿ & ಸಂಪರ್ಕ)", mr: "💨 वायू (विचार व संवाद)", hi: "💨 वायु (विवेक व संपर्क)", te: "💨 వాయు (తెలివి & మాట)", ta: "💨 வாயு (அறிவு & தொடர்பு)", ml: "💨 വായു (ബുദ്ധിയും ആശയവിനിമയവും)", en: "💨 Air (Strategy & Voice)" }, lang) },
+      { key: "water" as const, pct: metrics.elemPercentages.water, color: "#0d9488", bg: "#ccfbf1", name: pick7({ kn: "💧 ಜಲ (ಅಂತಃಪ್ರಜ್ಞೆ & ಪ್ರೀತಿ)", mr: "💧 जल (अंतर्ज्ञान व प्रेम)", hi: "💧 जल (अंतर्दृष्टि व भाव)", te: "💧 జల (అంతర్దృష్టి & ప్రేమ)", ta: "💧 நீர் (உள்ளுணர்வு & அன்பு)", ml: "💧 ജലം (ഉൾക്കാഴ്ചയും സ്നേഹവും)", en: "💧 Water (Intuition & Heart)" }, lang) },
     ];
 
     return wrapBox(
@@ -541,7 +537,7 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
   // 5. SAV PILLARS (Highlights THAT Chapter's Specific Focus House with Emerald Crown!)
   if (visualType === "sav-pillars") {
     const focusH = visualSummary?.focusHouse;
-    const caption = pick6(
+    const caption = pick7(
       {
         kn: focusH
           ? `ನೋಡಿದ ತಕ್ಷಣದ ಚಿತ್ರ: ${n(focusH)}ನೇ ಮನೆಯ ವಿಶೇಷ ಬಲ ಮತ್ತು ದ್ವಾದಶ ಭಾವ ಶಕ್ತಿ ನಕ್ಷೆ (ಹಸಿರು = ಪ್ರಸ್ತುತ ಅಧ್ಯಾಯದ ಕ್ಷೇತ್ರ)`
@@ -558,6 +554,9 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
         ta: focusH
           ? `பார்த்தவுடன் புரியும் படம்: ${n(focusH)}-ம் வீடு மற்றும் 12 வீடுகளின் பலம் (பச்சை = இந்த அத்தியாய மையம்)`
           : "பார்த்தவுடன் புரியும் படம்: 12 வீடுகளின் பலம்",
+        ml: focusH
+          ? `തൽക്ഷണ ചിത്രം: ഈ അധ്യായത്തിലെ ${n(focusH)}-ാം ഭാവ ബലവും 12 ഭാവ ശക്തിയും (പച്ച = പ്രധാന കേന്ദ്രം)`
+          : "തൽക്ഷണ ചിത്രം: 12 ഭാവങ്ങളുടെ ശക്തി സ്തംഭങ്ങൾ",
         en: focusH
           ? `At-a-Glance Strength Map: Green Crown = This Chapter's House (${focusH})`
           : "At-a-Glance 12-House Strength Map (Gold = Peak Domains >= 30)",
@@ -608,13 +607,14 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
   // 6. HORIZON WAVE (Spotlights THAT Chapter's Specific Year on the 5-Year Curve!)
   if (visualType === "horizon-wave") {
     const focusYr = visualSummary?.focusYearOffset;
-    const caption = pick6(
+    const caption = pick7(
       {
         kn: "ನೋಡಿದ ತಕ್ಷಣದ ಚಿತ್ರ: ೫ ವರ್ಷಗಳ ಅಭ್ಯುದಯ ರೇಖೆ (ಹಸಿರು ವೃತ್ತ = ಈ ಅಧ್ಯಾಯದ ವರ್ಷ)",
         mr: "तात्काळ दृश्य: ५ वर्षांचा प्रगती आलेख (हिरवे वर्तुळ = या अध्यायाचे वर्ष)",
         hi: "तत्काल दृश्य: ५-वर्षीय उत्थान वक्र (हरा घेरा = इस अध्याय का वर्ष)",
         te: "చూడగానే అర్థమయ్యే చిత్రం: 5 ఏళ్ల ప్రగతి రేఖ (ఆకుపచ్చ వృత్తం = ఈ అధ్యాయ సంవత్సరం)",
         ta: "பார்த்தவுடன் புரியும் படம்: 5 ஆண்டு வளர்ச்சி அலை (பச்சை வட்டம் = இந்த அத்தியாய ஆண்டு)",
+        ml: "തൽക്ഷണ ചിത്രം: 5 വർഷത്തെ വളർച്ചാ ഗ്രാഫ് (പച്ച വൃത്തം = ഈ അധ്യായ വർഷം)",
         en: "At-a-Glance 5-Year Momentum Curve (Spotlight = This Chapter's Year)",
       },
       lang
@@ -666,13 +666,14 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
   }
 
   // 7. POWER COMPASS (8-Direction Yogi Compass + Lucky Day, Color, Direction & Finale Peak)
-  const caption = pick6(
+  const caption = pick7(
     {
       kn: "ನೋಡಿದ ತಕ್ಷಣದ ಚಿತ್ರ: ವೈಯಕ್ತಿಕ ಯೋಗಿ ದಿಕ್ಸೂಚಿ & ೪ ಪವರ್ ಕೀಗಳು",
       mr: "तात्काळ दृश्य: वैयक्तिक योगी होकायंत्र व ४ मुख्य शक्ती",
       hi: "तत्काल दृश्य: व्यक्तिगत योगी दिशा-सूचक एवं ४ शक्ति कुंजियां",
       te: "చూడగానే అర్థమయ్యే చిత్రం: యోగి దిక్సూచి & 4 పవర్ కీలు",
       ta: "பார்த்தவுடன் புரியும் படம்: யோகி திசைகாட்டி & 4 ஆற்றல் சாவிகள்",
+      ml: "തൽക്ഷണ ചിത്രം: വ്യക്തിഗത യോഗി ദിശാസൂചിയും 4 ശക്തി കീകളും",
       en: "At-a-Glance Yogi Power Compass (Direction, Day, Shade & Peak)",
     },
     lang
@@ -684,16 +685,16 @@ export const SampoornaChapterVisual: React.FC<Props> = ({
   const tx = cx + 48 * Math.cos(rad);
   const ty = cy + 48 * Math.sin(rad);
 
-  const lblN = pick6({ kn: "ಉ", mr: "उ", hi: "उ", te: "ఉ", ta: "வ", en: "N" }, lang);
-  const lblE = pick6({ kn: "ಪೂ", mr: "पू", hi: "पू", te: "తూ", ta: "கி", en: "E" }, lang);
-  const lblS = pick6({ kn: "ದ", mr: "द", hi: "द", te: "ద", ta: "தெ", en: "S" }, lang);
-  const lblW = pick6({ kn: "ಪ", mr: "प", hi: "प", te: "ప", ta: "மே", en: "W" }, lang);
+  const lblN = pick7({ kn: "ಉ", mr: "उ", hi: "उ", te: "ఉ", ta: "வ", ml: "വ", en: "N" }, lang);
+  const lblE = pick7({ kn: "ಪೂ", mr: "पू", hi: "पू", te: "తూ", ta: "கி", ml: "കി", en: "E" }, lang);
+  const lblS = pick7({ kn: "ದ", mr: "द", hi: "द", te: "ద", ta: "தெ", ml: "തെ", en: "S" }, lang);
+  const lblW = pick7({ kn: "ಪ", mr: "प", hi: "प", te: "ప", ta: "மே", ml: "പ", en: "W" }, lang);
 
   const statRows = [
-    { k: pick6({ kn: "ಯೋಗಿ & ದಿಕ್ಕು:", mr: "योगी व दिशा:", hi: "योगी व दिशा:", te: "యోగి & దిశ:", ta: "யோகி & திசை:", en: "Yogi & Direction:" }, lang), v: `${metrics.yogiPlanetName} • ${metrics.yogiDirection}` },
-    { k: pick6({ kn: "ಶುಭ ವಾರ & ಬಣ್ಣ:", mr: "शुभ वार व रंग:", hi: "शुभ वार व रंग:", te: "శుభ వారం & రంగు:", ta: "நல்ல நாள் & நிறம்:", en: "Power Day & Color:" }, lang), v: `${metrics.yogiDay} • ${metrics.yogiColor}` },
-    { k: pick6({ kn: "ಭಾಗ್ಯ ಬೃಗು ಬಿಂದು:", mr: "भृगु बिंदू राशी:", hi: "भृगु बिंदु राशि:", te: "భృగు బిందు రాశి:", ta: "பிருகு பிந்து:", en: "Bhrigu Bindu Sign:" }, lang), v: metrics.bhriguRashiName },
-    { k: pick6({ kn: "ಸುವರ್ಣ ಶಿಖರ:", mr: "सुवर्ण काळ:", hi: "स्वर्णिम काल:", te: "సువర్ణ కాలం:", ta: "பொற்காலம்:", en: "Golden Horizon:" }, lang), v: `${n(metrics.nowYear + 2)}–${n(metrics.nowYear + 4)}` },
+    { k: pick7({ kn: "ಯೋಗಿ & ದಿಕ್ಕು:", mr: "योगी व दिशा:", hi: "योगी व दिशा:", te: "యోగి & దిశ:", ta: "யோகி & திசை:", ml: "യോഗിയും ദിശയും:", en: "Yogi & Direction:" }, lang), v: `${metrics.yogiPlanetName} • ${metrics.yogiDirection}` },
+    { k: pick7({ kn: "ಶುಭ ವಾರ & ಬಣ್ಣ:", mr: "शुभ वार व रंग:", hi: "शुभ वार व रंग:", te: "శుభ వారం & రంగు:", ta: "நல்ல நாள் & நிறம்:", ml: "ശുഭ ദിനവും നിറവും:", en: "Power Day & Color:" }, lang), v: `${metrics.yogiDay} • ${metrics.yogiColor}` },
+    { k: pick7({ kn: "ಭಾಗ್ಯ ಬೃಗು ಬಿಂದು:", mr: "भृगु बिंदू राशी:", hi: "भृगु बिंदु राशि:", te: "భృగు బిందు రాశి:", ta: "பிருகு பிந்து:", ml: "ഭൃഗു ബിന്ദു രാശി:", en: "Bhrigu Bindu Sign:" }, lang), v: metrics.bhriguRashiName },
+    { k: pick7({ kn: "ಸುವರ್ಣ ಶಿಖರ:", mr: "सुवर्ण काळ:", hi: "स्वर्णिम काल:", te: "సువర్ణ కాలం:", ta: "பொற்காலம்:", ml: "സുവർണ്ണ ഘട്ടം:", en: "Golden Horizon:" }, lang), v: `${n(metrics.nowYear + 2)}–${n(metrics.nowYear + 4)}` },
   ];
 
   return wrapBox(

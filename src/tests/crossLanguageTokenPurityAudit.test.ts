@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { calculateKundli } from "../core/KundliEngine";
 import type { KundliInput } from "../core/AstroTypes";
-import { prepareSampoornaMaster25Data } from "../services/sampoornaMaster25Service";
+import { prepareSampoornaMaster25Data, type SevenLang } from "../services/sampoornaMaster25Service";
 import type { SixLang } from "../features/fiveYearPrediction/fiveYearLocale";
 import { compute5YearMasterPrediction } from "../features/fiveYearPrediction/fiveYearPredictionEngine";
 import { generateAntarangaSatya, type AntarangaLang } from "../features/hotelSecret/antarangaService";
@@ -26,10 +26,10 @@ const KANNADA_REGEX = /[\u0C80-\u0CFF]/;
 const ENGLISH_PLANETS_RASHIS = /\b(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces)\b/i;
 
 describe("Cross-Language Token Purity & Script Leak Audit", () => {
-  describe("1. SampoornaMaster25 Service Language Purity", () => {
-    const sixLanguages: SixLang[] = ["kn", "mr", "hi", "te", "ta", "en"];
+  describe("1. SampoornaMaster25 Service Language Purity (7 Languages)", () => {
+    const sevenLanguages: SevenLang[] = ["kn", "mr", "hi", "te", "ta", "ml", "en"];
 
-    sixLanguages.forEach((lang) => {
+    sevenLanguages.forEach((lang) => {
       it(`verifies pure token localization for ${lang.toUpperCase()}`, async () => {
         const payload = await prepareSampoornaMaster25Data({
           kundli: computedKundli,
@@ -62,6 +62,12 @@ describe("Cross-Language Token Purity & Script Leak Audit", () => {
           expect(payload.currentBhukti).not.toMatch(KANNADA_REGEX);
         }
 
+        if (lang === "ml") {
+          expect(payload.lagnaName).toMatch(/[\u0D00-\u0D7F]/);
+          expect(payload.footerText).toMatch(/[\u0D00-\u0D7F]/);
+          expect(payload.footerText).not.toMatch(/[\u0900-\u097F॥।ॐ\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF]/);
+        }
+
         if (lang !== "en") {
           // Regional languages must not leak English planets/rashis into card
           expect(payload.lagnaLord).not.toMatch(ENGLISH_PLANETS_RASHIS);
@@ -78,6 +84,10 @@ describe("Cross-Language Token Purity & Script Leak Audit", () => {
             ch.paragraphs.forEach((p) => {
               expect(p).not.toMatch(KANNADA_REGEX);
             });
+          }
+          if (lang === "ml") {
+            expect(ch.title).toMatch(/[\u0D00-\u0D7F]/);
+            expect(ch.title).not.toMatch(/[\u0900-\u097F॥।ॐ]/);
           }
         });
       });

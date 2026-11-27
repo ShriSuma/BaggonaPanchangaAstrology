@@ -350,6 +350,18 @@ function getLagnaElement(idx: number, lang: string): string {
     if (isAir) return "காற்று தத்துவம் (அறிவுத்திறன்)";
     return "நீர் தத்துவம் (உணர்வுப்பலம்)";
   }
+  if (lang === "ml") {
+    if (isFire) return "അഗ്നി തത്വം (തേജസ്സും ഊർജ്ജവും)";
+    if (isEarth) return "ഭൂമി തത്വം (സ്ഥിരതയും സമ്പത്തും)";
+    if (isAir) return "വായു തത്വം (ബുദ്ധിയും വിവേകവും)";
+    return "ജല തത്വം (ഭാവനയും ഉൾക്കാഴ്ചയും)";
+  }
+  if (lang === "mr") {
+    if (isFire) return "अग्नी तत्त्व (तेजस्विता)";
+    if (isEarth) return "पृथ्वी तत्त्व (स्थिरता)";
+    if (isAir) return "वायू तत्त्व (बौद्धिक विवेक)";
+    return "जल तत्त्व (भावना व अंतर्ज्ञान)";
+  }
   if (isFire) return "Fire Element (Radiance)";
   if (isEarth) return "Earth Element (Stability)";
   if (isAir) return "Air Element (Intellect)";
@@ -1067,6 +1079,51 @@ const renderAtmosphericPlanet = (
   }
 };
 
+const ML_MR_GRAHA_OVERRIDES: Record<
+  string,
+  {
+    ml: { beeja: string; name: string; short: string; archetype: string };
+    mr: { beeja: string; name: string; short: string; archetype: string };
+  }
+> = {
+  Jupiter: {
+    ml: { beeja: "✦ ഓം ബൃം ബൃഹസ്പതയേ നമഃ ✦", name: "വ്യാഴം (ഗുരു ഭഗവാൻ)", short: "വ്യാഴം", archetype: "ദൈവിക ജ്ഞാനം, ധർമ്മ സംരക്ഷണം & സർവ്വ സൗഭാഗ്യ കാരകൻ" },
+    mr: { beeja: "॥ ॐ बृं बृहस्पतये नमः ॥", name: "बृहस्पती (गुरु देव)", short: "गुरु", archetype: "दैवी ज्ञान, धर्म संरक्षण व सर्व सौभाग्य कारक" }
+  },
+  Saturn: {
+    ml: { beeja: "✦ ഓം ശം ശനൈശ്ചരായ നമഃ ✦", name: "ശനി ഭഗവാൻ (കർമ്മകാരകൻ)", short: "ശനി", archetype: "നീതി, കർമ്മ ശുദ്ധീകരണം, ആത്മനിയന്ത്രണം & ഉറച്ച അടിത്തറ" },
+    mr: { beeja: "॥ ॐ शं शनैश्चराय नमः ॥", name: "शनि देव (कर्मकारक)", short: "शनि", archetype: "न्याय, कर्मशुद्धी, आत्मसंयम व भक्कम पाया" }
+  },
+  Mercury: {
+    ml: { beeja: "✦ ഓം ബും ബുധായ നമഃ ✦", name: "ബുധൻ (ജ്ഞാനകാരകൻ)", short: "ബുധൻ", archetype: "ഉന്നത ബുദ്ധിശക്തി, വ്യാപാര വിവേകം & വാക്ചാതുര്യം" },
+    mr: { beeja: "॥ ॐ बुं बुधाय नमः ॥", name: "बुध देव (बुद्धिकारक)", short: "बुध", archetype: "उच्च बौद्धिक विवेक, व्यापार कौशल्य व वाक्चातुर्य" }
+  },
+  Venus: {
+    ml: { beeja: "✦ ഓം ശും ശുക്രായ നമഃ ✦", name: "ശുക്രൻ (കല-സൗഭാഗ്യ കാരകൻ)", short: "ശുക്രൻ", archetype: "ഐശ്വര്യ സംരക്ഷണം, ദാമ്പത്യ ഐക്യം & കലാ സൗന്ദര്യം" },
+    mr: { beeja: "॥ ॐ शुं शुक्राय नमः ॥", name: "शुक्र देव (सौभाग्यकारक)", short: "शुक्र", archetype: "समृद्धी संवर्धन, वैवाहिक सौख्य व कलात्मक तेज" }
+  },
+  Sun: {
+    ml: { beeja: "✦ ഓം ഘൃണിഃ സൂര്യായ ആദിത്യായ നമഃ ✦", name: "സൂര്യ ഭഗവാൻ (ആത്മകാരകൻ)", short: "സൂര്യൻ", archetype: "ആത്മതേജസ്സ്, അധികാര നേട്ടം, ആരോഗ്യം & പിതൃ അനുഗ്രഹം" },
+    mr: { beeja: "॥ ॐ ह्रां ह्रीं सः सूर्याय नमः ॥", name: "सूर्य नारायण (आत्मकारक)", short: "सूर्य", archetype: "आत्मतेज, नेतृत्व शक्ती, आरोग्य व यश" }
+  },
+  Moon: {
+    ml: { beeja: "✦ ഓം സോം സോമായ നമഃ ✦", name: "ചന്ദ്രൻ (മനഃകാരകൻ)", short: "ചന്ദ്രൻ", archetype: "മാനസിക പ്രശാന്തി, അന്തർജ്ഞാനം & മാതൃ-ജനസൗഹൃദം" },
+    mr: { beeja: "॥ ॐ सों सोमाय नमः ॥", name: "चंद्र देव (मनःकारक)", short: "चंद्र", archetype: "मानसिक शांतता, अंतर्ज्ञान व कौटुंबिक सौख्य" }
+  },
+  Mars: {
+    ml: { beeja: "✦ ഓം ക്രം ക്രീം ക്രൗം ഭൗമായ നമഃ ✦", name: "ചൊവ്വ / കുജൻ (വീര്യകാരകൻ)", short: "ചൊവ്വ", archetype: "അതുല്യ ധൈര്യം, ഭൂമി-സാങ്കേതിക വിജയം & രക്ഷാകവചം" },
+    mr: { beeja: "॥ ॐ क्रां क्रीं क्रौं सः भौमाय नमः ॥", name: "मंगळ देव (धैर्यकारक)", short: "मंगळ", archetype: "अतुलनीय धैर्य, भूमी-तांत्रिक यश व संरक्षण" }
+  },
+  Rahu: {
+    ml: { beeja: "✦ ഓം രാഹവേ നമഃ ✦", name: "രാഹു (അസാധാരണ വളർച്ചാ കാരകൻ)", short: "രാഹു", archetype: "വിദേശ-സാങ്കേതിക മുന്നേറ്റം, തന്ത്രജ്ഞത & അപ്രതീക്ഷിത ഉയർച്ച" },
+    mr: { beeja: "॥ ॐ रां राहवे नमः ॥", name: "राहू देव (प्रगती कारक)", short: "राहू", archetype: "अप्रतिम धोरण, तंत्रज्ञान यश व अचानक उन्नती" }
+  },
+  Ketu: {
+    ml: { beeja: "✦ ഓം കും കേതവേ നമഃ ✦", name: "കേതു (മോക്ഷ-ജ്ഞാന കാരകൻ)", short: "കേതു", archetype: "ആത്മീയ ഉൾക്കാഴ്ച, സൂക്ഷ്മ ഗവേഷണം & ദുഷ്ടനിവാരണം" },
+    mr: { beeja: "॥ ॐ कें केतवे नमः ॥", name: "केतू देव (मोक्षकारक)", short: "केतू", archetype: "आध्यात्मिक अंतर्ज्ञान, सखोल संशोधन व दैवी संरक्षण" }
+  }
+};
+
 export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
   lagnaName,
   lagnaIndex,
@@ -1085,9 +1142,14 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
   const baseLang = (lang || "en").split("-")[0];
   const effectiveMahaKey = resolveGrahaKey(mahaLordKey || mahaLord);
   const theme = GRAHA_AURA_THEMES[effectiveMahaKey] || GRAHA_AURA_THEMES.Jupiter;
+  const mlMrData = ML_MR_GRAHA_OVERRIDES[effectiveMahaKey] || ML_MR_GRAHA_OVERRIDES.Jupiter;
 
   const beejaMantra = baseLang === "kn"
     ? theme.beejaMantraKn
+    : baseLang === "ml"
+    ? mlMrData.ml.beeja
+    : baseLang === "mr"
+    ? mlMrData.mr.beeja
     : baseLang === "hi"
     ? theme.beejaMantraHi
     : baseLang === "te"
@@ -1098,6 +1160,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
 
   const dashaLordDisplayName = baseLang === "kn"
     ? theme.kannadaName
+    : baseLang === "ml"
+    ? mlMrData.ml.name
+    : baseLang === "mr"
+    ? mlMrData.mr.name
     : baseLang === "hi"
     ? theme.hindiName
     : baseLang === "te"
@@ -1108,6 +1174,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
 
   const dashaLordShortName = baseLang === "kn"
     ? theme.shortNameKn
+    : baseLang === "ml"
+    ? mlMrData.ml.short
+    : baseLang === "mr"
+    ? mlMrData.mr.short
     : baseLang === "hi"
     ? theme.shortNameHi
     : baseLang === "te"
@@ -1118,6 +1188,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
 
   const divineArchetype = baseLang === "kn"
     ? theme.divineArchetypeKn
+    : baseLang === "ml"
+    ? mlMrData.ml.archetype
+    : baseLang === "mr"
+    ? mlMrData.mr.archetype
     : baseLang === "hi"
     ? theme.divineArchetypeHi
     : baseLang === "te"
@@ -1138,7 +1212,9 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
   // Font family with complete Unicode Indic shaping
   const indicFontFamily = baseLang === "kn"
     ? "'Noto Serif Kannada', 'Noto Sans Kannada', serif"
-    : baseLang === "hi"
+    : baseLang === "ml"
+    ? "'Noto Sans Malayalam', serif"
+    : baseLang === "hi" || baseLang === "mr"
     ? "'Noto Sans Devanagari', 'Noto Serif Devanagari', serif"
     : baseLang === "te"
     ? "'Noto Sans Telugu', serif"
@@ -1170,6 +1246,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
           <span>
             {baseLang === "kn"
               ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ & ಪ್ರಸ್ತುತ ಗ್ರಹ ಬಲದ ದರ್ಶನ"
+              : baseLang === "ml"
+              ? "ജന്മകുണ്ഡലിയും നിലവിലെ ഗ്രഹബല ദർശനവും"
+              : baseLang === "mr"
+              ? "जन्मकुंडली व वर्तमान ग्रहशक्ती दर्शन"
               : baseLang === "hi"
               ? "जन्म कुंडली एवं वर्तमान ग्रह शक्ति दर्शन"
               : baseLang === "te"
@@ -1186,6 +1266,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
         >
           {baseLang === "kn"
             ? `ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ಮುನ್ನಡೆಸುತ್ತಿರುವ ಪ್ರಧಾನ ಗ್ರಹ: ${dashaLordDisplayName}`
+            : baseLang === "ml"
+            ? `നിലവിൽ നിങ്ങളെ നയിക്കുന്ന പ്രധാന ഗ്രഹം: ${dashaLordDisplayName}`
+            : baseLang === "mr"
+            ? `सध्या आपल्याला मार्गदर्शन करणारे प्रमुख ग्रह: ${dashaLordDisplayName}`
             : baseLang === "hi"
             ? `वर्तमान में आपको संचालित करने वाले प्रमुख ग्रह: ${dashaLordDisplayName}`
             : baseLang === "te"
@@ -1209,6 +1293,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
           <span>
             {baseLang === "kn"
               ? "ಈ ವಿಭಾಗ ಹಾಗೂ ದಿವ್ಯ ಮಂಡಲದ ಮಹತ್ವ"
+              : baseLang === "ml"
+              ? "ഈ വിഭാഗത്തിന്റെയും ദിവ്യമണ്ഡലത്തിന്റെയും പ്രാധാന്യം"
+              : baseLang === "mr"
+              ? "या विभागाचे व दिव्य मंडलाचे महत्त्व"
               : baseLang === "hi"
               ? "इस अनुभाग एवं दिव्य मंडल का महत्व"
               : baseLang === "te"
@@ -1221,6 +1309,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
         <p className="text-sm text-amber-950/90 leading-relaxed font-medium break-words">
           {baseLang === "kn"
             ? "ಪ್ರತಿಯೊಬ್ಬರ ಜೀವನದಲ್ಲೂ ಜನ್ಮ ಲಗ್ನ ಮತ್ತು ಚಂದ್ರ ರಾಶಿಯ ಜೊತೆಗೆ, ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಒಬ್ಬ ಪ್ರಮುಖ ಗ್ರಹವು ನಿಮ್ಮ ಸಂಪೂರ್ಣ ಜೀವನವನ್ನು (ಆರೋಗ್ಯ, ವೃತ್ತಿ, ಬುದ್ಧಿ ಮತ್ತು ಮನಸ್ಸು) ಮುನ್ನಡೆಸುತ್ತಿರುತ್ತದೆ. ಇದನ್ನೇ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ 'ಮಹಾದಶಾಧಿಪತಿ' ಎನ್ನಲಾಗುತ್ತದೆ. ಮೇಲಿನ ದೈವಿಕ ಮಂಡಲ ಚಿತ್ರದಲ್ಲಿ, ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ರಕ್ಷಿಸಿ ಮುನ್ನಡೆಸುತ್ತಿರುವ ಪ್ರಧಾನ ಗ್ರಹವನ್ನು ಕೇಂದ್ರದಲ್ಲೂ, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ ಹಾಗೂ ರಾಶಿಯ ಶಕ್ತಿಗಳನ್ನು ಸುತ್ತಲೂ ಚಿತ್ರಿಸಲಾಗಿದೆ. ಈ ಗ್ರಹದ ಮಂತ್ರ ಮತ್ತು ಸತ್ಕರ್ಮಗಳನ್ನು ಅನುಸರಿಸುವುದರಿಂದ ದೋಷಗಳು ದೂರವಾಗಿ, ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಕಾಲವು ಸದಾ ಶುಭದಾಯಕವೂ ಸುರಕ್ಷಿತವೂ ಆಗಿರುತ್ತದೆ."
+            : baseLang === "ml"
+            ? "വൈദിക ജ്യോതിഷത്തിൽ ജന്മലഗ്നവും ചന്ദ്രരാശിയും കൂടാതെ, നിങ്ങളുടെ ഇപ്പോഴത്തെ ജീവിതഘട്ടത്തെ നയിക്കുന്ന ഒരു പ്രധാന ഗ്രഹമുണ്ട് — അതിനെയാണ് 'മഹാദശാധിപതി' എന്ന് വിളിക്കുന്നത്. മുകളിലുള്ള ദിവ്യമണ്ഡലത്തിൽ ഇപ്പോൾ നിങ്ങളെ നയിക്കുന്ന പ്രധാന ഗ്രഹത്തെ മധ്യത്തിലും, നിങ്ങളുടെ ജന്മലഗ്ന-രാശി ബലങ്ങളെ ചുറ്റിലുമായി വരച്ചിരിക്കുന്നു. ഈ ഗ്രഹത്തിന്റെ മന്ത്രസ്മരണയും സത്കർമ്മങ്ങളും പിന്തുടരുന്നത് തടസ്സങ്ങൾ നീക്കി ജീവിതത്തിൽ ശാന്തിയും സംരക്ഷണവും നൽകുന്നു."
+            : baseLang === "mr"
+            ? "वैदिक ज्योतिषशास्त्रानुसार जन्मलग्न व चंद्र राशीसोबतच सद्यकाळात एक प्रमुख ग्रह आपल्या जीवनाचे सूत्रसंचालन करत असतो, ज्याला 'महादशाधिपती' म्हणतात. वरील दिव्य मंडळात आपल्याला सध्या मार्गदर्शन करणारा प्रमुख ग्रह केंद्रस्थानी असून आपले जन्मलग्न व राशीची शक्तीभोवती दर्शविली आहे. या ग्रहाच्या मंत्रस्मरणाने व सत्कर्माने सर्व अडथळे दूर होऊन जीवनात स्थैर्य व संरक्षण लाभते."
             : baseLang === "hi"
             ? "वैदिक ज्योतिष में जन्म लग्न और चंद्र राशि के साथ-साथ, वर्तमान जीवन काल को एक प्रमुख ग्रह संचालित करता है जिसे 'महादशाधिपति' कहा जाता है। ऊपर दिए गए दिव्य चित्र में आपके वर्तमान मार्गदर्शक ग्रह को केंद्र में तथा आपके लग्न व राशि की शक्तियों को चारों ओर दर्शाया गया है। इस ग्रह के बीज मंत्र का स्मरण एवं सत्कर्म आपके जीवन के समस्त कष्टों को दूर कर सर्वत्र रक्षा प्रदान करते हैं।"
             : baseLang === "te"
@@ -1320,6 +1412,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? "೧. ಜನ್ಮ ಲಗ್ನ ಚೈತನ್ಯ ಕವಚ"
+                : baseLang === "ml"
+                ? "1. ജന്മലഗ്ന ചൈതന്യ കവചം"
+                : baseLang === "mr"
+                ? "१. जन्मलग्न चैतन्य कवच"
                 : baseLang === "hi"
                 ? "१. जन्म लग्न चैतन्य कवच"
                 : baseLang === "te"
@@ -1333,7 +1429,7 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
               className="text-base font-extrabold text-amber-950 leading-normal mt-0.5"
             >
               {lagnaName} • {authenticLagnaElement}
-              {lagnaLordName ? ` (${baseLang === "kn" ? "ಲಗ್ನಾಧಿಪತಿ: " : baseLang === "hi" ? "लग्नेश: " : baseLang === "te" ? "లగ్నాధిపతి: " : baseLang === "ta" ? "லக்னாதிபதி: " : "Lord: "}${lagnaLordName})` : ""}
+              {lagnaLordName ? ` (${baseLang === "kn" ? "ಲಗ್ನಾಧಿಪತಿ: " : baseLang === "ml" ? "ലഗ്നാധിപതി: " : baseLang === "mr" ? "लग्नेश: " : baseLang === "hi" ? "लग्नेश: " : baseLang === "te" ? "లగ్నాధిపతి: " : baseLang === "ta" ? "லக்னாதிபதி: " : "Lord: "}${lagnaLordName})` : ""}
             </p>
             <p
               style={{ letterSpacing: "normal" }}
@@ -1341,6 +1437,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? "ದೈಹಿಕ ರಕ್ಷಾ ಕವಚ ಹಾಗೂ ನೈಸರ್ಗಿಕ ರೋಗನಿರೋಧಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಸದಾ ರಕ್ಷಿಸುತ್ತದೆ."
+                : baseLang === "ml"
+                ? "ശാരീരിക ആരോഗ്യത്തെയും പ്രതിരോധശേഷിയെയും നിരന്തരം സംരക്ഷിക്കുന്നു."
+                : baseLang === "mr"
+                ? "शारीरिक आरोग्य व नैसर्गिक प्रतिकारशक्ती निरंतर सुरक्षित ठेवते."
                 : baseLang === "hi"
                 ? "प्राकृतिक शारीरिक प्रतिरोधक क्षमता एवं जीवनी शक्ति का संवर्धन करता है।"
                 : baseLang === "te"
@@ -1364,6 +1464,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? "೨. ಚಂದ್ರ ರಾಶಿ & ನಕ್ಷತ್ರ ಚೇತನ"
+                : baseLang === "ml"
+                ? "2. ചന്ദ്രരാശിയും നക്ഷത്ര ചൈതന്യവും"
+                : baseLang === "mr"
+                ? "२. चंद्र राशी व नक्षत्र चेतना"
                 : baseLang === "hi"
                 ? "२. चंद्र राशि एवं नक्षत्र चेतना"
                 : baseLang === "te"
@@ -1376,7 +1480,7 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
               style={{ letterSpacing: "normal" }}
               className="text-base font-extrabold text-amber-950 leading-normal mt-0.5"
             >
-              {moonName} • {nakshatraName}{pada ? ` (${baseLang === "kn" ? "ಪಾದ " : baseLang === "hi" ? "चरण " : baseLang === "te" ? "పాదం " : baseLang === "ta" ? "பாதம் " : "Pada "}${pada})` : ""}
+              {moonName} • {nakshatraName}{pada ? ` (${baseLang === "kn" ? "ಪಾದ " : baseLang === "ml" ? "പാദം " : baseLang === "mr" ? "चरण " : baseLang === "hi" ? "चरण " : baseLang === "te" ? "పాదం " : baseLang === "ta" ? "பாதம் " : "Pada "}${pada})` : ""}
             </p>
             <p
               style={{ letterSpacing: "normal" }}
@@ -1384,6 +1488,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? "ಮಾನಸಿಕ ಧೈರ್ಯ, ಅಂತಃಪ್ರಜ್ಞೆ ಹಾಗೂ ಭಾವನಾತ್ಮಕ ಸಮತೋಲನದ ದಿವ್ಯ ಆಧಾರ."
+                : baseLang === "ml"
+                ? "മാനസിക പ്രശാന്തിക്കും ആഴത്തിലുള്ള ഉൾക്കാഴ്ചയ്ക്കും വൈകാരിക സമതുലിതാവസ്ഥയ്ക്കും അടിസ്ഥാനം നൽകുന്നു."
+                : baseLang === "mr"
+                ? "मनःशांती, अंतर्ज्ञान व भावनिक समतोल राखणारा भक्कम आधारस्तंभ."
                 : baseLang === "hi"
                 ? "मानसिक संतुलन, अंतर्ज्ञान एवं भावनात्मक स्थिरता का पवित्र आधार।"
                 : baseLang === "te"
@@ -1407,6 +1515,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? "೩. ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ದೈವಿಕ ಸಂಕೇತ"
+                : baseLang === "ml"
+                ? "3. നിലവിലെ ദശാ-ഭുക്തി ദിശാസൂചകം"
+                : baseLang === "mr"
+                ? "३. चालू दशा-भुक्ती दिशादर्शक"
                 : baseLang === "hi"
                 ? "३. वर्तमान दशा-भुक्ति दैवीय संकेत"
                 : baseLang === "te"
@@ -1421,6 +1533,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? `${mahaLord} ಮಹಾದಶಾ / ${bhuktiLord} ಭುಕ್ತಿ`
+                : baseLang === "ml"
+                ? `${mahaLord} മഹാദശ / ${bhuktiLord} ഭുക്തി`
+                : baseLang === "mr"
+                ? `${mahaLord} महादशा / ${bhuktiLord} अंतर्दशा`
                 : baseLang === "hi"
                 ? `${mahaLord} महादशा / ${bhuktiLord} भुक्ति`
                 : baseLang === "te"
@@ -1435,6 +1551,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? `${dashaLordDisplayName} ಅಧಿಪತ್ಯದಲ್ಲಿ ಕರ್ಮದ ಪ್ರಮುಖ ತಿರುವು ಮತ್ತು ಹೊಸ ಅವಕಾಶಗಳ ಪ್ರಾಪ್ತಿ.`
+                : baseLang === "ml"
+                ? `${dashaLordDisplayName} അധിപത്യത്തിൽ ജീവിതത്തിലെ പ്രധാന വഴിത്തിരിവുകളും വളർച്ചാ അവസരങ്ങളും തെളിയുന്നു.`
+                : baseLang === "mr"
+                ? `${dashaLordDisplayName} अधिपत्याखाली जीवनातील महत्त्वाची वळणे व प्रगतीच्या संधी.`
                 : baseLang === "hi"
                 ? `${dashaLordDisplayName} के आधिपत्य में कर्म की नई दिशा एवं सुअवसरों का मार्ग प्रशस्त।`
                 : baseLang === "te"
@@ -1458,6 +1578,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? "೪. ಗೋಚಾರ ಗ್ರಹ ಸಂಚಾರ ಅನುಗ್ರಹ"
+                : baseLang === "ml"
+                ? "4. ഗോചര ഗ്രഹസംരക്ഷണ വിന്യാസം"
+                : baseLang === "mr"
+                ? "४. गोचर ग्रह संरक्षण संयोग"
                 : baseLang === "hi"
                 ? "४. गोचर ग्रह संचरण अनुग्रह"
                 : baseLang === "te"
@@ -1472,6 +1596,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? `ಗೋಚಾರ ಗುರು: ${jupiterTransitHouse}ನೇ ಭಾವ • ಗೋಚಾರ ಶನಿ: ${saturnTransitHouse}ನೇ ಭಾವ`
+                : baseLang === "ml"
+                ? `ഗോചര വ്യാഴം: ${jupiterTransitHouse}-ാം ഭാവം • ഗോചര ശനി: ${saturnTransitHouse}-ാം ഭാവം`
+                : baseLang === "mr"
+                ? `गोचर गुरु: ${jupiterTransitHouse}वे स्थान • गोचर शनी: ${saturnTransitHouse}वे स्थान`
                 : baseLang === "hi"
                 ? `गोचर गुरु: ${jupiterTransitHouse}वां भाव • गोचर शनि: ${saturnTransitHouse}वां भाव`
                 : baseLang === "te"
@@ -1486,6 +1614,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
             >
               {baseLang === "kn"
                 ? "ಕಂಟಕ ನಿವಾರಣೆ, ಶಾಂತಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ಸದಾ ಜಾಗೃತ ರಕ್ಷೆ."
+                : baseLang === "ml"
+                ? "തടസ്സനിവാരണവും മനഃശാന്തിയും ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വരന്റെ നിരന്തര സംരക്ഷണവും."
+                : baseLang === "mr"
+                ? "संकट निवारण, मनःशांती व श्री क्षेत्र गोकर्ण महाबळेश्वराचे अखंड संरक्षण."
                 : baseLang === "hi"
                 ? "कंटक निवारण, सुख-शांति एवं श्री क्षेत्र गोकर्ण की सतत सुरक्षा।"
                 : baseLang === "te"
@@ -1512,6 +1644,10 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
         >
           {baseLang === "kn"
             ? "॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಹಾಗೂ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ಸದಾ ಜಾಗೃತ ಕೃಪಾಕಟಾಕ್ಷವು ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಿ, ಪ್ರಸ್ತುತ ದಶಾ ಕಾಲದಲ್ಲಿ ಸಕಲ ಸನ್ಮಂಗಳಗಳನ್ನು ಕರುಣಿಸಲಿ ॥"
+            : baseLang === "ml"
+            ? "✦ ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വരന്റെയും മുഖ്യപ്രാണദേവന്റെയും അനുഗ്രഹം നിങ്ങളുടെ ജാതകദോഷങ്ങൾ ശമിപ്പിച്ച് ഈ ദശാകാലത്ത് സർവ്വ ഐശ്വര്യവും സമാധാനവും നൽകട്ടെ ✦"
+            : baseLang === "mr"
+            ? "॥ श्री क्षेत्र गोकर्ण महाबळेश्वर व मुख्यप्राण देवांची कृपा आपल्या कुंडलीतील सर्व ग्रहदोष शांत करून सदैव सुख-समृद्धी देवो ॥"
             : baseLang === "hi"
             ? "॥ श्री क्षेत्र गोकर्ण के महाबलेश्वर एवं मुख्यप्राण भगवान की कृपा आपके समस्त ग्रह दोषों को शांत कर जीवन में सुख, शांति एवं विजय प्रदान करे ॥"
             : baseLang === "te"

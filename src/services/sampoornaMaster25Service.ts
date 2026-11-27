@@ -15,7 +15,31 @@ import type { KundliOutput, KundliInput, PlanetPosition as AstroPlanetPosition }
 import { PlanetName } from "../core/AstroTypes";
 import type { SixLang } from "../features/fiveYearPrediction/fiveYearLocale";
 export type { SixLang };
-import { pick6, formatNumber6L, RASHI_6L, GRAHA_6L, NAKSHATRA_6L, WEEKDAY_6L } from "../features/fiveYearPrediction/fiveYearLocale";
+import {
+  type SevenLang,
+  normalizeSevenLang,
+  pick7,
+  toNativeDigits7L,
+  RASHI_7L,
+  GRAHA_7L,
+  NAKSHATRA_7L,
+  WEEKDAY_7L,
+  ELEMENT_NAMES_7L,
+  YOGA_LABELS_7L,
+  YOGI_ATTRIBUTES_ML,
+  resolveMlPanchangaTerms,
+  resolveMrTithiName,
+  resolveDoshaName7L,
+  getIndicFontFamily7L,
+} from "./sampoornaMaster25Locale7L";
+export type { SevenLang };
+export { normalizeSevenLang };
+import {
+  generateSampoorna25AiNarratives,
+  type SampoornaAiGenerationResult,
+} from "./sampoornaMaster25AiEngine";
+import { isTestEnvironment } from "../utils/testEnvGuard";
+import { useAppStore } from "../stores/appStore";
 import { ageDecimalYearsAt } from "../core/birthTime";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
@@ -121,7 +145,7 @@ export interface SampoornaMaster25Payload {
   childrenStatus?: string;
   ageYears: number;
   ageCategory: AgeCategory25;
-  targetLanguage: SixLang;
+  targetLanguage: SevenLang;
 
   // Header Details (6-Anga Complete Natal Panchanga + Dasha)
   lagnaName: string;
@@ -206,6 +230,9 @@ export interface SampoornaMaster25Payload {
   // 25 Chapters
   chapters: Master25Chapter[];
   narrativeVariant?: number;
+  isAiGenerated?: boolean;
+  aiRunId?: string;
+  aiChaptersCount?: number;
 
   // 15-Day Personal Daily Darshana Google Calendar QR Section
   calendarQrSection?: CalendarQrSectionData;
@@ -225,7 +252,7 @@ export interface SampoornaMaster25Payload {
   footerText: string;
 }
 
-function cleanRegionalPreserveBullets(text: string, lang: SixLang): string {
+function cleanRegionalPreserveBullets(text: string, lang: SevenLang): string {
   if (!text || lang === "en") return text;
   return text
     .split("•")
@@ -238,20 +265,8 @@ function cleanRegionalPreserveBullets(text: string, lang: SixLang): string {
 // 2. NATIVE DIGITS & NUMBER FORMATTING
 // ============================================================================
 
-export function toNativeDigits(num: number | string, lang: SixLang): string {
-  const s = String(num);
-  if (lang === "en") return s;
-  const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
-  const hiDigits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
-  const teDigits = ["౦", "౧", "౨", "౩", "౪", "౫", "౬", "౭", "౮", "౯"];
-  const taDigits = ["௦", "௧", "௨", "௩", "௪", "௫", "௬", "௭", "௮", "௯"];
-
-  const digits = (lang === "kn") ? knDigits
-    : (lang === "mr" || lang === "hi") ? hiDigits
-      : (lang === "te") ? teDigits
-        : taDigits;
-
-  return s.replace(/\d/g, d => digits[parseInt(d, 10)] || d);
+export function toNativeDigits(num: number | string, lang: SevenLang): string {
+  return toNativeDigits7L(num, lang);
 }
 
 // Determine Age Category
@@ -265,13 +280,14 @@ export function getAgeCategory25(ageYears: number): AgeCategory25 {
   return "senior";
 }
 
-export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
+export const MAANDI_DOMAIN_MAP: Record<number, Record<SevenLang, string>> = {
   1: {
     kn: "ವ್ಯಕ್ತಿತ್ವ, ಆತ್ಮಾಭಿಮಾನ ಹಾಗೂ ನಾಯಕತ್ವದ ನಿರ್ಧಾರಗಳು",
     hi: "व्यक्तित्व, आत्मसम्मान एवं नेतृत्व के निर्णय",
     mr: "व्यक्तिमत्त्व, आत्मसन्मान व नेतृत्वाचे निर्णय",
     te: "వ్యక్తిత్వం, ఆత్మగౌరవం మరియు నాయకత్వ నిర్ణయాలు",
     ta: "சுயமரியாதை, தலைமைத்துவம் மற்றும் ஆளுமை முடிவுகள்",
+    ml: "വ്യക്തിത്വം, ആത്മാഭിമാനം, നേതൃത്വ തീരുമാനങ്ങൾ",
     en: "Personal identity, self-worth, and leadership initiatives"
   },
   2: {
@@ -280,6 +296,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "धन संचय, बचत व आर्थिक नफा",
     te: "ధన సంచయం, పొదుపు మరియు ఆర్థిక లాభం",
     ta: "தன சேமிப்பு, குடும்ப நிதி மற்றும் வியாபார லாபம்",
+    ml: "ധനസമ്പാദനം, സമ്പാദ്യം, കുടുംബ സാമ്പത്തിക സ്ഥിരത",
     en: "Wealth accumulation, savings, and financial stability"
   },
   3: {
@@ -288,6 +305,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "भावंडांचे सहकार्य, धैर्य व नवीन उपक्रम",
     te: "సోదరుల సహకారం, ధైర్యం మరియు నూతన ప్రయత్నాలు",
     ta: "சகோதரர் ஆதரவு, தைரியம் மற்றும் புதிய முயற்சிகள்",
+    ml: "സഹോദര സഹകരണം, ധൈര്യം, പുതിയ പരിശ്രമങ്ങൾ",
     en: "Sibling cooperation, initiatives, and courage"
   },
   4: {
@@ -296,6 +314,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "गृह शांती, वाहन सुख व स्थावर मालमत्ता खरेदी",
     te: "గృహ శాంతి, వాహన సౌఖ్యం మరియు స్థిరాస్తి",
     ta: "வீட்டு அமைதி, வாகனம் மற்றும் நில சொத்துக்கள்",
+    ml: "ഗൃഹസമാധാനം, വാഹന സൗഖ്യം, ഭൂമി-വസ്തു നേട്ടങ്ങൾ",
     en: "Domestic peace, vehicle happiness, and property acquisitions"
   },
   5: {
@@ -304,6 +323,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "उच्च शिक्षण, बुद्धिमत्ता व संतती सुख",
     te: "ఉన్నత విద్య, సృజనాత్మకత మరియు సంతాన భాగ్యం",
     ta: "உயர் கல்வி, புத்திசாலித்தனம் மற்றும் சந்தான யோகம்",
+    ml: "ഉന്നത വിദ്യാഭ്യാസം, ബുദ്ധിശക്തി, സന്താന സൗഭാഗ്യം",
     en: "Higher learning, intellect, and progeny/creative output"
   },
   6: {
@@ -312,6 +332,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "कर्जमुक्ती, शत्रू नियंत्रण व स्पर्धात्मक यश",
     te: "ఋణ విముక్తి, శత్రు నివారణ మరియు విజయాలు",
     ta: "கடன் நிவர்த்தி, எதிரிகள் வெற்றி மற்றும் வழக்குகள்",
+    ml: "കടബാധ്യതാ നിവാരണം, പ്രതിബന്ധ വിജയം, ആരോഗ്യ രക്ഷ",
     en: "Debt clearance, overcoming opposition, and victory in competitions"
   },
   7: {
@@ -320,6 +341,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "वैवाहिक सलोखा, भागीदारी व सार्वजनिक संबंध",
     te: "వైవాహిక సామరస్యం, వ్యాపార భాగస్వామ్యం మరియు సంబంధాలు",
     ta: "திருமண ஒற்றுமை, கூட்டு தொழில் மற்றும் பொதுத் தொடர்பு",
+    ml: "ദാമ്പത്യ ഐക്യം, വ്യാപാര പങ്കാളിത്തം, സാമൂഹിക ബന്ധങ്ങൾ",
     en: "Marital harmony, business partnerships, and contracts"
   },
   8: {
@@ -328,6 +350,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "अचानक येणारे अडथळे, वडिलोपार्जित संपत्ती व मानसिक ताण",
     te: "ఆకస్మిక అడ్డంకులు, పూర్వీకుల ఆస్తి మరియు ఆందోళన",
     ta: "திடீர் தடைகள், பூர்வீக சொத்து மற்றும் மன அழுத்தம்",
+    ml: "അപ്രതീക്ഷിത തടസ്സങ്ങൾ, പൂർവ്വിക സ്വത്ത്, മാനസിക ജാഗ്രത",
     en: "Sudden obstacles, legacy clearances, and anxiety resolution"
   },
   9: {
@@ -336,6 +359,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "भाग्योदय, तीर्थयात्रा व गुरुंची कृपा",
     te: "భాగ్యోదయం, తీర్థయాత్రలు మరియు గురు అనుగ్రహం",
     ta: "பாக்கிய விருத்தி, புண்ணிய ஸ்தல யாத்திரை மற்றும் குரு அருள்",
+    ml: "ഭാഗ്യോദയം, തീർത്ഥയാത്ര, ആത്മീയ ഗുരുകൃപ",
     en: "Fortune fruition, higher wisdom, pilgrimages, and spiritual mentor blessings"
   },
   10: {
@@ -344,6 +368,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "कामाच्या ठिकाणी मान, पदोन्नती व सामाजिक प्रतिष्ठा",
     te: "వృత్తి గౌరవం, పదోన్నతి మరియు సామాజిక కీర్తి",
     ta: "தொழில் வெற்றி, பதவி உயர்வு மற்றும் சமூக அந்தஸ்து",
+    ml: "തൊഴിൽ അംഗീകാരം, ഉത്തരവാദിത്ത ഉയർച്ച, സാമൂഹിക മാന്യത",
     en: "Professional prestige, authority, promotions, and career recognition"
   },
   11: {
@@ -352,6 +377,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "नियमित धनलाभ, मित्रांचे सहकार्य व इच्छापूर्ती",
     te: "లాభాలు, స్నేహితుల సహకారం మరియు ఆశయాల సాధన",
     ta: "வருமான பெருக்கம், நண்பர்கள் ஆதரவு மற்றும் இலக்குகள் நிறைவேறுதல்",
+    ml: "സ്ഥിരമായ വരുമാന പ്രവാഹം, സുഹൃദ് സഹായം, അഭീഷ്ടസിദ്ധി",
     en: "Liquid cash flow, network gains, and aspiration fulfillment"
   },
   12: {
@@ -360,6 +386,7 @@ export const MAANDI_DOMAIN_MAP: Record<number, Record<SixLang, string>> = {
     mr: "अनावश्यक खर्च नियंत्रण, परदेश प्रवास व शांत झोप",
     te: "అనవసర ఖర్చుల నియంత్రణ, విదేశీ ప్రయాణం మరియు నిద్ర సుఖం",
     ta: "விரய செலவு கட்டுப்பாடு, வெளிநாட்டு யோகம் மற்றும் நிம்மதியான தூக்கம்",
+    ml: "ചെലവ് നിയന്ത്രണം, വിദേശ അവസരങ്ങൾ, ശാന്തമായ നിദ്രാസുഖം",
     en: "Expenditure control, foreign opportunities, and restorative peace"
   }
 };
@@ -401,17 +428,22 @@ function resolveNextNarrativeEdition(personKey: string, explicitVariant?: number
 
 export async function prepareSampoornaMaster25Data(
   sessionOrData: any,
-  langArg?: SixLang,
-  options?: { onProgress?: (pct: number, msg: string) => void; narrativeVariant?: number }
+  langArg?: SevenLang | string,
+  options?: {
+    onProgress?: (pct: number, msg: string) => void;
+    narrativeVariant?: number;
+    enableAi?: boolean;
+    geminiApiKey?: string;
+  }
 ): Promise<SampoornaMaster25Payload> {
-  const rawRequestedLang = (langArg || (sessionOrData?.targetLanguage as string) || "kn").slice(0, 2).toLowerCase();
-  const targetLang: SixLang = (rawRequestedLang === "ml" ? "en" : ["kn", "mr", "hi", "te", "ta", "en"].includes(rawRequestedLang) ? rawRequestedLang : "kn") as SixLang;
-  options?.onProgress?.(10, pick6({
+  const targetLang: SevenLang = normalizeSevenLang(langArg || (sessionOrData?.targetLanguage as string) || "kn");
+  options?.onProgress?.(10, pick7({
     kn: "೧. ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಜಾತಕ ಗಣಿತ ಪರಿಶೀಲನೆ...",
     mr: "१. जन्म कुंडली व गणितीय पडताळणी...",
     hi: "१. जन्म कुंडली एवं गणितीय सत्यापन...",
     te: "1. జన్మ కుండలి మరియు గణిత పరిశీలన...",
     ta: "1. ஜாதக கணித சரிபார்ப்பு...",
+    ml: "1. ജന്മകുണ്ഡലിയും ജ്യോതിഷ ഗണിതവും പരിശോധിക്കുന്നു...",
     en: "1. Verifying natal astronomical mathematics..."
   }, targetLang));
 
@@ -431,21 +463,22 @@ export async function prepareSampoornaMaster25Data(
   const pin = input?.pincode ? String(input.pincode) : "";
   const rawPlace = sessionOrData?.placeLabel || sessionOrData?.homePlaceName || (input as any)?.place;
   const nsDir = lat >= 0
-    ? pick6({ kn: "ಉ", mr: "उ", hi: "उ", te: "ఉ", ta: "வ", en: "N" }, targetLang)
-    : pick6({ kn: "ದ", mr: "द", hi: "द", te: "ద", ta: "தெ", en: "S" }, targetLang);
+    ? pick7({ kn: "ಉ", mr: "उ", hi: "उ", te: "ఉ", ta: "வ", ml: "വ", en: "N" }, targetLang)
+    : pick7({ kn: "ದ", mr: "द", hi: "द", te: "ద", ta: "தெ", ml: "തെ", en: "S" }, targetLang);
   const ewDir = lng >= 0
-    ? pick6({ kn: "ಪೂ", mr: "पू", hi: "पू", te: "తూ", ta: "கி", en: "E" }, targetLang)
-    : pick6({ kn: "ಪ", mr: "प", hi: "प", te: "ప", ta: "மே", en: "W" }, targetLang);
+    ? pick7({ kn: "ಪೂ", mr: "पू", hi: "पू", te: "తూ", ta: "கி", ml: "കി", en: "E" }, targetLang)
+    : pick7({ kn: "ಪ", mr: "प", hi: "प", te: "ప", ta: "மே", ml: "പ", en: "W" }, targetLang);
   const birthPlace = rawPlace
     ? resolvePlaceDisplayName(String(rawPlace), targetLang)
     : input?.latitude
       ? `${toNativeDigits(Math.abs(lat).toFixed(2), targetLang)}°${nsDir}, ${toNativeDigits(Math.abs(lng).toFixed(2), targetLang)}°${ewDir}`
-      : pick6({
+      : pick7({
         kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ",
         mr: "श्री क्षेत्र गोकर्ण",
         hi: "श्री क्षेत्र गोकर्ण",
         te: "శ్రీ క్షేత్ర గోకర్ణ",
         ta: "ஸ்ரீ கோகர்ண க்ஷேத்திரம்",
+        ml: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം",
         en: "Sri Kshetra Gokarna"
       }, targetLang);
   const birthPlaceShort = rawPlace ? (extractShortPlaceDisplayName(String(rawPlace), targetLang) || birthPlace) : birthPlace;
@@ -467,18 +500,19 @@ export async function prepareSampoornaMaster25Data(
   const maritalContext: "married" | "unmarried" | "unspecified" = hasExplicitMarital
     ? (String(maritalStatus).toLowerCase() === "married" ? "married" : "unmarried")
     : ageDecimal < 24
-    ? "unmarried"
-    : "unspecified";
+      ? "unmarried"
+      : "unspecified";
   const normNameKey = String(rawName || "devotee").trim().toLowerCase().replace(/\s+/g, "_").slice(0, 28);
   const personEditionKey = `${birthDate}|${birthTime}|${lat.toFixed(2)}|${lng.toFixed(2)}|${normNameKey}|${targetLang}`;
   const narrativeVariant = resolveNextNarrativeEdition(personEditionKey, options?.narrativeVariant);
 
-  options?.onProgress?.(25, pick6({
+  options?.onProgress?.(25, pick7({
     kn: "೨. ದಕ್ಷಿಣ ಭಾರತದ ರಹಸ್ಯ ಗಣಿತ (ಯೋಗಿ, ಅವಯೋಗಿ, ಬೃಗು ಬಿಂದು, ಮಾಂದಿ)...",
     mr: "२. गुप्त अचूक गणित (योगी, अवयोगी, भृगु बिंदू, मांदी)...",
     hi: "२. दक्षिण भारतीय रहस्य गणित (योगी, अवयोगी, भृगु बिंदु, मांदी)...",
     te: "2. రహస్య జ్యోతిష గణితం (యోగి, అవయోగి, భృగు బిందువు, మాంది)...",
     ta: "2. ரகசிய கணிதம் (யோகி, அவயோகி, பிருகு பிந்து, மாந்தி)...",
+    ml: "2. രഹസ്യ ജ്യോതിഷ ഗണിതം (യോഗി, അവയോഗി, ഭൃഗു ബിന്ദു, മാന്ദി)...",
     en: "2. Computing South Indian Secret Points (Yogi, Avayogi, Bhrigu Bindu, Maandi)..."
   }, targetLang));
 
@@ -503,7 +537,7 @@ export async function prepareSampoornaMaster25Data(
   const maandiCalc = computeMaandi(birthDt, lat, lng, pin);
   const maandiRashiIdx = (((maandiCalc.rashi.index % 12) + 12) % 12) as RashiIndex;
   const maandiHouse = (((maandiRashiIdx - lagnaRashiIdx + 12) % 12) + 1);
-  const maandiRashiName = RASHI_6L[maandiRashiIdx]?.[targetLang] || RASHI_6L[0].en;
+  const maandiRashiName = RASHI_7L[maandiRashiIdx]?.[targetLang] || RASHI_7L[0].en;
 
   // Secret Accuracy Profile (Yogi, Avayogi, Bhrigu Bindu, Pushkara Navamsha)
   const precisionPlanets: PlanetPosition[] = result.planets.map((p) => {
@@ -562,27 +596,34 @@ export async function prepareSampoornaMaster25Data(
   ];
   const lagnaLordGraha = RASHI_DISPOSITORS_MAP[lagnaRashiIdx] || PlanetName.Mars;
   const moonLordGraha = RASHI_DISPOSITORS_MAP[moonRashiIdx] || PlanetName.Venus;
-  const lagnaLord = GRAHA_6L[lagnaLordGraha]?.[targetLang] || lagnaLordGraha;
-  const moonLord = GRAHA_6L[moonLordGraha]?.[targetLang] || moonLordGraha;
+  const lagnaLord = GRAHA_7L[lagnaLordGraha]?.[targetLang] || lagnaLordGraha;
+  const moonLord = GRAHA_7L[moonLordGraha]?.[targetLang] || moonLordGraha;
 
   // 6-Anga Complete Natal Panchanga Elements
   const traditional = calculateTraditionalBaggona(birthDate, birthTime, lat, lng, "lahiri", pin);
+  const mlPanchanga = targetLang === "ml"
+    ? resolveMlPanchangaTerms(traditional)
+    : null;
 
   const pakshaName =
     targetLang === "kn"
       ? (traditional?.pakshaKn || "ಶುಕ್ಲ")
-      : targetLang === "mr"
-        ? (traditional?.paksha5L?.hi || "शुक्ल")
-        : (traditional?.paksha5L?.[targetLang] || traditional?.paksha || "Shukla");
+      : targetLang === "ml"
+        ? mlPanchanga!.pakshaMl
+        : targetLang === "mr"
+          ? (traditional?.paksha5L?.hi || "शुक्ल")
+          : (traditional?.paksha5L?.[targetLang] || traditional?.paksha || "Shukla");
 
   const rawTithiName =
     targetLang === "kn"
       ? (traditional?.tithiKn || traditional?.tithi || "ಪ್ರತಿಪದೆ")
-      : targetLang === "mr"
-        ? (traditional?.tithi5L?.hi || traditional?.tithi5L?.en || traditional?.tithi || "प्रतिपदा")
-        : (traditional?.tithi5L?.[targetLang] || (targetLang === "en" ? traditional?.tithi : traditional?.tithiKn) || "Pratipada");
+      : targetLang === "ml"
+        ? mlPanchanga!.tithiMl
+        : targetLang === "mr"
+          ? resolveMrTithiName(traditional)
+          : (traditional?.tithi5L?.[targetLang] || (targetLang === "en" ? traditional?.tithi : traditional?.tithiKn) || "Pratipada");
 
-  const isPurnimaOrAmavasya = /purnima|amavasya|ಹುಣ್ಣಿಮೆ|ಅಮಾವಾಸ್ಯೆ|पूर्णिमा|अमावस्या|పౌర్ణమి|అమావాస్య|பௌர்ணமி|அமாவாசை/i.test(rawTithiName);
+  const isPurnimaOrAmavasya = /purnima|amavasya|ಹುಣ್ಣಿಮೆ|ಅಮಾವಾಸ್ಯೆ|पूर्णिमा|अमावस्या|పౌర్ణమి|అమావాస్య|பௌர்ணமி|அமாவாசை|പൗർണ്ണമി|അമാവാസി/i.test(rawTithiName);
   const cleanedRawTithi = rawTithiName.replace(new RegExp(`^(?:${pakshaName}\\s+)+`, "u"), "").trim() || rawTithiName.trim();
   const tithiName = (!isPurnimaOrAmavasya && !cleanedRawTithi.includes(pakshaName))
     ? `${pakshaName} ${cleanedRawTithi}`
@@ -590,25 +631,29 @@ export async function prepareSampoornaMaster25Data(
 
   const moonPlanet = result.planets.find(p => p.name === PlanetName.Moon);
   const moonNakIdx = moonPlanet?.nakshatra?.index ?? (result.moonSign ? Math.floor(((result.moonSign.index * 30) + (moonPlanet?.degree ?? 0)) / 13.333333) % 27 : 0);
-  const nakshatraName = NAKSHATRA_6L[moonNakIdx]?.[targetLang] || NAKSHATRA_6L[moonNakIdx]?.en || "Rohini";
+  const nakshatraName = NAKSHATRA_7L[moonNakIdx]?.[targetLang] || NAKSHATRA_7L[moonNakIdx]?.en || "Rohini";
   const nakshatraPada = result.moonPada || 1;
 
   const yogaName =
     targetLang === "kn"
       ? (traditional?.yogaKn || traditional?.yoga || "ಸಿದ್ಧಿ")
-      : targetLang === "mr"
-        ? (traditional?.yoga5L?.hi || traditional?.yoga || "सिद्धि")
-        : (traditional?.yoga5L?.[targetLang] || traditional?.yoga || "Siddha");
+      : targetLang === "ml"
+        ? mlPanchanga!.yogaMl
+        : targetLang === "mr"
+          ? (traditional?.yoga5L?.hi || traditional?.yoga || "सिद्धि")
+          : (traditional?.yoga5L?.[targetLang] || traditional?.yoga || "Siddha");
 
   const karanaName =
     targetLang === "kn"
       ? (traditional?.karanaKn || traditional?.karana || "ಬವ")
-      : targetLang === "mr"
-        ? (traditional?.karana5L?.hi || traditional?.karana || "बव")
-        : (traditional?.karana5L?.[targetLang] || traditional?.karana || "Bava");
+      : targetLang === "ml"
+        ? mlPanchanga!.karanaMl
+        : targetLang === "mr"
+          ? (traditional?.karana5L?.hi || traditional?.karana || "बव")
+          : (traditional?.karana5L?.[targetLang] || traditional?.karana || "Bava");
 
   const weekdayIdx = typeof traditional?.weekdayIndex === "number" ? traditional.weekdayIndex : (isNaN(birthDt.getDay()) ? 0 : birthDt.getDay());
-  const weekdayName = WEEKDAY_6L[weekdayIdx]?.[targetLang] || WEEKDAY_6L[weekdayIdx]?.en || "Sunday";
+  const weekdayName = WEEKDAY_7L[weekdayIdx]?.[targetLang] || WEEKDAY_7L[weekdayIdx]?.en || "Sunday";
 
   // Authentic Sunrise/Sunset Janma Hora (Birth Hora)
   let birthHoraRaw = traditional?.horaLord || "";
@@ -617,7 +662,7 @@ export async function prepareSampoornaMaster25Data(
     const hoursFrom6Am = Math.floor((((bH || 12) + (bM || 0) / 60) - 6 + 24) % 24);
     birthHoraRaw = CHALDEAN_HORA_ORDER[(DAY_RULER_CHALDEAN_IDX[weekdayIdx % 7] + hoursFrom6Am) % 7] || "Sun";
   }
-  const janmaHora = GRAHA_6L[birthHoraRaw]?.[targetLang] || birthHoraRaw;
+  const janmaHora = GRAHA_7L[birthHoraRaw]?.[targetLang] || birthHoraRaw;
   const horaLordName = janmaHora;
   const sunriseTimeRaw = traditional?.sunrise || "06:15";
   const [srH, srM] = sunriseTimeRaw.split(":").map((x) => parseInt(x, 10));
@@ -626,30 +671,32 @@ export async function prepareSampoornaMaster25Data(
   const currentWeekday = now.getDay();
   const hoursSinceSunrise = Math.floor((nowHourDecimal - sunriseHourDecimal + 24) % 24);
   const liveHoraPlanetRaw = CHALDEAN_HORA_ORDER[(DAY_RULER_CHALDEAN_IDX[currentWeekday] + hoursSinceSunrise) % 7];
-  const livePrashnaHora = GRAHA_6L[liveHoraPlanetRaw]?.[targetLang] || liveHoraPlanetRaw;
+  const livePrashnaHora = GRAHA_7L[liveHoraPlanetRaw]?.[targetLang] || liveHoraPlanetRaw;
 
   const sunriseTime = toNativeDigits(sunriseTimeRaw, targetLang);
   const sunsetTime = toNativeDigits(traditional?.sunset || "18:20", targetLang);
 
-  const ayanamshaName = pick6({
+  const ayanamshaName = pick7({
     kn: "ಲಾಹಿರಿ (ಚಿತ್ರಾಪಕ್ಷ)",
     mr: "लाहिरी (चित्रापक्ष)",
     hi: "लाहिड़ी (चित्रापक्ष)",
     te: "లాహిరి (చిత్రాపక్ష)",
     ta: "லாகிரி (சித்ராபக்ஷம்)",
+    ml: "ലാഹിരി (ചിത്രപക്ഷം)",
     en: "Lahiri (Chitrapaksha)"
   }, targetLang);
 
   // Birth Dasha Balance
-  const dashaBalLord = GRAHA_6L[traditional?.dashaLord || "Jupiter"]?.[targetLang] || (traditional?.dashaLord || "Jupiter");
+  const dashaBalLord = GRAHA_7L[traditional?.dashaLord || "Jupiter"]?.[targetLang] || (traditional?.dashaLord || "Jupiter");
   const dYears = toNativeDigits(traditional?.dashaYears ?? 5, targetLang);
   const dMonths = toNativeDigits(traditional?.dashaMonths ?? 0, targetLang);
-  const janmaDashaBalance = pick6({
+  const janmaDashaBalance = pick7({
     kn: `${dashaBalLord} (${dYears} ವರ್ಷ ${dMonths} ತಿಂಗಳು)`,
     mr: `${dashaBalLord} (${dYears} वर्षे ${dMonths} महिने)`,
     hi: `${dashaBalLord} (${dYears} वर्ष ${dMonths} माह)`,
     te: `${dashaBalLord} (${dYears} సం॥ ${dMonths} నె॥)`,
     ta: `${dashaBalLord} (${dYears} ஆண். ${dMonths} மா.)`,
+    ml: `${dashaBalLord} (${dYears} വർഷം ${dMonths} മാസം)`,
     en: `${dashaBalLord} (${dYears} Yrs ${dMonths} Mos)`
   }, targetLang);
 
@@ -657,8 +704,8 @@ export async function prepareSampoornaMaster25Data(
   const bhuktiInfo = findBhuktiAtAge(result, ageDecimal);
   const rawMaha = String(bhuktiInfo?.maha?.planet || "Jupiter");
   const rawBhukti = String(bhuktiInfo?.bhukti || "Saturn");
-  const currentMahadasha = GRAHA_6L[rawMaha]?.[targetLang] || rawMaha;
-  const currentBhuktiLord = GRAHA_6L[rawBhukti]?.[targetLang] || rawBhukti;
+  const currentMahadasha = GRAHA_7L[rawMaha]?.[targetLang] || rawMaha;
+  const currentBhuktiLord = GRAHA_7L[rawBhukti]?.[targetLang] || rawBhukti;
   const bhuktiEndAge = bhuktiInfo?.bhuktiEndAge || (ageDecimal + 1);
   const yearsUntilBhuktiEnd = Math.max(0.1, bhuktiEndAge - ageDecimal);
   const bhuktiEndDt = new Date(Date.now() + yearsUntilBhuktiEnd * 365.25 * 86400000);
@@ -696,8 +743,8 @@ export async function prepareSampoornaMaster25Data(
   const savTable = computeSarvashtakavarga(result);
   const shaniTransitSav = savTable[shaniTransitRashiIdx] ?? 28;
   const guruTransitSav = savTable[guruTransitRashiIdx] ?? 28;
-  const shaniTransitRashi = RASHI_6L[shaniTransitRashiIdx]?.[targetLang] || "Pisces";
-  const guruTransitRashi = RASHI_6L[guruTransitRashiIdx]?.[targetLang] || "Gemini";
+  const shaniTransitRashi = RASHI_7L[shaniTransitRashiIdx]?.[targetLang] || "Pisces";
+  const guruTransitRashi = RASHI_7L[guruTransitRashiIdx]?.[targetLang] || "Gemini";
 
   // Authentic Panchabhuta Elemental Matrix from Birth Chart
   const elemWeights = { fire: 0, earth: 0, air: 0, water: 0 };
@@ -718,39 +765,23 @@ export async function prepareSampoornaMaster25Data(
     .sort((a, b) => b[1] - a[1]);
   const primaryElem = sortedElems[0][0];
   const secondaryElem = sortedElems[1][0];
-  const ELEM_NAMES_6L: Record<"fire" | "earth" | "air" | "water", Record<SixLang, string>> = {
-    fire: { kn: "ಅಗ್ನಿ ತತ್ವ", mr: "अग्नी तत्त्व", hi: "अग्नि तत्त्व", te: "అగ్ని తత్వం", ta: "அக்னி தத்துவம்", en: "Fire (Agni)" },
-    earth: { kn: "ಪೃಥ್ವಿ (ಭೂ) ತತ್ವ", mr: "पृथ्वी तत्त्व", hi: "पृथ्वी तत्त्व", te: "పృథ్వి తత్వం", ta: "பூமி (பிருத்வி) தத்துவம்", en: "Earth (Prithvi)" },
-    air: { kn: "ವಾಯು ತತ್ವ", mr: "वायू तत्त्व", hi: "वायु तत्त्व", te: "వాయు తత్వం", ta: "வாயு தத்துவம்", en: "Air (Vayu)" },
-    water: { kn: "ಜಲ ತತ್ವ", mr: "जल तत्त्व", hi: "जल तत्त्व", te: "జల తత్వం", ta: "நீர் (ஜல) தத்துவம்", en: "Water (Jala)" }
-  };
-  const dominantElement = `${ELEM_NAMES_6L[primaryElem][targetLang]} + ${ELEM_NAMES_6L[secondaryElem][targetLang]}`;
+  const dominantElement = `${ELEMENT_NAMES_7L[primaryElem][targetLang]} + ${ELEMENT_NAMES_7L[secondaryElem][targetLang]}`;
 
   // Authentic Natal Yogas + House Lords + Comprehensive Doshas
   const detectedYogaIds: YogaId[] = detectChartYogas(result);
-  const YOGA_LABELS_6L: Record<YogaId, Record<SixLang, string>> = {
-    gajakesari: { kn: "ಗಜಕೇಸರಿ ಯೋಗ", mr: "गजकेसरी योग", hi: "गजकेसरी योग", te: "గజకేసరి యోగం", ta: "கஜகேசரி யோகம்", en: "Gajakesari Yoga" },
-    budhaditya: { kn: "ಬುಧಾದಿತ್ಯ ಯೋಗ", mr: "बुधादित्य योग", hi: "बुधादित्य योग", te: "బుధాదిత్య యోగం", ta: "புதாதித்ய யோகம்", en: "Budhaditya Yoga" },
-    ruchaka: { kn: "ರುಚಕ ಮಹಾಪುರುಷ ಯೋಗ", mr: "रुचक महापुरुष योग", hi: "रुचक महापुरुष योग", te: "రుచక మహాపురుష యోగం", ta: "ருசக மகாபுருஷ யோகம்", en: "Ruchaka Mahapurusha Yoga" },
-    bhadra: { kn: "ಭದ್ರ ಮಹಾಪುರುಷ ಯೋಗ", mr: "भद्र महापुरुष योग", hi: "भद्र महापुरुष योग", te: "భద్ర మహాపురుష యోగం", ta: "பத்ர மகாபுருஷ யோகம்", en: "Bhadra Mahapurusha Yoga" },
-    hamsa: { kn: "ಹಂಸ ಮಹಾಪುರುಷ ಯೋಗ", mr: "हंस महापुरुष योग", hi: "हंस महापुरुष योग", te: "హంస మహాపురుష యోగం", ta: "ஹம்ச மகாபுருஷ யோகம்", en: "Hamsa Mahapurusha Yoga" },
-    malavya: { kn: "ಮಾಳವ್ಯ ಮಹಾಪುರುಷ ಯೋಗ", mr: "मालव्य महापुरुष योग", hi: "मालव्य महापुरुष योग", te: "మాలవ్య మహాపురుష యోగం", ta: "மாளவ்ய மகாபுருஷ யோகம்", en: "Malavya Mahapurusha Yoga" },
-    sasha: { kn: "ಶಶ ಮಹಾಪುರುಷ ಯೋಗ", mr: "शश महापुरुष योग", hi: "शश महापुरुष योग", te: "శశ మహాపురుష యోగం", ta: "சச மகாபுருஷ யோகம்", en: "Sasha Mahapurusha Yoga" },
-    chandra_mangala: { kn: "ಚಂದ್ರ-ಮಂಗಳ ಯೋಗ", mr: "चंद्र-मंगळ योग", hi: "चन्द्र-मंगल योग", te: "చంద్ర-మంగళ యోగం", ta: "சந்திர-மங்கள யோகம்", en: "Chandra-Mangala Yoga" },
-    kemadruma: { kn: "ಕೇಮದ್ರುಮ ಯೋಗ (ಭಂಗ ಪರಿಶೀಲನೆ)", mr: "केमद्रुम योग", hi: "केमद्रुम योग", te: "కేమద్రుమ యోగం", ta: "கேமத்ரும யோகம்", en: "Kemadruma Yoga" }
-  };
   const beneficYogasLocalized = detectedYogaIds
     .filter((id) => id !== "kemadruma")
-    .map((id) => YOGA_LABELS_6L[id][targetLang]);
+    .map((id) => YOGA_LABELS_7L[id][targetLang]);
   const detectedYogasSummary = cleanRegionalLabel(
     beneficYogasLocalized.length > 0
       ? beneficYogasLocalized.join(", ")
-      : pick6({
+      : pick7({
         kn: "ಧನ-ಕರ್ಮ ಸ್ಥಾನಾಧಿಪತಿಗಳ ಶುಭ ಸಂಯೋಗ",
         mr: "धन-कर्मेश शुभ संयोग",
         hi: "धन-कर्मेश शुभ संयोग",
         te: "ధన-కర్మాధిపతుల శుభ కలయిక",
         ta: "தன-கர்மாதிபதி சுப சேர்க்கை",
+        ml: "ധന-കർമ്മാധിപതികളുടെ ശുഭ സംയോഗം",
         en: "Natal Benefic Dispositor Harmony"
       }, targetLang)
   );
@@ -760,8 +791,8 @@ export async function prepareSampoornaMaster25Data(
     const lordGraha = signLord(rIdx);
     const lordPlanet = result.planets.find((p) => p.name === lordGraha);
     const placedHouse = lordPlanet ? (((lordPlanet.rashi.index - lagnaRashiIdx + 12) % 12) + 1) : houseNum;
-    const placedRashi = lordPlanet ? (RASHI_6L[lordPlanet.rashi.index]?.[targetLang] || RASHI_6L[0].en) : (RASHI_6L[rIdx]?.[targetLang] || "");
-    const lordName = GRAHA_6L[lordGraha]?.[targetLang] || lordGraha;
+    const placedRashi = lordPlanet ? (RASHI_7L[lordPlanet.rashi.index]?.[targetLang] || RASHI_7L[0].en) : (RASHI_7L[rIdx]?.[targetLang] || "");
+    const lordName = GRAHA_7L[lordGraha]?.[targetLang] || lordGraha;
     return { lordGraha, lordName, placedHouse, placedRashi };
   };
 
@@ -782,10 +813,7 @@ export async function prepareSampoornaMaster25Data(
       .filter((d) => d.isDetected)
       .slice(0, 4);
     activeDoshaNames = activeRawDoshas
-      .map((d) => {
-        const rawLabel = targetLang === "mr" ? (d.name.hi || d.name.en) : (d.name[targetLang] || d.name.en);
-        return cleanRegionalLabel(rawLabel);
-      })
+      .map((d) => cleanRegionalLabel(resolveDoshaName7L(d.name, targetLang)))
       .filter(Boolean);
   } catch {
     activeRawDoshas = [];
@@ -794,12 +822,13 @@ export async function prepareSampoornaMaster25Data(
   const detectedDoshasSummary = cleanRegionalLabel(
     activeDoshaNames.length > 0
       ? activeDoshaNames.join(", ")
-      : pick6({
+      : pick7({
         kn: `ಸೂಕ್ಷ್ಮ ${toNativeDigits(maandiHouse, targetLang)}ನೇ ಭಾವದ ಮಾಂದಿ ಗಂಟು`,
         mr: `${toNativeDigits(maandiHouse, targetLang)}व्या स्थानातील मांदी गाठ`,
         hi: `${toNativeDigits(maandiHouse, targetLang)}वें भाव की मांदी ग्रंथि`,
         te: `${toNativeDigits(maandiHouse, targetLang)}వ స్థాన మాంది గ్రంథి`,
         ta: `${toNativeDigits(maandiHouse, targetLang)}-ஆம் இட மாந்தி முடிச்சு`,
+        ml: `${toNativeDigits(maandiHouse, targetLang)}-ാം ഭാവത്തിലെ സൂക്ഷ്മ മാന്ദി ബന്ധം`,
         en: `Subtle Maandi Knot in House ${maandiHouse}`
       }, targetLang)
   );
@@ -807,12 +836,14 @@ export async function prepareSampoornaMaster25Data(
   // South Indian Accuracy Variables
   const rawYogi = secretProfile.yogiPlanet || "Jupiter";
   const rawAvayogi = secretProfile.avayogiPlanet || "Rahu";
-  const yogiPlanetName = GRAHA_6L[rawYogi]?.[targetLang] || rawYogi;
-  const avayogiPlanetName = GRAHA_6L[rawAvayogi]?.[targetLang] || rawAvayogi;
-  const yogiAttrs6L = getYogiAttributes6L(rawYogi, targetLang);
-  const localizedYogiColor = yogiAttrs6L.color;
-  const localizedYogiDirection = yogiAttrs6L.direction;
-  const localizedYogiDay = yogiAttrs6L.wealthDay;
+  const yogiPlanetName = GRAHA_7L[rawYogi]?.[targetLang] || rawYogi;
+  const avayogiPlanetName = GRAHA_7L[rawAvayogi]?.[targetLang] || rawAvayogi;
+  const yogiAttrs = targetLang === "ml"
+    ? (YOGI_ATTRIBUTES_ML[rawYogi] || YOGI_ATTRIBUTES_ML.Jupiter)
+    : getYogiAttributes6L(rawYogi, targetLang);
+  const localizedYogiColor = yogiAttrs.color;
+  const localizedYogiDirection = yogiAttrs.direction;
+  const localizedYogiDay = yogiAttrs.wealthDay;
 
   // Parashari Vajra-Hawala Gemstone Harmony Guard
   const isHawalaProhibited = rawYogi === "Mars" && [1, 2, 5, 6].includes(lagnaRashiIdx);
@@ -820,23 +851,24 @@ export async function prepareSampoornaMaster25Data(
   const isYogiFunctionalMaraka = lagnaPlanetNature[rawYogi] === "MARAKA";
   const isYogiGemProhibited = isHawalaProhibited || isVajraProhibited || isYogiFunctionalMaraka;
   const localizedYogiGemstone = isYogiGemProhibited
-    ? pick6({
+    ? pick7({
       kn: `ಲಗ್ನ ಮೈತ್ರಿ ಪ್ರಕಾರ ರತ್ನ ಬದಲು '${localizedYogiColor}' ವಸ್ತ್ರ & ಮಂತ್ರ ಜಪ ಶ್ರೇಷ್ಠ`,
       mr: `लग्न नियमानुसार रत्नाऐवजी '${localizedYogiColor}' वस्त्र व मंत्र जप उत्तम`,
       hi: `लग्न मर्यादानुसार रत्न के स्थान पर '${localizedYogiColor}' वस्त्र एवं मंत्र जप श्रेष्ठ`,
       te: `లగ్న నియమం ప్రకారం రత్నానికి బదులుగా '${localizedYogiColor}' వస్త్రం & మంత్ర జపం శ్రేష్ఠం`,
       ta: `லக்ன விதிப்படி ரத்தினத்திற்கு பதிலாக '${localizedYogiColor}' ஆடை & மந்திர ஜபம் உத்தமம்`,
+      ml: `പരാശര ലഗ്നമൈത്രി പ്രകാരം രത്നത്തിന് പകരം '${localizedYogiColor}' വസ്ത്രവും മന്ത്രജപവും ഉത്തമം`,
       en: `Per Parashari Lagna harmony, prioritize '${localizedYogiColor}' attire & Japa instead of gem`
     }, targetLang)
-    : yogiAttrs6L.gemstone;
-  const localizedYogiDeity = yogiAttrs6L.deity;
+    : yogiAttrs.gemstone;
+  const localizedYogiDeity = yogiAttrs.deity;
 
   const yogiNakIdx = typeof secretProfile.yogiNakshatraIndex === "number" ? secretProfile.yogiNakshatraIndex : 7;
   const avayogiNakIdx = typeof secretProfile.avayogiNakshatraIndex === "number" ? secretProfile.avayogiNakshatraIndex : 5;
-  const yogiNakshatra = NAKSHATRA_6L[yogiNakIdx]?.[targetLang] || NAKSHATRA_6L[yogiNakIdx]?.en || "Pushya";
-  const avayogiNakshatra = NAKSHATRA_6L[avayogiNakIdx]?.[targetLang] || NAKSHATRA_6L[avayogiNakIdx]?.en || "Ardra";
+  const yogiNakshatra = NAKSHATRA_7L[yogiNakIdx]?.[targetLang] || NAKSHATRA_7L[yogiNakIdx]?.en || "Pushya";
+  const avayogiNakshatra = NAKSHATRA_7L[avayogiNakIdx]?.[targetLang] || NAKSHATRA_7L[avayogiNakIdx]?.en || "Ardra";
 
-  const bhriguBinduRashiName = RASHI_6L[secretProfile.bhriguBinduRashi]?.[targetLang] || "Taurus";
+  const bhriguBinduRashiName = RASHI_7L[secretProfile.bhriguBinduRashi]?.[targetLang] || "Taurus";
   const bhriguDeg = (secretProfile.bhriguBinduDegree || 15).toFixed(1);
 
   const extendedPrecision = computeExtendedPrecisionMetrics({
@@ -855,8 +887,8 @@ export async function prepareSampoornaMaster25Data(
     now
   });
 
-  const lagnaNameLocalized = RASHI_6L[lagnaRashiIdx]?.[targetLang] || "Aries";
-  const moonRashiLocalized = RASHI_6L[moonRashiIdx]?.[targetLang] || "Taurus";
+  const lagnaNameLocalized = RASHI_7L[lagnaRashiIdx]?.[targetLang] || "Aries";
+  const moonRashiLocalized = RASHI_7L[moonRashiIdx]?.[targetLang] || "Taurus";
 
   // Compute Authentic Strongest Hero Planet & Physically Closest Colleague inside THIS Birth Chart
   const EXALTED_RASHIS: Record<string, number> = { Sun: 0, Moon: 1, Mars: 9, Mercury: 5, Jupiter: 3, Venus: 11, Saturn: 6 };
@@ -880,8 +912,8 @@ export async function prepareSampoornaMaster25Data(
   const heroRawName = String(heroEntry?.planet || rawYogi || "Jupiter");
   const heroPlanetHouse = heroEntry?.rashiHouse || 1;
   const heroPlanetRashiIdx = heroEntry?.rashi ?? lagnaRashiIdx;
-  const heroPlanetName = GRAHA_6L[heroRawName]?.[targetLang] || heroRawName;
-  const heroPlanetRashi = RASHI_6L[heroPlanetRashiIdx]?.[targetLang] || lagnaNameLocalized;
+  const heroPlanetName = GRAHA_7L[heroRawName]?.[targetLang] || heroRawName;
+  const heroPlanetRashi = RASHI_7L[heroPlanetRashiIdx]?.[targetLang] || lagnaNameLocalized;
 
   const colleagueSorted = precisionPlanets
     .filter((pp) => pp.planet !== heroRawName)
@@ -893,9 +925,9 @@ export async function prepareSampoornaMaster25Data(
 
   const nearestEntry = colleagueSorted[0]?.pp || precisionPlanets[1] || heroEntry;
   const nearestRawName = String(nearestEntry?.planet || "Rahu");
-  const nearestColleagueName = GRAHA_6L[nearestRawName]?.[targetLang] || nearestRawName;
+  const nearestColleagueName = GRAHA_7L[nearestRawName]?.[targetLang] || nearestRawName;
   const nearestColleagueHouse = nearestEntry?.rashiHouse || heroPlanetHouse;
-  const nearestColleagueRashi = RASHI_6L[nearestEntry?.rashi ?? moonRashiIdx]?.[targetLang] || moonRashiLocalized;
+  const nearestColleagueRashi = RASHI_7L[nearestEntry?.rashi ?? moonRashiIdx]?.[targetLang] || moonRashiLocalized;
 
   const storyCtx: StoryEngineInput = {
     targetLang,
@@ -985,8 +1017,8 @@ export async function prepareSampoornaMaster25Data(
     rawAvayogi,
     shaniVedhaObstructed: Boolean(shaniVedha?.isObstructed),
     guruVedhaObstructed: Boolean(guruVedha?.isObstructed),
-    yogiRashiName: RASHI_6L[secretProfile.yogiRashi]?.[targetLang] || "Aries",
-    avayogiRashiName: RASHI_6L[secretProfile.avayogiRashi]?.[targetLang] || "Gemini",
+    yogiRashiName: RASHI_7L[secretProfile.yogiRashi]?.[targetLang] || "Aries",
+    avayogiRashiName: RASHI_7L[secretProfile.avayogiRashi]?.[targetLang] || "Gemini",
     bhriguBinduHouseFromMoon: houseFromMoon(secretProfile.bhriguBinduRashi),
   };
 
@@ -994,98 +1026,402 @@ export async function prepareSampoornaMaster25Data(
   const activeDoshaProfiles: ActiveDoshaProfile[] = buildConsolidatedDoshaProfiles(storyCtx);
   const chartVisualMetrics: ChartVisualMetrics = computeChartVisualMetrics(storyCtx);
 
-  options?.onProgress?.(50, pick6({
+  options?.onProgress?.(50, pick7({
     kn: "೩. ೨೫ ಆಳವಾದ ಅಧ್ಯಾಯಗಳ ಸಂಯೋಜನೆ (ಪ್ರಶ್ನೋತ್ತರ ಶೈಲಿ, ಶೂನ್ಯ ಕೋಷ್ಟಕ)...",
     mr: "३. २५ सखोल अध्यायांची निर्मिती (प्रश्नोत्तर शैली, शून्य तक्ता)...",
     hi: "३. २५ गहन अध्यायों की संरचना (प्रश्नोत्तरी शैली, शून्य तालिका)...",
     te: "3. 25 లోతైన అధ్యాయాల నిర్మాణం (ప్రశ్నోత్తర శైలి)...",
     ta: "3. 25 விரிவான அத்தியாயங்கள் உருவாக்கம்...",
+    ml: "3. 25 ആഴമേറിയ അധ്യായങ്ങളുടെ കഥനരൂപരേഖ ഒരുക്കുന്നു...",
     en: "3. Synthesizing 25 Deep Chapters (Story Style, Zero Tables)..."
   }, targetLang));
 
-  // Build the 25 Chapters (Concise Storytelling + Mid-Chapter Twists + Consolidated Dosha Audit in Ch 23)
+  // Build deterministic 25-chapter astronomical chassis & fallback foundation
   const chapters: Master25Chapter[] = buildDynamicStoryChapters(storyCtx, activeDoshaProfiles);
 
-  options?.onProgress?.(90, pick6({
+  // ──────────────────────────────────────────────────────────────────────────
+  // GEMINI AI DYNAMIC NARRATION & UNIQUE EXAMPLES ENGINE (gemini-3.5-flash-lite)
+  // Generates personalized cover paragraphs, unique real-life stories/examples
+  // per chapter, and dynamic dosha insights so neither family members nor
+  // repeat downloads ever see hardcoded or duplicated examples.
+  // ──────────────────────────────────────────────────────────────────────────
+  const resolvedApiKey = (
+    options?.geminiApiKey ||
+    useAppStore.getState?.()?.geminiApiKey ||
+    (typeof import.meta !== "undefined" ? (import.meta as any).env?.VITE_GEMINI_API_KEY : "") ||
+    ""
+  ).trim();
+
+  const shouldRunAi =
+    typeof options?.enableAi === "boolean"
+      ? options.enableAi && Boolean(resolvedApiKey)
+      : !isTestEnvironment() && Boolean(resolvedApiKey);
+
+  let aiResult: SampoornaAiGenerationResult | null = null;
+  if (shouldRunAi) {
+    const houseSummaryStr = [
+      `H2 Lord=${storyCtx.house2Info.lordName}(H${storyCtx.house2Info.placedHouse} ${storyCtx.house2Info.placedRashi})`,
+      `H5 Lord=${storyCtx.house5Info.lordName}(H${storyCtx.house5Info.placedHouse} ${storyCtx.house5Info.placedRashi})`,
+      `H6 Lord=${storyCtx.house6Info.lordName}(H${storyCtx.house6Info.placedHouse} ${storyCtx.house6Info.placedRashi})`,
+      `H7 Lord=${storyCtx.house7Info.lordName}(H${storyCtx.house7Info.placedHouse} ${storyCtx.house7Info.placedRashi})`,
+      `H9 Lord=${extendedPrecision.house9Info.lordName}(H${extendedPrecision.house9Info.placedHouse} ${extendedPrecision.house9Info.placedRashi})`,
+      `H10 Lord=${storyCtx.house10Info.lordName}(H${storyCtx.house10Info.placedHouse} ${storyCtx.house10Info.placedRashi})`,
+      `H11 Lord=${storyCtx.house11Info.lordName}(H${storyCtx.house11Info.placedHouse} ${storyCtx.house11Info.placedRashi})`,
+    ].join("; ");
+
+    aiResult = await generateSampoorna25AiNarratives(
+      {
+        targetLang,
+        devoteeName: localizedDevoteeName,
+        ageYears: ageDecimal,
+        ageCategory,
+        isMinor: ageDecimal < 18,
+        isInfant: ageDecimal < 2,
+        isChild: ageDecimal >= 2 && ageDecimal < 13,
+        isTeen: ageDecimal >= 13 && ageDecimal < 18,
+        isSenior: ageDecimal >= 60,
+        gender,
+        maritalStatus,
+        childrenStatus,
+        birthDate,
+        birthTime,
+        birthPlace,
+        lagnaName: lagnaNameLocalized,
+        lagnaLord,
+        lagnaRashiIdx,
+        moonRashi: moonRashiLocalized,
+        moonLord,
+        moonRashiIdx,
+        nakshatraName,
+        pakshaName,
+        tithiName,
+        weekdayName,
+        yogaName,
+        karanaName,
+        janmaHora,
+        janmaDashaBalance,
+        currentMahadasha,
+        currentBhukti: currentBhuktiLord,
+        bhuktiEndDate,
+        yogiPlanet: yogiPlanetName,
+        yogiColor: localizedYogiColor,
+        yogiDirection: localizedYogiDirection,
+        yogiDay: localizedYogiDay,
+        avayogiPlanet: avayogiPlanetName,
+        bhriguBinduRashi: bhriguBinduRashiName,
+        bhriguBinduHouse: storyCtx.bhriguBinduHouseFromMoon || 1,
+        maandiRashi: maandiRashiName,
+        maandiHouse,
+        maandiDomainTheme: MAANDI_DOMAIN_MAP[maandiHouse]?.[targetLang] || MAANDI_DOMAIN_MAP[1][targetLang],
+        shaniTransitRashi,
+        shaniHouseFromMoon,
+        guruTransitRashi,
+        guruHouseFromMoon,
+        dominantElement,
+        detectedYogasSummary,
+        detectedDoshasSummary,
+        heroPlanetName,
+        heroPlanetHouse,
+        heroPlanetRashi,
+        nearestColleagueName,
+        nearestColleagueHouse,
+        nearestColleagueRashi,
+        liveTarabalaHeadline: extendedPrecision.precisionProfileSummary.liveTarabalaHeadline,
+        tarabalaReportDateStr: extendedPrecision.reportDateDisplay,
+        savByHouse: savTable,
+        badhakaHouse: extendedPrecision.badhakaHouse,
+        badhakaLord: extendedPrecision.badhakaInfo.lordName,
+        neechaBhangaSummary: extendedPrecision.precisionProfileSummary.dignifiedSummary || "None",
+        vedhaSummary: `ShaniVedha=${Boolean(shaniVedha?.isObstructed)}, GuruVedha=${Boolean(guruVedha?.isObstructed)}`,
+        activeDoshaProfiles,
+        chartVisualMetrics,
+        narrativeVariant,
+        houseSummaryLines: houseSummaryStr,
+      },
+      resolvedApiKey,
+      (aiPct, aiMsg) => {
+        const mappedPct = Math.min(89, 50 + Math.round((aiPct / 100) * 38));
+        options?.onProgress?.(mappedPct, aiMsg);
+      }
+    );
+
+    // Overlay AI output with strict Mathematical & Language Purity Post-AI Guard
+    if (aiResult && aiResult.chaptersByNumber.size > 0) {
+      const stripPadaAndPurify = (raw: string): string => {
+        if (!raw) return "";
+        let cleaned = raw
+          .replace(/[\u0900-\u097F]*ॐ[\u0900-\u097F]*|॥|।/g, (m) => (targetLang === "ta" || targetLang === "ml" ? "" : m))
+          .replace(/\b(?:Nakshatra\s+)?Pada\s*[-:#]?\s*\d*\b/gi, "")
+          .replace(/(?:ನಕ್ಷತ್ರ\s*)?ಪಾದ\s*[-:#]?\s*[೦-೯\d]*/gu, "")
+          .replace(/(?:नक्षत्र\s*)?चरण\s*[-:#]?\s*[०-९\d]*/gu, "")
+          .replace(/(?:నక్షత్ర\s*)?పాదం\s*[-:#]?\s*[౦-౯\d]*/gu, "")
+          .replace(/(?:நட்சத்திர\s*)?பாதம்\s*[-:#]?\s*\d*/gu, "")
+          .replace(/(?:നക്ഷത്ര\s*)?പാദം\s*[-:#]?\s*\d*/gu, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+        cleaned = cleanPunctuationArtifacts(cleaned);
+        if (targetLang !== "en") {
+          cleaned = cleanRegionalPreserveBullets(cleaned, targetLang);
+        }
+        return cleaned;
+      };
+
+      const isScriptValidForLang = (txt: string): boolean => {
+        if (!txt || txt.trim().length < 15) return false;
+        if (targetLang === "en") return !/[\u0900-\u0D7F]/.test(txt);
+        const reMap: Record<Exclude<SevenLang, "en">, RegExp> = {
+          kn: /[\u0C80-\u0CFF]/,
+          mr: /[\u0900-\u097F]/,
+          hi: /[\u0900-\u097F]/,
+          te: /[\u0C00-\u0C7F]/,
+          ta: /[\u0B80-\u0BFF]/,
+          ml: /[\u0D00-\u0D7F]/,
+        };
+        if (!reMap[targetLang].test(txt)) return false;
+        const latinCount = (txt.match(/[A-Za-z]/g) || []).length;
+        return latinCount <= 2;
+      };
+
+      // 1) Overlay Cover Personalization
+      if (aiResult.coverAssurancePara1 && isScriptValidForLang(aiResult.coverAssurancePara1)) {
+        const cleanP1 = stripPadaAndPurify(aiResult.coverAssurancePara1);
+        if (cleanP1.length >= 60 && isScriptValidForLang(cleanP1)) {
+          coverPage.personalAssurancePara1 = cleanP1;
+        }
+      }
+      if (aiResult.coverAssurancePara2 && isScriptValidForLang(aiResult.coverAssurancePara2)) {
+        const cleanP2 = stripPadaAndPurify(aiResult.coverAssurancePara2);
+        if (cleanP2.length >= 60 && isScriptValidForLang(cleanP2)) {
+          coverPage.personalAssurancePara2 = cleanP2;
+        }
+      }
+      if (aiResult.coverTagline && isScriptValidForLang(aiResult.coverTagline)) {
+        const cleanTag = stripPadaAndPurify(aiResult.coverTagline);
+        if (cleanTag.length >= 12 && isScriptValidForLang(cleanTag)) {
+          coverPage.bookletEditionLine = `${cleanTag} • #${toNativeDigits(narrativeVariant + 1, targetLang)}`;
+        }
+      }
+
+      // 2) Overlay Dosha Insights for Ch 23 Visual Audit Matrix
+      for (const d of activeDoshaProfiles) {
+        const aiDosha = aiResult.doshaInsightsById.get(d.id);
+        if (aiDosha) {
+          const cleanDoing = stripPadaAndPurify(aiDosha.doingNow);
+          const cleanAction = stripPadaAndPurify(aiDosha.exactAction);
+          if (cleanDoing.length >= 25 && isScriptValidForLang(cleanDoing)) {
+            d.doingNow = cleanDoing;
+          }
+          if (cleanAction.length >= 20 && isScriptValidForLang(cleanAction)) {
+            d.exactAction = cleanAction;
+          }
+        }
+      }
+
+      // 3) Overlay Chapters 1..25 with strict cross-chapter sentence dedup & invariants
+      const seenGlobalSentences = new Set<string>();
+      const minorRomanceGuard = (txt: string): string => {
+        if (ageDecimal >= 18) return txt;
+        return txt
+          .replace(/\b(marriage|spouse|husband|wife|romantic|dating|promotion|salary hike|mortgage|business profit)\b/gi, "learning & family blessings")
+          .replace(/(ಮದುವೆ|ವಿವಾಹ|ದಾಂಪತ್ಯ|ಪತಿ|ಪತ್ನಿ|ಪ್ರೇಮ|ಉದ್ಯೋಗ ಬಡ್ತಿ)/gu, "ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಹಿರಿಯರ ಆಶೀರ್ವಾದ")
+          .replace(/(शादी|विवाह|दांपत्य|पति|पत्नी|लग्नगाठ)/gu, "शिक्षण आणि कुटुंबाचा आशीर्वाद")
+          .replace(/(వివాహం|పెళ్లి|దాంపత్యం|భార్య|భర్త)/gu, "చదువు మరియు పెద్దల ఆశీర్వాదం")
+          .replace(/(திருமணம்|தாம்பத்தியம்|மனைவி|கணவன்)/gu, "கல்வி மற்றும் பெரியோர் ஆசி")
+          .replace(/(വിവാഹം|ദാമ്പത്യം|ഭാര്യ|ഭർത്താവ്)/gu, "വിദ്യാഭ്യാസവും കുടുംബാശിസ്സും");
+      };
+
+      for (const ch of chapters) {
+        const aiCh = aiResult.chaptersByNumber.get(ch.chapterNumber);
+        if (!aiCh) continue;
+
+        const aiTitle = minorRomanceGuard(stripPadaAndPurify(aiCh.title));
+        const aiQuestion = minorRomanceGuard(stripPadaAndPurify(aiCh.devoteeQuestion.replace(/^(?:Question|ಪ್ರಶ್ನೆ|प्रश्न|सवाल|ప్రశ్న|கேள்வி|ചോദ്യം)\s*[:\-]\s*/iu, "")));
+        const aiHook = minorRomanceGuard(stripPadaAndPurify(aiCh.storyHook));
+        const aiGuidance = minorRomanceGuard(stripPadaAndPurify(aiCh.practicalGuidance));
+        const aiBadge = minorRomanceGuard(stripPadaAndPurify(aiCh.chapterBadge));
+
+        const dedupedParas: string[] = [];
+        for (const rawP of aiCh.paragraphs) {
+          const cleanP = minorRomanceGuard(cleanDegreesFromText(stripPadaAndPurify(rawP)));
+          if (!isScriptValidForLang(cleanP) || cleanP.length < 30) continue;
+          const sentences = cleanP.split(/(?<=[.!?।])\s+/u).map((s) => s.trim()).filter(Boolean);
+          const uniqueSentences: string[] = [];
+          for (const s of sentences) {
+            const normKey = s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "").slice(0, 72);
+            if (normKey.length >= 16 && seenGlobalSentences.has(normKey)) continue;
+            if (normKey.length >= 16) seenGlobalSentences.add(normKey);
+            uniqueSentences.push(s);
+          }
+          if (uniqueSentences.length > 0) {
+            dedupedParas.push(uniqueSentences.join(" "));
+          }
+        }
+
+        if (isScriptValidForLang(aiQuestion)) ch.question = aiQuestion;
+        if (isScriptValidForLang(aiTitle)) ch.title = aiTitle;
+        if (isScriptValidForLang(aiHook)) ch.storyHook = aiHook;
+        if (isScriptValidForLang(aiGuidance)) ch.practicalGuidance = aiGuidance;
+        if (isScriptValidForLang(aiBadge) && aiBadge.length >= 4) ch.guidanceBadge = aiBadge;
+
+        if (dedupedParas.length >= 3 && dedupedParas.join(" ").length >= 340) {
+          ch.paragraphs = dedupedParas;
+        } else if (dedupedParas.length >= 2) {
+          ch.paragraphs = [...dedupedParas, ch.paragraphs[ch.paragraphs.length - 1]].filter(Boolean);
+        }
+
+        // Invariant Guard — Ch 1 exact live Tarabala report date bracket
+        if (ch.chapterNumber === 1) {
+          const dateToken = `[${extendedPrecision.reportDateDisplay}]`;
+          const hasDate = ch.question.includes(extendedPrecision.reportDateDisplay) || ch.paragraphs.join(" ").includes(extendedPrecision.reportDateDisplay);
+          if (!hasDate) {
+            ch.question = `${ch.question} ${dateToken}`.trim();
+          } else if (!ch.question.includes(dateToken) && !ch.paragraphs[0]?.includes(dateToken)) {
+            ch.paragraphs[0] = `${ch.paragraphs[0]} ${dateToken}`.trim();
+          }
+        }
+
+        // Invariant Guard — Ch 11 explicit Yoga names
+        if (ch.chapterNumber === 11 && detectedYogasSummary) {
+          const combined11 = `${ch.question} ${ch.paragraphs.join(" ")}`;
+          const firstYoga = detectedYogasSummary.split(",")[0]?.trim() || "";
+          if (firstYoga && !combined11.includes(firstYoga)) {
+            ch.paragraphs[ch.paragraphs.length - 1] = `${ch.paragraphs[ch.paragraphs.length - 1]} (${detectedYogasSummary})`.trim();
+          }
+        }
+
+        // Invariant Guard — Ch 23 4-pillar scientific Dosha visibility (Kuja, Sarpa, Shani, Maandi)
+        if (ch.chapterNumber === 23) {
+          const combined23 = `${ch.paragraphs.join(" ")}`;
+          const pillarTag = pick7({
+            kn: "ಕುಜ, ಸರ್ಪ, ಶನಿ ಹಾಗೂ ಮಾಂದಿ ಪರಿಶೀಲನೆ ಸಂಪೂರ್ಣವಾಗಿದೆ.",
+            mr: "कुज, सर्प, शनि आणि मांदी दोष तपासणी पूर्ण झाली आहे.",
+            hi: "कुज, सर्प, शनि एवं मांदी दोष परीक्षण पूर्ण है।",
+            te: "కుజ, సర్ప, శని మరియు మాంది దోష పరిశీలన పూర్తయింది.",
+            ta: "செவ்வாய், சர்ப்ப, சனி மற்றும் மாந்தி தோஷ ஆய்வு நிறைவடைந்துள்ளது.",
+            ml: "കുജ, സർപ്പ, ശനി, മാന്ദി ദോഷ പരിശോധന പൂർത്തിയാക്കിയിരിക്കുന്നു.",
+            en: "Scientific Kuja, Sarpa, Shani, and Maandi evaluation is complete."
+          }, targetLang);
+          const checkWords = targetLang === "en" ? ["Kuja", "Sarpa", "Maandi"] : targetLang === "ta" ? ["செவ்வாய்", "மாந்தி"] : targetLang === "ml" ? ["കുജ", "മാന്ദി"] : ["मांदी", "మాంది", "ಮಾಂದಿ"];
+          if (!checkWords.some((w) => combined23.includes(w))) {
+            ch.paragraphs[ch.paragraphs.length - 1] = `${ch.paragraphs[ch.paragraphs.length - 1]} ${pillarTag}`.trim();
+          }
+        }
+
+        // Invariant Guard — Ch 25 Gokarna Sanctuary anchor
+        if (ch.chapterNumber === 25) {
+          const combined25 = `${ch.paragraphs.join(" ")} ${ch.practicalGuidance || ""}`;
+          const gokarnaRegex = /gokarna|ಗೋಕರ್ಣ|गोकर्ण|గోకర్ణ|கோகர்ண|ഗോകർണ്ണ/i;
+          if (!gokarnaRegex.test(combined25)) {
+            const gokarnaLine = pick7({
+              kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಅನುಗ್ರಹ ಸದಾ ನಿಮ್ಮೊಂದಿಗಿರಲಿ.",
+              mr: "श्री क्षेत्र गोकर्ण महाबळेश्वर कृपा सदैव पाठीशी राहो.",
+              hi: "श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा सदैव आपके साथ रहे।",
+              te: "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర అనుగ్రహం ఎల్లప్పుడూ తోడుండును.",
+              ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் அருள் எப்போதும் துணை நிற்கும்.",
+              ml: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര അനുഗ്രഹം എന്നും തുണയായിരിക്കട്ടെ.",
+              en: "May the timeless grace of Sri Kshetra Gokarna Mahabaleshwara guard your journey."
+            }, targetLang);
+            ch.paragraphs[ch.paragraphs.length - 1] = `${ch.paragraphs[ch.paragraphs.length - 1]} ${gokarnaLine}`.trim();
+          }
+        }
+      }
+    }
+  }
+
+  options?.onProgress?.(90, pick7({
     kn: "೪. ಮುಖ್ಯ ಅರ್ಚಕ ಚೈತನ್ಯ ಪಂಡಿತರ ದೈವಿಕ ಆಶೀರ್ವಾದ & ರಕ್ಷಾ ಕವಚ ಜೋಡಣೆ...",
     mr: "४. मुख्य पुरोहित चैतन्य पंडित यांचे दैवी आशीर्वाद...",
     hi: "४. मुख्य अर्चक चैतन्य पंडित का दिव्य आशीर्वाद एवं रक्षा कवच...",
     te: "4. ముఖ్య అర్చకులు చైతన్య పండిట్ ఆశీర్వాదం...",
     ta: "4. தலைமை அர்ச்சகர் சைதன்ய பண்டிதர் ஆசீர்வாதம்...",
+    ml: "4. മുഖ്യ അർച്ചകൻ ചൈതന്യ പണ്ഡിതിന്റെ ഗോകർണ്ണ ആശിസ്സുകൾ ചേർക്കുന്നു...",
     en: "4. Binding Chief Priest Chaitanya Pandit Blessings & Final Seal..."
   }, targetLang));
 
   // Priest Contact Pinned to Chaitanya Pandit (+91 94821 09844)
   const priestBooking = {
-    heading: pick6({
+    heading: pick7({
       kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ದೋಷ ಪರಿಹಾರ, ಸಂಕಲ್ಪ ಪೂಜೆ & ಸೇವಾ ಖಚಿತತೆಗಾಗಿ",
       mr: "श्री क्षेत्र गोकर्ण दोष निवारण, संकल्प पूजा व सेवा बुकिंगसाठी",
       hi: "श्री क्षेत्र गोकर्ण दोष निवारण, संकल्प पूजा एवं सेवा आरक्षण हेतु",
       te: "శ్రీ క్షేత్ర గోకర్ణ దోష నివారణ, సంకల్ప పూజ & సేవా బుకింగ్ కొరకు",
       ta: "ஸ்ரீ க்ஷேத்திர கோகர்ண தோஷ பரிகாரம், சங்கல்ப பூஜை & சேவா உறுதிப்படுத்த",
+      ml: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ ദോഷപരിഹാരം, സങ്കല്പ പൂജ & സേവാ ബുക്കിംഗിനായി",
       en: "For Authentic Dosha Parihara, Sankalpa Puja & Sri Kshetra Gokarna Seva Confirmation"
     }, targetLang),
-    subheading: pick6({
+    subheading: pick7({
       kn: "ನೇರವಾಗಿ ಮುಖ್ಯ ಅರ್ಚಕರೊಂದಿಗೆ ಮಾತನಾಡಿ ಪೂಜಾ ಸಂಕಲ್ಪವನ್ನು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ:",
       mr: "थेट मुख्य पुरोहितांशी संपर्क साधून पूजा संकल्प निश्चित करा:",
       hi: "सीधे मुख्य अर्चक से संपर्क कर पूजा संकल्प सुनिश्चित करें:",
       te: "ముఖ్య అర్చకులతో నేరుగా సంప్రదించి పూజా సంకల్పం నిర్ధారించుకోండి:",
       ta: "நேரடியாக தலைமை அர்ச்சகருடன் பேசி பூஜை சங்கல்பத்தை உறுதி செய்யவும்:",
+      ml: "പൂജാ സങ്കല്പം ഉറപ്പാക്കാൻ മുഖ്യ അർച്ചകനുമായി നേരിട്ട് ബന്ധപ്പെടുക:",
       en: "Speak directly with the Chief Priest to confirm your sacred Sankalpa:"
     }, targetLang),
-    priestTitle: pick6({
+    priestTitle: pick7({
       kn: "ಮುಖ್ಯ ಅರ್ಚಕರು",
       mr: "मुख्य पुरोहित",
       hi: "मुख्य अर्चक",
       te: "ముఖ్య అర్చకులు",
       ta: "தலைமை அர்ச்சகர்",
+      ml: "മുഖ്യ അർച്ചകൻ",
       en: "Chief Priest"
     }, targetLang),
-    priestName: pick6({
+    priestName: pick7({
       kn: "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್",
       mr: "वेद मूर्ति चैतन्य पंडित",
       hi: "वेद मूर्ति चैतन्य पंडित",
       te: "వేదమూర్తి చైతన్య పండిత్",
       ta: "வேதமூர்த்தி சைதன்ய பண்டிதர்",
+      ml: "വേദമൂർത്തി ചൈതന്യ പണ്ഡിത്",
       en: "Veda Moorthy Chaitanya Pandit"
     }, targetLang),
     phone: "+91 94821 09844",
     phoneDisplay: "+91 94821 09844",
     tel: "+919482109844",
-    address: pick6({
+    address: pick7({
       kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ, ಗೋಕರ್ಣ, ಉತ್ತರ ಕನ್ನಡ, ಕರ್ನಾಟಕ",
       mr: "श्री गोकर्ण महाबळेश्वर सानिध्य, गोकर्ण, उत्तर कन्नड, कर्नाटक",
       hi: "श्री गोकर्ण महाबलेश्वर सान्निध्य, गोकर्ण, उत्तर कन्नड़, कर्नाटक",
       te: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం, గోకర్ణ, ఉత్తర కన్నడ, కర్ణాటక",
       ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதி, கோகர்ண, உத்தர கன்னடம், கர்நாடகா",
+      ml: "ശ്രീ ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധാനം, ഗോകർണ്ണ, കർണാടക",
       en: "Sri Gokarna Mahabaleshwara Sannidhana, Gokarna, Karnataka, India"
     }, targetLang)
   };
 
-  const familyProtectionHook = pick6({
+  const defaultFamilyProtectionHook = pick7({
     kn: "ಕುಟುಂಬದ ಪ್ರತಿಯೊಬ್ಬ ಸದಸ್ಯರ ಗ್ರಹಗಳು ಪರಸ್ಪರ ರಕ್ಷಣೆ ಮತ್ತು ಪ್ರಭಾವವನ್ನು ಬೀರುತ್ತವೆ. ನಿಮ್ಮ ಪತಿ/ಪತ್ನಿ, ಮಕ್ಕಳು ಹಾಗೂ ತಂದೆ-ತಾಯಿಯ ಜನ್ಮ ಕುಂಡಲಿಯ ಸಂಪೂರ್ಣ ೨೫-ಅಧ್ಯಾಯಗಳ ಮಹಾ ವರದಿಯನ್ನು ಪರಿಶೀಲಿಸುವುದರಿಂದ ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯ ಹಾಗೂ ಸಕಾಲಿಕ ದೈವಿಕ ರಕ್ಷಣೆ ಖಚಿತವಾಗುತ್ತದೆ.",
     mr: "कुटुंबातील प्रत्येक सदस्याचे ग्रह एकमेकांवर रक्षण व प्रभाव पाडतात. आपल्या जोडीदार, मुले व पालकांच्या पत्रिकेचा हा २५-अध्यायांचा महाअहवाल तपासल्याने कुटुंबात सुख, शांतता व अखंड संरक्षण लाभते.",
     hi: "परिवार के प्रत्येक सदस्य के ग्रह एक-दूसरे की रक्षा एवं भाग्य को प्रभावित करते हैं। अपने जीवनसाथी, संतानों एवं माता-पिता की कुंडली का संपूर्ण २५-अध्यायीय महा प्रतिवेदन प्राप्त करने से पारिवारिक सौहार्द एवं समयोचित सुरक्षा सुनिश्चित होती है।",
     te: "కుటుంబంలోని ప్రతి ఒక్కరి గ్రహాలు ఒకరికొకరు రక్షణ మరియు ప్రభావాన్ని కలిగి ఉంటాయి. మీ భాగస్వామి, పిల్లలు మరియు తల్లిదండ్రుల 25-అధ్యాయాల సమగ్ర నివేదికను పరిశీలించడం వల్ల కుటుంబ సామరస్యం మరియు దైవిక రక్షణ లభిస్తుంది.",
     ta: "குடும்பத்தில் உள்ள ஒவ்வொருவரின் கிரகங்களும் ஒருவருக்கொருவர் பாதுகாப்பையும் தாக்கத்தையும் ஏற்படுத்துகின்றன. உங்கள் துணை, குழந்தைகள் மற்றும் பெற்றோரின் 25-அத்தியாய ஜாதக அறிக்கையைப் பெறுவது குடும்ப ஒற்றுமையையும் உடனடி பாதுகாப்பையும் உறுதி செய்யும்.",
+    ml: "കുടുംബത്തിലെ ഓരോ അംഗത്തിന്റെയും ഗ്രഹനിലയും ദശാകാലവും പരസ്പരം സ്വാധീനിക്കുന്നവയാണ്. ജീവിതപങ്കാളി, മക്കൾ, മാതാപിതാക്കൾ എന്നിവരുടെയും 25-അധ്യായ സമ്പൂർണ്ണ ജാതക റിപ്പോർട്ട് പരിശോധിക്കുന്നത് കുടുംബൈക്യത്തിനും കരുതൽ സംരക്ഷണത്തിനും വഴിയൊരുക്കും.",
     en: "Every family member's planets protect and influence one another. Checking the personalized 25-Chapter Destiny Report for your spouse, children, and parents ensures complete family harmony and timely divine protection."
   }, targetLang);
 
-  const footerText = pick6({
+  const familyProtectionHook =
+    aiResult?.familyProtectionHook && aiResult.familyProtectionHook.length >= 30
+      ? cleanRegionalPreserveBullets(aiResult.familyProtectionHook, targetLang)
+      : defaultFamilyProtectionHook;
+
+  const footerText = pick7({
     kn: "॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಜ್ಯೋತಿಷ್ಯ ಪೀಠ • ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ ॥",
     mr: "॥ श्री क्षेत्र गोकर्ण महाबळेश्वर ज्योतिष पीठ • बग्गोण पंचांग प्रकाशन ॥",
     hi: "॥ श्री क्षेत्र गोकर्ण महाबलेश्वर ज्योतिष पीठ • बग्गोण पंचांग प्रकाशन ॥",
     te: "॥ శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర జ్యోతిష్య పీఠం • బగ్గోణ పంచాంగ ప్రచురణ ॥",
     ta: "✦ ஸ்ரீ க்ஷேத்திர கோகர்ண மகாபலேஸ்வரர் ஜோதிட பீடம் • பக்கோண பஞ்சாங்க வெளியீடு ✦",
+    ml: "✦ ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര ജ്യോതിഷ പീഠം • ബഗ്ഗോണ പഞ്ചാംഗ പ്രകാശനം ✦",
     en: "|| Sri Kshetra Gokarna Mahabaleshwara Jyotishya Peetha • Baggona Panchanga Publication ||"
   }, targetLang);
 
-  options?.onProgress?.(100, pick6({
+  options?.onProgress?.(100, pick7({
     kn: "೨೫-ಅಧ್ಯಾಯಗಳ ಸಂಪೂರ್ಣ ಮಹಾ ಭವಿಷ್ಯ ವರದಿ ಸಿದ್ಧವಾಗಿದೆ!",
     mr: "२५-अध्यायांचा संपूर्ण महा भविष्य अहवाल तयार आहे!",
     hi: "२५-अध्यायों का संपूर्ण महा फलादेश प्रतिवेदन तैयार है!",
     te: "25-అధ్యాయాల సంపూర్ణ మహా భవిష్య నివేదిక సిద్ధమైంది!",
     ta: "25-அத்தியாயங்கள் கொண்ட முழுமையான ஜாதக அறிக்கை தயார்!",
+    ml: "25-അധ്യായ സമ്പൂർണ്ണ മഹാ ജാതക റിപ്പോർട്ട് തയ്യാറായിരിക്കുന്നു!",
     en: "25-Chapter Sampoorna Master Report Ready!"
   }, targetLang));
 
@@ -1118,20 +1454,22 @@ export async function prepareSampoornaMaster25Data(
   });
 
   const calendarQrSection: CalendarQrSectionData = {
-    title: pick6({
+    title: pick7({
       kn: "ವಿಶೇಷ ಉಚಿತ ಕೊಡುಗೆ: ೧೫ ದಿನಗಳ ವೈಯಕ್ತಿಕ 'ದೈನಂದಿನ ದರ್ಶನ' ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್",
       mr: "विशेष मोफत भेट: १५ दिवसांचे वैयक्तिक 'दैनिक दर्शन' गुगल कॅलेंडर",
       hi: "विशेष निःशुल्क उपहार: १५-दिवसीय व्यक्तिगत 'दैनिक दर्शन' गूगल कैलेंडर",
       te: "ప్రత్యేక ఉచిత బహుమతి: 15 రోజుల వ్యక్తిగత 'డైలీ దర్శన' గూగుల్ క్యాలెండర్",
       ta: "சிறப்பு இலவச பரிசு: 15 நாட்கள் தனிப்பயனாக்கப்பட்ட 'தினசரி தரிசனம்' கூகுள் காலண்டர்",
+      ml: "പ്രത്യേക സൗജന്യ ബോണസ്: 15 ദിവസത്തെ വ്യക്തിഗത 'ദൈനിക് ദർശന' ഗൂഗിൾ കലണ്ടർ",
       en: "Exclusive Free Bonus: 15-Day Personalized 'Daily Darshana' Google Calendar"
     }, targetLang),
-    badge: pick6({
+    badge: pick7({
       kn: "೧೫ ದಿನಗಳ ಉಚಿತ ಬೋನಸ್",
       mr: "१५ दिवसांचा मोफत बोनस",
       hi: "१५ दिनों का निःशुल्क बोनस",
       te: "15 రోజుల ఉచిత బోనస్",
       ta: "15 நாட்கள் இலவச போனஸ்",
+      ml: "15 ദിവസത്തെ സൗജന്യ ബോണസ്",
       en: "15-Day Free Bonus"
     }, targetLang),
     priestTitle: priestBooking.priestTitle,
@@ -1140,70 +1478,78 @@ export async function prepareSampoornaMaster25Data(
     priestPhoneDisplay: "+91 94821 09844",
     qrDataUrl: calendarQrDataUrl,
     googleCalendarUrl: calUrl,
-    description: pick6({
+    description: pick7({
       kn: "ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಲಗ್ನಕ್ಕೆ ನಿಖರವಾಗಿ ಸರಿಹೊಂದುವಂತೆ ೧೫ ದಿನಗಳ ದೈನಂದಿನ ದರ್ಶನವನ್ನು ನಿಮ್ಮ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಆಕ್ಟಿವೇಟ್ ಮಾಡಿಕೊಳ್ಳಲು ಕೆಳಗಿನ ಅಧಿಕೃತ ಕ್ಯೂಆರ್ ಸಂಕೇತವನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
       mr: "आपल्या जन्म नक्षत्र, चंद्र रास व लग्नानुसार १५ दिवसांचे अचूक दैनिक दर्शन आपल्या मोबाईल कॅलेंडरवर जोडण्यासाठी खालील क्यूआर कोड स्कॅन करा.",
       hi: "अपने जन्म नक्षत्र, चंद्र राशि एवं लग्न के अनुसार १५ दिनों का सटीक दैनिक दर्शन अपने मोबाइल कैलेंडर में सक्रिय करने हेतु नीचे दिए गए क्यूआर कोड को स्कैन करें।",
       te: "మీ జన్మ నక్షత్రం, చంద్ర రాశి మరియు లగ్నానికి అనుగుణంగా 15 రోజుల దైనిక దర్శనాన్ని మీ మొబైల్ క్యాలెండర్‌లో యాక్టివేట్ చేసుకోవడానికి క్రింది క్యూఆర్ కోడ్‌ను స్కాన్ చేయండి.",
       ta: "உங்கள் பிறந்த நட்சத்திரம், ராசி மற்றும் லக்னத்திற்கு ஏற்ப 15 நாட்கள் தினசரி தரிசனத்தை உங்கள் போன் காலண்டரில் இணைக்க கீழே உள்ள கியூஆர் குறியீட்டை ஸ்கேன் செய்யவும்.",
+      ml: "നിങ്ങളുടെ ജന്മനക്ഷത്രം, ചന്ദ്രരാശി, ലഗ്നം എന്നിവയ്ക്ക് അനുസൃതമായി തയ്യാറാക്കിയ 15 ദിവസത്തെ ദൈനിക് ദർശനം ഫോൺ കലണ്ടറിൽ ചേർക്കാൻ താഴെയുള്ള ഔദ്യോഗിക ക്യുആർ കോഡ് സ്കാൻ ചെയ്യുക.",
       en: "Scan the official QR code below to sync your personalized 15-Day Daily Darshana directly to your phone calendar, calculated mathematically for your exact birth coordinates."
     }, targetLang),
     features: [
-      pick6({
+      pick7({
         kn: "ದೈನಂದಿನ ತಾರಾಬಲ & ಶುಭ ತಾರೆ ನಿರ್ಣಯ (ಪ್ರತಿ ದಿನವೂ ನಿಮ್ಮ ನಕ್ಷತ್ರಕ್ಕೆ ಸಿಗುವ ಶುಭ ಬಲ)",
         mr: "दैनिक ताराबल व शुभ तारा विश्लेषण (दररोजचे नक्षत्र बल)",
         hi: "दैनिक ताराबल एवं शुभ तारा निर्णय (प्रतिदिन का नक्षत्र बल)",
         te: "రోజువారీ తారాబలం & శుభ తార నిర్ణయం (ప్రతిరోజు నక్షత్ర బలం)",
         ta: "தினசரி தாராபலம் & சுப தாரை கணிப்பு (நட்சத்திர பலன்)",
+        ml: "നിങ്ങളുടെ ജന്മനക്ഷത്രത്തിനായുള്ള ദൈനംദിന താരാബലവും ശുഭനക്ഷത്ര നിർണ്ണയവും",
         en: "Daily Tarabala & Auspicious Star alignment for your Janma Nakshatra"
       }, targetLang),
-      pick6({
+      pick7({
         kn: "ಅಧಿಕೃತ ಶುಭ ಮುಹೂರ್ತ, ಅಮೃತ ಕಾಲ & ಅಭಿಜಿತ್ ಕಾಲದ ಸಮಯಾವಧಿ",
         mr: "शुभ मुहूर्त, अमृत काळ व अभिजित काळ वेळ",
         hi: "शुभ मुहूर्त, अमृत काल एवं अभिजित मुहूर्त का सटीक समय",
         te: "శుభ ముహూర్తం, అమృత కాలం & అభిజిత్ కాలం సమయాలు",
         ta: "சுப முகூர்த்தம், அமிர்த காலம் & அபிஜித் காலம் நேரம்",
+        ml: "കൃത്യമായ ശുഭമുഹൂർത്തം, അമൃതകാലം, അഭിജിത് മുഹൂർത്ത സമയം",
         en: "Auspicious Muhurta, Amrita Kala & Abhijit Kala windows"
       }, targetLang),
-      pick6({
+      pick7({
         kn: "ವರ್ಜ್ಯ ಕಾಲ, ರಾಹು ಕಾಲ, ಗುಳಿಕ ಕಾಲ ಹಾಗೂ ಯಮಗಂಡ ಕಾಲದ ನಿಖರ ಗಂಟೆಗಳು",
         mr: "राहु काळ, गुलिक काळ व यमगंड काळ सावधानता वेळ",
         hi: "राहु काल, गुलिक काल एवं यमगंड काल का अचूक समय",
         te: "రాహు కాలం, గుళిక కాలం మరియు యమగండ కాలం సమయాలు",
         ta: "ராகு காலம், குளிகை காலம் மற்றும் எமகண்ட காலம் நேரம்",
+        ml: "രാഹുകാലം, ഗുളികകാലം, യമകണ്ഠകാലം എന്നിവയുടെ കൃത്യസമയം",
         en: "Precise Rahu Kala, Gulika Kala, and Yamaganda Kala timings"
       }, targetLang),
-      pick6({
+      pick7({
         kn: "ಪ್ರತಿದಿನ ಬೆಳಗ್ಗೆ ೭:೦೦ ಗಂಟೆಗೆ ನಿಮ್ಮ ಫೋನ್‌ನಲ್ಲಿ ದೈನಂದಿನ ಜ್ಯೋತಿಷ್ಯ ಸೂಚನೆ",
         mr: "दररोज सकाळी ७:०० वाजता मोबाईलवर दैनिक अलर्ट",
         hi: "प्रतिदिन प्रातः ७:०० बजे आपके फोन पर दैनिक ज्योतिषीय सूचना",
         te: "ప్రతిరోజూ ఉదయం 7:00 గంటలకు ఫోన్‌లో దైనిక జ్యోతిష్య అలర్ట్",
         ta: "தினமும் காலை 7:00 மணிக்கு போனில் சிறப்பு தினசரி அறிவிப்பு",
+        ml: "ദിവസവും രാവിലെ 7:00 മണിക്ക് ഫോണിൽ നേരിട്ട് ജ്യോതിഷ ഓർമ്മപ്പെടുത്തൽ",
         en: "Morning 7:00 AM Smart Astrological Reminder Notification directly on phone"
       }, targetLang)
     ],
-    scanInstructions: pick6({
+    scanInstructions: pick7({
       kn: "ಮೊಬೈಲ್ ಕ್ಯಾಮೆರಾ ಅಥವಾ ಗೂಗಲ್ ಲೆನ್ಸ್ ಮೂಲಕ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ 'ಕ್ಯಾಲೆಂಡರ್‌ಗೆ ಸೇರಿಸಿ' ಒತ್ತಿ.",
       mr: "कॅमेरा किंवा गुगल लेन्सने स्कॅन करून 'कॅलेंडरमध्ये जोडा' वर टॅप करा.",
       hi: "कैमरा अथवा गूगल लेंस से स्कैन करें और 'कैलेंडर में जोड़ें' पर टैप करें।",
       te: "కెమెరా లేదా గూగుల్ లెన్స్ ద్వారా స్కాన్ చేసి 'క్యాలెండర్‌లో చేర్చండి' నొక్కండి.",
       ta: "கேமரா அல்லது கூகுள் லென்ஸ் மூலம் ஸ்கேன் செய்து 'காலண்டரில் சேர்' தட்டவும்.",
+      ml: "ഫോൺ ക്യാമറയോ ഗൂഗിൾ ലെൻസോ ഉപയോഗിച്ച് സ്കാൻ ചെയ്ത് 'കലണ്ടറിൽ ചേർക്കുക' ടാപ്പ് ചെയ്യുക.",
       en: "Scan with your phone camera or Google Lens and tap 'Add to Calendar'."
     }, targetLang),
-    upsellNoticeTitle: pick6({
+    upsellNoticeTitle: pick7({
       kn: "೩೦ ದಿನಗಳ ಪೂರ್ಣ ಕ್ಯಾಲೆಂಡರ್ ಅಪ್‌ಗ್ರೇಡ್ ಸೂಚನೆ",
       mr: "३० दिवसांच्या पूर्ण कॅलेंडर अपग्रेड सूचना",
       hi: "३०-दिवसीय संपूर्ण कैलेंडर अपग्रेड सूचना",
       te: "30 రోజుల పూర్తి క్యాలెండర్ అప్‌గ్రేడ్ సమాచారం",
       ta: "30 நாட்கள் முழு காலண்டர் மேம்படுத்தல் அறிவிப்பு",
+      ml: "30 ദിവസത്തെ സമ്പൂർണ്ണ കലണ്ടർ അപ്‌ഗ്രേഡ് അറിയിപ്പ്",
       en: "Full 30-Day Personal Calendar Desk Upgrade"
     }, targetLang),
-    upsellNoticeText: pick6({
+    upsellNoticeText: pick7({
       kn: "ಬೋನಸ್: ಈ ವರದಿಯೊಂದಿಗೆ ೧೫ ದಿನಗಳ ವೈಯಕ್ತಿಕ 'ದೈನಂದಿನ ದರ್ಶನ' ಕ್ಯಾಲೆಂಡರ್ ಉಚಿತವಾಗಿ ಲಭ್ಯವಿದೆ. ಸಂಪೂರ್ಣ ೩೦ ದಿನಗಳ ವೈಯಕ್ತಿಕ ಕ್ಯಾಲೆಂಡರ್ ಪ್ರತ್ಯೇಕವಾಗಿ ಬೇಕೇ? ಕ್ಯಾಶ್ ಡೆಸ್ಕ್‌ನಲ್ಲಿ ₹೩೦೦ ಪಾವತಿಸಿ ತಕ್ಷಣ ಪಡೆಯಿರಿ.",
       mr: "बोनस: या अहवालासोबत १५ दिवसांचे वैयक्तिक 'दैनिक दर्शन' कॅलेंडर मोफत मिळाले आहे. संपूर्ण ३० दिवसांचे वैयक्तिक कॅलेंडर स्वतंत्रपणे हवे असल्यास कॅश डेस्कवर ₹३०० भरून लगेच मिळवा.",
       hi: "बोनस: इस प्रतिवेदन के साथ १५ दिनों का व्यक्तिगत 'दैनिक दर्शन' कैलेंडर निःशुल्क उपलब्ध है। क्या संपूर्ण ३० दिनों का व्यक्तिगत कैलेंडर अलग से चाहते हैं? कैश डेस्क पर ₹३०० का भुगतान करके इसे तुरंत प्राप्त करें।",
       te: "బోనస్: ఈ నివేదికతో పాటు 15 రోజుల వ్యక్తిగత 'డైలీ దర్శన' క్యాలెండర్ ఉచితంగా అందించబడింది. పూర్తి 30 రోజుల వ్యక్తిగత క్యాలెండర్ ప్రత్యేకంగా కావాలా? క్యాష్ డెస్క్ వద్ద ₹300 చెల్లించి వెంటనే పొందండి.",
       ta: "போனஸ்: இந்த ஜாதக அறிக்கையுடன் 15 நாட்கள் தனிப்பயனாக்கப்பட்ட 'தினசரி தரிசனம்' காலண்டர் இலவசமாக வழங்கப்பட்டுள்ளது. முழு 30 நாட்கள் காலண்டர் தனித்தனியாக வேண்டுமா? கேஷ் கவுண்டரில் ₹300 செலுத்தி உடனடியாகப் பெற்றுக் கொள்ளுங்கள்.",
+      ml: "ബോണസ്: ഈ ജാതക റിപ്പോർട്ടിനൊപ്പം 15 ദിവസത്തെ വ്യക്തിഗത 'ദൈനിക് ദർശന' കലണ്ടർ സൗജന്യമാണ്. മുഴുവൻ 30 ദിവസത്തെ വ്യക്തിഗത കലണ്ടറും വേണമെങ്കിൽ ക്യാഷ് ഡെസ്കിൽ 300 രൂപ നൽകി ഉടൻ നേടാവുന്നതാണ്.",
       en: "Bonus: Enjoy 15 days of personalized Daily Darshana Calendar FREE with this report. Want the full 30-Day Calendar separately? Pay ₹300 at the Cash Desk to get it instantly."
     }, targetLang)
   };
@@ -1212,60 +1558,65 @@ export async function prepareSampoornaMaster25Data(
     {
       sectionNumber: 1,
       chapterRange: `${toNativeDigits("1–6", targetLang)}`,
-      title: pick6({
+      title: pick7({
         kn: "ತಕ್ಷಣದ ದೈವಿಕ ಸ್ಪಂದನೆ & ಆಂತರಿಕ ಸತ್ಯ ದರ್ಶನ",
         mr: "तात्काळ दैवी प्रचिती व गूढ सत्य दर्शन",
         hi: "तात्कालिक दिव्य अनुभूति एवं अंतस का सत्य",
         te: "తక్షణ దైవిక స్పందన & ఆంతరంగిక సత్య దర్శనం",
         ta: "உடனடி ஆச்சரியம் & அந்தரங்க ரகசிய தரிசனம்",
+        ml: "ആന്തരിക സത്യദർശനവും ജീവിക്കുന്ന നിമിഷവും",
         en: "The Instant Hook — Living Moment & Hidden Truths"
       }, targetLang)
     },
     {
       sectionNumber: 2,
       chapterRange: `${toNativeDigits("7–11", targetLang)}`,
-      title: pick6({
+      title: pick7({
         kn: "ಕಾಲಚಕ್ರದ ಮಹಾಬಲ & ಗ್ರಹ ಗೋಚಾರ ವಾಸ್ತವ",
         mr: "कालचक्राचे महाबल व ग्रह गोचर वास्तव",
         hi: "कालचक्र का महाबल एवं ग्रह गोचर यथार्थ",
         te: "కాలచక్ర మహాబలం & గ్రహ గోచార వాస్తవం",
         ta: "காலச்சக்கர மகாபலம் & கிரக கோசார உண்மை",
+        ml: "ഗ്രഹശക്തിയും ദശാ-ഗോചര യാഥാർത്ഥ്യവും",
         en: "Planetary Power Matrix — Active Dasha & Live Transits"
       }, targetLang)
     },
     {
       sectionNumber: 3,
       chapterRange: `${toNativeDigits("12–16", targetLang)}`,
-      title: pick6({
+      title: pick7({
         kn: "ಜೀವನದ ೫ ಪ್ರಮುಖ ಸ್ತಂಭಗಳ ಪ್ರಶ್ನೋತ್ತರ ವಿಶ್ಲೇಷಣೆ",
         mr: "आयुष्यातील ५ प्रमुख स्तंभांचे प्रश्नोत्तर विश्लेषण",
         hi: "जीवन के ५ प्रमुख स्तंभों का प्रश्नोत्तरी विश्लेषण",
         te: "జీవితంలోని 5 ముఖ్య స్తంభాల ప్రశ్నోత్తర విశ్లేషణ",
         ta: "வாழ்க்கையின் 5 முக்கிய தூண்கள் கேள்வி-பதில் ஆய்வு",
+        ml: "ജീവിതത്തിലെ 5 പ്രധാന തൂണുകളുടെ അപഗ്രഥനം",
         en: "Key Life Domains — Age & Status Tailored Insights"
       }, targetLang)
     },
     {
       sectionNumber: 4,
       chapterRange: `${toNativeDigits("17–22", targetLang)}`,
-      title: pick6({
+      title: pick7({
         kn: "ಕಾಲಮಾನದ ಮಾರ್ಗಸೂಚಿ — ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ದಿಗಂತ",
         mr: "कालक्रमानुसार मार्गदर्शक — ५ वर्षांची सुवर्ण क्षितिजे",
         hi: "कालक्रम का रणनीतिक पथ — ५-वर्षीय स्वर्णिम क्षितिज",
         te: "కాలక్రమ మార్గదర్శి — 5 సంవత్సరాల భవిష్యత్ ప్రణాళిక",
         ta: "காலக்கோடு வழிகாட்டல் — 5 வருட பொற்காலம்",
+        ml: "ഭാവി മാർഗ്ഗരേഖ — അടുത്ത 5 വർഷത്തെ ചക്രവാളം",
         en: "Strategic Roadmap — Near-Term & 5-Year Horizon"
       }, targetLang)
     },
     {
       sectionNumber: 5,
       chapterRange: `${toNativeDigits("23–25", targetLang)}`,
-      title: pick6({
+      title: pick7({
         kn: "ದೋಷ ಪರಿಹಾರ ರಹಸ್ಯ & ಮುಖ್ಯ ಅರ್ಚಕರ ಪರಮ ಆಶೀರ್ವಾದ",
         mr: "दोष निवारण रहस्य व मुख्य पुरोहितांचे परम आशीर्वाद",
         hi: "दोष निवारण रहस्य एवं मुख्य अर्चक का परम आशीर्वाद",
         te: "దోష నివారణ రహస్యం & ముఖ్య అర్చకుల దివ్య ఆశీర్వాదం",
         ta: "தோஷ நிவர்த்தி ரகசியம் & தலைமை அர்ச்சகரின் ஆசீர்வாதம்",
+        ml: "ദോഷപരിഹാര രഹസ്യവും മുഖ്യ അർച്ചകന്റെ ആശിസ്സും",
         en: "Remedial Precision & Chief Astrologer's Final Verdict"
       }, targetLang)
     }
@@ -1313,7 +1664,7 @@ export async function prepareSampoornaMaster25Data(
     isDashaSandhi,
     yogiPlanet: yogiPlanetName,
     yogiNakshatra,
-    yogiRashi: RASHI_6L[secretProfile.yogiRashi]?.[targetLang] || "Cancer",
+    yogiRashi: RASHI_7L[secretProfile.yogiRashi]?.[targetLang] || "Cancer",
     yogiColor: localizedYogiColor,
     yogiDirection: localizedYogiDirection,
     yogiDay: localizedYogiDay,
@@ -1321,7 +1672,7 @@ export async function prepareSampoornaMaster25Data(
     yogiDeity: localizedYogiDeity,
     avayogiPlanet: avayogiPlanetName,
     avayogiNakshatra,
-    avayogiRashi: RASHI_6L[secretProfile.avayogiRashi]?.[targetLang] || "Gemini",
+    avayogiRashi: RASHI_7L[secretProfile.avayogiRashi]?.[targetLang] || "Gemini",
     bhriguBinduDegreeFormatted: `${bhriguDeg}°`,
     bhriguBinduRashi: bhriguBinduRashiName,
     bhriguBinduTurningWindow: `${now.getFullYear() + 1} - ${now.getFullYear() + 2}`,
@@ -1358,6 +1709,9 @@ export async function prepareSampoornaMaster25Data(
     initialFinalBlessingPage: 30,
     chapters,
     narrativeVariant,
+    isAiGenerated: Boolean(aiResult?.isAiGenerated),
+    aiRunId: aiResult?.aiRunId,
+    aiChaptersCount: aiResult?.aiChaptersCount ?? 0,
     calendarQrSection,
     familyProtectionHook,
     priestBooking,
@@ -1559,19 +1913,20 @@ function sliceCanvasToA4Chunks(
 
 function renderNativePageTagImage(
   label: string,
-  lang: SixLang
+  lang: SevenLang
 ): { imgData: string; widthMm: number; heightMm: number } | null {
   try {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
-    const fontMap: Record<SixLang, string> = {
-      kn: "'Noto Serif Kannada', 'Noto Sans Kannada', serif",
-      mr: "'Noto Sans Devanagari', serif",
-      hi: "'Noto Sans Devanagari', serif",
-      te: "'Noto Sans Telugu', serif",
-      ta: "'Noto Sans Tamil', serif",
+    const fontMap: Record<SevenLang, string> = {
+      kn: getIndicFontFamily7L("kn"),
+      mr: getIndicFontFamily7L("mr"),
+      hi: getIndicFontFamily7L("hi"),
+      te: getIndicFontFamily7L("te"),
+      ta: getIndicFontFamily7L("ta"),
+      ml: getIndicFontFamily7L("ml"),
       en: "'Outfit', Helvetica, sans-serif",
     };
     const fontStr = `700 22px ${fontMap[lang] || fontMap.en}`;
@@ -1670,7 +2025,7 @@ async function captureDomElementToCanvas(el: HTMLElement, minHeightPx = 40): Pro
 }
 
 export interface CaptureSampoorna25Options {
-  lang?: SixLang;
+  lang?: SevenLang;
   onProgress?: (pct: number, msg: string) => void;
   payload?: SampoornaMaster25Payload;
 }
@@ -1752,12 +2107,13 @@ export async function captureSampoornaMaster25Pdf(
       const progressVal = 85 + Math.round(((i + 1) / sections.length) * 12);
       options?.onProgress?.(
         progressVal,
-        pick6({
+        pick7({
           kn: `ಪುಟ ರಚನೆ (${i + 1}/${sections.length}): ${sectionName}...`,
           mr: `पृष्ठ निर्मिती (${i + 1}/${sections.length}): ${sectionName}...`,
           hi: `पृष्ठ निर्माण (${i + 1}/${sections.length}): ${sectionName}...`,
           te: `పేజీ నిర్మాణం (${i + 1}/${sections.length}): ${sectionName}...`,
           ta: `பக்க உருவாக்கம் (${i + 1}/${sections.length}): ${sectionName}...`,
+          ml: `പേജ് നിർമ്മാണം (${i + 1}/${sections.length}): ${sectionName}...`,
           en: `Rendering Section (${i + 1}/${sections.length})...`,
         }, lang)
       );

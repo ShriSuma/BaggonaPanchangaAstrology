@@ -17,7 +17,8 @@
 
 import { type SixLang, pick6, RASHI_6L } from "../features/fiveYearPrediction/fiveYearLocale";
 import type { BookletCoverContent } from "./sampoornaMaster25BookletEngine";
-import type { NarrativeThemeKey, StoryEngineInput } from "./sampoornaMaster25StoryEngine";
+import type { NarrativeThemeKey, StoryEngineInput as BaseStoryEngineInput } from "./sampoornaMaster25StoryEngine";
+type StoryEngineInput = Omit<BaseStoryEngineInput, "targetLang"> & { targetLang: SixLang };
 
 export type SaturnCycleBand = "sade_sati" | "ashtama" | "kantaka" | "upachaya" | "dharma";
 export type JupiterCycleBand = "benefic_trio" | "kendra_build" | "inner_alchemy";

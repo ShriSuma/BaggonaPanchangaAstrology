@@ -20,7 +20,7 @@ import {
   type Master25Chapter,
 } from "../../services/sampoornaMaster25Service";
 import { CosmicDashaAuraVisual } from "../RamanBhavishya/CosmicDashaAuraVisual";
-import { type SixLang, pick6 } from "../../features/fiveYearPrediction/fiveYearLocale";
+import { type SevenLang, pick7, getIndicFontFamily7L } from "../../services/sampoornaMaster25Locale7L";
 
 interface Props {
   data: SampoornaMaster25Payload;
@@ -30,78 +30,69 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
   const lang = data.targetLanguage;
   const n = (val: number | string) => toNativeDigits(val, lang);
 
-  const getFontFamily = (l: SixLang): string => {
-    switch (l) {
-      case "kn":
-        return "'Noto Serif Kannada', 'Noto Sans Kannada', serif";
-      case "mr":
-      case "hi":
-        return "'Noto Sans Devanagari', 'Noto Serif', serif";
-      case "te":
-        return "'Noto Sans Telugu', serif";
-      case "ta":
-        return "'Noto Sans Tamil', serif";
-      default:
-        return "'Outfit', 'Playfair Display', Georgia, serif";
-    }
-  };
+  const getFontFamily = (l: SevenLang): string => getIndicFontFamily7L(l);
 
   const activeFontFamily = getFontFamily(lang);
   const sectionClass = "pdf-section px-14 py-8 relative";
 
-  const chapterWord = pick6(
+  const chapterWord = pick7(
     {
       kn: "ಅಧ್ಯಾಯ",
       mr: "अध्याय",
       hi: "अध्याय",
       te: "అధ్యాయం",
       ta: "அத்தியாயம்",
+      ml: "അധ്യായം",
       en: "Chapter",
     },
     lang
   );
-  const questionLabel = pick6(
+  const questionLabel = pick7(
     {
       kn: "ಪ್ರಶ್ನೆ:",
       mr: "प्रश्न:",
       hi: "प्रश्न:",
       te: "ప్రశ్న:",
       ta: "கேள்வி:",
+      ml: "ചോദ്യം:",
       en: "Question:",
     },
     lang
   );
-  const questionEyebrow = pick6(
+  const questionEyebrow = pick7(
     {
       kn: "ದೈವಜ್ಞ ಜನ್ಮ ಕುಂಡಲಿ ವಿಚಾರ & ತತ್ತ್ವ ಚಿಂತನೆ",
       mr: "दैवज्ञ जन्मकुंडली विचार व तत्त्वचिंतन",
       hi: "दैवज्ञ जन्मकुंडली विचार एवं तत्त्व चिंतन",
       te: "దైవజ్ఞ జన్మ కుండలి విచారణ & తత్వ చింతన",
       ta: "தெய்வீக ஜென்ம குண்டலி சிந்தனை & தத்துவம்",
+      ml: "ദൈവജ്ഞ ജന്മകുണ്ഡലി വിചാരവും തത്ത്വചിന്തയും",
       en: "Vedic Natal Inquiry & Dharma Reflection",
     },
     lang
   );
 
-  const sacredInvocation = pick6(
+  const sacredInvocation = pick7(
     {
       kn: "॥ ಓಂ ಶ್ರೀ ಗಣೇಶಾಯ ನಮಃ • ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥",
       mr: "॥ ॐ श्री गणेशाय नमः • श्री क्षेत्र गोकर्ण महाबळेश्वर प्रसन्न ॥",
       hi: "॥ ॐ श्री गणेशाय नमः • श्री क्षेत्र गोकर्ण महाबलेश्वर प्रसन्न ॥",
       te: "॥ ఓం శ్రీ గణేశాయ నమః • శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర ప్రసన్న ॥",
       ta: "✦ ௐ ஸ்ரீ கணேசாய நமஹ • ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் துணை ✦",
+      ml: "✦ ഓം ശ്രീ ഗണേശായ നമഃ • ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര പ്രസന്ന ✦",
       en: "OM SRI GANESHAYA NAMAHA • SRI KSHETRA GOKARNA MAHABALESHWARA BLESSINGS",
     },
     lang
   );
 
-  const runningHeaderFolio = pick6(
+  const runningHeaderFolio = pick7(
     {
       kn: "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥  •  ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ",
       mr: "॥ बग्गोण पंचांग ॥  •  संपूर्ण २५ अध्यायांचे महा-जन्मपत्रिका विश्लेषण",
       hi: "॥ बग्गोण पंचांग ॥  •  संपूर्ण २५ अध्यायों की महा-जन्मकुंडली",
       te: "॥ బగ్గోణ పంచాంగం ॥  •  సంపూర్ణ 25 అధ్యాయాల మహా జాతకం",
       ta: "✦ பக்கோண பஞ்சாங்கம் ✦  •  சம்பூர்ண 25 அத்தியாய மகா ஜாதகம்",
+      ml: "✦ ബഗ്ഗോണ പഞ്ചാംഗം ✦  •  സമ്പൂർണ്ണ 25 അധ്യായ മഹാ ജാതകം",
       en: "BAGGONA PANCHANGA  •  SAMPOORNA 25-CHAPTER MASTER BOOKLET",
     },
     lang
@@ -109,17 +100,18 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
   const cleanChapterTitle = (chapter: Master25Chapter): string =>
     (chapter.title || "")
-      .replace(/^(ಅಧ್ಯಾಯ\s*[\d೦-೯]+[:\-\s]*|अध्याय\s*[\d०-९]+[:\-\s]*|అధ్యాయం\s*[\d౦-౯]+[:\-\s]*|அத்தியாயம்\s*[\d௦-௯]+[:\-\s]*|Chapter\s*\d+[:\-\s]*)/i, "")
+      .replace(/^(ಅಧ್ಯಾಯ\s*[\d೦-೯]+[:\-\s]*|अध्याय\s*[\d०-९]+[:\-\s]*|అధ్యాయం\s*[\d౦-౯]+[:\-\s]*|அத்தியாயம்\s*[\d௦-௯]+[:\-\s]*|അധ്യായം\s*\d+[:\-\s]*|Chapter\s*\d+[:\-\s]*)/i, "")
       .trim();
 
   const renderChapterBanner = (chapter: Master25Chapter) => {
-    const chWord = pick6(
+    const chWord = pick7(
       {
         kn: `ಅಧ್ಯಾಯ ${n(chapter.chapterNumber)}`,
         mr: `अध्याय ${n(chapter.chapterNumber)}`,
         hi: `अध्याय ${n(chapter.chapterNumber)}`,
         te: `అధ్యాయం ${n(chapter.chapterNumber)}`,
         ta: `அத்தியாயம் ${n(chapter.chapterNumber)}`,
+        ml: `അധ്യായം ${n(chapter.chapterNumber)}`,
         en: `Chapter ${chapter.chapterNumber}`,
       },
       lang
@@ -233,16 +225,16 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
     );
   };
 
-  const ageWord = pick6(
-    { kn: "ವಯಸ್ಸು", mr: "वय", hi: "आयु", te: "వయస్సు", ta: "வயது", en: "Age" },
+  const ageWord = pick7(
+    { kn: "ವಯಸ್ಸು", mr: "वय", hi: "आयु", te: "వయస్సు", ta: "வயது", ml: "വയസ്സ്", en: "Age" },
     lang
   );
-  const yearsWord = pick6(
-    { kn: "ವರ್ಷ", mr: "वर्षे", hi: "वर्ष", te: "సం", ta: "வயது", en: "yrs" },
+  const yearsWord = pick7(
+    { kn: "ವರ್ಷ", mr: "वर्षे", hi: "वर्ष", te: "సం", ta: "வயது", ml: "വർഷം", en: "yrs" },
     lang
   );
-  const houseWord = pick6(
-    { kn: "ಮನೆ", mr: "स्थान", hi: "भाव", te: "స్థానం", ta: "வீடு", en: "House" },
+  const houseWord = pick7(
+    { kn: "ಮನೆ", mr: "स्थान", hi: "भाव", te: "స్థానం", ta: "வீடு", ml: "ഭാവം", en: "House" },
     lang
   );
 
@@ -394,13 +386,14 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 letterSpacing: "normal",
               }}
             >
-              {pick6(
+              {pick7(
                 {
                   kn: "ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಗ್ರಂಥ",
                   mr: "संपूर्ण २५ अध्यायांचे महा-जन्मपत्रिका ग्रंथ",
                   hi: "संपूर्ण २५ अध्यायों का महा-जन्मकुंडली ग्रंथ",
                   te: "సంపూర్ణ 25 అధ్యాయాల మహా జాతక గ్రంథం",
                   ta: "சம்பூர்ண 25 அத்தியாய மகா ஜாதக நூல்",
+                  ml: "സമ്പൂർണ്ണ 25 അധ്യായ മഹാ ജാതക ഗ്രന്ഥം",
                   en: "Sampoorna 25-Chapter Master Horoscope",
                 },
                 lang
@@ -434,7 +427,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
           >
             <div style={{ width: "100px", borderBottom: "1.5px solid rgba(180, 83, 9, 0.5)" }} />
             <span style={{ fontSize: "19px", fontWeight: 700, color: "#92400e" }}>
-              {lang === "ta" ? "✦" : "ॐ"}
+              {(lang === "ta" || lang === "ml") ? "✦" : "ॐ"}
             </span>
             <div style={{ width: "100px", borderBottom: "1.5px solid rgba(180, 83, 9, 0.5)" }} />
           </div>
@@ -478,25 +471,27 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             >
               <strong style={{ color: "#92400e", marginRight: "6px" }}>
                 ❖{" "}
-                {pick6(
+                {pick7(
                   {
                     kn: "ಪ್ರಾತಃ ಪ್ರಾರ್ಥನೆ:",
                     mr: "प्रातः प्रार्थना:",
                     hi: "प्रातः प्रार्थना:",
                     te: "ప్రాతః ప్రార్థన:",
                     ta: "காலைப் பிரார்த்தனை:",
+                    ml: "പ്രഭാത പ്രാർത്ഥന:",
                     en: "Pratah Prarthana:",
                   },
                   lang
                 )}
               </strong>
-              {pick6(
+              {pick7(
                 {
                   kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತರಿಂದ ಸಮರ್ಪಿತ ಜಾತಕ ಗ್ರಂಥ.",
                   mr: "श्री क्षेत्र गोकर्ण महाबळेश्वर सान्निध्यात वेदमूर्ती चैतन्य पंडित यांनी सादर केलेला जीवनग्रंथ.",
                   hi: "श्री क्षेत्र गोकर्ण महाबलेश्वर सान्निध्य में वेदमूर्ति चैतन्य पंडित द्वारा समर्पित जीवन-ग्रंथ।",
                   te: "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో వేదమూర్తి చైతన్య పండిత్ సమర్పించిన జీవన గ్రంథం.",
                   ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியில் வேதமூர்த்தி சைதன்ய பண்டிதரால் சமர்ப்பிக்கப்பட்ட வாழ்க்கை நூல்.",
+                  ml: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ വേദമൂർത്തി ചൈതന്യ പണ്ഡിറ്റ് സമർപ്പിച്ച ജീവിത ഗ്രന്ഥം.",
                   en: "Sacred astrological guidance consecrated at dawn before Lord Mahabaleshwara by Veda Moorthy Chaitanya Pandit.",
                 },
                 lang
@@ -524,13 +519,14 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             }}
           >
             <span style={{ fontSize: "26px", fontWeight: 800, color: "#451a03" }}>
-              {pick6(
+              {pick7(
                 {
                   kn: "ಜಾತಕ ಹಾಗೂ ಷಡಂಗ ಪಂಚಾಂಗದ ಮೂಲ ವಿವರ",
                   mr: "जन्मकुंडली व षडांग पंचांग तपशील",
                   hi: "जन्मकुंडली एवं षडांग पंचांग विवरण",
                   te: "జాతక & షడంగ పంచాంగ వివరాలు",
                   ta: "ஜாதக மற்றும் ஷடங்க பஞ்சாங்க விவரம்",
+                  ml: "ജന്മകുണ്ഡലിയും ഷഡംഗ പഞ്ചാംഗ വിവരങ്ങളും",
                   en: "Natal Kundli & Complete 6-Anga Birth Panchanga",
                 },
                 lang
@@ -568,7 +564,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {/* Row 1 */}
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಜಾತಕರ ಹೆಸರು & ವಯಸ್ಸು", mr: "जातकाचे नाव व वय", hi: "जातक का नाम एवं आयु", te: "జాతకుని పేరు & వయస్సు", ta: "ஜாதகர் பெயர் & வயது", en: "Devotee Name & Age" }, lang)}
+                  {pick7({ kn: "ಜಾತಕರ ಹೆಸರು & ವಯಸ್ಸು", mr: "जातकाचे नाव व वय", hi: "जातक का नाम एवं आयु", te: "జాతకుని పేరు & వయస్సు", ta: "ஜாதகர் பெயர் & வயது", ml: "ജാതകന്റെ പേരും വയസ്സും", en: "Devotee Name & Age" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {data.devoteeName} ({ageWord}: {n(Math.round(data.ageYears))} {yearsWord})
@@ -577,7 +573,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಜನ್ಮ ದಿನಾಂಕ & ಸಮಯ", mr: "जन्म दिनांक व वेळ", hi: "जन्म तिथि एवं समय", te: "పుట్టిన తేదీ & సమయం", ta: "பிறந்த தேதி & நேரம்", en: "Birth Date & Time" }, lang)}
+                  {pick7({ kn: "ಜನ್ಮ ದಿನಾಂಕ & ಸಮಯ", mr: "जन्म दिनांक व वेळ", hi: "जन्म तिथि एवं समय", te: "పుట్టిన తేదీ & సమయం", ta: "பிறந்த தேதி & நேரம்", ml: "ജനന തീയതിയും സമയവും", en: "Birth Date & Time" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {n(data.birthDate)} • {n(data.birthTime)}
@@ -587,7 +583,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {/* Row 2 */}
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಜನ್ಮ ಸ್ಥಳ", mr: "जन्म स्थळ", hi: "जन्म स्थान", te: "జన్మ స్థలం", ta: "பிறந்த இடம்", en: "Birth Place" }, lang)}
+                  {pick7({ kn: "ಜನ್ಮ ಸ್ಥಳ", mr: "जन्म स्थळ", hi: "जन्म स्थान", te: "జన్మ స్థలం", ta: "பிறந்த இடம்", ml: "ജനന സ്ഥലം", en: "Birth Place" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42, wordBreak: "break-word" }}>
                   {data.birthPlace}
@@ -596,7 +592,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಜನ್ಮ ಲಗ್ನ & ಲಗ್ನಾಧಿಪತಿ", mr: "जन्म लग्न व स्वामी", hi: "जन्म लग्न एवं स्वामी", te: "జన్మ లగ్నం & అధిపతి", ta: "ஜென்ம லக்னம் & அதிபதி", en: "Janma Lagna & Lord" }, lang)}
+                  {pick7({ kn: "ಜನ್ಮ ಲಗ್ನ & ಲಗ್ನಾಧಿಪತಿ", mr: "जन्म लग्न व स्वामी", hi: "जन्म लग्न एवं स्वामी", te: "జన్మ లగ్నం & అధిపతి", ta: "ஜென்ம லக்னம் & அதிபதி", ml: "ജന്മലഗ്നവും അധിപനും", en: "Janma Lagna & Lord" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {data.lagnaName} ({data.lagnaLord})
@@ -606,7 +602,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {/* Row 3 */}
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಚಂದ್ರ ರಾಶಿ & ರಾಶ್ಯಾಧಿಪತಿ", mr: "चंद्र राशी व स्वामी", hi: "चंद्र राशि एवं स्वामी", te: "చంద్ర రాశి & అధిపతి", ta: "சந்திர ராசி & அதிபதி", en: "Moon Sign & Lord" }, lang)}
+                  {pick7({ kn: "ಚಂದ್ರ ರಾಶಿ & ರಾಶ್ಯಾಧಿಪತಿ", mr: "चंद्र राशी व स्वामी", hi: "चंद्र राशि एवं स्वामी", te: "చంద్ర రాశి & అధిపతి", ta: "சந்திர ராசி & அதிபதி", ml: "ചന്ദ്രരാശിയും അധിപനും", en: "Moon Sign & Lord" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {data.moonRashi} ({data.moonLord})
@@ -615,7 +611,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಜನ್ಮ ನಕ್ಷತ್ರ", mr: "जन्म नक्षत्र", hi: "जन्म नक्षत्र", te: "జన్మ నక్షత్రం", ta: "ஜென்ம நட்சத்திரம்", en: "Birth Nakshatra" }, lang)}
+                  {pick7({ kn: "ಜನ್ಮ ನಕ್ಷತ್ರ", mr: "जन्म नक्षत्र", hi: "जन्म नक्षत्र", te: "జన్మ నక్షత్రం", ta: "ஜென்ம நட்சத்திரம்", ml: "ജന്മനക്ഷത്രം", en: "Birth Nakshatra" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {data.nakshatraName}
@@ -625,7 +621,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {/* Row 4 */}
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ತಿಥಿ (ಪಕ್ಷ) & ಜನ್ಮ ವಾರ", mr: "तिथी (पक्ष) व वार", hi: "तिथि (पक्ष) एवं वार", te: "తిథి (పక్షం) & వారం", ta: "திதி (பக்ஷம்) & கிழமை", en: "Tithi (Paksha) & Weekday" }, lang)}
+                  {pick7({ kn: "ತಿಥಿ (ಪಕ್ಷ) & ಜನ್ಮ ವಾರ", mr: "तिथी (पक्ष) व वार", hi: "तिथि (पक्ष) एवं वार", te: "తిథి (పక్షం) & వారం", ta: "திதி (பக்ஷம்) & கிழமை", ml: "തിഥി (പക്ഷം) & ആഴ്ച", en: "Tithi (Paksha) & Weekday" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {data.tithiName.includes(data.pakshaName) ? data.tithiName : `${data.pakshaName} ${data.tithiName}`} • {data.weekdayName}
@@ -634,7 +630,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ನಿತ್ಯ ಯೋಗ & ಕರಣ", mr: "नित्य योग व करण", hi: "नित्य योग एवं करण", te: "నిత్య యోగం & కరణం", ta: "நித்ய யோகம் & கரணம்", en: "Nitya Yoga & Karana" }, lang)}
+                  {pick7({ kn: "ನಿತ್ಯ ಯೋಗ & ಕರಣ", mr: "नित्य योग व करण", hi: "नित्य योग एवं करण", te: "నిత్య యోగం & కరణం", ta: "நித்ய யோகம் & கரணம்", ml: "നിത്യ യോഗവും കരണവും", en: "Nitya Yoga & Karana" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {data.yogaName} • {data.karanaName}
@@ -644,7 +640,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {/* Row 5 */}
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಸೂರ್ಯೋದಯ / ಸೂರ್ಯಾಸ್ತ & ಜನ್ಮ ಹೋರಾ", mr: "सूर्योदय / सूर्यास्त व जन्म होरा", hi: "सूर्योदय / सूर्यास्त एवं जन्म होरा", te: "సూర్యోదయం / సూర్యాస్తమయం & హోర", ta: "சூரிய உதயம் / அஸ்தமனம் & ஹோரை", en: "Sunrise / Sunset & Birth Hora" }, lang)}
+                  {pick7({ kn: "ಸೂರ್ಯೋದಯ / ಸೂರ್ಯಾಸ್ತ & ಜನ್ಮ ಹೋರಾ", mr: "सूर्योदय / सूर्यास्त व जन्म होरा", hi: "सूर्योदय / सूर्यास्त एवं जन्म होरा", te: "సూర్యోదయం / సూర్యాస్తమయం & హోర", ta: "சூரிய உதயம் / அஸ்தமனம் & ஹோரை", ml: "സൂര്യോദയം / അസ്തമയം & ഹോര", en: "Sunrise / Sunset & Birth Hora" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {n(data.sunriseTime)} / {n(data.sunsetTime)} • {data.janmaHora}
@@ -653,7 +649,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಪ್ರಸ್ತುತ ಮಹಾದಶೆ – ಅಂತರ್ದಶೆ", mr: "चालू महादशा – अंतर्दशा", hi: "वर्तमान महादशा – अंतर्दशा", te: "ప్రస్తుత మహర్దశ – అంతర్దశ", ta: "நடப்பு மகாதசை – அந்தர்தசை", en: "Active Mahadasha – Bhukti" }, lang)}
+                  {pick7({ kn: "ಪ್ರಸ್ತುತ ಮಹಾದಶೆ – ಅಂತರ್ದಶೆ", mr: "चालू महादशा – अंतर्दशा", hi: "वर्तमान महादशा – अंतर्दशा", te: "ప్రస్తుత మహర్దశ – అంతర్దశ", ta: "நடப்பு மகாதசை – அந்தர்தசை", ml: "നിലവിലെ മഹാദശ – അപഹാരം", en: "Active Mahadasha – Bhukti" }, lang)}
                 </div>
                 <div style={{ fontSize: "19.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {data.currentMahadasha} – {data.currentBhukti} ({n(data.bhuktiEndDate)})
@@ -663,7 +659,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {/* Row 6 */}
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಜನ್ಮ ದಶಾ ಶೇಷ", mr: "जन्म दशा शिल्लक", hi: "जन्म दशा शेष", te: "జన్మ దశా శేషం", ta: "ஜனன தசா இருப்பு", en: "Janma Dasha Balance" }, lang)}
+                  {pick7({ kn: "ಜನ್ಮ ದಶಾ ಶೇಷ", mr: "जन्म दशा शिल्लक", hi: "जन्म दशा शेष", te: "జన్మ దశా శేషం", ta: "ஜனன தசா இருப்பு", ml: "ജന്മദശാ ശിഷ്ടം", en: "Janma Dasha Balance" }, lang)}
                 </div>
                 <div style={{ fontSize: "18.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   {n(data.janmaDashaBalance)}
@@ -672,7 +668,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div style={{ borderBottom: "1px solid rgba(146, 64, 14, 0.22)", paddingBottom: "10px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಯೋಗಿ • ಅವಯೋಗಿ • ಮಾಂದಿ ಸ್ಥಾನ", mr: "योगी • अवयोगी • मांदी स्थान", hi: "योगी • अवयोगी • मांदी स्थिति", te: "యోగి • అవయోగి • మాంది స్థానం", ta: "யோகி • அவயோகி • மாந்தி நிலை", en: "Yogi • Avayogi • Maandi" }, lang)}
+                  {pick7({ kn: "ಯೋಗಿ • ಅವಯೋಗಿ • ಮಾಂದಿ ಸ್ಥಾನ", mr: "योगी • अवयोगी • मांदी स्थान", hi: "योगी • अवयोगी • मांदी स्थिति", te: "యోగి • అవయోగి • మాంది స్థానం", ta: "யோகி • அவயோகி • மாந்தி நிலை", ml: "യോഗി • അവയോഗി • മാന്ദി സ്ഥാനം", en: "Yogi • Avayogi • Maandi" }, lang)}
                 </div>
                 <div style={{ fontSize: "18.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.42 }}>
                   ✨ {data.yogiPlanet} • ⚠️ {data.avayogiPlanet} • {houseWord} {n(data.maandiHouse)} ({data.maandiRashi})
@@ -682,7 +678,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               {/* Row 7: Clean Grid Integration of Tarabala, Element & Principal Kundli Hero */}
               <div style={{ paddingTop: "2px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ತಾರಾಬಲ & ಪ್ರಧಾನ ತತ್ತ್ವ", mr: "ताराबल व मुख्य तत्त्व", hi: "ताराबल एवं प्रमुख तत्त्व", te: "తారాబలం & ప్రధాన తత్త్వం", ta: "தாராபலம் & முக்கிய தத்துவம்", en: "Tarabala & Dominant Element" }, lang)}
+                  {pick7({ kn: "ತಾರಾಬಲ & ಪ್ರಧಾನ ತತ್ತ್ವ", mr: "ताराबल व मुख्य तत्त्व", hi: "ताराबल एवं प्रमुख तत्त्व", te: "తారాబలం & ప్రధాన తత్త్వం", ta: "தாராபலம் & முக்கிய தத்துவம்", ml: "താരാബലവും പ്രധാന തത്വവും", en: "Tarabala & Dominant Element" }, lang)}
                 </div>
                 <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.44, wordBreak: "break-word" }}>
                   {data.precisionProfile.liveTarabalaHeadline} • {data.dominantElement}
@@ -691,7 +687,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
 
               <div style={{ paddingTop: "2px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                  {pick6({ kn: "ಪ್ರಧಾನ ಯೋಗ & ಗ್ರಹ ನಾಯಕ", mr: "प्रमुख योग व मुख्य ग्रह", hi: "प्रमुख योग एवं नायक ग्रह", te: "ప్రధాన యోగాలు & నాయక గ్రహం", ta: "முக்கிய யோகம் & நாயக கிரகம்", en: "Key Yogas & Principal Planet" }, lang)}
+                  {pick7({ kn: "ಪ್ರಧಾನ ಯೋಗ & ಗ್ರಹ ನಾಯಕ", mr: "प्रमुख योग व मुख्य ग्रह", hi: "प्रमुख योग एवं नायक ग्रह", te: "ప్రధాన యోగాలు & నాయక గ్రహం", ta: "முக்கிய யோகம் & நாயக கிரகம்", ml: "പ്രധാന യോഗവും നായക ഗ്രഹവും", en: "Key Yogas & Principal Planet" }, lang)}
                 </div>
                 <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#451a03", lineHeight: 1.44, wordBreak: "break-word" }}>
                   {data.detectedYogasSummary}
@@ -852,7 +848,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                 mahaLordKey={data.rawMahadashaPlanet}
                 bhuktiLordKey={data.rawBhuktiPlanet}
                 elementName={data.dominantElement}
-                lang={lang === "mr" ? "hi" : lang}
+                lang={lang}
                 jupiterTransitHouse={data.chartVisualMetrics?.guruHouseFromMoon}
                 saturnTransitHouse={data.chartVisualMetrics?.shaniHouseFromMoon}
               />
@@ -1058,13 +1054,14 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                       }}
                     >
                       ❖{" "}
-                      {pick6(
+                      {pick7(
                         {
                           kn: "ಪಂಚಭೂತ ತತ್ತ್ವ ಸಂತುಲನ ಪಟ್ಟಿ",
                           mr: "पंचमहाभूत तत्त्व संतुलन",
                           hi: "पंचमहाभूत तत्त्व संतुलन",
                           te: "పంచభూత తత్వ సమతుల్యత",
                           ta: "பஞ்சபூத தத்துவ சமநிலை",
+                          ml: "പഞ്ചഭൂത തത്വ സമതുലിതാവസ്ഥ",
                           en: "Elemental Balance Matrix",
                         },
                         lang
@@ -1080,8 +1077,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                       {[
                         {
                           key: "fire",
-                          label: pick6(
-                            { kn: "ಅಗ್ನಿ", mr: "अग्नि", hi: "अग्नि", te: "అగ్ని", ta: "நெருப்பு", en: "Fire" },
+                          label: pick7(
+                            { kn: "ಅಗ್ನಿ", mr: "अग्नि", hi: "अग्नि", te: "అగ్ని", ta: "நெருப்பு", ml: "അഗ്നി", en: "Fire" },
                             lang
                           ),
                           pct: data.chartVisualMetrics.elemPercentages.fire,
@@ -1089,8 +1086,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                         },
                         {
                           key: "earth",
-                          label: pick6(
-                            { kn: "ಪೃಥ್ವಿ", mr: "पृथ्वी", hi: "पृथ्वी", te: "భూమి", ta: "நிலம்", en: "Earth" },
+                          label: pick7(
+                            { kn: "ಪೃಥ್ವಿ", mr: "पृथ्वी", hi: "पृथ्वी", te: "భూమి", ta: "நிலம்", ml: "ഭൂമി", en: "Earth" },
                             lang
                           ),
                           pct: data.chartVisualMetrics.elemPercentages.earth,
@@ -1098,8 +1095,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                         },
                         {
                           key: "air",
-                          label: pick6(
-                            { kn: "ವಾಯು", mr: "वायु", hi: "वायु", te: "వాయువు", ta: "காற்று", en: "Air" },
+                          label: pick7(
+                            { kn: "ವಾಯು", mr: "वायु", hi: "वायु", te: "వాయువు", ta: "காற்று", ml: "വായു", en: "Air" },
                             lang
                           ),
                           pct: data.chartVisualMetrics.elemPercentages.air,
@@ -1107,8 +1104,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                         },
                         {
                           key: "water",
-                          label: pick6(
-                            { kn: "ಜಲ", mr: "जल", hi: "जल", te: "జలం", ta: "நீர்", en: "Water" },
+                          label: pick7(
+                            { kn: "ಜಲ", mr: "जल", hi: "जल", te: "జలం", ta: "நீர்", ml: "ജലം", en: "Water" },
                             lang
                           ),
                           pct: data.chartVisualMetrics.elemPercentages.water,
@@ -1180,8 +1177,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                       }}
                     >
                       <div style={{ fontSize: "14px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                        {pick6(
-                          { kn: "ಶನಿ ಗೋಚಾರ ಸ್ಥಿತಿ", mr: "शनी गोचर स्थिती", hi: "शनि गोचर स्थिति", te: "శని గోచార స్థితి", ta: "சனி கோசார நிலை", en: "Saturn Transit Position" },
+                        {pick7(
+                          { kn: "ಶನಿ ಗೋಚಾರ ಸ್ಥಿತಿ", mr: "शनी गोचर स्थिती", hi: "शनि गोचर स्थिति", te: "శని గోచార స్థితి", ta: "சனி கோசார நிலை", ml: "ശനി ഗോചര സ്ഥിതി", en: "Saturn Transit Position" },
                           lang
                         )}
                       </div>
@@ -1189,8 +1186,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                         {data.shaniTransitRashi} •{" "}
                         {lang === "en"
                           ? `House ${n(data.chartVisualMetrics.shaniHouseFromMoon)}`
-                          : `${n(data.chartVisualMetrics.shaniHouseFromMoon)} ${pick6(
-                            { kn: "ನೇ ಭಾವ", mr: "वे स्थान", hi: "वाँ भाव", te: "వ స్థానం", ta: "ஆம் வீடு", en: "House" },
+                          : `${n(data.chartVisualMetrics.shaniHouseFromMoon)} ${pick7(
+                            { kn: "ನೇ ಭಾವ", mr: "वे स्थान", hi: "वाँ भाव", te: "వ స్థానం", ta: "ஆம் வீடு", ml: "ആം ഭാവം", en: "House" },
                             lang
                           )}`}
                       </div>
@@ -1204,8 +1201,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                       }}
                     >
                       <div style={{ fontSize: "14px", fontWeight: 800, color: "#92400e", marginBottom: "4px" }}>
-                        {pick6(
-                          { kn: "ಗುರು ಗೋಚಾರ ಸ್ಥಿತಿ", mr: "गुरू गोचर स्थिती", hi: "गुरु गोचर स्थिति", te: "గురు గోచార స్థితి", ta: "குரு கோசார நிலை", en: "Jupiter Transit Position" },
+                        {pick7(
+                          { kn: "ಗುರು ಗೋಚಾರ ಸ್ಥಿತಿ", mr: "गुरू गोचर स्थिती", hi: "गुरु गोचर स्थिति", te: "గురు గోచార స్థితి", ta: "குரு கோசார நிலை", ml: "വ്യാഴ ഗോചര സ്ഥിതി", en: "Jupiter Transit Position" },
                           lang
                         )}
                       </div>
@@ -1213,8 +1210,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                         {data.guruTransitRashi} •{" "}
                         {lang === "en"
                           ? `House ${n(data.chartVisualMetrics.guruHouseFromMoon)}`
-                          : `${n(data.chartVisualMetrics.guruHouseFromMoon)} ${pick6(
-                            { kn: "ನೇ ಭಾವ", mr: "वे स्थान", hi: "वाँ भाव", te: "వ స్థానం", ta: "ஆம் வீடு", en: "House" },
+                          : `${n(data.chartVisualMetrics.guruHouseFromMoon)} ${pick7(
+                            { kn: "ನೇ ಭಾವ", mr: "वे स्थान", hi: "वाँ भाव", te: "వ స్థానం", ta: "ஆம் வீடு", ml: "ആം ഭാവം", en: "House" },
                             lang
                           )}`}
                       </div>
@@ -1236,8 +1233,8 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
                   >
                     <div style={{ fontSize: "15px", fontWeight: 800, color: "#92400e", marginBottom: "6px" }}>
                       👑{" "}
-                      {pick6(
-                        { kn: "ಜಾತಕದ ಪ್ರಧಾನ ರಾಜಯೋಗ & ಶುಭ ಯೋಗಗಳು", mr: "कुंडलीतील प्रमुख राजयोग व शुभ योग", hi: "कुंडली के प्रमुख राजयोग एवं शुभ योग", te: "జాతకంలోని ప్రధాన రాజయోగాలు", ta: "ஜாதகத்தின் முக்கிய ராஜயோகங்கள்", en: "Detected Natal Yogas & Blessings" },
+                      {pick7(
+                        { kn: "ಜಾತಕದ ಪ್ರಧಾನ ರಾಜಯೋಗ & ಶುಭ ಯೋಗಗಳು", mr: "कुंडलीतील प्रमुख राजयोग व शुभ योग", hi: "कुंडली के प्रमुख राजयोग एवं शुभ योग", te: "జాతకంలోని ప్రధాన రాజయోగాలు", ta: "ஜாதகத்தின் முக்கிய ராஜயோகங்கள்", ml: "ജാതകത്തിലെ പ്രധാന രാജയോഗങ്ങൾ", en: "Detected Natal Yogas & Blessings" },
                         lang
                       )}
                     </div>
@@ -1382,7 +1379,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
             >
               <div style={infoCellStyle}>
                 <div style={infoLabelStyle}>
-                  {pick6({ kn: "ಶುಭ ವಾರ & ಯೋಗಿ ದಿಕ್ಕು", mr: "शुभ वार व योगी दिशा", hi: "शुभ वार व योगी दिशा", te: "శుభ వారం & యోగి దిశ", ta: "நல்ல நாள் & யோகி திசை", en: "Personal Power Day & Direction" }, lang)}
+                  {pick7({ kn: "ಶುಭ ವಾರ & ಯೋಗಿ ದಿಕ್ಕು", mr: "शुभ वार व योगी दिशा", hi: "शुभ वार व योगी दिशा", te: "శుభ వారం & యోగి దిశ", ta: "நல்ல நாள் & யோகி திசை", ml: "ശുഭ ദിനവും യോഗി ദിശയും", en: "Personal Power Day & Direction" }, lang)}
                 </div>
                 <div style={infoValueStyle}>
                   {data.yogiDay} • {data.yogiDirection}
@@ -1390,7 +1387,7 @@ export const SampoornaMaster25PdfTemplate = forwardRef<HTMLDivElement, Props>(({
               </div>
               <div style={infoCellStyle}>
                 <div style={infoLabelStyle}>
-                  {pick6({ kn: "ಸುವರ್ಣ ಶಿಖರ & ದೋಷ ಸಾರಾಂಶ", mr: "सुवर्ण काळ व मुख्य कृती", hi: "स्वर्णिम काल व मुख्य संकल्प", te: "సువర్ణ కాలం & పరిహారం", ta: "பொற்காலம் & முக்கிய தீர்வு", en: "Golden Horizon & Priority Focus" }, lang)}
+                  {pick7({ kn: "ಸುವರ್ಣ ಶಿಖರ & ದೋಷ ಸಾರಾಂಶ", mr: "सुवर्ण काळ व मुख्य कृती", hi: "स्वर्णिम काल व मुख्य संकल्प", te: "సువర్ణ కాలం & పరిహారం", ta: "பொற்காலம் & முக்கிய தீர்வு", ml: "സുവർണ്ണ ഘട്ടവും പ്രധാന പരിഹാരവും", en: "Golden Horizon & Priority Focus" }, lang)}
                 </div>
                 <div style={infoValueStyle}>
                   {n(data.chartVisualMetrics.nowYear + 2)}–{n(data.chartVisualMetrics.nowYear + 4)} • {data.activeDoshaProfiles?.[0]?.title || data.detectedDoshasSummary}

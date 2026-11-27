@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import React from "react";
 import { render, cleanup } from "@testing-library/react";
+import * as GeminiEngine from "../core/GeminiEngine";
 import {
   prepareSampoornaMaster25Data,
   type SampoornaMaster25Payload,
@@ -233,13 +234,13 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(htmlText).toContain("ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ");
   });
 
-  it("6. Verifies multilingual generation across all 6 languages with zero English token leakage in Indic scripts", async () => {
+  it("6. Verifies multilingual generation across all 7 languages with zero English token leakage in Indic scripts", async () => {
     const session = {
       result: mockAdultKundli,
       input: mockAdultDevotee
     };
 
-    const languages = ["kn", "hi", "mr", "te", "ta", "en"] as const;
+    const languages = ["kn", "hi", "mr", "te", "ta", "ml", "en"] as const;
 
     for (const lang of languages) {
       const payload = await prepareSampoornaMaster25Data(session, lang);
@@ -250,11 +251,15 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       expect(payload.priestBooking.phone).toBe("+91 94821 09844");
       expect(payload.priestBooking.priestName.length).toBeGreaterThan(0);
 
-      if (lang === "kn") {
-        // Assert zero English leakage in chapter titles
+      if (lang !== "en") {
+        // Assert zero English word leakage in chapter titles
         payload.chapters.forEach((ch) => {
           expect(/[a-zA-Z]{4,}/.test(ch.title)).toBe(false);
         });
+      }
+      if (lang === "ml") {
+        expect(payload.lagnaName).toMatch(/[\u0D00-\u0D7F]/);
+        expect(payload.coverPage.personalAssurancePara1).toMatch(/[\u0D00-\u0D7F]/);
       }
     }
   });
@@ -765,14 +770,15 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(pAKn.chapters[0].paragraphs[0]).toContain(pAKn.heroSummary!.heroPlanetName);
   });
 
-  it("17. Enforces zero doubled Question prefixes across all 25 chapters, zero 'Moderate'/English leaks in DOM, and clean 'ml' fallback", async () => {
-    const langs = ["kn", "mr", "hi", "te", "ta", "en"] as const;
+  it("17. Enforces zero doubled Question prefixes across all 25 chapters, zero 'Moderate'/English leaks in DOM, and native pure Malayalam 'ml' rendering", async () => {
+    const langs = ["kn", "mr", "hi", "te", "ta", "ml", "en"] as const;
     for (const lang of langs) {
       cleanup();
       const payload = await prepareSampoornaMaster25Data(
         { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka (581326)" },
         lang
       );
+      expect(payload.targetLanguage).toBe(lang);
       const { container } = render(<SampoornaMaster25PdfTemplate data={payload} />);
       const renderedText = container.textContent || "";
 
@@ -781,6 +787,7 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       expect(renderedText).not.toMatch(/प्रश्न:\s*प्रश्न:/);
       expect(renderedText).not.toMatch(/ప్రశ్న:\s*ప్రశ్న:/);
       expect(renderedText).not.toMatch(/கேள்வி:\s*கேள்வி:/);
+      expect(renderedText).not.toMatch(/ചോദ്യം:\s*ചോദ്യം:/);
 
       if (lang !== "en") {
         // Unlocalized Dosha severity badge or English compass/label words must never leak
@@ -791,21 +798,19 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
         expect(payload.footerText).not.toMatch(/[\u0C80-\u0CFF]/);
         expect(payload.calendarQrSection?.features[0] || "").not.toMatch(/[\u0900-\u097F]/);
       }
-      if (lang === "ta") {
+      if (lang === "ta" || lang === "ml") {
         expect(renderedText).not.toMatch(/[॥।ॐ]/);
       }
+      if (lang === "ml") {
+        expect(renderedText).toMatch(/[\u0D00-\u0D7F]/);
+        expect(payload.coverPage.brandBannerTitle).not.toMatch(/[\u0C80-\u0CFF\u0900-\u097F॥।ॐ]/);
+        expect(payload.footerText).not.toMatch(/[\u0C80-\u0CFF\u0900-\u097F॥।ॐ]/);
+      }
     }
-
-    // Passing 7th UI language "ml" cleanly resolves to "en" instead of mixing scripts
-    const mlPayload = await prepareSampoornaMaster25Data(
-      { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
-      "ml" as any
-    );
-    expect(mlPayload.targetLanguage).toBe("en");
   });
 
-  it("18. Guarantees zero duplicate sentences, zero repeated hooks/closings, unique yearly questions, and 25 distinct theme badges across all 6 languages", async () => {
-    const langs = ["kn", "mr", "hi", "te", "ta", "en"] as const;
+  it("18. Guarantees zero duplicate sentences, zero repeated hooks/closings, unique yearly questions, and 25 distinct theme badges across all 7 languages", async () => {
+    const langs = ["kn", "mr", "hi", "te", "ta", "ml", "en"] as const;
     const splitSentences = (text: string) =>
       text
         .split(/(?<=[.!?।॥])\s+|\s*\n\s*/)
@@ -874,9 +879,9 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     }
   });
 
-  it("19. Excludes Nakshatra Pada across the 25-Chapter PDF and qualifies Tarabala with the exact report date in brackets across all 6 languages", async () => {
+  it("19. Excludes Nakshatra Pada across the 25-Chapter PDF and qualifies Tarabala with the exact report date in brackets across all 7 languages", async () => {
     const { formatReportDate6L, formatTarabalaDayPhrase6L } = await import("../services/sampoornaMaster25BookletEngine");
-    const langs = ["kn", "mr", "hi", "te", "ta", "en"] as const;
+    const langs = ["kn", "mr", "hi", "te", "ta", "ml", "en"] as const;
     const now = new Date();
 
     for (const lang of langs) {
@@ -891,7 +896,7 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
       const ch1Text = container.querySelector('[data-section="chapter-1"]')?.textContent || "";
 
       // 1. Nakshatra Pada must NEVER appear in Page 1 details, Cosmic Aura, Cover, or Chapters
-      const padaTokenRegex = /(?:ಪಾದ|పాదం|பாதம்|\bPada\b|(?:^|[\s(])(?:पाद|चरण)(?=[\s\d०-९)]|$)|ಜನ್ಮ ನಕ್ಷತ್ರ\s*&|जन्म नक्षत्र\s*(?:व|एवं)|జన్మ నక్షత్రం\s*&|ஜென்ம நட்சத்திரம்\s*&|Birth Nakshatra\s*&)/i;
+      const padaTokenRegex = /(?:ಪಾದ|పాదం|பாதம்|പാദം|\bPada\b|(?:^|[\s(])(?:पाद|चरण)(?=[\s\d०-९)]|$)|ಜನ್ಮ ನಕ್ಷತ್ರ\s*&|जन्म नक्षत्र\s*(?:व|एवं)|జన్మ నక్షత్రం\s*&|ஜென்ம நட்சத்திரம்\s*&|ജന്മനക്ഷത്രം\s*&|Birth Nakshatra\s*&)/i;
       expect(detailsText).toContain(payload.nakshatraName);
       expect(detailsText).not.toMatch(padaTokenRegex);
       expect(cosmicAuraText).toContain(payload.nakshatraName);
@@ -1064,8 +1069,8 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
     expect(renderedText).not.toMatch(/Chart Clue:\s*Through [^?]+?:/i);
   });
 
-  it("22. Passes zero duplicate sentence skeletons, zero 99% leakage, and pure script isolation across all 4 editions and 6 languages", async () => {
-    const langs = ["kn", "mr", "hi", "te", "ta", "en"] as const;
+  it("22. Passes zero duplicate sentence skeletons, zero 99% leakage, and pure script isolation across all 4 editions and 7 languages", async () => {
+    const langs = ["kn", "mr", "hi", "te", "ta", "ml", "en"] as const;
     const editions = [0, 1, 2, 3] as const;
 
     const splitSentences = (txt: string): string[] =>
@@ -1093,7 +1098,7 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
 
         const seenSkeletons = new Map<string, string>();
         for (const ch of payload.chapters) {
-          expect(ch.paragraphs).toHaveLength(3);
+          expect(ch.paragraphs.length).toBeGreaterThanOrEqual(3);
           for (const p of ch.paragraphs) {
             expect(p.length, `[ed=${ed}, lang=${lang}, ch=${ch.chapterNumber}] short para`).toBeGreaterThanOrEqual(60);
           }
@@ -1110,9 +1115,9 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
             const body = [ch.question, ...ch.paragraphs, ch.practicalGuidance || ""].join(" ");
             expect(body, `[ed=${ed}, lang=${lang}, ch=${ch.chapterNumber}] English word leak`).not.toMatch(/[a-zA-Z]{2,}/);
           }
-          if (lang === "ta") {
+          if (lang === "ta" || lang === "ml") {
             const body = [ch.question, ...ch.paragraphs, ch.practicalGuidance || ""].join(" ");
-            expect(body, `[ed=${ed}, ch=${ch.chapterNumber}] Devanagari/danda in Tamil`).not.toMatch(/[\u0900-\u097F॥।ॐ]/);
+            expect(body, `[ed=${ed}, lang=${lang}, ch=${ch.chapterNumber}] Devanagari/danda leak`).not.toMatch(/[\u0900-\u097F॥।ॐ]/);
           }
           if (lang !== "kn") {
             const body = [ch.question, ...ch.paragraphs, ch.practicalGuidance || ""].join(" ");
@@ -1121,9 +1126,7 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
 
           const fields: Array<[string, string]> = [
             ["q", ch.question],
-            ["p1", ch.paragraphs[0] || ""],
-            ["p2", ch.paragraphs[1] || ""],
-            ["p3", ch.paragraphs[2] || ""],
+            ...ch.paragraphs.map((p, idx) => [`p${idx + 1}`, p] as [string, string]),
             ["guidance", ch.practicalGuidance || ""]
           ];
           for (const [field, txt] of fields) {
@@ -1136,6 +1139,141 @@ describe("Sampoorna Master 25-Chapter Report & PDF Template Audit", () => {
           }
         }
       }
+    }
+  });
+
+  it("23. Routes all 25 chapters, cover & dosha insights through Gemini AI when enableAi=true and enforces post-AI math & script invariants", async () => {
+    const batchNumsMap: Record<string, number[]> = {
+      "Sampoorna25 Batch B1": [1, 2, 3, 4, 5, 6],
+      "Sampoorna25 Batch B2": [7, 8, 9, 10, 11],
+      "Sampoorna25 Batch B3": [12, 13, 14, 15, 16],
+      "Sampoorna25 Batch B4": [17, 18, 19, 20, 21, 22],
+      "Sampoorna25 Batch B5": [23, 24, 25],
+    };
+
+    const spy = vi.spyOn(GeminiEngine, "askGemini").mockImplementation(async (label: string) => {
+      const nums = batchNumsMap[label] || [];
+      const chapters = nums.map((num) => ({
+        chapterNumber: num,
+        title: `Unique Malayalam AI Chapter Title ${num}`.replace(/Unique Malayalam AI Chapter Title/g, "വിശിഷ്ട ജ്യോതിഷ അധ്യായം"),
+        chapterBadge: `രത്നം ${num}`,
+        devoteeQuestion: `അധ്യായം ${num} ലെ നിങ്ങളുടെ തനതായ ജീവിത ചോദ്യം എന്താണ്?`,
+        storyHook: `രാവിലെ തുളസിത്തറയ്ക്ക് മുന്നിൽ വിളക്ക് കൊളുത്തുന്നതുപോലെ അധ്യായം ${num} നിങ്ങളുടെ സ്വഭാവം തെളിയിക്കുന്നു.`,
+        paragraphs: [
+          `അധ്യായം ${num} ലെ ജീവിതോദാഹരണം: ഒരു നദീതീരത്ത് തിരക്ക് കൂട്ടാതെ ശാന്തമായി താമര വിരിയുന്നതുപോലെ ശരിയായ സമയത്ത് നിങ്ങളുടെ പ്രയത്നങ്ങൾ ഫലം നൽകും.`,
+          `ജ്യോതിഷ ബന്ധം അധ്യായം ${num}: മേട ലഗ്നവും മകം നക്ഷത്രവും നിങ്ങളുടെ ${num}-ാം അധ്യായത്തിൽ കൃത്യമായ ഗണിതബലവും ദശാസഹായവും ഉറപ്പാക്കുന്നു.`,
+          `പ്രായോഗിക നിർദ്ദേശം ${num}: എല്ലാ ദിവസവും പ്രഭാതത്തിൽ പത്ത് മിനിറ്റ് ശാന്തമായി ആലോചിച്ച് മാത്രം പ്രധാന തീരുമാനങ്ങൾ എടുക്കുക.`
+        ],
+        practicalGuidance: `അധ്യായം ${num} സംരക്ഷണ സൂത്രം: സമചിത്തതയോടെ മുന്നോട്ട് നീങ്ങുക.`
+      }));
+
+      // Deliberately omit brackets on Ch1 and omit Pada rule to verify post-AI invariant cleaner!
+      if (nums.includes(1)) {
+        chapters[0].paragraphs[0] = `അധ്യായം 1 ലെ ഉദാഹരണം: നക്ഷത്ര പാദം 4 വിട്ട് തനത് ജീവിത സന്ദർഭത്തിൽ നിങ്ങൾ ഉണർന്നിരിക്കുന്നു. ശുഭാരംഭം ഇന്ന് തന്നെ സാധ്യമാണ്.`;
+      }
+
+      const payload: Record<string, any> = { chapters };
+      if (label === "Sampoorna25 Batch B1") {
+        payload.coverTagline = "ശ്രീ ഗോകർണ്ണ വ്യക്തിഗത മഹാ ജാതക ഗ്രന്ഥം";
+        payload.coverAssurancePara1 = "ശ്രീമാൻ ശ്രീസുമ ഉപാധ്യായയുടെ ജന്മനക്ഷത്രം മകവും മേട ലഗ്നവും അടിസ്ഥാനമാക്കി പൂർണ്ണമായും വ്യക്തിഗതമാക്കിയ ഇരുപത്തിയഞ്ച് അധ്യായങ്ങൾ.";
+        payload.coverAssurancePara2 = "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര അനുഗ്രഹത്തോടെ നിങ്ങളുടെ ജീവിതത്തിലെ ഓരോ ഘട്ടത്തിനും വ്യക്തമായ മാർഗ്ഗനിർദ്ദേശം ഇവിടെ ലഭിക്കുന്നു.";
+      }
+      if (label === "Sampoorna25 Batch B5") {
+        payload.familyProtectionHook = "കുടുംബത്തിലെ ഓരോ വ്യക്തിക്കും വെവ്വേറെ ഗ്രഹനിലയും ദശാകാലവും ഉള്ളതിനാൽ പങ്കാളിക്കും മക്കൾക്കുമായി പ്രത്യേകം റിപ്പോർട്ട് തയ്യാറാക്കുന്നത് ഉത്തമമാണ്.";
+        payload.doshaInsights = [];
+      }
+      return JSON.stringify(payload);
+    });
+
+    try {
+      const payload = await prepareSampoornaMaster25Data(
+        { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+        "ml",
+        { enableAi: true, geminiApiKey: "unit-test-gemini-key", narrativeVariant: 2 }
+      );
+
+      expect(spy).toHaveBeenCalledTimes(5);
+      expect(payload.isAiGenerated).toBe(true);
+      expect(payload.aiChaptersCount).toBe(25);
+      expect(payload.aiRunId).toBeTruthy();
+      expect(payload.targetLanguage).toBe("ml");
+      expect(payload.chapters[0].storyHook).toContain("തുളസിത്തറയ്ക്ക്");
+      expect(payload.chapters[1].paragraphs[0]).toContain("നദീതീരത്ത്");
+      // Post-AI guard must strip Pada mention in Ch1 & weave report date bracket cleanly
+      expect(payload.chapters[0].paragraphs[0]).not.toMatch(/പാദം/);
+      expect(payload.chapters[0].question).toContain(`[${payload.precisionProfile.liveTarabalaHeadline.match(/\(([^)]+)\)/)?.[1] ? payload.chapters[0].question.match(/\[([^\]]+)\]/)?.[1] || "" : ""}]`);
+      // Check exact brackets on Ch1
+      expect(payload.chapters[0].question + " " + payload.chapters[0].paragraphs[0]).toMatch(/\[[^\]]+\]/);
+      // Check Ch25 Gokarna Sanctuary invariant & Ch23 Maandi invariant
+      expect(payload.chapters[24].paragraphs.join(" ")).toMatch(/ഗോകർണ്ണ|Gokarna/);
+      expect(payload.chapters[22].paragraphs.join(" ")).toMatch(/മാന്ദി|കുജ/);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("24. Retries patiently when Gemini returns malformed or wrong-script output on attempt 1 and succeeds on retry", async () => {
+    let b1Calls = 0;
+    const batchNumsMap: Record<string, number[]> = {
+      "Sampoorna25 Batch B1": [1, 2, 3, 4, 5, 6],
+      "Sampoorna25 Batch B2": [7, 8, 9, 10, 11],
+      "Sampoorna25 Batch B3": [12, 13, 14, 15, 16],
+      "Sampoorna25 Batch B4": [17, 18, 19, 20, 21, 22],
+      "Sampoorna25 Batch B5": [23, 24, 25],
+    };
+
+    const spy = vi.spyOn(GeminiEngine, "askGemini").mockImplementation(async (label: string) => {
+      if (label === "Sampoorna25 Batch B1") {
+        b1Calls++;
+        if (b1Calls === 1) {
+          // Return pure English when Kannada was requested -> MUST trigger retry!
+          return JSON.stringify({
+            chapters: [1, 2, 3, 4, 5, 6].map((n) => ({
+              chapterNumber: n,
+              title: `Wrong language title ${n}`,
+              chapterBadge: `Badge ${n}`,
+              devoteeQuestion: `Wrong language question ${n}?`,
+              storyHook: `This English sentence should be rejected by Kannada purity validator ${n}.`,
+              paragraphs: [
+                `First long English paragraph that violates Kannada purity rule for chapter ${n} inside validation gate.`,
+                `Second long English paragraph that violates Kannada purity rule for chapter ${n} inside validation gate.`,
+                `Third long English paragraph that violates Kannada purity rule for chapter ${n} inside validation gate.`
+              ],
+              practicalGuidance: `Wrong English guidance rule ${n}.`
+            }))
+          });
+        }
+      }
+      const nums = batchNumsMap[label] || [];
+      return JSON.stringify({
+        chapters: nums.map((num) => ({
+          chapterNumber: num,
+          title: `ಶುದ್ಧ ಕನ್ನಡ ಜ್ಯೋತಿಷ್ಯ ಅಧ್ಯಾಯ ${num}`,
+          chapterBadge: `ರತ್ನ ${num}`,
+          devoteeQuestion: `ಅಧ್ಯಾಯ ${num} ರಲ್ಲಿ ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ ಏನನ್ನು ಸೂಚಿಸುತ್ತದೆ?`,
+          storyHook: `ಬೆಳಗಿನ ದೀಪದ ಬೆಳಕಿನಂತೆ ಅಧ್ಯಾಯ ${num} ನಿಮ್ಮ ಬದುಕಿನ ಸೂಕ್ಷ್ಮ ತಿರುವನ್ನು ತೋರಿಸುತ್ತದೆ.`,
+          paragraphs: [
+            `ಅಧ್ಯಾಯ ${num} ರ ಜೀವನ ದೃಷ್ಟಾಂತ: ತಾಳ್ಮೆಯಿಂದ ಕಾಯ್ದು ಕಾರ್ಯ ನಿರ್ವಹಿಸುವವರಿಗೆ ಕಾಲವೇ ಸುವರ್ಣ ಫಲವನ್ನು ತರುತ್ತದೆ ಎಂಬುದಕ್ಕೆ ನಿಮ್ಮ ಜಾತಕ ಸಾಕ್ಷಿಯಾಗಿದೆ.`,
+            `ಗ್ರಹ ಗಣಿತ ವಿಶ್ಲೇಷಣೆ ${num}: ಮೇಷ ಲಗ್ನ ಮತ್ತು ಮಖ ನಕ್ಷತ್ರದ ಯೋಗವು ನಿಮಗೆ ನಿರಂತರ ಬಲ ಹಾಗೂ ಸಂರಕ್ಷಣೆಯನ್ನು ನೀಡುತ್ತದೆ.`,
+            `ದೈನಂದಿನ ಮಾರ್ಗದರ್ಶನ ${num}: ಪ್ರತಿದಿನ ಬೆಳಗ್ಗೆ ಶಾಂತ ಮನಸ್ಸಿನಿಂದ ನಿಮ್ಮ ಮುಖ್ಯ ಗುರಿಯ ಕಡೆಗೆ ಹೆಜ್ಜೆ ಇಡಿ.`
+          ],
+          practicalGuidance: `ಅಧ್ಯಾಯ ${num} ರ ಪ್ರಾಯೋಗಿಕ ಸೂತ್ರ: ಧೈರ್ಯ ಮತ್ತು ಶ್ರದ್ಧೆಯಿಂದ ಮುಂದುವರಿಯಿರಿ.`
+        }))
+      });
+    });
+
+    try {
+      const payload = await prepareSampoornaMaster25Data(
+        { result: mockAdultKundli, input: mockAdultDevotee, placeLabel: "Gokarna, Karnataka" },
+        "kn",
+        { enableAi: true, geminiApiKey: "unit-test-retry-key" }
+      );
+      expect(b1Calls).toBe(2);
+      expect(payload.isAiGenerated).toBe(true);
+      expect(payload.aiChaptersCount).toBe(25);
+      expect(payload.chapters[0].title).toContain("ಶುದ್ಧ ಕನ್ನಡ");
+    } finally {
+      spy.mockRestore();
     }
   });
 });

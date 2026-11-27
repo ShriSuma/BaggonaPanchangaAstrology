@@ -17,7 +17,15 @@ import type { KundliOutput } from "../core/AstroTypes";
 import { PlanetName } from "../core/AstroTypes";
 import { signLord } from "../core/KundliInsightsEngine";
 import { resolveDevoteeDisplayName, transliterateName } from "../utils/transliterator";
-import { type SixLang, pick6, RASHI_6L, GRAHA_6L } from "../features/fiveYearPrediction/fiveYearLocale";
+import {
+  type SevenLang,
+  pick7,
+  GRAHA_7L,
+  REPORT_MONTHS_7L,
+  PLACE_TERMS_7L,
+  toNativeDigits7L,
+} from "./sampoornaMaster25Locale7L";
+import { type SixLang, pick6 } from "../features/fiveYearPrediction/fiveYearLocale";
 import {
   type RashiIndex,
   type Planet,
@@ -90,13 +98,14 @@ export interface BookletCoverContent {
   confidentialFooterNote: string;
 }
 
-const FUNCTIONAL_NATURE_6L: Record<FunctionalNature, Record<SixLang, string>> = {
+const FUNCTIONAL_NATURE_7L: Record<FunctionalNature, Record<SevenLang, string>> = {
   YOGAKARAKA: {
     kn: "ಪರಮ ಯೋಗಕಾರಕ ಗ್ರಹ",
     mr: "परम योगकारक ग्रह",
     hi: "परम योगकारक ग्रह",
     te: "పరమ యోగకారక గ్రహం",
     ta: "உத்தம யோககாரக கிரகம்",
+    ml: "പരമോന്നത രാജയോഗകാരക ഗ്രഹം",
     en: "Supreme Yogakaraka"
   },
   BENEFIC: {
@@ -105,6 +114,7 @@ const FUNCTIONAL_NATURE_6L: Record<FunctionalNature, Record<SixLang, string>> = 
     hi: "शुभ फलदायी ग्रह",
     te: "శుభ ఫలదాయక గ్రహం",
     ta: "சுப பலன் தரும் கிரகம்",
+    ml: "ശുഭഫലദായക ഗ്രഹം",
     en: "Functional Benefic"
   },
   NEUTRAL: {
@@ -113,6 +123,7 @@ const FUNCTIONAL_NATURE_6L: Record<FunctionalNature, Record<SixLang, string>> = 
     hi: "समस्थिति फलकारक",
     te: "సమస్థితి ఫలకారకుడు",
     ta: "சமநிலை பலன் தரும் கிரகம்",
+    ml: "സമസ്ഥിതി ഫലദായകൻ",
     en: "Balanced Dispositor"
   },
   MALEFIC: {
@@ -121,6 +132,7 @@ const FUNCTIONAL_NATURE_6L: Record<FunctionalNature, Record<SixLang, string>> = 
     hi: "परीक्षा एवं अनुशासन कारक",
     te: "పరీక్షా మరియు క్రమశిక్షణ కారకుడు",
     ta: "சோதனை மற்றும் ஒழுக்க காரகர்",
+    ml: "പരീക്ഷണ-അച്ചടക്ക കാരകൻ",
     en: "Karmic Discipline Tester"
   },
   MARAKA: {
@@ -129,6 +141,7 @@ const FUNCTIONAL_NATURE_6L: Record<FunctionalNature, Record<SixLang, string>> = 
     hi: "मारक स्थानाधिपति (सजगता आवश्यक)",
     te: "మారక స్థానాధిపతి (జాగ్రత్త అవసరం)",
     ta: "மாரக அதிபதி (கவனம் அவசியம்)",
+    ml: "മാരക സ്ഥാനാധിപൻ (ജാഗ്രത സൂചിപ്പിക്കുന്നു)",
     en: "Maraka Dispositor (Protective Guard)"
   }
 };
@@ -153,67 +166,46 @@ const OWN_RASHIS_BY_PLANET: Record<string, number[]> = {
   Saturn: [9, 10]
 };
 
-function formatDigits(num: number | string, lang: SixLang): string {
-  const s = String(num);
-  if (lang === "en") return s;
-  const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
-  const hiDigits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
-  const teDigits = ["౦", "౧", "౨", "౩", "౪", "౫", "౬", "౭", "౮", "౯"];
-  const taDigits = ["௦", "௧", "௨", "௩", "௪", "௫", "௬", "௭", "௮", "௯"];
-  const map =
-    lang === "kn"
-      ? knDigits
-      : lang === "mr" || lang === "hi"
-      ? hiDigits
-      : lang === "te"
-      ? teDigits
-      : taDigits;
-  return s.replace(/\d/g, (d) => map[parseInt(d, 10)] || d);
+function formatDigits(num: number | string, lang: SevenLang): string {
+  return toNativeDigits7L(num, lang);
 }
 
-const REPORT_MONTHS_6L: Record<SixLang, readonly string[]> = {
-  kn: ["ಜನವರಿ", "ಫೆಬ್ರವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್", "ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"],
-  mr: ["जानेवारी", "फेब्रुवारी", "मार्च", "एप्रिल", "मे", "जून", "जुलै", "ऑगस्ट", "सप्टेंबर", "ऑक्टोबर", "नोव्हेंबर", "डिसेंबर"],
-  hi: ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्तूबर", "नवंबर", "दिसंबर"],
-  te: ["జనవరి", "ఫిబ్రవరి", "మార్చి", "ఏప్రిల్", "మే", "జూన్", "జులై", "ఆగస్టు", "సెప్టెంబర్", "అక్టోబర్", "నవంబర్", "డిసెంబర్"],
-  ta: ["ஜனவரி", "பிப்ரவரி", "மார்ச்", "ஏப்ரல்", "மே", "ஜூன்", "ஜூலை", "ஆகஸ்ட்", "செப்டம்பர்", "அக்டோபர்", "நவம்பர்", "டிசம்பர்"],
-  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-};
-
 /** Formats a Gregorian date purely in the target script without Latin leakage. */
-export function formatReportDate6L(date: Date, lang: SixLang): string {
+export function formatReportDate6L(date: Date, lang: SevenLang): string {
   const safeDate = isNaN(date.getTime()) ? new Date() : date;
   const day = formatDigits(safeDate.getDate(), lang);
-  const monthName = REPORT_MONTHS_6L[lang]?.[safeDate.getMonth()] || REPORT_MONTHS_6L.en[safeDate.getMonth()] || "";
+  const monthName = REPORT_MONTHS_7L[lang]?.[safeDate.getMonth()] || REPORT_MONTHS_7L.en[safeDate.getMonth()] || "";
   const year = formatDigits(safeDate.getFullYear(), lang);
   return `${day} ${monthName} ${year}`.trim();
 }
 
-/** Builds the bracket-ready "for <date> only" Tarabala qualifier across all 6 languages. */
-export function formatTarabalaDayPhrase6L(date: Date, lang: SixLang): string {
+/** Builds the bracket-ready "for <date> only" Tarabala qualifier across all 7 languages. */
+export function formatTarabalaDayPhrase6L(date: Date, lang: SevenLang): string {
   const dateDisplay = formatReportDate6L(date, lang);
-  return pick6(
+  return pick7(
     {
       kn: `${dateDisplay} ದಿನಕ್ಕೆ ಮಾತ್ರ`,
       mr: `फक्त ${dateDisplay} साठी`,
       hi: `केवल ${dateDisplay} के लिए`,
       te: `${dateDisplay} రోజుకు మాత్రమే`,
       ta: `${dateDisplay} நாளுக்கு மட்டும்`,
+      ml: `${dateDisplay} ദിവസത്തേക്ക് മാത്രം`,
       en: `for ${dateDisplay} only`
     },
     lang
   );
 }
 
-export function formatPageTag6L(pageNum: number, lang: SixLang): string {
+export function formatPageTag6L(pageNum: number, lang: SevenLang): string {
   const nPage = formatDigits(pageNum, lang);
-  return pick6(
+  return pick7(
     {
       kn: `ಪುಟ ${nPage}`,
       mr: `पृ. ${nPage}`,
       hi: `पृ. ${nPage}`,
       te: `పుట ${nPage}`,
       ta: `பக். ${nPage}`,
+      ml: `പേജ് ${nPage}`,
       en: `Page ${nPage}`
     },
     lang
@@ -228,7 +220,7 @@ export function formatPageTag6L(pageNum: number, lang: SixLang): string {
  */
 export function computeExtendedPrecisionMetrics(params: {
   result: KundliOutput;
-  targetLang: SixLang;
+  targetLang: SevenLang;
   lagnaRashiIdx: RashiIndex;
   moonRashiIdx: RashiIndex;
   moonNakIdx: number;
@@ -284,8 +276,8 @@ export function computeExtendedPrecisionMetrics(params: {
   // 3. Functional Lagna nature
   const mahaFunctionalNature = lagnaPlanetNature[rawMaha] || "NEUTRAL";
   const bhuktiFunctionalNature = lagnaPlanetNature[rawBhukti] || "NEUTRAL";
-  const mahaNatureLabel = FUNCTIONAL_NATURE_6L[mahaFunctionalNature][targetLang];
-  const bhuktiNatureLabel = FUNCTIONAL_NATURE_6L[bhuktiFunctionalNature][targetLang];
+  const mahaNatureLabel = FUNCTIONAL_NATURE_7L[mahaFunctionalNature][targetLang];
+  const bhuktiNatureLabel = FUNCTIONAL_NATURE_7L[bhuktiFunctionalNature][targetLang];
 
   // 4. Combustion (Asta), Retrograde (Vakri), Exalted, Own Sign, Vargottama
   const combustRaw: string[] = [];
@@ -337,7 +329,7 @@ export function computeExtendedPrecisionMetrics(params: {
     }
   }
 
-  const localizePlanets = (arr: string[]) => arr.map((p) => GRAHA_6L[p]?.[targetLang] || p);
+  const localizePlanets = (arr: string[]) => arr.map((p) => GRAHA_7L[p]?.[targetLang] || p);
   const combustPlanetsLocalized = localizePlanets(combustRaw);
   const retroPlanetsLocalized = localizePlanets(retroRaw);
   const exaltedPlanetsLocalized = localizePlanets(exaltedRaw);
@@ -347,8 +339,8 @@ export function computeExtendedPrecisionMetrics(params: {
   // 5. Gandanta & Rashi Sandhi Degree Vulnerability
   const gandantaPointsLocalized: string[] = [];
   const sandhiPointsLocalized: string[] = [];
-  const lagnaWord = pick6(
-    { kn: "ಜನ್ಮ ಲಗ್ನ", mr: "जन्म लग्न", hi: "जन्म लग्न", te: "జన్మ లగ్నం", ta: "ஜென்ம லக்னம்", en: "Ascendant" },
+  const lagnaWord = pick7(
+    { kn: "ಜನ್ಮ ಲಗ್ನ", mr: "जन्म लग्न", hi: "जन्म लग्न", te: "జన్మ లగ్నం", ta: "ஜென்ம லக்னம்", ml: "ജന്മലഗ്നം", en: "Ascendant" },
     targetLang
   );
   const lagnaDegInSign = ((result.ascendant || 15) % 30 + 30) % 30;
@@ -358,7 +350,7 @@ export function computeExtendedPrecisionMetrics(params: {
 
   for (const pp of precisionPlanets) {
     const vul = getDegreeVulnerability(pp.rashi, pp.degreeInSign);
-    const label = GRAHA_6L[pp.planet]?.[targetLang] || pp.planet;
+    const label = GRAHA_7L[pp.planet]?.[targetLang] || pp.planet;
     if (vul.isGandanta) gandantaPointsLocalized.push(label);
     else if (vul.isRashiSandhi) sandhiPointsLocalized.push(label);
   }
@@ -378,14 +370,14 @@ export function computeExtendedPrecisionMetrics(params: {
   const ketuDispGraha = signLord(ketuPos?.rashi ?? 6);
   const rahuDispPos = precisionPlanets.find((p) => p.planet === rahuDispGraha);
   const ketuDispPos = precisionPlanets.find((p) => p.planet === ketuDispGraha);
-  const rahuDispositorName = GRAHA_6L[rahuDispGraha]?.[targetLang] || rahuDispGraha;
-  const ketuDispositorName = GRAHA_6L[ketuDispGraha]?.[targetLang] || ketuDispGraha;
+  const rahuDispositorName = GRAHA_7L[rahuDispGraha]?.[targetLang] || rahuDispGraha;
+  const ketuDispositorName = GRAHA_7L[ketuDispGraha]?.[targetLang] || ketuDispGraha;
   const rahuDispositorHouse = rahuDispPos?.rashiHouse ?? 1;
   const ketuDispositorHouse = ketuDispPos?.rashiHouse ?? 7;
 
   // 8. Summaries for User Details Dossier
-  const noneText = pick6(
-    { kn: "ಶುಭ ಸಮಸ್ಥಿತಿ (ವಿಶೇಷ ದೋಷವಿಲ್ಲ)", mr: "संतुलित स्थिती", hi: "संतुलित स्थिति", te: "సమతుల్య స్థితి", ta: "சமநிலை (தோஷமில்லை)", en: "Balanced (None Active)" },
+  const noneText = pick7(
+    { kn: "ಶುಭ ಸಮಸ್ಥಿತಿ (ವಿಶೇಷ ದೋಷವಿಲ್ಲ)", mr: "संतुलित स्थिती", hi: "संतुलित स्थिति", te: "సమతుల్య స్థితి", ta: "சமநிலை (தோஷமில்லை)", ml: "സമതുലിത നില (ദോഷമില്ല)", en: "Balanced (None Active)" },
     targetLang
   );
 
@@ -393,58 +385,61 @@ export function computeExtendedPrecisionMetrics(params: {
   const dignifiedSummary =
     dignifiedAll.length > 0
       ? dignifiedAll.join(", ")
-      : pick6(
-          { kn: "ಮಿತ್ರ ರಾಶಿ ಸ್ಥಿರ ಬಲ", mr: "मित्र राशी स्थिर बळ", hi: "मित्र राशि स्थिर बल", te: "మిత్ర రాశి స్థిర బలం", ta: "நட்பு ராசி பலம்", en: "Harmonious Friendly Dignity" },
+      : pick7(
+          { kn: "ಮಿತ್ರ ರಾಶಿ ಸ್ಥಿರ ಬಲ", mr: "मित्र राशी स्थिर बळ", hi: "मित्र राशि स्थिर बल", te: "మిత్ర రాశి స్థిర బలం", ta: "நட்பு ராசி பலம்", ml: "മിത്രരാശി സ്ഥിരബലം", en: "Harmonious Friendly Dignity" },
           targetLang
         );
 
   const retroText = retroPlanetsLocalized.length > 0
-    ? `${pick6({ kn: "ವಕ್ರ", mr: "वक्री", hi: "वक्री", te: "వక్ర", ta: "வக்ர", en: "Retro" }, targetLang)}: ${retroPlanetsLocalized.join(", ")}`
+    ? `${pick7({ kn: "ವಕ್ರ", mr: "वक्री", hi: "वक्री", te: "వక్ర", ta: "வக்ர", ml: "വക്ര", en: "Retro" }, targetLang)}: ${retroPlanetsLocalized.join(", ")}`
     : "";
   const combustText = combustPlanetsLocalized.length > 0
-    ? `${pick6({ kn: "ಅಸ್ತ", mr: "अस्त", hi: "अस्त", te: "అస్తంగత", ta: "அஸ்தமனம்", en: "Combust" }, targetLang)}: ${combustPlanetsLocalized.join(", ")}`
+    ? `${pick7({ kn: "ಅಸ್ತ", mr: "अस्त", hi: "अस्त", te: "అస్తంగత", ta: "அஸ்தமனம்", ml: "അസ്തംഗത", en: "Combust" }, targetLang)}: ${combustPlanetsLocalized.join(", ")}`
     : "";
   const retroCombustSummary = [retroText, combustText].filter(Boolean).join(" • ") || noneText;
 
   const gandantaSummary =
     gandantaPointsLocalized.length > 0
-      ? `${pick6({ kn: "ಗಂಡಾಂತ ಸಂಧಿ", mr: "गंडांत संधी", hi: "गंडांत संधि", te: "గండాంత సంధి", ta: "கண்டாந்த சந்தி", en: "Gandanta" }, targetLang)}: ${gandantaPointsLocalized.join(", ")}`
+      ? `${pick7({ kn: "ಗಂಡಾಂತ ಸಂಧಿ", mr: "गंडांत संधी", hi: "गंडांत संधि", te: "గండాంత సంధి", ta: "கண்டாந்த சந்தி", ml: "ഗണ്ഡാന്ത സന്ധി", en: "Gandanta" }, targetLang)}: ${gandantaPointsLocalized.join(", ")}`
       : sandhiPointsLocalized.length > 0
-      ? `${pick6({ kn: "ರಾಶಿ ಸಂಧಿ", mr: "राशी संधी", hi: "राशि संधि", te: "రాశి సంధి", ta: "ராசி சந்தி", en: "Sandhi" }, targetLang)}: ${sandhiPointsLocalized.join(", ")}`
+      ? `${pick7({ kn: "ರಾಶಿ ಸಂಧಿ", mr: "राशी संधी", hi: "राशि संधि", te: "రాశి సంధి", ta: "ராசி சந்தி", ml: "രാശി സന്ധി", en: "Sandhi" }, targetLang)}: ${sandhiPointsLocalized.join(", ")}`
       : noneText;
 
-  const badhakaSummary = pick6(
+  const badhakaSummary = pick7(
     {
       kn: `${n(badhakaHouse)}ನೇ ಭಾವ (${badhakaInfo.lordName} • ${n(badhakaInfo.placedHouse)}ನೇ ಮನೆ)`,
       mr: `${n(badhakaHouse)}वे स्थान (${badhakaInfo.lordName} • ${n(badhakaInfo.placedHouse)}वे घर)`,
       hi: `${n(badhakaHouse)}वां भाव (${badhakaInfo.lordName} • ${n(badhakaInfo.placedHouse)}वें में)`,
       te: `${n(badhakaHouse)}వ భావం (${badhakaInfo.lordName} • ${n(badhakaInfo.placedHouse)}వ స్థానం)`,
       ta: `${n(badhakaHouse)}-ம் பாவம் (${badhakaInfo.lordName} • ${n(badhakaInfo.placedHouse)}-ம் வீடு)`,
+      ml: `${n(badhakaHouse)}-ാം ഭാവം (${badhakaInfo.lordName} • ${n(badhakaInfo.placedHouse)}-ാം ഭാവത്തിൽ)`,
       en: `House ${badhakaHouse} (${badhakaInfo.lordName} in H${badhakaInfo.placedHouse})`
     },
     targetLang
   );
 
-  const savSummaryText = pick6(
+  const savSummaryText = pick7(
     {
       kn: `ಲಗ್ನ ${n(savByHouse[1])} • ಧನ ${n(savByHouse[2])} • ಕರ್ಮ ${n(savByHouse[10])} • ಲಾಭ ${n(savByHouse[11])} ಬಿಂದು`,
       mr: `लग्न ${n(savByHouse[1])} • धन ${n(savByHouse[2])} • कर्म ${n(savByHouse[10])} • लाभ ${n(savByHouse[11])} बिंदू`,
       hi: `लग्न ${n(savByHouse[1])} • धन ${n(savByHouse[2])} • कर्म ${n(savByHouse[10])} • लाभ ${n(savByHouse[11])} बिंदू`,
       te: `లగ్నం ${n(savByHouse[1])} • ధనం ${n(savByHouse[2])} • కర్మ ${n(savByHouse[10])} • లాభం ${n(savByHouse[11])} బిందువులు`,
       ta: `லக்னம் ${n(savByHouse[1])} • தனம் ${n(savByHouse[2])} • தொழில் ${n(savByHouse[10])} • லாபம் ${n(savByHouse[11])} பரல்கள்`,
+      ml: `ലഗ്നം ${n(savByHouse[1])} • ധനം ${n(savByHouse[2])} • കർമ്മം ${n(savByHouse[10])} • ലാഭം ${n(savByHouse[11])} ബിന്ദുക്കൾ`,
       en: `H1 ${savByHouse[1]} • H2 ${savByHouse[2]} • H10 ${savByHouse[10]} • H11 ${savByHouse[11]} Bindus`
     },
     targetLang
   );
 
   const chandrashtamaWarning = liveTarabala.isChandrashtama
-    ? pick6(
+    ? pick7(
         {
           kn: "ಇಂದು ಚಂದ್ರಾಷ್ಟಮ ಸಂಚಾರ: ತಾಳ್ಮೆ ಮತ್ತು ಮಂತ್ರ ಸ್ಮರಣೆ ಉತ್ತಮ",
           mr: "आज चंद्राष्टम प्रभाव: संयम व मनःशांती राखा",
           hi: "आज चंद्राष्टम प्रभाव: धैर्य एवं मंत्र स्मरण श्रेष्ठ",
           te: "నేడు చంద్రాష్టమ ప్రభావం: నిదానం అవసరం",
           ta: "இன்று சந்திராஷ்டமம்: பொறுமையும் அமைதியும் அவசியம்",
+          ml: "ഇന്ന് ചന്ദ്രാഷ്ടമ സംചാരം: ക്ഷമയും പ്രാർത്ഥനയും പാലിക്കുക",
           en: "Chandrashtama Active Today: Maintain Serenity & Patience"
         },
         targetLang
@@ -508,7 +503,7 @@ export function buildBookletCoverContent(params: {
   moonRashi: string;
   nakshatraName: string;
   nakshatraPada?: number;
-  targetLang: SixLang;
+  targetLang: SevenLang;
 }): BookletCoverContent {
   const {
     devoteeName,
@@ -523,90 +518,98 @@ export function buildBookletCoverContent(params: {
   const n = (v: number | string) => formatDigits(v, targetLang);
 
   return {
-    brandBannerTitle: pick6(
+    brandBannerTitle: pick7(
       {
         kn: "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥",
         mr: "॥ बग्गोण पंचांग ॥",
         hi: "॥ बग्गोण पंचांग ॥",
         te: "॥ బగ్గోణ పంచాంగం ॥",
         ta: "✦ பக்கோண பஞ்சாங்கம் ✦",
+        ml: "✦ ബഗ്ഗോണ പഞ്ചാംഗം ✦",
         en: "BAGGONA PANCHANGA"
       },
       targetLang
     ),
-    kshetraSubtitle: pick6(
+    kshetraSubtitle: pick7(
       {
         kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ • ಶುದ್ಧ ಪರಾಶರ ಹಾಗೂ ದಕ್ಷಿಣ ಭಾರತೀಯ ಜ್ಯೋತಿಷ್ಯ ಪೀಠ",
         mr: "श्री क्षेत्र गोकर्ण महाबळेश्वर सानिध्य • पाराशरी व दक्षिण भारतीय ज्योतिष पीठ",
         hi: "श्री क्षेत्र गोकर्ण महाबलेश्वर सान्निध्य • शुद्ध पाराशरी एवं दक्षिण भारतीय ज्योतिष पीठ",
         te: "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధానం • పరాశర జ్యోతిష పీఠం",
         ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதி • பாரம்பரிய பராசர ஜோதிட பீடம்",
+        ml: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധി • പ്രാമാണിക പരാശര & ദക്ഷിണേന്ത്യൻ ജ്യോതിഷ പീഠം",
         en: "Sri Kshetra Gokarna Mahabaleshwara Sannidhana • Heritage Parashari & South Indian Jyotish Peetha"
       },
       targetLang
     ),
-    exclusiveForTag: pick6(
+    exclusiveForTag: pick7(
       {
         kn: "ಕೇವಲ ನಿಮಗಾಗಿ ಮಾತ್ರ ಸಿದ್ಧಪಡಿಸಲಾದ ವೈಯಕ್ತಿಕ ಜಾತಕ ಪುಸ್ತಕ (ನಿಮ್ಮ ಸ್ವಂತ ಸಂಗ್ರಹಕ್ಕೆ)",
         mr: "केवळ आपल्यासाठी विशेषतः तयार केलेला वैयक्तिक ग्रंथ (फक्त आपल्या संग्रहासाठी)",
         hi: "विशेष रूप से केवल आपके लिए निर्मित पवित्र जन्मकुंडली पुस्तिका (निजी संग्रह हेतु)",
         te: "కేవలం మీ కోసం మాత్రమే రూపొందించబడిన పవిత్ర జాతక పుస్తకం (వ్యక్తిగత పత్రం)",
         ta: "உங்களுக்காக மட்டுமே பிரத்யேகமாக உருவாக்கப்பட்ட புனித ஜாதக நூல் (தனிப்பட்ட தொகுப்பு)",
+        ml: "നിങ്ങൾക്കായി മാത്രം തയ്യാറാക്കിയ വ്യക്തിഗത ജാതക ഗ്രന്ഥം (സ്വന്തം സൂക്ഷിപ്പിനായി)",
         en: "PERSONALIZED SACRED FOLIO • PREPARED EXCLUSIVELY FOR YOUR PRIVATE KEEPING"
       },
       targetLang
     ),
-    bookletEditionLine: pick6(
+    bookletEditionLine: pick7(
       {
         kn: `${devoteeName} ರವರ ಜನ್ಮ ಕುಂಡಲಿ ಸಾರಾಂಶ ಗ್ರಂಥ • ಪವಿತ್ರ ಗೋಕರ್ಣ ಆವೃತ್ತಿ`,
         mr: `${devoteeName} यांचा संपूर्ण जीवन-दिग्दर्शन ग्रंथ • पावन गोकर्ण आवृत्ती`,
         hi: `${devoteeName} की संपूर्ण जीवन-दिग्दर्शन पुस्तिका • पावन गोकर्ण संस्करण`,
         te: `${devoteeName} గారి సమగ్ర జాతక పుస్తకం • పవిత్ర గోకర్ణ సంచిక`,
         ta: `${devoteeName} அவர்களின் முழுமையான வாழ்க்கை வழிகாட்டி நூல் • கோகர்ண பதிப்பு`,
+        ml: `${devoteeName}-ന്റെ സമ്പൂർണ്ണ ജന്മകുണ്ഡലി ഗ്രന്ഥം • പവിത്ര ഗോകർണ്ണ പതിപ്പ്`,
         en: `Private Destiny Compendium of ${devoteeName} • Sacred Gokarna Sanctuary Edition`
       },
       targetLang
     ),
-    personalAssurancePara1: pick6(
+    personalAssurancePara1: pick7(
       {
         kn: `ಪ್ರೀತಿಯ ${devoteeName}, ಈ ಸಂಪೂರ್ಣ ೨೫ ಅಧ್ಯಾಯಗಳ ಮಹಾ ಜಾತಕ ಗ್ರಂಥವು ಯಾವುದೇ ಸಾಮಾನ್ಯ ವರದಿಯಲ್ಲ — ಇದು ${n(birthDate)} ರಂದು ${n(birthTime)} ಗಂಟೆಗೆ ${birthPlace} ಪುಣ್ಯಭೂಮಿಯಲ್ಲಿ ನೀವು ಪ್ರಥಮ ಶ್ವಾಸವನ್ನು ತೆಗೆದುಕೊಂಡ ಕ್ಷಣದ ನಿಖರ ನಕ್ಷತ್ರ-ಗ್ರಹ ಸ್ಥಿತಿಗಳಿಂದ ಕೇವಲ ನಿಮಗಾಗಿ ಮಾತ್ರ ಹೆಣೆಯಲ್ಪಟ್ಟ ಜೀವನ ದರ್ಪಣವಾಗಿದೆ. ನಿಮ್ಮ ${lagnaName} ಲಗ್ನ, ${moonRashi} ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ${nakshatraName} ನಕ್ಷತ್ರದ ಸೂಕ್ಷ್ಮ ತರಂಗಗಳನ್ನು ಲೆಕ್ಕಹಾಕಿ, ನಿಮ್ಮ ಸ್ವಂತ ಆತ್ಮದ ಕೈಪಿಡಿಯಾಗಿ ರಕ್ಷಿಸಿಟ್ಟುಕೊಳ್ಳಲು ಈ ಪುಸ್ತಕವನ್ನು ಭಕ್ತಿಯಿಂದ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ.`,
         mr: `प्रिय ${devoteeName}, ही २५ अध्यायांची महा-जन्मपत्रिका पुस्तिका केवळ आपल्यासाठीच घडवलेली एक अद्वितीय जीवन-नोंद आहे. दिनांक ${n(birthDate)} रोजी ${n(birthTime)} वाजता ${birthPlace} येथे आपण घेतलेल्या पहिल्या श्वासाच्या अचूक ग्रहस्थितीवरून हा ग्रंथ तयार केला आहे. आपले ${lagnaName} लग्न, ${moonRashi} चंद्र राशी व ${nakshatraName} नक्षत्राच्या सूक्ष्म स्पंदनांचा अभ्यास करून केवळ आपल्या वैयक्तिक जपवणुकीसाठी ही अमृतपुस्तिका अर्पण केली आहे.`,
         hi: `प्रिय ${devoteeName}, यह संपूर्ण २५-अध्यायीय महा-जन्मकुंडली पुस्तिका कोई सामान्य विवरण नहीं, अपितु केवल आपके लिए निर्मित आपके जीवन का प्रामाणिक दर्पण है। दिनांक ${n(birthDate)} को ${n(birthTime)} बजे ${birthPlace} में आपके जन्म क्षण की शुद्ध खगोलीय गणनाओं के आधार पर यह ग्रंथ रचा गया है। आपके ${lagnaName} लग्न, ${moonRashi} चंद्र राशि एवं ${nakshatraName} की सूक्ष्म तरंगों को संजोकर यह अमूल्य धरोहर केवल आपकी निजी सहेज के लिए तैयार की गई है।`,
         te: `ప్రియమైన ${devoteeName}, ఈ 25 అధ్యాయాల సంపూర్ణ జాతక పుస్తకం కేవలం మీ కోసం మాత్రమే రూపొందించబడిన పవిత్ర జీవన దర్పణం. ${n(birthDate)} నాడు ${n(birthTime)} గంటలకు ${birthPlace} లో మీరు జన్మించిన ఖచ్చితమైన గ్రహ స్థితుల ఆధారంగా, మీ ${lagnaName} లగ్నం, ${moonRashi} చంద్ర రాశి మరియు ${nakshatraName} ఆధారంగా దీనిని మీ వ్యక్తిగత భద్రత మరియు మార్గదర్శనం కోసం ఎంతో శ్రద్ధతో సిద్ధం చేశాము.`,
         ta: `அன்புள்ள ${devoteeName}, இந்த 25 அத்தியாய மகா ஜாதக நூல் பொதுவான அறிக்கை அல்ல; ${n(birthDate)} அன்று ${n(birthTime)} மணிக்கு ${birthPlace} புண்ணிய மண்ணில் நீங்கள் பிறந்த துல்லியமான வானியல் கணக்கீட்டின்படி உங்களுக்காக மட்டுமே உருவாக்கப்பட்ட வாழ்க்கைக் கண்ணாடியாகும். உங்கள் ${lagnaName} லக்னம், ${moonRashi} சந்திர ராசி மற்றும் ${nakshatraName} நட்சத்திர அதிர்வுகளைக் கணித்து உங்கள் தனிப்பட்ட பாதுகாப்பிற்காக இது அன்புடன் படைக்கப்பட்டுள்ளது.`,
+        ml: `പ്രിയ ${devoteeName}, ഈ 25 അധ്യായങ്ങളടങ്ങിയ സമഗ്ര ഗ്രന്ഥം ഒരു സാധാരണ ഫലപ്രവചനമല്ല — ${n(birthDate)} തീയതി ${n(birthTime)}-ന് ${birthPlace}-ൽ നിങ്ങൾ പിറന്ന നിമിഷത്തിലെ കൃത്യമായ നക്ഷത്ര-ഗ്രഹ നിലകൾ പ്രകാരം നിങ്ങൾക്കായി മാത്രം തയ്യാറാക്കിയ ജീവിതരേഖയാണിത്. നിങ്ങളുടെ ${lagnaName} ലഗ്നം, ${moonRashi} ചന്ദ്രരാശി, ${nakshatraName} നക്ഷത്രം എന്നിവയുടെ സൂക്ഷ്മ ഗണിതത്തിലധിഷ്ഠിതമായി സ്വന്തം സൂക്ഷിപ്പിനായി ഒരുക്കിയ ഗ്രന്ഥമാണിത്.`,
         en: `Dear ${devoteeName}, this 25-Chapter Sampoorna Destiny Booklet is not an impersonal printout — it is a sacred mirror crafted solely for you from the exact celestial sky above ${birthPlace} at ${birthTime} on ${birthDate}. Computed directly from your ${lagnaName} Ascendant, ${moonRashi} Moon, and ${nakshatraName}, every page is dedicated exclusively for your personal keeping.`
       },
       targetLang
     ),
-    personalAssurancePara2: pick6(
+    personalAssurancePara2: pick7(
       {
         kn: `ನೀವು ಮನಸ್ಸಿನಲ್ಲೇ ಮೌನವಾಗಿ ಹೊತ್ತಿರುವ ಕನಸುಗಳು, ಯಾರಿಗೂ ಹೇಳಿಕೊಳ್ಳದ ತ್ಯಾಗಗಳು ಹಾಗೂ ಕಳೆದ ದಿನಗಳಲ್ಲಿ ಎದುರಿಸಿದ ಪರೀಕ್ಷೆಗಳನ್ನು ಈ ಗ್ರಂಥವು ಅತ್ಯಂತ ಗೌರವದಿಂದ ಅರ್ಥೈಸುತ್ತದೆ. ಪ್ರತಿ ಪುಟವೂ ನಿಮಗೆ ಭರವಸೆಯ ದೀಪವಾಗಿರಲಿ — ನೀವು ಒಂಟಿಯಲ್ಲ; ಧರ್ಮ, ದೈವ ಕೃಪೆ ಮತ್ತು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಅನಂತ ರಕ್ಷಣೆ ಸದಾ ನಿಮ್ಮ ನೆರಳಾಗಿ ನಿಂತಿದೆ ಎಂಬ ದೃಢ ನಂಬಿಕೆಯೊಂದಿಗೆ ಮುಂದಿನ ಅಧ್ಯಾಯಗಳನ್ನು ಓದಿರಿ.`,
         mr: `आपण मनात जपलेले मौन कष्ट, कोणाशीही न बोललेले त्याग आणि अनुभवलेले कठीण प्रसंग यांना ही पुस्तिका अत्यंत संवेदनशीलतेने न्याय देते. हे प्रत्येक पान आपल्यासाठी आशेचा शांत दिवा ठरो — आपण एकटे नाही आहात; धर्म, आत्मबल आणि श्री क्षेत्र गोकर्ण महाबळेश्वराची अखंड कृपा सदैव आपल्या पाठीशी आहे, या विश्वासाने पुढील अध्याय वाचा.`,
         hi: `जीवन में आपने जो मूक संघर्ष सहे हैं, जो अनकहे त्याग किए हैं और जो आशाएं हृदय में संजोई हैं, यह पुस्तिका उन सबका आदरपूर्वक मार्गदर्शन करती है। इसका प्रत्येक पृष्ठ आपके लिए एक आश्वस्त करने वाला दीप बने — आप कभी अकेले नहीं हैं; श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा एवं सनातन ज्योतिष का प्रकाश सदैव आपके साथ है।`,
         te: `మీరు మౌనంగా చేసిన త్యాగాలు, ఎవరికీ చెప్పుకోలేని బాధలు మరియు భవిష్యత్తుపై ఉన్న ఆశలను ఈ గ్రంథం ఎంతో గౌరవంతో అర్థం చేసుకుంటుంది. ఇందులోని ప్రతి పుట మీకు ఒక భరోసా దీపంలా నిలవాలని, శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని దివ్య రక్షణ ఎల్లప్పుడూ మీకు అండగా ఉంటుందని మనసారా ఆకాంక్షిస్తున్నాము.`,
         ta: `நீங்கள் மனதிற்குள் சுமந்த மௌனத் தியாகங்களும், யாரிடமும் பகிராத கவலைகளும் இந்த நூலில் கருணையுடன் அணுகப்பட்டுள்ளன. இதன் ஒவ்வொரு பக்கமும் உங்களுக்கு நம்பிக்கை ஒளியாக இருக்கட்டும் — நீங்கள் தனிமையில் இல்லை; ஸ்ரீ கோகர்ண மகாபலேஸ்வரரின் பேரருள் எப்போதும் உங்களைப் பாதுகாக்கும் என்ற மன உறுதியுடன் தொடர்ந்து படியுங்கள்.`,
+        ml: `നിങ്ങൾ മനസ്സിൽ സൂക്ഷിച്ച ആഗ്രഹങ്ങളും നിശബ്ദമായ പ്രയത്നങ്ങളും കടന്നുവന്ന പരീക്ഷണങ്ങളും ഈ ഗ്രന്ഥം ആദരവോടെ അടയാളപ്പെടുത്തുന്നു. ഇതിലെ ഓരോ താളും നിങ്ങൾക്ക് പ്രത്യാശയുടെ വിളക്കായിരിക്കട്ടെ — നിങ്ങൾ ഒറ്റയ്ക്കല്ല; ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹവും സംരക്ഷണവും എന്നും നിങ്ങളോടൊപ്പമുണ്ട്.`,
         en: `Every silent prayer you have whispered and every unseen sacrifice you carried finds compassionate validation within these pages. Keep this manuscript beside you as an assuring lamp whenever clarity feels distant — you never walk alone beneath the eternal sanctuary and grace of Sri Kshetra Gokarna Mahabaleshwara.`
       },
       targetLang
     ),
-    sealHeading: pick6(
+    sealHeading: pick7(
       {
         kn: "ಆಶೀರ್ವಾದದ ಮುದ್ರೆ • ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್ • ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ",
         mr: "आशीर्वाद मुद्रा • वेदमूर्ती चैतन्य पंडित • श्री क्षेत्र गोकर्ण",
         hi: "आशीर्वाद मुद्रा • वेदमूर्ति चैतन्य पंडित • श्री क्षेत्र गोकर्ण",
         te: "ఆశీర్వాద ముద్ర • వేదమూర్తి చైతన్య పండిత్ • శ్రీ క్షేత్ర గోకర్ణ",
         ta: "ஆசீர்வாத முத்திரை • வேதமூர்த்தி சைதன்ய பண்டிதர் • ஸ்ரீ கோகர்ண",
+        ml: "അനുഗ്രഹ മുദ്ര • വേദമൂർത്തി ചൈതന്യ പണ്ഡിറ്റ് • ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം",
         en: "Blessed & Sealed • Veda Moorthy Chaitanya Pandit • Sri Kshetra Gokarna"
       },
       targetLang
     ),
-    confidentialFooterNote: pick6(
+    confidentialFooterNote: pick7(
       {
         kn: "ವೈಯಕ್ತಿಕ ಹಾಗೂ ಗೌಪ್ಯ ಜಾತಕ ಪ್ರತಿಯು ಕೇವಲ ಜಾತಕರ ಹಿತಕ್ಕಾಗಿ ಮೀಸಲಾಗಿದೆ",
         mr: "ही वैयक्तिक व गोपनीय पत्रिका केवळ जातकांच्या हितासाठी तयार केली आहे",
         hi: "यह व्यक्तिगत एवं गोपनीय कुंडली प्रति केवल जातक के कल्याण हेतु समर्पित है",
         te: "ఈ వ్యక్తిగత మరియు గోప్యమైన జాతక పుస్తకం కేవలం మీ శ్రేయస్సు కొరకే",
         ta: "இந்த தனிப்பட்ட ஜாதக நூல் ஜாதகரின் நலனுக்காக மட்டுமே பிரத்யேகமாக வழங்கப்படுகிறது",
+        ml: "വ്യക്തിഗത ജാതക ഗ്രന്ഥം • ജാതകന്റെയും കുടുംബത്തിന്റെയും ശ്രേയസ്സിനായി മാത്രം",
         en: "Private Personal Edition • Dedicated Exclusively for the Native's Guidance & Peace"
       },
       targetLang
@@ -620,7 +623,7 @@ export function buildBookletCoverContent(params: {
  */
 export function buildChapterPrecisionEnrichment(params: {
   chapterNumber: number;
-  targetLang: SixLang;
+  targetLang: SevenLang;
   devoteeName: string;
   lagnaRashiName: string;
   moonRashiName: string;
@@ -723,6 +726,29 @@ export function buildChapterPrecisionEnrichment(params: {
       : vargottamaPlanetsLocalized.length > 0
       ? vargottamaPlanetsLocalized.join(", ")
       : house1Info.lordName;
+
+  if (targetLang === "ml") {
+    const mlAnchors =
+      chapterNumber === 1
+        ? [`താരാബലം (${tarabalaForThatDayPhrase})`, `${house1Info.lordName} (${house1Info.placedHouse}-ാം ഭാവം)`]
+        : chapterNumber <= 6
+        ? [`ലഗ്നം ${savByHouse[1]} ബിന്ദു`, `${yogiPlanetName}`, `മാന്ദി ${maandiHouse}-ാം ഭാവം`]
+        : chapterNumber <= 11
+        ? [mahaNatureLabel, `ശനി ${shaniHouseFromMoon}-ാം ഭാവം`, `വ്യാഴം ${guruHouseFromMoon}-ാം ഭാവം`]
+        : chapterNumber <= 16
+        ? [`ധനം ${savByHouse[2]}`, `കർമ്മം ${savByHouse[10]}`, `ലാഭം ${savByHouse[11]}`]
+        : chapterNumber <= 22
+        ? [bhriguBinduRashiName, bhuktiEndDate, yogiPlanetName]
+        : [`${badhakaHouse}-ാം ഭാവം (${badhakaInfo.lordName})`, maandiRashiName, yogiPlanetName];
+    const mlExtra1 = `${devoteeName}, നിങ്ങളുടെ ${lagnaRashiName} ലഗ്നവും (${savByHouse[1]} ബിന്ദു) ${moonRashiName} ചന്ദ്രരാശിയും (${nakshatraName} നക്ഷത്രം) ആധാരമാക്കി ഗണിക്കുമ്പോൾ, നിലവിലെ ${currentMahadasha}–${currentBhuktiLord} (${bhuktiEndDate} വരെ) ദശാഘട്ടത്തിൽ '${mahaNatureLabel}' സ്വഭാവവും യോഗി '${yogiPlanetName}' ബലവും പ്രായോഗിക സ്ഥിരത ഉറപ്പാക്കുന്നു.`;
+    const mlExtra2 = isMinor
+      ? `${isChildOrInfant ? "കുട്ടിയുടെ" : "വിദ്യാർത്ഥിയുടെ"} ദൈനംദിന വളർച്ചയിൽ കൃത്യമായ പഠന-വിശ്രമ താളവും മാതാപിതാക്കളുടെ സ്നേഹപൂർവ്വമായ ശ്രദ്ധയും ശ്രീ ഗോകർണ്ണ മഹാബലേശ്വര സ്മരണയും ശുഭഫലം നൽകും.`
+      : `ദൈനംദിന ജീവിതത്തിൽ ${yogiPlanetName} തത്വവും '${dignStr}' ഗ്രഹബലവും ചേർന്ന് അനാവശ്യ തിരക്കുകൾ ഒഴിവാക്കി സമാധാനപരമായ പുരോഗതി നൽകുന്നു.`;
+    return {
+      extraParagraphs: [mlExtra1, mlExtra2],
+      precisionAnchors: mlAnchors,
+    };
+  }
 
   const retroNote =
     retroPlanetsLocalized.length > 0
@@ -1284,41 +1310,7 @@ export function buildChapterPrecisionEnrichment(params: {
   };
 }
 
-const PLACE_TERMS_6L: Record<string, Record<SixLang, string>> = {
-  india: { kn: "ಭಾರತ", mr: "भारत", hi: "भारत", te: "భారతదేశం", ta: "இந்தியா", en: "India" },
-  karnataka: { kn: "ಕರ್ನಾಟಕ", mr: "कर्नाटक", hi: "कर्नाटक", te: "కర్ణాటక", ta: "கர்நாடகா", en: "Karnataka" },
-  maharashtra: { kn: "ಮಹಾರಾಷ್ಟ್ರ", mr: "महाराष्ट्र", hi: "महाराष्ट्र", te: "మహారాష్ట్ర", ta: "மகாராஷ்டிரா", en: "Maharashtra" },
-  "tamil nadu": { kn: "ತಮಿಳುನಾಡು", mr: "तमिळनाडू", hi: "तमिलनाडु", te: "తమిళనాడు", ta: "தமிழ்நாடு", en: "Tamil Nadu" },
-  "andhra pradesh": { kn: "ಆಂಧ್ರ ಪ್ರದೇಶ", mr: "आंध्र प्रदेश", hi: "आंध्र प्रदेश", te: "ఆంధ్ర ప్రదేశ్", ta: "ஆந்திர பிரதேசம்", en: "Andhra Pradesh" },
-  telangana: { kn: "ತೆಲಂಗಾಣ", mr: "तेलंगणा", hi: "तेलंगाना", te: "తెలంగాణ", ta: "தெலங்கானா", en: "Telangana" },
-  kerala: { kn: "ಕೇರಳ", mr: "केरळ", hi: "केरल", te: "కేరళ", ta: "கேரளா", en: "Kerala" },
-  gokarna: { kn: "ಗೋಕರ್ಣ", mr: "गोकर्ण", hi: "गोकर्ण", te: "గోకర్ణ", ta: "கோகர்ணா", en: "Gokarna" },
-  bengaluru: { kn: "ಬೆಂಗಳೂರು", mr: "बेंगळुरू", hi: "बेंगलुरु", te: "బెంగళూరు", ta: "பெங்களூரு", en: "Bengaluru" },
-  bangalore: { kn: "ಬೆಂಗಳೂರು", mr: "बेंगळुरू", hi: "बेंगलुरु", te: "బెంగళూరు", ta: "பெங்களூரு", en: "Bangalore" },
-  mysuru: { kn: "ಮೈಸೂರು", mr: "म्हैसूर", hi: "मैसूरु", te: "మైసూరు", ta: "மைசூரு", en: "Mysuru" },
-  mysore: { kn: "ಮೈಸೂರು", mr: "म्हैसूर", hi: "मैसूर", te: "మైసూరు", ta: "மைசூர்", en: "Mysore" },
-  mangaluru: { kn: "ಮಂಗಳೂರು", mr: "मंगळुरू", hi: "मंगलुरु", te: "మంగళూరు", ta: "மங்களூரு", en: "Mangaluru" },
-  mangalore: { kn: "ಮಂಗಳೂರು", mr: "मंगळुरू", hi: "मंगलोर", te: "మంగళూరు", ta: "மங்களூர்", en: "Mangalore" },
-  udupi: { kn: "ಉಡುಪಿ", mr: "उडुपी", hi: "उडुपी", te: "ఉడుపి", ta: "உடுப்பி", en: "Udupi" },
-  honnavar: { kn: "ಹೊನ್ನಾವರ", mr: "होन्नावर", hi: "होन्नावर", te: "హొన్నావర్", ta: "ஹொன்னாவர்", en: "Honnavar" },
-  kumta: { kn: "ಕುಮಟಾ", mr: "कुमटा", hi: "कुमटा", te: "కుమటా", ta: "கும்தா", en: "Kumta" },
-  karwar: { kn: "ಕಾರವಾರ", mr: "कारवार", hi: "कारवार", te: "కార్వార్", ta: "கார்வார்", en: "Karwar" },
-  sirsi: { kn: "ಶಿರಸಿ", mr: "सिरसी", hi: "सिरसी", te: "సిర్సి", ta: "சிர்சி", en: "Sirsi" },
-  hubballi: { kn: "ಹುಬ್ಬಳ್ಳಿ", mr: "हुबळी", hi: "हुबली", te: "హుబ్లీ", ta: "ஹுப்பள்ளி", en: "Hubballi" },
-  dharwad: { kn: "ಧಾರವಾಡ", mr: "धारवाड", hi: "धारवाड़", te: "ధార్వాడ్", ta: "தார்வாட்", en: "Dharwad" },
-  mumbai: { kn: "ಮುಂಬೈ", mr: "मुंबई", hi: "मुंबई", te: "ముంబై", ta: "மும்பை", en: "Mumbai" },
-  pune: { kn: "ಪುಣೆ", mr: "पुणे", hi: "पुणे", te: "పుణే", ta: "புனே", en: "Pune" },
-  hyderabad: { kn: "ಹೈದರಾಬಾದ್", mr: "हैदराबाद", hi: "हैदराबाद", te: "హైదరాబాద్", ta: "ஹைதராபாத்", en: "Hyderabad" },
-  chennai: { kn: "ಚೆನ್ನೈ", mr: "चेन्नई", hi: "चेन्नई", te: "చెన్నై", ta: "சென்னை", en: "Chennai" },
-  delhi: { kn: "ದೆಹಲಿ", mr: "दिल्ली", hi: "दिल्ली", te: "ఢిల్లీ", ta: "டெல்லி", en: "Delhi" }
-};
-
-/**
- * Parses and deduplicates noisy compound place strings such as
- * "Gokarna (581326) · Gokarna (581326) · Karnataka" into a crisp, non-repeating
- * localized display string without losing parenthesized pincodes.
- */
-export function resolvePlaceDisplayName(rawPlace: string, lang: SixLang): string {
+export function resolvePlaceDisplayName(rawPlace: string, lang: SevenLang): string {
   const clean = (rawPlace || "").trim();
   if (!clean) return "";
 
@@ -1339,8 +1331,8 @@ export function resolvePlaceDisplayName(rawPlace: string, lang: SixLang): string
     const localizeCore = (text: string): string => {
       if (!text) return "";
       const lower = text.toLowerCase();
-      if (PLACE_TERMS_6L[lower]?.[lang]) {
-        return PLACE_TERMS_6L[lower][lang];
+      if (PLACE_TERMS_7L[lower]?.[lang]) {
+        return PLACE_TERMS_7L[lower][lang];
       }
       if (lang === "en") {
         return resolveDevoteeDisplayName(text, "en");
@@ -1376,7 +1368,7 @@ export function resolvePlaceDisplayName(rawPlace: string, lang: SixLang): string
  * Extracts a concise single-city label (without repeating segments or pincodes)
  * for natural conversational sentences in the cover & chapter narratives.
  */
-export function extractShortPlaceDisplayName(rawPlace: string, lang: SixLang): string {
+export function extractShortPlaceDisplayName(rawPlace: string, lang: SevenLang): string {
   const resolved = resolvePlaceDisplayName(rawPlace, lang);
   if (!resolved) return "";
   const firstSegment = resolved.split(",")[0]?.trim() || resolved;

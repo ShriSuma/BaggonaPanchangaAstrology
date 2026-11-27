@@ -17,7 +17,13 @@
 import type { DetectedDosha } from "../core/ComprehensiveDoshaEngine";
 import { cleanEnglishFromRegionalText } from "../features/premiumPdf/premiumPdfLocale";
 import { cleanDegreesFromText, cleanPunctuationArtifacts } from "../features/premiumPdf/yogaDoshaGocharaEnricher";
-import { type SixLang, pick6, RASHI_6L, GRAHA_6L } from "../features/fiveYearPrediction/fiveYearLocale";
+import { type SixLang, pick6 } from "../features/fiveYearPrediction/fiveYearLocale";
+import { type SevenLang, toNativeDigits7L } from "./sampoornaMaster25Locale7L";
+import {
+  buildMalayalamBookletCover,
+  buildMalayalamDoshaProfiles,
+  buildMalayalamStoryChapters,
+} from "./sampoornaMaster25StoryEngineMl";
 import type { BookletCoverContent, ExtendedPrecisionMetrics, HouseLordPlacementInfo } from "./sampoornaMaster25BookletEngine";
 import {
   extractChartArchetypeSnapshot,
@@ -81,7 +87,7 @@ export interface ChartVisualMetrics {
 }
 
 export interface StoryEngineInput {
-  targetLang: SixLang;
+  targetLang: SevenLang;
   devoteeName: string;
   birthDate: string;
   birthTime: string;
@@ -228,21 +234,11 @@ export interface GeneratedStoryChapter {
 // INTERNAL HELPERS (PURE SCRIPT + DIGITS)
 // ============================================================================
 
-function digits(num: number | string, lang: SixLang): string {
-  const s = String(num);
-  if (lang === "en") return s;
-  const map =
-    lang === "kn"
-      ? ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"]
-      : lang === "mr" || lang === "hi"
-      ? ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"]
-      : lang === "te"
-      ? ["౦", "౧", "౨", "౩", "౪", "౫", "౬", "౭", "౮", "౯"]
-      : ["௦", "௧", "௨", "௩", "௪", "௫", "௬", "௭", "௮", "௯"];
-  return s.replace(/\d/g, (d) => map[parseInt(d, 10)] || d);
+function digits(num: number | string, lang: SevenLang): string {
+  return toNativeDigits7L(num, lang);
 }
 
-function cleanRegional(text: string, lang: SixLang): string {
+function cleanRegional(text: string, lang: SevenLang): string {
   if (!text || lang === "en") return cleanPunctuationArtifacts(text);
   const noDeg = cleanDegreesFromText(cleanPunctuationArtifacts(text));
   return noDeg
@@ -286,8 +282,12 @@ function getYogiCompassDeg(rawYogi: string): number {
 // ============================================================================
 
 export function buildDynamicBookletCover(ctx: StoryEngineInput): BookletCoverContent {
+  if (ctx.targetLang === "ml") {
+    return buildMalayalamBookletCover(ctx, ctx.narrativeVariant ?? 0);
+  }
+  const lang: SixLang = ctx.targetLang;
+  const sixCtx = { ...ctx, targetLang: lang };
   const {
-    targetLang: lang,
     devoteeName,
     birthDate,
     birthTime,
@@ -439,7 +439,7 @@ export function buildDynamicBookletCover(ctx: StoryEngineInput): BookletCoverCon
 
   const coverEdition = ((((ctx.narrativeVariant ?? 0) % 4) + 4) % 4) as 0 | 1 | 2 | 3;
   const { p1, p2 } = buildDynamicCoverEditionParas(
-    ctx,
+    sixCtx,
     cleanTithiWithPaksha,
     varaSpark,
     pakshaTone,
@@ -512,7 +512,11 @@ export function buildDynamicBookletCover(ctx: StoryEngineInput): BookletCoverCon
 // ============================================================================
 
 export function buildConsolidatedDoshaProfiles(ctx: StoryEngineInput): ActiveDoshaProfile[] {
-  const { targetLang: lang, activeRawDoshas, maandiHouse, maandiRashiName, maandiDomainAffected, shaniHouseFromMoon, shaniTransitRashi, currentMahadasha, devoteeName, lagnaRashiName } = ctx;
+  if (ctx.targetLang === "ml") {
+    return buildMalayalamDoshaProfiles(ctx);
+  }
+  const lang: SixLang = ctx.targetLang;
+  const { activeRawDoshas, maandiHouse, maandiRashiName, maandiDomainAffected, shaniHouseFromMoon, shaniTransitRashi, currentMahadasha, devoteeName, lagnaRashiName } = ctx;
   const n = (v: number | string) => digits(v, lang);
   const profiles: ActiveDoshaProfile[] = [];
 
@@ -778,7 +782,7 @@ function getChapterBucket(chNum: number): ChapterBucket {
 function buildChapterThemeAndNarrativeLayer(args: {
   chNum: number;
   themeKey: NarrativeThemeKey;
-  ctx: StoryEngineInput;
+  ctx: Omit<StoryEngineInput, "targetLang"> & { targetLang: SixLang };
   savByHouse: number[];
   peakHouseNum: number;
   doshaProfiles: ActiveDoshaProfile[];
@@ -1768,8 +1772,12 @@ export function buildDynamicStoryChapters(
   ctx: StoryEngineInput,
   doshaProfiles: ActiveDoshaProfile[]
 ): GeneratedStoryChapter[] {
+  if (ctx.targetLang === "ml") {
+    return buildMalayalamStoryChapters(ctx, ctx.narrativeVariant ?? 0);
+  }
+  const lang: SixLang = ctx.targetLang;
+  const sixCtx = { ...ctx, targetLang: lang };
   const {
-    targetLang: lang,
     devoteeName,
     ageCategory,
     maritalStatus,
@@ -3143,8 +3151,8 @@ export function buildDynamicStoryChapters(
   );
 
   // Shuffled 5-Theme Story Lens + Chart-Grounded Edition Dynamics (zero shared family boilerplate)
-  const themeAssignment = buildShuffledChapterThemes(ctx);
-  const arch = extractChartArchetypeSnapshot(ctx);
+  const themeAssignment = buildShuffledChapterThemes(sixCtx);
+  const arch = extractChartArchetypeSnapshot(sixCtx);
 
   const hasShortColonPrefix = (text: string) => /^[^.!?।॥\n]{2,42}:\s/.test(text);
   const takeLeadSentences = (text: string, maxChars: number): string => {
@@ -3167,7 +3175,7 @@ export function buildDynamicStoryChapters(
       const layer = buildChapterThemeAndNarrativeLayer({
         chNum: item.n,
         themeKey,
-        ctx,
+        ctx: sixCtx,
         savByHouse,
         peakHouseNum,
         doshaProfiles,
@@ -3186,13 +3194,13 @@ export function buildDynamicStoryChapters(
         ext && base.length < minTargetLen ? cleanRegional(`${base} ${ext}`, lang) : base;
 
       const dynamicHook = cleanRegional(
-        buildChapterUniqueHook(item.n, themeKey, arch, ctx, isChildOrInfant),
+        buildChapterUniqueHook(item.n, themeKey, arch, sixCtx, isChildOrInfant),
         lang
       );
       const headerMeta = buildChapterHeaderMeta(item.n, themeKey, lang, arch.edition);
       const rawQuestion = cleanRegional(pick6(item.question, lang), lang);
-      const dynamicQuestion = cleanRegional(buildDynamicChapterQuestion(item.n, ctx, arch, rawQuestion), lang);
-      const supp = buildChartGroundedSupplement(item.n, arch, ctx, isChildOrInfant, isMinor, isSenior);
+      const dynamicQuestion = cleanRegional(buildDynamicChapterQuestion(item.n, sixCtx, arch, rawQuestion), lang);
+      const supp = buildChartGroundedSupplement(item.n, arch, sixCtx, isChildOrInfant, isMinor, isSenior);
 
       const isGenericStaticCh =
         item.n === 3 ||

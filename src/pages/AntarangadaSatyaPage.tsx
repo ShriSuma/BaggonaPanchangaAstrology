@@ -51,7 +51,9 @@ import { SampoornaMaster25PdfTemplate } from "../components/sampoornaMaster25/Sa
 import {
   prepareSampoornaMaster25Data,
   captureSampoornaMaster25Pdf,
-  type SampoornaMaster25Payload
+  normalizeSevenLang,
+  type SampoornaMaster25Payload,
+  type SevenLang
 } from "../services/sampoornaMaster25Service";
 import { HOTEL_FAMILY_UPSELL_PRICE_INR } from "../features/hotelSecret/antarangaService";
 
@@ -2038,9 +2040,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
         console.warn("Precomputing public kundli profile warning:", kundliErr);
       }
 
-      // Precompute Sampoorna Master 25-Chapter Payload
+      // Precompute Sampoorna Master 25-Chapter Payload (instant deterministic chassis; full Gemini AI runs at download)
       try {
-        const pdfLang: SixLang = (selectedLang === "ml" ? "en" : selectedLang) as SixLang;
+        const m25Lang: SevenLang = normalizeSevenLang(selectedLang);
         const m25 = await prepareSampoornaMaster25Data(
           {
             kundli,
@@ -2054,8 +2056,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               gender: gender === "female" ? "Female" : "Male"
             }
           },
-          pdfLang,
-          { narrativeVariant: downloadCounts.fiveYear || 0 }
+          m25Lang,
+          { narrativeVariant: downloadCounts.fiveYear || 0, enableAi: false }
         );
         setMaster25Payload(m25);
       } catch (m25Err) {
@@ -2128,7 +2130,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       setSecretResult(updatedSecret);
 
       try {
-        const pdfLang: SixLang = (selectedLang === "ml" ? "en" : selectedLang) as SixLang;
+        const m25Lang: SevenLang = normalizeSevenLang(selectedLang);
         void prepareSampoornaMaster25Data(
           {
             kundli: computedKundli,
@@ -2142,8 +2144,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
               gender: gender === "female" ? "Female" : "Male"
             }
           },
-          pdfLang,
-          { narrativeVariant: downloadCounts.fiveYear || 0 }
+          m25Lang,
+          { narrativeVariant: downloadCounts.fiveYear || 0, enableAi: false }
         ).then(setMaster25Payload).catch((e) => console.warn("Master 25 lang update:", e));
       } catch (err) {
         console.warn("Language switch master25 warning:", err);
@@ -2289,10 +2291,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       let fileName: string;
 
       if (master25PdfRef.current && master25Payload) {
-        const pdfLang: SixLang = (selectedLang === "kn" || selectedLang === "hi" || selectedLang === "mr" || selectedLang === "te" || selectedLang === "ta") ? selectedLang : "en";
-        // Re-prepare payload with a fresh narrative edition on repeat downloads for same person (or language change)
+        const m25Lang: SevenLang = normalizeSevenLang(selectedLang);
+        // Always craft fresh Gemini AI stories & unique everyday examples for every download and language
         let activePayload = master25Payload;
-        if ((currentCount > 0 || master25Payload.targetLanguage !== pdfLang) && computedKundli) {
+        if ((currentCount > 0 || !master25Payload.isAiGenerated || master25Payload.targetLanguage !== m25Lang) && computedKundli) {
           try {
             const effectiveTime = isTimeUnknown ? "12:00" : birthTime;
             activePayload = await prepareSampoornaMaster25Data(
@@ -2308,8 +2310,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   gender: gender === "female" ? "Female" : "Male"
                 }
               },
-              pdfLang,
-              { narrativeVariant: currentCount }
+              m25Lang,
+              {
+                narrativeVariant: currentCount,
+                enableAi: true,
+                onProgress: (pct, msg) => {
+                  const mapped = Math.max(5, Math.min(48, Math.round((pct / 100) * 48)));
+                  setPdfProgress(mapped);
+                  if (!isPartOfBatch) setScreenLoaderProgress(mapped);
+                  if (msg) setPdfStageText(msg);
+                }
+              }
             );
             setMaster25Payload(activePayload);
             await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
@@ -2324,10 +2335,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           fileName,
           true,
           {
-            lang: pdfLang,
+            lang: m25Lang,
             onProgress: (p) => {
-              setPdfProgress(p);
-              if (!isPartOfBatch) setScreenLoaderProgress(p);
+              const totalP = 48 + Math.round((p / 100) * 52);
+              setPdfProgress(totalP);
+              if (!isPartOfBatch) setScreenLoaderProgress(totalP);
               if (p < 40) setPdfStageText(stages.s1);
               else if (p < 80) setPdfStageText(stages.s2);
               else setPdfStageText(stages.s3);
