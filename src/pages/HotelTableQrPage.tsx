@@ -3,7 +3,7 @@ import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useAppStore } from "../stores/appStore";
-import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../features/auth/authStore";
+import { useAuthStore, SUPER_ADMIN_USERNAMES, isStrictSuperAdmin } from "../features/auth/authStore";
 import {
   AntarangaAstrologicalScreenLoader,
   type AntarangaLoaderStage
@@ -649,6 +649,15 @@ export default function HotelTableQrPage(): JSX.Element {
             >
               {isGenerating ? "QR ಕೋಡ್ ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "🔄 QR ಕೋಡ್ ಅಪ್ಡೇಟ್ ಮಾಡಿ"}
             </button>
+
+            {isAuthenticated && isStrictSuperAdmin(role, currentUser) && (
+              <a
+                href="/qr-qa"
+                className="block w-full text-center py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md transition"
+              >
+                🧪 Open Super Admin QR QA & Cash Desk (/qr-qa)
+              </a>
+            )}
           </div>
 
           {/* Quick Guide Card */}

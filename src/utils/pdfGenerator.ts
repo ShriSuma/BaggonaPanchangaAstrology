@@ -13,10 +13,52 @@ const A4_HEIGHT_MM = 297;
  * 2. If the element has `.pdf-page` divs → each div = one PDF page.
  * 3. Fallback: capture the whole element and slice vertically into A4 chunks.
  */
+export interface PdfDownloadNotificationMeta {
+  clientName?: string;
+  pdfType?: string;
+  language?: string;
+  priestName?: string;
+  amountInr?: number;
+  coinsSpent?: number;
+  packageType?: string;
+  paymentMethod?: string;
+  paymentUtr?: string;
+  skipAutoNotify?: boolean;
+}
+
+function dispatchPdfElementDownloadNotification(
+  pdf: jsPDF,
+  fileName: string,
+  meta?: PdfDownloadNotificationMeta
+): void {
+  if (meta?.skipAutoNotify) return;
+  try {
+    import("../features/notifications/notificationService")
+      .then(({ notifyPremiumPdfDownloaded }) => {
+        void notifyPremiumPdfDownloaded({
+          clientName: meta?.clientName || fileName.replace(/\.pdf$/i, ""),
+          pdfType: meta?.pdfType || "Baggona Astrological PDF Document",
+          language: meta?.language || "kn",
+          pageCount: pdf ? pdf.getNumberOfPages() : 1,
+          priestName: meta?.priestName || "Shreeram Pandit",
+          amountInr: meta?.amountInr,
+          coinsSpent: meta?.coinsSpent,
+          packageType: meta?.packageType,
+          paymentMethod: meta?.paymentMethod,
+          paymentUtr: meta?.paymentUtr
+        });
+      })
+      .catch(() => {});
+  } catch {
+    // Non-blocking notification
+  }
+}
+
 export async function generatePDFFromElement(
   elementId: string,
   fileName: string,
-  autoSave: boolean = true
+  autoSave: boolean = true,
+  notificationMeta?: PdfDownloadNotificationMeta
 ): Promise<jsPDF> {
   const container = document.getElementById(elementId);
   if (!container) throw new Error(`Element with ID ${elementId} not found.`);
@@ -172,6 +214,7 @@ export async function generatePDFFromElement(
         generatedPdf = state.pdf;
         if (autoSave) {
           savePdfBlob(state.pdf, fileName);
+          dispatchPdfElementDownloadNotification(state.pdf, fileName, notificationMeta);
         }
       }
 
@@ -245,6 +288,7 @@ export async function generatePDFFromElement(
         generatedPdf = pdf;
         if (autoSave) {
           savePdfBlob(pdf, fileName);
+          dispatchPdfElementDownloadNotification(pdf, fileName, notificationMeta);
         }
       }
 
@@ -289,20 +333,7 @@ export async function generatePDFFromElement(
         generatedPdf = pdf;
         if (autoSave) {
           savePdfBlob(pdf, fileName);
-          try {
-            // Asynchronously notify admin of PDF download
-            import("../features/notifications/notificationService").then(({ notifyPremiumPdfDownloaded }) => {
-              void notifyPremiumPdfDownloaded({
-                clientName: fileName.replace(/\.pdf$/i, ""),
-                pdfType: "Baggona Astrological PDF Document",
-                language: "kn",
-                pageCount: pdf ? pdf.getNumberOfPages() : 1,
-                priestName: "Shreeram Pandit"
-              });
-            }).catch(() => {});
-          } catch (e) {
-            // Non-blocking notification
-          }
+          dispatchPdfElementDownloadNotification(pdf, fileName, notificationMeta);
         }
       }
     }

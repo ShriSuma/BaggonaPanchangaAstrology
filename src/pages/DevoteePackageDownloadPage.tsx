@@ -54,6 +54,7 @@ import {
   type PlanetPosition as GatePlanetPosition,
   type RashiIndex as GateRashiIndex
 } from "../engine/jyotishPrecisionGates";
+import { notifyPremiumPdfDownloaded } from "../features/notifications/notificationService";
 
 const toGrahaKey = (planet: any): GrahaKey => String(planet) as GrahaKey;
 
@@ -509,7 +510,16 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
       setSingleDownloadingId(containerId);
       const safeDevotee = devoteeName.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "") || "Devotee";
       const fullFileName = `${safeDevotee}_${baseFileName}_${selectedLang}.pdf`;
-      await generatePDFFromElement(containerId, fullFileName, true);
+      const pdf = await generatePDFFromElement(containerId, fullFileName, true, {
+        skipAutoNotify: true
+      });
+      void notifyPremiumPdfDownloaded({
+        clientName: devoteeName || safeDevotee,
+        pdfType: `Package Download: ${baseFileName}`,
+        language: selectedLang,
+        pageCount: pdf ? pdf.getNumberOfPages() : 1,
+        priestName: priestName || "Shreeram Pandit"
+      });
     } catch (err: any) {
       console.error(`Download failed for ${containerId}:`, err);
       alert(`Download failed: ${err?.message || "Unknown error"}`);
@@ -556,9 +566,16 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
       await new Promise((r) => setTimeout(r, 800));
 
       if (bhavishyaV1Ref.current) {
-        await captureBhavishyaV1Pdf(bhavishyaV1Ref.current, fullFileName, true, {
+        const pdf = await captureBhavishyaV1Pdf(bhavishyaV1Ref.current, fullFileName, true, {
           payload,
           lang: selectedLang
+        });
+        void notifyPremiumPdfDownloaded({
+          clientName: devoteeName || safeDevotee,
+          pdfType: "Package Download: Baggona Bhavishya V1",
+          language: selectedLang,
+          pageCount: pdf ? pdf.getNumberOfPages() : 4,
+          priestName: priestName || "Shreeram Pandit"
         });
       }
     } catch (err: any) {
@@ -611,11 +628,18 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
       await new Promise((r) => setTimeout(r, 600));
 
       if (fiveYearPdfRef.current) {
-        await captureFiveYearPredictionPdf(
+        const pdf = await captureFiveYearPredictionPdf(
           fiveYearPdfRef.current,
           fullFileName,
           true
         );
+        void notifyPremiumPdfDownloaded({
+          clientName: devoteeName || safeDevotee,
+          pdfType: "Package Download: Next 5 Years Prediction",
+          language: selectedLang,
+          pageCount: pdf ? pdf.getNumberOfPages() : 6,
+          priestName: priestName || "Shreeram Pandit"
+        });
       }
     } catch (err: any) {
       console.error("5-Year Prediction download failed:", err);
@@ -871,6 +895,13 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
       setZipProgress(100);
       setZipStageText("🎉 ಸಮಗ್ರ ಜಿಪ್ ಕಡತ ಡೌನ್‌ಲೋಡ್ ಪೂರ್ಣಗೊಂಡಿದೆ!");
       setZipCompleteModalOpen(true);
+      void notifyPremiumPdfDownloaded({
+        clientName: devoteeName || safeDevotee,
+        pdfType: "Complete Astrology Package ZIP Bundle",
+        language: selectedLang,
+        pageCount: 25,
+        priestName: priestName || "Shreeram Pandit"
+      });
     } catch (err: any) {
       console.error("[DevoteePackage] ZIP creation error:", err);
       alert(`ZIP creation error: ${err?.message || "Failed to package bundle."}`);

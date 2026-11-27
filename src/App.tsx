@@ -31,7 +31,7 @@ import { PriestDashboard } from "./features/wallet/PriestDashboard";
 import { SuperAdminDashboard } from "./features/wallet/SuperAdminDashboard";
 import { SankhyaShastraPriestPortal } from "./features/priest/SankhyaShastraPriestPortal";
 import { useAppStore } from "./stores/appStore";
-import { useAuthStore } from "./features/auth/authStore";
+import { useAuthStore, isStrictSuperAdmin } from "./features/auth/authStore";
 import { useWalletStore } from "./features/wallet/walletStore";
 import { FloatingCoinDeductionBadge } from "./components/wallet/FloatingCoinDeductionBadge";
 import { LoginPage } from "./components/auth/LoginPage";
@@ -58,6 +58,7 @@ import OmkarDeskPortalPage from "./pages/OmkarDeskPortalPage";
 import BaggonaPosterPage from "./pages/BaggonaPosterPage";
 import AntarangadaSatyaPage from "./pages/AntarangadaSatyaPage";
 import HotelTableQrPage from "./pages/HotelTableQrPage";
+import SuperAdminQrQaPage from "./pages/SuperAdminQrQaPage";
 import PriestDoshaPrescriptionPage from "./pages/PriestDoshaPrescriptionPage";
 import LivePrashnaOraclePage from "./pages/LivePrashnaOraclePage";
 
@@ -481,6 +482,18 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/table-qr")
   );
 
+  const isQrQaRoute = typeof window !== "undefined" && (
+    window.location.pathname === "/superadmin-qr-test" ||
+    window.location.pathname.startsWith("/superadmin-qr-test/") ||
+    window.location.pathname === "/qr-qa" ||
+    window.location.pathname.startsWith("/qr-qa/") ||
+    window.location.pathname === "/admin-qr-qa" ||
+    window.location.pathname.startsWith("/admin-qr-qa/") ||
+    window.location.search.includes("portal=qr_qa") ||
+    window.location.search.includes("page=qr_qa") ||
+    window.location.hash.includes("#/qr-qa")
+  );
+
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);
   const consentResolved = useAppStore((state) => state.consentResolved);
@@ -593,7 +606,8 @@ export default function App(): JSX.Element {
             isPackageDownloadRoute ||
             isOmkarDeskRoute ||
             isAntarangaRoute ||
-            isHotelQrRoute
+            isHotelQrRoute ||
+            isQrQaRoute
           ) {
             localStorage.setItem("jk-consent", "accepted");
             setConsentResolved(true);
@@ -611,7 +625,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshaDeskRoute, isPrashnaOracleRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute, isOmkarDeskRoute, isAntarangaRoute, isHotelQrRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshaDeskRoute, isPrashnaOracleRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute, isOmkarDeskRoute, isAntarangaRoute, isHotelQrRoute, isQrQaRoute]);
 
   if (isAntarangaRoute) {
     return (
@@ -628,6 +642,18 @@ export default function App(): JSX.Element {
     return (
       <ErrorBoundary>
         <HotelTableQrPage />
+      </ErrorBoundary>
+    );
+  }
+
+  if (isQrQaRoute) {
+    // STRICT SUPER ADMIN ONLY: Rejects anonymous guests, baggona priest, and omkar!
+    if (!isAuthenticated || !isStrictSuperAdmin(role, currentUser)) {
+      return <SuperAdminQrQaPage />;
+    }
+    return (
+      <ErrorBoundary>
+        <SuperAdminQrQaPage />
       </ErrorBoundary>
     );
   }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useWalletStore } from "./walletStore";
-import { useAuthStore } from "../auth/authStore";
+import { useAuthStore, isStrictSuperAdmin } from "../auth/authStore";
 import { useAppStore } from "../../stores/appStore";
 import {
   type PriestWalletDoc,
@@ -107,9 +107,10 @@ import { ServicePricingManager } from "../../components/wallet/ServicePricingMan
 import { BaggonaBookPublisherDashboard } from "../admin/BaggonaBookPublisherDashboard";
 import { ConsultationGeneratorPage } from "../consultation/ConsultationGeneratorPage";
 import HotelTableQrPage from "../../pages/HotelTableQrPage";
+import SuperAdminQrQaPage from "../../pages/SuperAdminQrQaPage";
 import { getIndianStandardDateStr } from "../../core/placeTime";
 
-export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "book_publisher" | "consultation_generator" | "hotel_table_qr" | "voice_db" | "pricing";
+export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "book_publisher" | "consultation_generator" | "hotel_table_qr" | "qr_qa_studio" | "voice_db" | "pricing";
 
 /* -------------------------------------------------------------------------- */
 /* 360° COMPLETE CIRCULAR PROGRESS RING COMPONENT (Visual Telemetry Gauge)    */
@@ -326,9 +327,11 @@ const MIND_MAP_NODES: MindMapNode[] = [
 
 export const SuperAdminDashboard: React.FC = () => {
   const role = useAuthStore((state) => state.role);
+  const currentUser = useAuthStore((state) => state.currentUser);
   const setPage = useAppStore((state) => state.setPage);
+  const strictSuperAdmin = isStrictSuperAdmin(role, currentUser);
 
-  if (role !== "superadmin") {
+  if (!strictSuperAdmin) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center space-y-4 bg-slate-950 border border-rose-500/30 rounded-3xl my-6 text-slate-100">
         <div className="text-5xl">🚫</div>
@@ -2018,6 +2021,24 @@ export const SuperAdminDashboard: React.FC = () => {
               Admin Stand
             </span>
           </button>
+
+          {strictSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("qr_qa_studio")}
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                activeTab === "qr_qa_studio"
+                  ? "bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 text-white shadow-md scale-100 ring-2 ring-emerald-400"
+                  : "text-amber-950 hover:bg-amber-100"
+              }`}
+            >
+              <span>🧪</span>
+              <span>QR QA & Cash Desk (SuperAdmin Only)</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-950 border border-emerald-400">
+                QA + Cash
+              </span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -4979,6 +5000,13 @@ export const SuperAdminDashboard: React.FC = () => {
       {activeTab === "hotel_table_qr" && (
         <div className="bg-white border-2 border-[#D4AF37] rounded-3xl p-2 sm:p-4 shadow-xl">
           <HotelTableQrPage />
+        </div>
+      )}
+
+      {/* TAB: STRICT SUPER ADMIN ONLY QR QA, REPORT DOWNLOADER & CASHIER DESK */}
+      {activeTab === "qr_qa_studio" && strictSuperAdmin && (
+        <div className="bg-white border-2 border-emerald-500 rounded-3xl p-2 sm:p-4 shadow-xl">
+          <SuperAdminQrQaPage />
         </div>
       )}
 

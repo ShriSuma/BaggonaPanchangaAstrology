@@ -91,6 +91,22 @@ export const SUPER_ADMIN_USERNAMES = ["ShriSuma", "$hriSuma", "superadmin"];
 export const RESET_SUPER_ADMIN_PASSWORD = "ShriSuma@2026";
 export const DEFAULT_SUPER_ADMIN_PASSWORD = "admin@baggona2026";
 
+/**
+ * Strict Super Admin authorization guard.
+ * Allows ONLY genuine Super Admin accounts ("ShriSuma", "$hriSuma", "superadmin" or role === "superadmin").
+ * Explicitly rejects priest accounts ("baggona"), desk operators ("omkar"), regular users, and unauthenticated sessions.
+ */
+export function isStrictSuperAdmin(role?: string | null, currentUser?: string | null): boolean {
+  if (!currentUser) return false;
+  const trimmed = currentUser.trim();
+  const clean = trimmed.toLowerCase();
+  if (clean === "baggona" || clean === "omkar") return false;
+  if (role === "superadmin") return true;
+  return SUPER_ADMIN_USERNAMES.some(
+    (u) => u.toLowerCase() === clean || trimmed === u
+  );
+}
+
 const getSuperAdminId = (username: string) => {
   if (username === "ShriSuma") return "superadmin_shrisuma";
   if (username === "$hriSuma") return "superadmin_dollar_shrisuma";

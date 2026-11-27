@@ -9,8 +9,7 @@ import {
   getHotelPhonePeUri,
   getHotelGPayUri,
   getHotelPaytmUri,
-  verifyHotelPaymentUtr,
-  verifyHotelPaymentInstant,
+  submitHotelPaymentClaimClient,
   checkHotelPaymentWebhookStatus,
   generateHotelOrderId,
   HOTEL_PALM_PRICE_INR,
@@ -1745,6 +1744,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     Partial<Record<HotelServiceMode, { orderId: string; txnId: string; pkg: HotelPackageType }>>
   >({});
   const [isPaidFamilyUpsell, setIsPaidFamilyUpsell] = useState<boolean>(false);
+  const [familyPreviewCredits, setFamilyPreviewCredits] = useState<number>(0);
+  const [paymentClaimStatus, setPaymentClaimStatus] = useState<"IDLE" | "PENDING_CASHIER" | "PENDING_UTR_REVIEW">("IDLE");
+  const [claimNoticeMsg, setClaimNoticeMsg] = useState<string | null>(null);
   const [freeQuotaError, setFreeQuotaError] = useState<string | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<HotelPackageType>("standard_350");
   const packagePrice =
@@ -1770,6 +1772,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       const t = params.get("table") || params.get("t") || "";
       const h = params.get("hotel") || params.get("h") || "";
       const l = params.get("lang") || params.get("l") || "";
+      const rawMode = (params.get("mode") || params.get("option") || params.get("service") || "").trim().toLowerCase();
 
       if (t) {
         setTableNumber(t);
@@ -1780,6 +1783,21 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       if (h) setHotelName(h);
       if (l && ANTARANGA_LANGUAGES.some((item) => item.code === l)) {
         setSelectedLang(l as AntarangaLang);
+      }
+      if (rawMode) {
+        if (rawMode === "hasta_samudrika" || rawMode === "palm") {
+          setServiceMode("hasta_samudrika");
+          setSelectedPackage("palm_150");
+        } else if (rawMode === "mukha_samudrika" || rawMode === "face") {
+          setServiceMode("mukha_samudrika");
+          setSelectedPackage("face_150");
+        } else if (rawMode === "prashna_shastra" || rawMode === "prashna") {
+          setServiceMode("prashna_shastra");
+          setSelectedPackage("prashna_200");
+        } else if (rawMode === "kundli") {
+          setServiceMode("kundli");
+          setSelectedPackage("standard_350");
+        }
       }
     }
   }, []);
@@ -1873,6 +1891,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     const ownerMode = resolveModeForPackage(pkgToMark, fallbackMode);
     setIsPaymentVerified(true);
     setVerifiedTxnId(txnIdToMark);
+    setPaymentClaimStatus("IDLE");
+    setClaimNoticeMsg(null);
+    setPaymentError(null);
     setFreeQuotaError(null);
     setPaidByServiceMode((prev) => ({
       ...prev,
@@ -2112,6 +2133,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     orderIdsByServiceModeRef.current[mode] = modeOrderId;
     setActiveOrderId(modeOrderId);
     setIsPaymentVerified(false);
+    setPaymentClaimStatus("IDLE");
+    setClaimNoticeMsg(null);
     setVerifiedTxnId("");
     setEnteredUtr("");
     setShowPaymentSection(false);
@@ -2198,6 +2221,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
   useEffect(() => {
     if (!activeOrderId) return;
     const unsubscribe = subscribeHotelOrder(activeOrderId, (order) => {
+      if (order.status === "PENDING_CASHIER") {
+        setPaymentClaimStatus("PENDING_CASHIER");
+      } else if (order.status === "PENDING_UTR_REVIEW") {
+        setPaymentClaimStatus("PENDING_UTR_REVIEW");
+      }
       if ((order.status === "PAID" || order.status === "VERIFIED") && order.amountInr >= packagePrice) {
         const resolvedTxn = order.paymentId || order.transactionId || order.utr || `TXN_${activeOrderId}`;
         markServiceModePaid(activeOrderId, resolvedTxn, order.packageType || selectedPackage, serviceMode);
@@ -2213,7 +2241,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     return () => {
       if (typeof unsubscribe === "function") unsubscribe();
     };
-  }, [activeOrderId, packagePrice]);
+  }, [activeOrderId, packagePrice, selectedPackage, serviceMode]);
 
   // App-Switch detection: Listen for user returning from PhonePe / GPay / Paytm
   useEffect(() => {
@@ -2237,13 +2265,13 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     };
   }, [hasClickedPaymentApp, isPaymentVerified]);
 
-  // Automated Webhook Polling: If PhonePe webhook confirms payment, auto-unlock in real-time
+  // Automated Webhook Polling: If cryptographically verified webhook or Cashier confirms payment, auto-unlock in real-time
   useEffect(() => {
-    if (!showPaymentSection || isPaymentVerified || !activeOrderId) return;
+    if ((!showPaymentSection && paymentClaimStatus === "IDLE") || isPaymentVerified || !activeOrderId) return;
 
     const intervalId = setInterval(async () => {
       try {
-        const isPaid = await checkHotelPaymentWebhookStatus(activeOrderId, packagePrice);
+        const isPaid = await checkHotelPaymentWebhookStatus(activeOrderId, packagePrice, selectedPackage);
         if (isPaid) {
           clearInterval(intervalId);
           markServiceModePaid(activeOrderId, `TXN_WEBHOOK_${activeOrderId}`, selectedPackage, serviceMode);
@@ -2254,7 +2282,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }, 2500);
 
     return () => clearInterval(intervalId);
-  }, [showPaymentSection, isPaymentVerified, activeOrderId, packagePrice]);
+  }, [showPaymentSection, paymentClaimStatus, isPaymentVerified, activeOrderId, packagePrice, selectedPackage, serviceMode]);
 
   // Quick City Selection
   const handleSelectQuickCity = (city: { name: string; lat: number; lng: number }) => {
@@ -2316,6 +2344,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     const freeQuotaCheck = await checkHotelFreePreviewQuota({
       isPaymentVerified,
       isPaidFamilyUpsell,
+      familyPreviewCreditsRemaining: familyPreviewCredits,
       personSignature: kundliPersonSignature
     });
     if (!freeQuotaCheck.allowed) {
@@ -2460,16 +2489,21 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       );
       setSecretResult(secret);
 
-      if (!isPaymentVerified && !isPaidFamilyUpsell) {
-        void markHotelFreePreviewConsumed({
-          ip: freeQuotaCheck.ip,
-          deviceId: freeQuotaCheck.deviceId,
-          serviceUsed: "kundli",
-          hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
-          tableNumber: tableNumber || "1",
-          guestName: devoteeName.trim(),
-          personSignature: kundliPersonSignature
-        });
+      if (!isPaymentVerified) {
+        if (isPaidFamilyUpsell && familyPreviewCredits > 0) {
+          setFamilyPreviewCredits((prev) => Math.max(0, prev - 1));
+          setIsPaidFamilyUpsell(false);
+        } else {
+          void markHotelFreePreviewConsumed({
+            ip: freeQuotaCheck.ip,
+            deviceId: freeQuotaCheck.deviceId,
+            serviceUsed: "kundli",
+            hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+            tableNumber: tableNumber || "1",
+            guestName: devoteeName.trim(),
+            personSignature: kundliPersonSignature
+          });
+        }
       }
 
       // 2. Pre-compute 5-Year Master Horizon
@@ -2756,7 +2790,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     }
   }, [selectedLang]);
 
-  // Mandatory 12-Digit UPI UTR Payment Verification Handler with Firestore Consistency
+  // Counter Cash / Manual UPI UTR Payment Claim Handler (Zero self-unlock; confirmed via Cashier/Webhook)
   const handleVerifyManualPayment = async () => {
     if (!enteredUtr.trim()) {
       setPaymentError(ui.utrLabel);
@@ -2768,53 +2802,81 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     triggerScreenLoader("payment_verify", undefined, { progress: 30 });
 
     try {
-      await new Promise((r) => setTimeout(r, 450));
-      setScreenLoaderProgress(60);
+      await new Promise((r) => setTimeout(r, 400));
+      setScreenLoaderProgress(70);
 
-      const res = await verifyHotelPaymentUtr(
-        enteredUtr.trim(),
-        devoteeName || "Hotel Devotee",
-        packagePrice,
-        selectedLang,
-        activeOrderId,
-        selectedPackage
-      );
+      // First check if Gateway Webhook / Cashier already verified in Firestore!
+      const alreadyVerified = await verifyHotelOrderPayment(activeOrderId, packagePrice, selectedPackage);
+      if (alreadyVerified.verified) {
+        setScreenLoaderProgress(100);
+        markServiceModePaid(
+          activeOrderId,
+          alreadyVerified.order?.transactionId || `TXN_${activeOrderId}`,
+          selectedPackage,
+          serviceMode
+        );
+        return;
+      }
 
-      if (!res.success) {
+      const res = await submitHotelPaymentClaimClient({
+        orderId: activeOrderId,
+        tableNumber: tableNumber || "1",
+        hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+        devoteeName: devoteeName.trim() || "Hotel Devotee",
+        amountInr: packagePrice,
+        packageType: selectedPackage,
+        lang: selectedLang,
+        claimedMethod: "upi_utr",
+        rawUtr: enteredUtr.trim()
+      });
+
+      if (res.status === "REJECTED") {
         setPaymentError(res.message);
         return;
       }
 
-      setScreenLoaderProgress(85);
-      // Check Firestore to guarantee 100% human financial consistency
-      const fsCheck = await verifyHotelOrderPayment(activeOrderId, packagePrice);
-      if (!fsCheck.verified) {
-        setPaymentError(fsCheck.reason || "Payment record verification pending in database.");
-        return;
-      }
-
       setScreenLoaderProgress(100);
-      await new Promise((r) => setTimeout(r, 350));
-
-      markServiceModePaid(
-        activeOrderId,
-        res.transactionId || `TXN_${enteredUtr.trim()}`,
-        selectedPackage,
-        serviceMode
-      );
-
-      // Smooth scroll to Download Center so user sees download buttons
-      setTimeout(() => {
-        const downloadCenterEl = document.getElementById("hotel-download-center");
-        if (downloadCenterEl) {
-          downloadCenterEl.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 300);
+      setPaymentClaimStatus("PENDING_UTR_REVIEW");
+      setClaimNoticeMsg(res.message);
     } catch (err: any) {
-      setPaymentError(err?.message || "Payment verification failed.");
+      setPaymentError(err?.message || "Payment claim submission failed.");
     } finally {
       setIsVerifyingPayment(false);
       closeScreenLoader();
+    }
+  };
+
+  const handleRequestCashCounterPayment = async () => {
+    setIsVerifyingPayment(true);
+    setPaymentError(null);
+    try {
+      const alreadyVerified = await verifyHotelOrderPayment(activeOrderId, packagePrice, selectedPackage);
+      if (alreadyVerified.verified) {
+        markServiceModePaid(
+          activeOrderId,
+          alreadyVerified.order?.transactionId || `CASH_${activeOrderId}`,
+          selectedPackage,
+          serviceMode
+        );
+        return;
+      }
+
+      const res = await submitHotelPaymentClaimClient({
+        orderId: activeOrderId,
+        tableNumber: tableNumber || "1",
+        hotelName: hotelName || DEFAULT_HOTEL_FULL_NAME,
+        devoteeName: devoteeName.trim() || "Hotel Devotee",
+        amountInr: packagePrice,
+        packageType: selectedPackage,
+        lang: selectedLang,
+        claimedMethod: "cash_counter"
+      });
+      setPaymentClaimStatus("PENDING_CASHIER");
+      setClaimNoticeMsg(res.message);
+    } catch (err: any) {
+      setPaymentError(err?.message || "Cash request submission failed.");
+    } finally {
+      setIsVerifyingPayment(false);
     }
   };
 
@@ -2826,8 +2888,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       return false;
     }
 
-    // Direct database validation: single source of truth in Firebase Firestore
-    const check = await verifyHotelOrderPayment(activeOrderId, packagePrice);
+    // Direct database validation: single source of truth in Firebase Firestore + package tier check
+    const check = await verifyHotelOrderPayment(activeOrderId, packagePrice, selectedPackage);
     if (!check.verified) {
       setPaymentError(check.reason || ui.unpaidWarning);
       setIsPaymentVerified(false);
@@ -2846,11 +2908,63 @@ export default function AntarangadaSatyaPage(): JSX.Element {
 
     markServiceModePaid(
       activeOrderId,
-      verifiedTxnId || `TXN_${activeOrderId}`,
+      check.order?.transactionId || verifiedTxnId || `TXN_${activeOrderId}`,
       selectedPackage,
       serviceMode
     );
     return true;
+  };
+
+  // Shared Audit & Email Dispatch Helper to spshreepandit@gmail.com for EVERY Paid Download
+  const recordAndNotifyHotelDownload = async (params: {
+    fileKey: "fiveYear" | "kundli" | "remedy" | "express" | "palm" | "face" | "prashna" | "all";
+    pdfTypeLabel: string;
+    pageCount: number;
+  }) => {
+    try {
+      await updateHotelOrderDownloaded(activeOrderId, params.fileKey);
+    } catch {}
+
+    const paidAmt = packagePrice || 350;
+    const paidMethod = verifiedTxnId?.startsWith("CASH") ? "cash_counter" : "upi_qr";
+
+    try {
+      await logPremiumPdfDownload({
+        devoteeName: devoteeName || "Devotee",
+        username: devoteeName || "Devotee",
+        priestName: PRIEST_NAME || "Shreeram Pandit",
+        portalSource: "Pandit Palette",
+        language: selectedLang,
+        coinsSpent: paidAmt * 10,
+        amountInr: paidAmt,
+        timestamp: new Date().toISOString(),
+        dateKey: getIndianStandardDateStr(),
+        packageType: selectedPackage,
+        paymentUtr: verifiedTxnId || activeOrderId || "PAID_ORDER",
+        paymentMethod: paidMethod
+      });
+    } catch {}
+
+    try {
+      await notifyPremiumPdfDownloaded({
+        clientName: devoteeName || "Devotee",
+        pdfType: params.pdfTypeLabel,
+        language: selectedLang,
+        pageCount: params.pageCount,
+        priestName: PRIEST_NAME || "Shreeram Pandit",
+        amountInr: paidAmt,
+        coinsSpent: paidAmt * 10,
+        packageType: selectedPackage,
+        paymentMethod: paidMethod === "cash_counter" ? "Cash at Counter" : "PhonePe / GPay / UPI QR",
+        paymentUtr: verifiedTxnId || activeOrderId || "PAID_ORDER"
+      });
+    } catch (emailErr) {
+      console.warn("[AntarangadaSatyaPage] Download email notify warning:", emailErr);
+    }
+
+    try {
+      void triggerDailyPdfSummaryIfActive();
+    } catch {}
   };
 
   // 1. Download 25-Chapter Sampoorna Master Report / 5-Year Destiny PDF (Up to 3 downloads per order)
@@ -2990,61 +3104,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           } catch {}
           return next;
         });
-        void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
       }
-
-      const currentPackagePrice =
-        selectedPackage === "remedy_450"
-          ? 450
-          : selectedPackage === "family_250"
-            ? 250
-            : 350;
-      const currentPackageCoins = currentPackagePrice * 10;
-
-      // 1. Log download to Firestore for daily summary aggregation & audit
-      try {
-        await logPremiumPdfDownload({
-          devoteeName: devoteeName || "Devotee",
-          username: devoteeName || "Devotee",
-          priestName: PRIEST_NAME || "Shreeram Pandit",
-          portalSource: "Pandit Palette",
-          language: selectedLang,
-          coinsSpent: currentPackageCoins,
-          amountInr: currentPackagePrice,
-          timestamp: new Date().toISOString(),
-          dateKey: getIndianStandardDateStr(),
-          packageType: selectedPackage,
-          paymentUtr: activeOrderId || "PAID_ORDER",
-          paymentMethod: "upi_qr"
-        });
-      } catch (logErr) {
-        console.warn("[AntarangadaSatyaPage] Log download error:", logErr);
-      }
-
-      // 2. Send instant transactional email notification to spshreepandit@gmail.com
-      try {
-        await notifyPremiumPdfDownloaded({
-          clientName: devoteeName || "Devotee",
-          pdfType: `Pandit Palette 25-Chapter Master Report (${selectedPackage === "remedy_450" ? "With Remedies" : selectedPackage === "family_250" ? "Family Upsell" : "Standard"})`,
-          language: selectedLang,
-          pageCount: 25,
-          priestName: PRIEST_NAME || "Shreeram Pandit",
-          amountInr: currentPackagePrice,
-          coinsSpent: currentPackageCoins,
-          packageType: selectedPackage,
-          paymentMethod: "UPI QR Code",
-          paymentUtr: activeOrderId || "PAID_ORDER"
-        });
-      } catch (mailErr) {
-        console.warn("[AntarangadaSatyaPage] Notification email error:", mailErr);
-      }
-
-      // 3. Trigger daily summary report email (summarizes all copies sent today if >= 1)
-      try {
-        void triggerDailyPdfSummaryIfActive(getIndianStandardDateStr());
-      } catch (summaryErr) {
-        console.warn("[AntarangadaSatyaPage] Daily summary trigger error:", summaryErr);
-      }
+      await recordAndNotifyHotelDownload({
+        fileKey: "fiveYear",
+        pdfTypeLabel: `Pandit Palette 25-Chapter Master Report (${selectedPackage === "remedy_450" ? "With Remedies" : selectedPackage === "family_250" ? "Family Upsell" : "Standard"})`,
+        pageCount: pdf ? pdf.getNumberOfPages() : 25
+      });
     } catch (pdfErr: any) {
       console.error("Master 25 / 5-Year PDF Generation error:", pdfErr);
       alert(`PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -3077,7 +3142,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       const fileName = `Baggona_Panchanga_Janma_Kundali_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
 
       if (!isPartOfBatch) setScreenLoaderProgress(60);
-      const pdf = await generatePDFFromElement("hotel-kundli-pdf-render", fileName, true);
+      const pdf = await generatePDFFromElement("hotel-kundli-pdf-render", fileName, true, {
+        skipAutoNotify: true
+      });
 
       try {
         const arrayBuf = pdf.output("arraybuffer");
@@ -3109,8 +3176,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           } catch {}
           return next;
         });
-        void updateHotelOrderDownloaded(activeOrderId, "kundli");
       }
+      await recordAndNotifyHotelDownload({
+        fileKey: "kundli",
+        pdfTypeLabel: "Pandit Palette Baggona Janma Kundali PDF",
+        pageCount: pdf ? pdf.getNumberOfPages() : 8
+      });
     } catch (pdfErr: any) {
       console.error("Kundli PDF Generation error:", pdfErr);
       alert(`Kundli PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -3143,7 +3214,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       const fileName = `Baggona_Gokarna_Remedy_Dossier_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
 
       if (!isPartOfBatch) setScreenLoaderProgress(70);
-      const pdf = await generatePDFFromElement("hotel-remedy-pdf-render", fileName, true);
+      const pdf = await generatePDFFromElement("hotel-remedy-pdf-render", fileName, true, {
+        skipAutoNotify: true
+      });
 
       try {
         const arrayBuf = pdf.output("arraybuffer");
@@ -3175,8 +3248,12 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           } catch {}
           return next;
         });
-        void updateHotelOrderDownloaded(activeOrderId, "remedy");
       }
+      await recordAndNotifyHotelDownload({
+        fileKey: "remedy",
+        pdfTypeLabel: "Pandit Palette Sacred Gokarna Remedy Dossier PDF",
+        pageCount: pdf ? pdf.getNumberOfPages() : 4
+      });
     } catch (pdfErr: any) {
       console.error("Remedy PDF Generation error:", pdfErr);
       alert(`Remedy PDF download error: ${pdfErr?.message || "Please try again."}`);
@@ -3273,7 +3350,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           return next;
         });
       }
-      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+      await recordAndNotifyHotelDownload({
+        fileKey: "express",
+        pdfTypeLabel: "Pandit Palette ₹149 Express Walk-In Prashna & Samudrika PDF",
+        pageCount: pdf ? pdf.getNumberOfPages() : 3
+      });
     } catch (err: any) {
       alert(`Express PDF error: ${err?.message || "Please retry."}`);
     } finally {
@@ -3293,7 +3374,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       devoteeName: devoteeName.trim() || "Hotel Guest",
       amountInr: amt,
       packageType: pkg,
-      status: isPaymentVerified ? "VERIFIED" : "INITIATED",
+      status: "INITIATED",
       selectedLang,
       paymentLink: upiUri,
       paymentId: `PAY_${activeOrderId}`,
@@ -3335,6 +3416,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     const freeQuotaCheck = await checkHotelFreePreviewQuota({
       isPaymentVerified,
       isPaidFamilyUpsell,
+      familyPreviewCreditsRemaining: familyPreviewCredits,
       personSignature: palmSignature
     });
     if (!freeQuotaCheck.allowed) {
@@ -3366,7 +3448,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       if (!isPaymentVerified) {
         setSelectedPackage("palm_150");
         syncStandaloneOrderFirestore("palm_150", HOTEL_PALM_PRICE_INR);
-        if (!isPaidFamilyUpsell) {
+        if (isPaidFamilyUpsell && familyPreviewCredits > 0) {
+          setFamilyPreviewCredits((prev) => Math.max(0, prev - 1));
+          setIsPaidFamilyUpsell(false);
+        } else {
           void markHotelFreePreviewConsumed({
             ip: freeQuotaCheck.ip,
             deviceId: freeQuotaCheck.deviceId,
@@ -3420,6 +3505,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     const freeQuotaCheck = await checkHotelFreePreviewQuota({
       isPaymentVerified,
       isPaidFamilyUpsell,
+      familyPreviewCreditsRemaining: familyPreviewCredits,
       personSignature: faceSignature
     });
     if (!freeQuotaCheck.allowed) {
@@ -3446,7 +3532,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       if (!isPaymentVerified) {
         setSelectedPackage("face_150");
         syncStandaloneOrderFirestore("face_150", HOTEL_FACE_PRICE_INR);
-        if (!isPaidFamilyUpsell) {
+        if (isPaidFamilyUpsell && familyPreviewCredits > 0) {
+          setFamilyPreviewCredits((prev) => Math.max(0, prev - 1));
+          setIsPaidFamilyUpsell(false);
+        } else {
           void markHotelFreePreviewConsumed({
             ip: freeQuotaCheck.ip,
             deviceId: freeQuotaCheck.deviceId,
@@ -3490,6 +3579,7 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     const freeQuotaCheck = await checkHotelFreePreviewQuota({
       isPaymentVerified,
       isPaidFamilyUpsell,
+      familyPreviewCreditsRemaining: familyPreviewCredits,
       personSignature: prashnaSignature
     });
     if (!freeQuotaCheck.allowed) {
@@ -3549,7 +3639,10 @@ export default function AntarangadaSatyaPage(): JSX.Element {
       if (!isPaymentVerified) {
         setSelectedPackage("prashna_200");
         syncStandaloneOrderFirestore("prashna_200", HOTEL_PRASHNA_PRICE_INR);
-        if (!isPaidFamilyUpsell) {
+        if (isPaidFamilyUpsell && familyPreviewCredits > 0) {
+          setFamilyPreviewCredits((prev) => Math.max(0, prev - 1));
+          setIsPaidFamilyUpsell(false);
+        } else {
           void markHotelFreePreviewConsumed({
             ip: freeQuotaCheck.ip,
             deviceId: freeQuotaCheck.deviceId,
@@ -3590,7 +3683,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     try {
       const cleanName = (devoteeName || "Devotee").replace(/\s+/g, "_");
       const fileName = `Baggona_Hasta_Samudrika_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
-      const pdf = await generatePDFFromElement("hotel-palm-pdf-render", fileName, true);
+      const pdf = await generatePDFFromElement("hotel-palm-pdf-render", fileName, true, {
+        skipAutoNotify: true
+      });
       try {
         const blob = new Blob([pdf.output("arraybuffer")], { type: "application/pdf" });
         setPalmPdfUrl(URL.createObjectURL(blob));
@@ -3610,7 +3705,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           return next;
         });
       }
-      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+      await recordAndNotifyHotelDownload({
+        fileKey: "palm",
+        pdfTypeLabel: "Pandit Palette Hasta Samudrika Palm Reading PDF",
+        pageCount: pdf ? pdf.getNumberOfPages() : 3
+      });
     } catch (err: any) {
       alert(`Palm PDF error: ${err?.message || "Please retry."}`);
     } finally {
@@ -3635,7 +3734,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     try {
       const cleanName = (devoteeName || "Devotee").replace(/\s+/g, "_");
       const fileName = `Baggona_Mukha_Samudrika_${selectedLang.toUpperCase()}_${cleanName}.pdf`;
-      const pdf = await generatePDFFromElement("hotel-face-pdf-render", fileName, true);
+      const pdf = await generatePDFFromElement("hotel-face-pdf-render", fileName, true, {
+        skipAutoNotify: true
+      });
       try {
         const blob = new Blob([pdf.output("arraybuffer")], { type: "application/pdf" });
         setFacePdfUrl(URL.createObjectURL(blob));
@@ -3655,7 +3756,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           return next;
         });
       }
-      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+      await recordAndNotifyHotelDownload({
+        fileKey: "face",
+        pdfTypeLabel: "Pandit Palette Mukha Samudrika Face Reading PDF",
+        pageCount: pdf ? pdf.getNumberOfPages() : 3
+      });
     } catch (err: any) {
       alert(`Face PDF error: ${err?.message || "Please retry."}`);
     } finally {
@@ -3700,7 +3805,11 @@ export default function AntarangadaSatyaPage(): JSX.Element {
           return next;
         });
       }
-      void updateHotelOrderDownloaded(activeOrderId, "fiveYear");
+      await recordAndNotifyHotelDownload({
+        fileKey: "prashna",
+        pdfTypeLabel: "Pandit Palette Prashna Shastra Complete PDF",
+        pageCount: pdf ? pdf.getNumberOfPages() : 3
+      });
     } catch (err: any) {
       alert(`Prashna PDF error: ${err?.message || "Please retry."}`);
     } finally {
@@ -3781,7 +3890,9 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     setSecretResult(null);
     setFiveYearPayload(null);
     setMaster25Payload(null);
-    setIsPaidFamilyUpsell(true);
+    const hasVerifiedPaidOrder = Object.keys(paidByServiceMode).length > 0;
+    setIsPaidFamilyUpsell(hasVerifiedPaidOrder);
+    setFamilyPreviewCredits(hasVerifiedPaidOrder ? 1 : 0);
     setFreeQuotaError(null);
     setSelectedPackage("family_250");
 
@@ -3794,6 +3905,8 @@ export default function AntarangadaSatyaPage(): JSX.Element {
     });
     setActiveOrderId(newOrderId);
     setIsPaymentVerified(false);
+    setPaymentClaimStatus("IDLE");
+    setClaimNoticeMsg(null);
     setVerifiedTxnId("");
     setEnteredUtr("");
     setDownloadedPdfs({});
@@ -6053,8 +6166,17 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                   </div>
                 </div>
 
-                {/* ── MANDATORY 12-DIGIT UTR PAYMENT VERIFICATION SECTION ── */}
+                {/* ── ORDER TOKEN + MANDATORY PAYMENT CONFIRMATION (UTR / CASH AT COUNTER) ── */}
                 <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-[#FFFDF7] to-amber-50 border-2 border-amber-400 space-y-3 shadow-md">
+                  <div className="flex flex-wrap items-center justify-between gap-2 bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs">
+                    <span className="font-bold text-amber-950">
+                      🎟️ {pick7({ kn: "ಆರ್ಡರ್ ಟೋಕನ್ (Order ID):", en: "Order Token (Show at Counter):", hi: "ऑर्डर टोकन:", mr: "ऑर्डर टोकन:", te: "ఆర్డర్ టోకెన్:", ta: "ஆர்டர் எண்:", ml: "ഓർഡർ ടോക്കൺ:" }, m25SevenLang)}
+                    </span>
+                    <code className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-950 font-black tracking-wide">
+                      {activeOrderId}
+                    </code>
+                  </div>
+
                   <div className="text-amber-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
                     <span>🛡️</span>
                     <span>{ui.utrSectionTitle}</span>
@@ -6096,6 +6218,46 @@ export default function AntarangadaSatyaPage(): JSX.Element {
                       )}
                     </button>
                   </div>
+
+                  {/* Counter Cash Payment Option (Real-Time Cashier Desk Confirmation) */}
+                  {!isPaymentVerified && (
+                    <div className="pt-2 border-t border-amber-200/80 text-center space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => void handleRequestCashCounterPayment()}
+                        disabled={isVerifyingPayment || paymentClaimStatus === "PENDING_CASHIER"}
+                        className="w-full max-w-md mx-auto py-2.5 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-amber-300 font-bold text-xs flex items-center justify-center gap-2 shadow cursor-pointer disabled:opacity-60 transition"
+                      >
+                        <span>💵</span>
+                        <span>
+                          {pick7({
+                            kn: `ಕ್ಯಾಶ್ ಕೌಂಟರ್‌ನಲ್ಲಿ ₹${packagePrice} ಪಾವತಿಸಿ — ಅನ್‌ಲಾಕ್ ವಿನಂತಿಸಿ`,
+                            en: `Paying ₹${packagePrice} Cash at Counter — Request Instant Desk Unlock`,
+                            hi: `काउंटर पर ₹${packagePrice} नकद दें — त्वरित अनलॉक अनुरोध करें`,
+                            mr: `काउंटरवर ₹${packagePrice} रोख भरा — त्वरित अनलॉक विनंती करा`,
+                            te: `కౌంటర్‌లో ₹${packagePrice} నగదు చెల్లించండి — డెస్క్ అన్‌లాక్ అభ్యర్థించండి`,
+                            ta: `கவுண்டரில் ₹${packagePrice} ரொக்கம் செலுத்தவும் — உடனடி திறப்பு`,
+                            ml: `കൗണ്ടറിൽ ₹${packagePrice} പണമായി നൽകുക — അൺലോക്ക് അഭ്യർത്ഥിക്കുക`
+                          }, m25SevenLang)}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Live Pending Auto-Unlock Status Banner */}
+                  {!isPaymentVerified && paymentClaimStatus !== "IDLE" && (
+                    <div className="p-3 rounded-xl bg-amber-100/90 border-2 border-amber-500 text-amber-950 text-xs space-y-1 shadow-sm animate-pulse">
+                      <div className="font-black flex items-center gap-1.5">
+                        <span>⏳</span>
+                        <span>
+                          {paymentClaimStatus === "PENDING_CASHIER"
+                            ? pick7({ kn: "ಕೌಂಟರ್ ಕ್ಯಾಶ್ ದೃಢೀಕರಣಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದೆ (ಲೈವ್ ಅನ್‌ಲಾಕ್ ಸಕ್ರಿಯ)", en: "Awaiting Cashier Cash Confirmation (Live Auto-Unlock Active)", hi: "कैशियर पुष्टि की प्रतीक्षा (लाइव ऑटो-अनलॉक सक्रिय)", mr: "कॅशियर पुष्टीची प्रतीक्षा (लाइव्ह अनलॉक सक्रिय)", te: "క్యాషియర్ నిర్ధారణ కోసం వేచి ఉంది (లైవ్ ఆటో-అన్‌లాక్)", ta: "காசாளர் உறுதிப்படுத்தலுக்காகக் காத்திருக்கிறது", ml: "കാഷ്യർ സ്ഥിരീകരണത്തിനായി കാത്തിരിക്കുന്നു" }, m25SevenLang)
+                            : pick7({ kn: "UTR ಬ್ಯಾಂಕ್ / ಕೌಂಟರ್ ಪರಿಶೀಲನೆ ನಡೆಯುತ್ತಿದೆ (ಲೈವ್ ಅನ್‌ಲಾಕ್ ಸಕ್ರಿಯ)", en: "UPI UTR Verification Pending (Live Auto-Unlock Active)", hi: "UTR सत्यापन प्रगति पर है (लाइव ऑटो-अनलॉक सक्रिय)", mr: "UTR पडताळणी सुरू आहे (लाइव्ह अनलॉक सक्रिय)", te: "UTR పరిశీలన జరుగుతోంది (లైవ్ ఆటో-అన్‌లాక్)", ta: "UTR சரிபார்ப்பு நடந்து கொண்டிருக்கிறது", ml: "UTR പരിശോധന പുരോഗമിക്കുന്നു" }, m25SevenLang)}
+                        </span>
+                      </div>
+                      {claimNoticeMsg && <p className="text-[11px] text-stone-800">{claimNoticeMsg}</p>}
+                    </div>
+                  )}
                 </div>
 
                 {/* Payment Error */}

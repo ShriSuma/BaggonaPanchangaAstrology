@@ -197,7 +197,10 @@ describe("Hotel QR Unknown-Time, BTR, Prashna & Express ₹149 Verification", ()
     const kundli = calculateKundli(sampleKundliInput);
 
     for (const lang of SEVEN_LANGS) {
-      const payRes = await verifyHotelPaymentInstant("ORD_EXP_1", "Raghavendra", 149, lang, "express_149");
+      const payRes = await verifyHotelPaymentInstant("ORD_EXP_1", "Raghavendra", 149, lang, "express_149", {
+        authorizationSource: "CASHIER_DESK",
+        approvedBy: "ShriSuma"
+      });
       expect(payRes.success).toBe(true);
       expect(payRes.message).toMatch(/149|೧೪೯|१४९/);
 
@@ -273,8 +276,14 @@ describe("Hotel QR Unknown-Time, BTR, Prashna & Express ₹149 Verification", ()
     const kundli = calculateKundli(sampleKundliInput);
 
     for (const lang of SEVEN_LANGS) {
-      const pPalm = await verifyHotelPaymentInstant("ORD_P_1", "Meenakshi", 150, lang, "palm_150");
-      const pPrashna = await verifyHotelPaymentInstant("ORD_PR_1", "Meenakshi", 200, lang, "prashna_200");
+      const pPalm = await verifyHotelPaymentInstant("ORD_P_1", "Meenakshi", 150, lang, "palm_150", {
+        authorizationSource: "CASHIER_DESK",
+        approvedBy: "ShriSuma"
+      });
+      const pPrashna = await verifyHotelPaymentInstant("ORD_PR_1", "Meenakshi", 200, lang, "prashna_200", {
+        authorizationSource: "CASHIER_DESK",
+        approvedBy: "ShriSuma"
+      });
       expect(pPalm.success).toBe(true);
       expect(pPrashna.success).toBe(true);
       expect(pPalm.message).toMatch(/150|೧೫೦|१५०/);

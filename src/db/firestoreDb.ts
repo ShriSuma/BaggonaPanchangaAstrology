@@ -3747,6 +3747,17 @@ export function subscribePurohitaDailySummaries(
 // ═══════════════════════════════════════════════════════════════════════
 
 export const HOTEL_TABLE_ORDERS_COL = "hotel_table_orders";
+export const HOTEL_CLAIMED_UTRS_COL = "hotel_claimed_utrs";
+
+export type HotelOrderVerificationSource =
+  | "CASHIER_DESK"
+  | "CASH_AT_COUNTER"
+  | "RAZORPAY_WEBHOOK"
+  | "CASHFREE_WEBHOOK"
+  | "PHONEPE_WEBHOOK"
+  | "INTERNAL_SIGNED_WEBHOOK"
+  | "SUPERADMIN_QA_TEST"
+  | "BANK_VERIFIED";
 
 export interface HotelTableOrderDoc {
   id: string; // matches orderId
@@ -3765,13 +3776,19 @@ export interface HotelTableOrderDoc {
     | "standard_350"
     | "remedy_450"
     | "family_250";
-  status: "INITIATED" | "PAID" | "VERIFIED";
+  status: "INITIATED" | "PENDING_CASHIER" | "PENDING_UTR_REVIEW" | "PAID" | "VERIFIED";
   selectedLang: string;
   utr?: string;
+  claimedUtr?: string;
+  claimedMethod?: "cash_counter" | "upi_utr";
+  claimSubmittedAt?: string;
   transactionId?: string;
   paymentId?: string;
   paymentLink?: string;
   paymentMethod?: string;
+  verificationSource?: HotelOrderVerificationSource | string;
+  approvedBy?: string;
+  isQaTest?: boolean;
   birthDate?: string;
   birthTime?: string;
   placeName?: string;
@@ -3784,27 +3801,235 @@ export interface HotelTableOrderDoc {
     fiveYear?: boolean;
     kundli?: boolean;
     remedy?: boolean;
+    express?: boolean;
+    palm?: boolean;
+    face?: boolean;
+    prashna?: boolean;
     all?: boolean;
   };
 }
 
+export const CANONICAL_HOTEL_PACKAGE_PRICES: Record<HotelTableOrderDoc["packageType"], number> = {
+  express_149: 149,
+  palm_150: 150,
+  face_150: 150,
+  prashna_200: 200,
+  samudrika_combo_249: 249,
+  family_250: 250,
+  trinetra_all3_349: 349,
+  standard_350: 350,
+  remedy_450: 450
+};
+
 const memoryHotelOrders = new Map<string, HotelTableOrderDoc>();
+const memoryClaimedUtrs = new Set<string>();
+
+export async function isUtrAlreadyClaimedInDb(utr: string): Promise<boolean> {
+  const clean = utr.trim().replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  if (!clean) return false;
+  if (memoryClaimedUtrs.has(clean)) return true;
+  try {
+    const ref = doc(firestore, HOTEL_CLAIMED_UTRS_COL, clean);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      memoryClaimedUtrs.add(clean);
+      return true;
+    }
+  } catch {
+    // Offline fallback
+  }
+  return false;
+}
+
+export async function registerClaimedUtrInDb(
+  utr: string,
+  orderId: string,
+  amountInr: number
+): Promise<void> {
+  const clean = utr.trim().replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  if (!clean) return;
+  memoryClaimedUtrs.add(clean);
+  try {
+    const ref = doc(firestore, HOTEL_CLAIMED_UTRS_COL, clean);
+    await setDoc(ref, {
+      utr: clean,
+      orderId,
+      amountInr,
+      claimedAt: new Date().toISOString()
+    });
+  } catch {
+    // Offline fallback
+  }
+}
 
 export async function saveHotelOrderInitiated(order: HotelTableOrderDoc): Promise<void> {
   const normId = order.orderId.toUpperCase();
-  memoryHotelOrders.set(normId, order);
-  try {
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem(`hotel_order_${order.orderId}`, JSON.stringify(order));
-    }
-  } catch {}
+  // Anti-tamper guard: NEVER let client initiate overwrite a VERIFIED/PAID or PENDING order with lower status or altered package
+  const existingMem = memoryHotelOrders.get(normId);
+  if (existingMem && (existingMem.status === "VERIFIED" || existingMem.status === "PAID")) {
+    return;
+  }
 
   try {
     const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, order.orderId);
-    await setDoc(docRef, order, { merge: true });
+    const remoteSnap = await getDoc(docRef);
+    if (remoteSnap.exists()) {
+      const remoteData = remoteSnap.data() as HotelTableOrderDoc;
+      if (remoteData.status === "VERIFIED" || remoteData.status === "PAID") {
+        memoryHotelOrders.set(normId, remoteData);
+        return;
+      }
+      // Preserve pending claim fields if customer already submitted Cash/UTR
+      const safeOrder: HotelTableOrderDoc = {
+        ...order,
+        status:
+          remoteData.status === "PENDING_CASHIER" || remoteData.status === "PENDING_UTR_REVIEW"
+            ? remoteData.status
+            : "INITIATED",
+        claimedUtr: remoteData.claimedUtr || order.claimedUtr,
+        claimedMethod: remoteData.claimedMethod || order.claimedMethod,
+        claimSubmittedAt: remoteData.claimSubmittedAt || order.claimSubmittedAt
+      };
+      memoryHotelOrders.set(normId, safeOrder);
+      await setDoc(docRef, safeOrder, { merge: true });
+      return;
+    }
+  } catch {
+    // Proceed with safe initiated record in offline/test env
+  }
+
+  const sanitizedOrder: HotelTableOrderDoc = {
+    ...order,
+    status: "INITIATED"
+  };
+  memoryHotelOrders.set(normId, sanitizedOrder);
+
+  try {
+    const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, order.orderId);
+    await setDoc(docRef, sanitizedOrder, { merge: true });
   } catch (err) {
     console.warn("[Firestore] saveHotelOrderInitiated offline fallback:", err);
   }
+}
+
+/**
+ * Customer submits a pending Cash Counter or Manual UPI UTR claim.
+ * CRITICAL SECURITY: Never sets VERIFIED or PAID. Waits for Cashier / Webhook approval!
+ */
+export async function submitHotelPaymentClaim(params: {
+  orderId: string;
+  tableNumber: string;
+  hotelName: string;
+  devoteeName: string;
+  amountInr: number;
+  packageType: HotelTableOrderDoc["packageType"];
+  selectedLang: string;
+  claimedMethod: "cash_counter" | "upi_utr";
+  claimedUtr?: string;
+}): Promise<HotelTableOrderDoc> {
+  const normId = params.orderId.toUpperCase();
+  const existing = await getHotelOrder(params.orderId);
+  if (existing && (existing.status === "VERIFIED" || existing.status === "PAID")) {
+    return existing;
+  }
+
+  const nowIso = new Date().toISOString();
+  const nextStatus: HotelTableOrderDoc["status"] =
+    params.claimedMethod === "cash_counter" ? "PENDING_CASHIER" : "PENDING_UTR_REVIEW";
+
+  const canonicalAmt = Math.max(
+    params.amountInr,
+    CANONICAL_HOTEL_PACKAGE_PRICES[params.packageType] || params.amountInr
+  );
+
+  const pendingDoc: HotelTableOrderDoc = {
+    ...(existing || {}),
+    id: params.orderId,
+    orderId: params.orderId,
+    tableNumber: params.tableNumber || existing?.tableNumber || "1",
+    hotelName: params.hotelName || existing?.hotelName || "Pandit Palette",
+    devoteeName: params.devoteeName || existing?.devoteeName || "Hotel Devotee",
+    amountInr: canonicalAmt,
+    packageType: params.packageType,
+    status: nextStatus,
+    selectedLang: params.selectedLang || existing?.selectedLang || "kn",
+    claimedMethod: params.claimedMethod,
+    ...(params.claimedUtr ? { claimedUtr: params.claimedUtr } : {}),
+    claimSubmittedAt: nowIso,
+    createdAt: existing?.createdAt || nowIso
+  };
+
+  memoryHotelOrders.set(normId, pendingDoc);
+  try {
+    const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, params.orderId);
+    await setDoc(docRef, pendingDoc, { merge: true });
+  } catch (err) {
+    console.warn("[Firestore] submitHotelPaymentClaim offline fallback:", err);
+  }
+  return pendingDoc;
+}
+
+/**
+ * Authorized Cashier / Super Admin Counter Approval OR Verified Webhook Approval.
+ */
+export async function approveHotelOrderByCashier(params: {
+  orderId: string;
+  approvedBy: string;
+  verificationSource: HotelOrderVerificationSource;
+  utrOrReceipt?: string;
+  amountInr?: number;
+  isQaTest?: boolean;
+}): Promise<HotelTableOrderDoc | null> {
+  const existing = await getHotelOrder(params.orderId);
+  const normId = params.orderId.toUpperCase();
+  const effAmt = params.amountInr ?? existing?.amountInr ?? 350;
+  const receipt =
+    params.utrOrReceipt ||
+    existing?.claimedUtr ||
+    `${params.verificationSource === "CASH_AT_COUNTER" ? "CASH" : "DESK"}_${Date.now()}`;
+
+  const updated: HotelTableOrderDoc = {
+    ...(existing || {
+      id: params.orderId,
+      orderId: params.orderId,
+      tableNumber: "1",
+      hotelName: "Pandit Palette",
+      devoteeName: "Hotel Devotee",
+      packageType: inferPackageTypeFromAmountStatic(effAmt),
+      selectedLang: "kn",
+      createdAt: new Date().toISOString()
+    }),
+    amountInr: effAmt,
+    status: "VERIFIED",
+    utr: receipt,
+    transactionId: receipt,
+    paymentId: `${params.verificationSource}_${params.orderId}`,
+    paymentMethod: params.verificationSource,
+    verificationSource: params.verificationSource,
+    approvedBy: params.approvedBy,
+    isQaTest: Boolean(params.isQaTest),
+    verifiedAt: new Date().toISOString()
+  };
+
+  memoryHotelOrders.set(normId, updated);
+  try {
+    const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, params.orderId);
+    await setDoc(docRef, updated, { merge: true });
+  } catch (err) {
+    console.warn("[Firestore] approveHotelOrderByCashier offline fallback:", err);
+  }
+  return updated;
+}
+
+function inferPackageTypeFromAmountStatic(amt: number): HotelTableOrderDoc["packageType"] {
+  if (amt === 150) return "palm_150";
+  if (amt === 200) return "prashna_200";
+  if (amt === 249) return "samudrika_combo_249";
+  if (amt === 349) return "trinetra_all3_349";
+  if (amt === 149) return "express_149";
+  if (amt === 250) return "family_250";
+  if (amt >= 450) return "remedy_450";
+  return "standard_350";
 }
 
 export async function updateHotelOrderVerified(
@@ -3812,21 +4037,13 @@ export async function updateHotelOrderVerified(
   utrOrTxn: string,
   amountInr: number,
   paymentMethod: string = "UPI",
-  paymentId?: string
+  paymentId?: string,
+  verificationSource: HotelOrderVerificationSource = "BANK_VERIFIED"
 ): Promise<HotelTableOrderDoc | null> {
   const normId = orderId.toUpperCase();
-  const inferPkgFromAmount = (amt: number): HotelTableOrderDoc["packageType"] => {
-    if (amt === 150) return "palm_150";
-    if (amt === 200) return "prashna_200";
-    if (amt === 249) return "samudrika_combo_249";
-    if (amt === 349) return "trinetra_all3_349";
-    if (amt === 149) return "express_149";
-    if (amt === 250) return "family_250";
-    if (amt >= 450) return "remedy_450";
-    return "standard_350";
-  };
+  const inferPkgFromAmount = inferPackageTypeFromAmountStatic;
 
-  const existing = memoryHotelOrders.get(normId) || {
+  const existing = (await getHotelOrder(orderId)) || memoryHotelOrders.get(normId) || {
     id: orderId,
     orderId,
     tableNumber: "1",
@@ -3851,15 +4068,11 @@ export async function updateHotelOrderVerified(
     amountInr,
     packageType: existing.packageType || inferPkgFromAmount(amountInr),
     paymentMethod,
+    verificationSource,
     verifiedAt: new Date().toISOString()
   };
 
   memoryHotelOrders.set(normId, updated);
-  try {
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem(`hotel_order_${orderId}`, JSON.stringify(updated));
-    }
-  } catch {}
 
   try {
     const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, orderId);
@@ -3873,7 +4086,7 @@ export async function updateHotelOrderVerified(
 
 export async function updateHotelOrderDownloaded(
   orderId: string,
-  fileKey: "fiveYear" | "kundli" | "remedy" | "all"
+  fileKey: "fiveYear" | "kundli" | "remedy" | "express" | "palm" | "face" | "prashna" | "all"
 ): Promise<HotelTableOrderDoc | null> {
   const normId = orderId.toUpperCase();
   const existing = await getHotelOrder(orderId);
@@ -3892,11 +4105,6 @@ export async function updateHotelOrderDownloaded(
   };
 
   memoryHotelOrders.set(normId, updated);
-  try {
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem(`hotel_order_${orderId}`, JSON.stringify(updated));
-    }
-  } catch {}
 
   try {
     const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, orderId);
@@ -3922,11 +4130,6 @@ export function subscribeHotelOrder(
         if (snap.exists()) {
           const data = snap.data() as HotelTableOrderDoc;
           memoryHotelOrders.set(normId, data);
-          try {
-            if (typeof localStorage !== "undefined") {
-              localStorage.setItem(`hotel_order_${orderId}`, JSON.stringify(data));
-            }
-          } catch {}
           onUpdate(data);
         }
       },
@@ -3941,23 +4144,64 @@ export function subscribeHotelOrder(
   }
 }
 
+export function subscribeRecentHotelOrders(
+  onUpdate: (orders: HotelTableOrderDoc[]) => void,
+  maxRows: number = 40
+): Unsubscribe {
+  try {
+    const q = query(
+      collection(firestore, HOTEL_TABLE_ORDERS_COL),
+      orderBy("createdAt", "desc"),
+      limit(maxRows)
+    );
+    return onSnapshot(
+      q,
+      (snap) => {
+        const list: HotelTableOrderDoc[] = [];
+        snap.forEach((d) => {
+          const item = d.data() as HotelTableOrderDoc;
+          memoryHotelOrders.set(item.orderId.toUpperCase(), item);
+          list.push(item);
+        });
+        onUpdate(list);
+      },
+      () => {
+        onUpdate(Array.from(memoryHotelOrders.values()).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, maxRows));
+      }
+    );
+  } catch {
+    onUpdate(Array.from(memoryHotelOrders.values()).slice(0, maxRows));
+    return () => {};
+  }
+}
+
+export async function listRecentHotelOrders(maxRows: number = 40): Promise<HotelTableOrderDoc[]> {
+  try {
+    const q = query(
+      collection(firestore, HOTEL_TABLE_ORDERS_COL),
+      orderBy("createdAt", "desc"),
+      limit(maxRows)
+    );
+    const snap = await getDocs(q);
+    const list: HotelTableOrderDoc[] = [];
+    snap.forEach((d) => {
+      const item = d.data() as HotelTableOrderDoc;
+      memoryHotelOrders.set(item.orderId.toUpperCase(), item);
+      list.push(item);
+    });
+    return list;
+  } catch {
+    return Array.from(memoryHotelOrders.values())
+      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+      .slice(0, maxRows);
+  }
+}
+
 export async function getHotelOrder(orderId: string): Promise<HotelTableOrderDoc | null> {
   const normId = orderId.toUpperCase();
-  if (memoryHotelOrders.has(normId)) {
-    return memoryHotelOrders.get(normId)!;
-  }
 
-  try {
-    if (typeof localStorage !== "undefined") {
-      const stored = localStorage.getItem(`hotel_order_${orderId}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        memoryHotelOrders.set(normId, parsed);
-        return parsed;
-      }
-    }
-  } catch {}
-
+  // SECURITY FIX: Always query authoritative Firebase Firestore FIRST.
+  // Never trust mutable browser localStorage ahead of the database!
   try {
     const docRef = doc(firestore, HOTEL_TABLE_ORDERS_COL, orderId);
     const snap = await getDoc(docRef);
@@ -3970,12 +4214,33 @@ export async function getHotelOrder(orderId: string): Promise<HotelTableOrderDoc
     console.warn("[Firestore] getHotelOrder error:", err);
   }
 
+  if (memoryHotelOrders.has(normId)) {
+    return memoryHotelOrders.get(normId)!;
+  }
+
   return null;
+}
+
+function isOrderPackageCompatible(
+  paidPkg: HotelTableOrderDoc["packageType"] | undefined,
+  requestedPkg: HotelTableOrderDoc["packageType"] | undefined
+): boolean {
+  if (!requestedPkg || !paidPkg) return true;
+  if (paidPkg === requestedPkg) return true;
+  if (paidPkg === "remedy_450" && requestedPkg === "standard_350") return true;
+  if (paidPkg === "trinetra_all3_349" && ["palm_150", "face_150", "prashna_200", "samudrika_combo_249"].includes(requestedPkg)) {
+    return true;
+  }
+  if (paidPkg === "samudrika_combo_249" && ["palm_150", "face_150"].includes(requestedPkg)) {
+    return true;
+  }
+  return false;
 }
 
 export async function verifyHotelOrderPayment(
   orderId: string,
-  expectedAmountInr: number
+  expectedAmountInr: number,
+  expectedPackageType?: HotelTableOrderDoc["packageType"]
 ): Promise<{ verified: boolean; order?: HotelTableOrderDoc; reason?: string }> {
   const order = await getHotelOrder(orderId);
   if (!order) {
@@ -3983,14 +4248,32 @@ export async function verifyHotelOrderPayment(
   }
 
   if (order.status !== "VERIFIED" && order.status !== "PAID") {
-    return { verified: false, order, reason: "Payment status is not verified." };
+    const pendingMsg =
+      order.status === "PENDING_CASHIER"
+        ? "Awaiting Counter Cashier cash confirmation."
+        : order.status === "PENDING_UTR_REVIEW"
+          ? "UPI UTR submitted — awaiting Cashier / Webhook confirmation."
+          : "Payment status is not verified.";
+    return { verified: false, order, reason: pendingMsg };
   }
 
-  if (order.amountInr < expectedAmountInr) {
+  const canonicalRequired = expectedPackageType
+    ? Math.max(expectedAmountInr, CANONICAL_HOTEL_PACKAGE_PRICES[expectedPackageType] || expectedAmountInr)
+    : expectedAmountInr;
+
+  if (order.amountInr < canonicalRequired) {
     return {
       verified: false,
       order,
-      reason: `Amount deducted (₹${order.amountInr}) is less than package price (₹${expectedAmountInr}).`
+      reason: `Amount paid (₹${order.amountInr}) is less than package price (₹${canonicalRequired}).`
+    };
+  }
+
+  if (expectedPackageType && !isOrderPackageCompatible(order.packageType, expectedPackageType)) {
+    return {
+      verified: false,
+      order,
+      reason: `Order package (${order.packageType}) does not cover ${expectedPackageType}.`
     };
   }
 

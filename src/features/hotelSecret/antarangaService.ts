@@ -53,7 +53,12 @@ import {
   updateHotelOrderVerified,
   getHotelOrder,
   verifyHotelOrderPayment,
-  type HotelTableOrderDoc
+  submitHotelPaymentClaim,
+  approveHotelOrderByCashier,
+  isUtrAlreadyClaimedInDb,
+  registerClaimedUtrInDb,
+  type HotelTableOrderDoc,
+  type HotelOrderVerificationSource
 } from "../../db/firestoreDb";
 import {
   calculateLiveTodayTarabalaAndChandrashtama,
@@ -2226,6 +2231,8 @@ export function getHotelPaytmUri(amountInr: number = HOTEL_PDF_PRICE_INR, orderI
 
 export interface PaymentVerificationResult {
   success: boolean;
+  pendingVerification?: boolean;
+  status?: "VERIFIED" | "PENDING_CASHIER" | "PENDING_UTR_REVIEW" | "REJECTED";
   message: string;
   transactionId?: string;
   verifiedAt?: string;
@@ -2235,10 +2242,17 @@ export interface PaymentVerificationResult {
 
 const STORAGE_KEY_PAID_UTRS = "baggona_hotel_verified_utrs";
 
+export interface PaymentAuthorizationOptions {
+  authorizationSource?: HotelOrderVerificationSource;
+  approvedBy?: string;
+  isQaTest?: boolean;
+}
+
 /**
- * Frictionless 1-Tap Payment Auto-Verification for Dining Guests
- * Eliminates the friction of remembering or copying 12-digit UTR numbers.
- * Directly links with serverless webhook endpoint /api/payment-webhook & Firebase Firestore
+ * Authorized payment finalization for Gateway Webhooks, Cashier Counter Approval,
+ * or strict Super Admin QA Testing.
+ * ZERO-HACK RULE: Public / unauthenticated end clients calling without valid
+ * authorizationSource are strictly REJECTED — zero free unlocks!
  */
 export async function verifyHotelPaymentInstant(
   orderId: string,
@@ -2260,11 +2274,42 @@ export async function verifyHotelPaymentInstant(
                 ? "remedy_450"
                 : amountInr === 250
                   ? "family_250"
-                  : "standard_350"
+                  : "standard_350",
+  options?: PaymentAuthorizationOptions
 ): Promise<PaymentVerificationResult> {
   const cleanOrderId = (orderId || `ORD_${Date.now()}`).trim();
-  const txnId = `TXN_${cleanOrderId}`;
+  const allowedSources: HotelOrderVerificationSource[] = [
+    "SUPERADMIN_QA_TEST",
+    "CASHIER_DESK",
+    "CASH_AT_COUNTER",
+    "RAZORPAY_WEBHOOK",
+    "CASHFREE_WEBHOOK",
+    "PHONEPE_WEBHOOK",
+    "INTERNAL_SIGNED_WEBHOOK",
+    "BANK_VERIFIED"
+  ];
 
+  // SECURITY LOCK: Reject public/unauthenticated client instant-unlock bypass attempts!
+  if (!options?.authorizationSource || !allowedSources.includes(options.authorizationSource)) {
+    const blockedMsgs: Record<AntarangaLang, string> = {
+      kn: "🔒 ತತ್‌ಕ್ಷಣ ಸ್ವಯಂ-ಅನ್‌ಲಾಕ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ದಯವಿಟ್ಟು UPI ಪಾವತಿ UTR ಸಲ್ಲಿಸಿ ಅಥವಾ ಕ್ಯಾಶ್ ಕೌಂಟರ್‌ನಲ್ಲಿ ದೃಢೀಕರಿಸಿ.",
+      en: "🔒 Instant self-unlock is disabled. Complete UPI or Counter Cash payment and wait for automated/cashier verification.",
+      hi: "🔒 त्वरित स्व-अनलॉक अक्षम है। कृपया UPI या काउंटर नकद भुगतान पूरा कर सत्यापन की प्रतीक्षा करें।",
+      mr: "🔒 त्वरित स्व-अनलॉक बंद आहे. कृपया UPI किंवा काउंटर रोख पेमेंट पूर्ण करून पडताळणीची प्रतीक्षा करा.",
+      te: "🔒 తక్షణ సెల్ఫ్-అన్‌లాక్ నిలిపివేయబడింది. దయచేసి UPI లేదా కౌంటర్ నగదు చెల్లింపు పూర్తి చేయండి.",
+      ta: "🔒 உடனடி சுய-திறப்பு முடக்கப்பட்டுள்ளது. UPI அல்லது கவுண்டர் ரொக்கப் பணம் செலுத்தி உறுதிப்படுத்தவும்.",
+      ml: "🔒 തൽക്ഷണ സ്വയം അൺലോക്ക് പ്രവർത്തനരഹിതമാണ്. ദയവായി UPI അല്ലെങ്കിൽ കൗണ്ടർ ക്യാഷ് പേയ്‌മെന്റ് പൂർത്തിയാക്കുക."
+    };
+    return {
+      success: false,
+      status: "REJECTED",
+      message: blockedMsgs[lang] || blockedMsgs.en,
+      amountInr,
+      packageType
+    };
+  }
+
+  const txnId = `${options.authorizationSource === "SUPERADMIN_QA_TEST" ? "QA" : "TXN"}_${cleanOrderId}`;
   const knAmt = String(amountInr).replace(/\d/g, (d) => "೦೧೨೩೪೫೬೭೮೯"[Number(d)]);
   const mrAmt = String(amountInr).replace(/\d/g, (d) => "०१२३४५६७८९"[Number(d)]);
   const isExpress = packageType === "express_149" || amountInr === 149;
@@ -2274,63 +2319,63 @@ export async function verifyHotelPaymentInstant(
 
   const reportNameByLang: Record<AntarangaLang, string> = isPalm
     ? {
-        kn: "ಸಂಪೂರ್ಣ ಹಸ್ತ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ",
-        en: "Complete Hasta Samudrika",
-        hi: "संपूर्ण हस्त सामुद्रिक",
-        te: "సంపూర్ణ హస్త సాముద్రికం",
-        ta: "முழு ஹஸ்த சாமுத்ரிகா",
-        ml: "സമ്പൂർണ്ണ ഹസ്തസാമുദ്രികം",
-        mr: "संपूर्ण हस्तसामुद्रिक"
-      }
+      kn: "ಸಂಪೂರ್ಣ ಹಸ್ತ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ",
+      en: "Complete Hasta Samudrika",
+      hi: "संपूर्ण हस्त सामुद्रिक",
+      te: "సంపూర్ణ హస్త సాముద్రికం",
+      ta: "முழு ஹஸ்த சாமுத்ரிகா",
+      ml: "സമ്പൂർണ്ണ ഹസ്തസാമുദ്രികം",
+      mr: "संपूर्ण हस्तसामुद्रिक"
+    }
     : isFace
       ? {
-          kn: "ಸಂಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ",
-          en: "Complete Mukha Samudrika",
-          hi: "संपूर्ण मुख सामुद्रिक",
-          te: "సంపూర్ణ ముఖ సాముద్రికం",
-          ta: "முழு முக சாமுத்ரிகா",
-          ml: "സമ്പൂർണ്ണ മുഖസാമുദ്രികം",
-          mr: "संपूर्ण मुख सामुद्रिक"
-        }
+        kn: "ಸಂಪೂರ್ಣ ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ",
+        en: "Complete Mukha Samudrika",
+        hi: "संपूर्ण मुख सामुद्रिक",
+        te: "సంపూర్ణ ముఖ సాముద్రికం",
+        ta: "முழு முக சாமுத்ரிகா",
+        ml: "സമ്പൂർണ്ണ മുഖസാമുദ്രികം",
+        mr: "संपूर्ण मुख सामुद्रिक"
+      }
       : isPrashna
         ? {
-            kn: "ಸಂಪೂರ್ಣ ಕೇರಳ & ತಾಜಿಕ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ",
-            en: "Complete Prashna Shastra",
-            hi: "संपूर्ण प्रश्न शास्त्र",
-            te: "సంపూర్ణ ప్రశ్న శాస్త్రం",
-            ta: "முழு பிரசன்ன சாஸ்திரம்",
-            ml: "സമ്പൂർണ്ണ പ്രശ്നശാസ്ത്രം",
-            mr: "संपूर्ण प्रश्न शास्त्र"
-          }
+          kn: "ಸಂಪೂರ್ಣ ಕೇರಳ & ತಾಜಿಕ ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ",
+          en: "Complete Prashna Shastra",
+          hi: "संपूर्ण प्रश्न शास्त्र",
+          te: "సంపూర్ణ ప్రశ్న శాస్త్రం",
+          ta: "முழு பிரசன்ன சாஸ்திரம்",
+          ml: "സമ്പൂർണ്ണ പ്രശ്നശാസ്ത്രം",
+          mr: "संपूर्ण प्रश्न शास्त्र"
+        }
         : isExpress
           ? {
-              kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ, ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ & ಸಾಮುದ್ರಿಕ ವಿಶೇಷ",
-              en: "Prashna Shastra, Sankhya & Samudrika Express Walk-In",
-              hi: "प्रश्न शास्त्र, संख्या शास्त्र एवं सामुद्रिक एक्सप्रेस",
-              te: "ప్రశ్న శాస్త్రం, సంఖ్యా శాస్త్రం & సాముద్రిక ఎక్స్‌ప్రెస్",
-              ta: "பிரஸ்ன சாஸ்திரம், எண் கணிதம் & சாமுத்திரிகா விரைவு",
-              ml: "പ്രശ്ന ശാസ്ത്രം, സംഖ്യാ ശാസ്ത്രം & സാമുദ്രിക എക്സ്പ്രസ്",
-              mr: "प्रश्न शास्त्र, संख्या शास्त्र व सामुद्रिक एक्सप्रेस"
-            }
+            kn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ, ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ & ಸಾಮುದ್ರಿಕ ವಿಶೇಷ",
+            en: "Prashna Shastra, Sankhya & Samudrika Express Walk-In",
+            hi: "प्रश्न शास्त्र, संख्या शास्त्र एवं सामुद्रिक एक्सप्रेस",
+            te: "ప్రశ్న శాస్త్రం, సంఖ్యా శాస్త్రం & సాముద్రిక ఎక్స్‌ప్రెస్",
+            ta: "பிரஸ்ன சாஸ்திரம், எண் கணிதம் & சாமுத்திரிகா விரைவு",
+            ml: "പ്രശ്ന ശാസ്ത്രം, സംഖ്യാ ശാസ്ത്രം & സാമുദ്രിക എക്സ്പ്രസ്",
+            mr: "प्रश्न शास्त्र, संख्या शास्त्र व सामुद्रिक एक्सप्रेस"
+          }
           : amountInr === 450
             ? {
-                kn: "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ, ಜನ್ಮ ಕುಂಡಲಿ & ದೈವಿಕ ಪರಿಹಾರ",
-                en: "5-Year Master Horoscope, Janma Kundali & Sacred Remedy",
-                hi: "5-वर्षीय महा कुंडली, जन्म कुंडली एवं दैविक उपाय",
-                te: "5 సంవత్సరాల జాతకం, జన్మ కుండలి మరియు దైవిక పరిహార",
-                ta: "5 ஆண்டு ஜாதகம், ஜென்ம குண்டலி & பரிகார",
-                ml: "5 വർഷത്തെ ജാതകം, ജന്മ കുണ്ഡലി & ദൈവിക പരിഹാര",
-                mr: "५-वर्षांची महा पत्रिका, जन्म पत्रिका व दैवी उपाय"
-              }
+              kn: "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ, ಜನ್ಮ ಕುಂಡಲಿ & ದೈವಿಕ ಪರಿಹಾರ",
+              en: "5-Year Master Horoscope, Janma Kundali & Sacred Remedy",
+              hi: "5-वर्षीय महा कुंडली, जन्म कुंडली एवं दैविक उपाय",
+              te: "5 సంవత్సరాల జాతకం, జన్మ కుండలి మరియు దైవిక పరిహార",
+              ta: "5 ஆண்டு ஜாதகம், ஜென்ம குண்டலி & பரிகார",
+              ml: "5 വർഷത്തെ ജാതകം, ജന്മ കുണ്ഡലി & ദൈവിക പരിഹാര",
+              mr: "५-वर्षांची महा पत्रिका, जन्म पत्रिका व दैवी उपाय"
+            }
             : {
-                kn: "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ & ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿ",
-                en: "5-Year Master Horoscope & Baggona Janma Kundali",
-                hi: "5-वर्षीय महा कुंडली एवं जन्म पत्रिका",
-                te: "5 సంవత్సరాల జాతకం మరియు జన్మ కుండలి",
-                ta: "5 ஆண்டு ஜாதகம் & ஜென்ம குண்டலி",
-                ml: "5 വർഷത്തെ ജാതകം & ജന്മ കുണ്ഡലി",
-                mr: "५-वर्षांची महा पत्रिका व जन्म पत्रिका"
-              };
+              kn: "೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ & ಬಗ್ಗೋಣ ಜನ್ಮ ಕುಂಡಲಿ",
+              en: "5-Year Master Horoscope & Baggona Janma Kundali",
+              hi: "5-वर्षीय महा कुंडली एवं जन्म पत्रिका",
+              te: "5 సంవత్సరాల జాతకం మరియు జన్మ కుండలి",
+              ta: "5 ஆண்டு ஜாதகம் & ஜென்ம குண்டலி",
+              ml: "5 വർഷത്തെ ജാതകം & ജന്മ കുണ്ഡലി",
+              mr: "५-वर्षांची महा पत्रिका व जन्म पत्रिका"
+            };
 
   const instantSuccessMsgs: Record<AntarangaLang, string> = {
     kn: `✓ ₹${knAmt} ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! (ಆರ್ಡರ್: ${cleanOrderId}) ನಿಮ್ಮ ${reportNameByLang.kn} PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...`,
@@ -2342,138 +2387,198 @@ export async function verifyHotelPaymentInstant(
     mr: `✓ ₹${mrAmt} पेमेंट यशस्वीरीत्या प्राप्त झाले! (ऑर्डर: ${cleanOrderId}) आपली ${reportNameByLang.mr} PDF तयार होत आहे...`
   };
 
-  // 1. Notify serverless webhook engine in background
   try {
-    const baseUrl = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "http://localhost:5173";
-    fetch(`${baseUrl}/api/payment-webhook`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: cleanOrderId,
-        status: "SUCCESS",
-        amountInr,
-        packageType,
-        userId: `HOTEL_${cleanOrderId}`,
-        devoteeName,
-        source: "PHONEPE_INSTANT_AUTO_VERIFY",
-        timestamp: new Date().toISOString()
-      })
-    }).catch(() => {
-      // Offline resilient
+    await approveHotelOrderByCashier({
+      orderId: cleanOrderId,
+      approvedBy: options.approvedBy || options.authorizationSource,
+      verificationSource: options.authorizationSource,
+      utrOrReceipt: txnId,
+      amountInr,
+      isQaTest: Boolean(options.isQaTest)
     });
-  } catch {
-    // Offline resilient
-  }
-
-  // 2. Persist in Firebase Firestore Database for 100% Payment Consistency & Human Financial Audit
-  try {
-    await updateHotelOrderVerified(cleanOrderId, txnId, amountInr, "PHONEPE_1TAP_AUTO_VERIFY", txnId);
   } catch (dbErr) {
-    console.warn("[AntarangaService] Firestore update warning:", dbErr);
-  }
-
-  // 3. Persist in verified UTR registry to prevent replay or state loss
-  const verifiedRecord = {
-    utr: cleanOrderId,
-    devotee: devoteeName,
-    amount: amountInr,
-    packageType,
-    timestamp: new Date().toISOString()
-  };
-
-  try {
-    const rawStored = localStorage.getItem(STORAGE_KEY_PAID_UTRS);
-    const storedList: any[] = rawStored ? JSON.parse(rawStored) : [];
-    storedList.push(verifiedRecord);
-    localStorage.setItem(STORAGE_KEY_PAID_UTRS, JSON.stringify(storedList));
-  } catch (err) {
-    console.warn("[AntarangaService] LocalStorage write warning:", err);
+    console.warn("[AntarangaService] Firestore approval error:", dbErr);
   }
 
   return {
     success: true,
+    status: "VERIFIED",
     message: instantSuccessMsgs[lang] || instantSuccessMsgs.en,
     transactionId: txnId,
-    verifiedAt: verifiedRecord.timestamp,
+    verifiedAt: new Date().toISOString(),
     amountInr,
     packageType
   };
 }
 
 /**
- * Checks if the backend payment webhook or Firebase Firestore has confirmed this order
+ * Checks if cryptographically verified webhook or Cashier Firestore record has confirmed this order.
+ * NEVER auto-approves from unsigned responses.
  */
 export async function checkHotelPaymentWebhookStatus(
   orderId: string,
-  expectedAmountInr: number = HOTEL_PDF_PRICE_INR
+  expectedAmountInr: number = HOTEL_PDF_PRICE_INR,
+  expectedPackageType?: HotelPackageType
 ): Promise<boolean> {
   if (!orderId) return false;
 
-  // 1. Check Firebase Firestore first for 100% payment consistency
+  // 1. Check Firebase Firestore authoritative record first
   try {
-    const fsCheck = await verifyHotelOrderPayment(orderId, expectedAmountInr);
+    const fsCheck = await verifyHotelOrderPayment(orderId, expectedAmountInr, expectedPackageType);
     if (fsCheck.verified) return true;
   } catch {
     // Offline resilient
   }
 
-  // 2. Check serverless webhook endpoint
+  // 2. Check serverless webhook endpoint — ONLY accept cryptographically verified responses!
   try {
     const baseUrl = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "http://localhost:5173";
     const res = await fetch(`${baseUrl}/api/payment-webhook?orderId=${encodeURIComponent(orderId)}&expectedAmount=${expectedAmountInr}`).catch(() => null);
     if (res && res.ok) {
       const data = await res.json().catch(() => null);
-      if (data?.verified === true || data?.status === "PAID") {
-        const amt = Number(data?.amountInr) || expectedAmountInr;
+      if (data?.verified === true && data?.webhookSignatureVerified === true && data?.status === "PAID") {
+        const amt = Number(data?.amountInr) || 0;
         if (amt >= expectedAmountInr) {
-          // Sync to Firestore in background
           try {
             await updateHotelOrderVerified(
               orderId,
               data?.utr || `TXN_WEBHOOK_${orderId}`,
               amt,
-              "WEBHOOK_POLL",
-              data?.paymentId || `PAY_WH_${orderId}`
+              data?.verificationSource || "WEBHOOK_POLL",
+              data?.paymentId || `PAY_WH_${orderId}`,
+              (data?.verificationSource as HotelOrderVerificationSource) || "INTERNAL_SIGNED_WEBHOOK"
             );
-          } catch { }
+          } catch {}
           return true;
         }
       }
     }
   } catch {
-    // Offline / dev fallback
+    // Offline fallback
   }
   return false;
 }
 
 /**
- * Validates and verifies 12-digit UPI UTR for the Hotel Premium Order (₹350 or ₹450)
+ * Public customer payment claim submission (Cash at Counter OR Manual 12-Digit UPI UTR).
+ * ZERO-HACK SECURITY: Never unlocks PDFs immediately from guest browser!
+ * Marks order PENDING_CASHIER or PENDING_UTR_REVIEW in Firestore and emails Cashier/Admin
+ * at spshreepandit@gmail.com; guest's page unlocks live once Cashier confirms or gateway webhook fires.
  */
-export async function verifyHotelPaymentUtr(
-  rawUtr: string,
-  devoteeName: string = "Hotel Devotee",
-  amountInr: number = HOTEL_PDF_PRICE_INR,
-  lang: AntarangaLang = "kn",
-  orderId?: string,
-  packageType: HotelPackageType =
-    amountInr === 150
-      ? "palm_150"
-      : amountInr === 200
-        ? "prashna_200"
-        : amountInr === 249
-          ? "samudrika_combo_249"
-          : amountInr === 349
-            ? "trinetra_all3_349"
-            : amountInr === 149
-              ? "express_149"
-              : amountInr >= 450
-                ? "remedy_450"
-                : amountInr === 250
-                  ? "family_250"
-                  : "standard_350"
-): Promise<PaymentVerificationResult> {
+export async function submitHotelPaymentClaimClient(params: {
+  orderId: string;
+  tableNumber: string;
+  hotelName: string;
+  devoteeName: string;
+  amountInr: number;
+  packageType: HotelPackageType;
+  lang: AntarangaLang;
+  claimedMethod: "cash_counter" | "upi_utr";
+  rawUtr?: string;
+}): Promise<PaymentVerificationResult> {
+  const { orderId, tableNumber, hotelName, devoteeName, amountInr, packageType, lang, claimedMethod, rawUtr } = params;
   const cleanUtr = (rawUtr || "").trim().replace(/[^a-zA-Z0-9]/g, "");
 
+  if (claimedMethod === "upi_utr") {
+    const formatCheck = await validateUtrFormatAndReplay(cleanUtr, lang);
+    if (!formatCheck.valid) {
+      return {
+        success: false,
+        status: "REJECTED",
+        message: formatCheck.errorMessage,
+        amountInr,
+        packageType
+      };
+    }
+    await registerClaimedUtrInDb(cleanUtr, orderId, amountInr);
+    try {
+      const rawStored = localStorage.getItem(STORAGE_KEY_PAID_UTRS);
+      const storedList: any[] = rawStored ? JSON.parse(rawStored) : [];
+      storedList.push({
+        utr: cleanUtr,
+        devotee: devoteeName,
+        amount: amountInr,
+        packageType,
+        timestamp: new Date().toISOString()
+      });
+      localStorage.setItem(STORAGE_KEY_PAID_UTRS, JSON.stringify(storedList));
+    } catch {}
+  }
+
+  const pendingDoc = await submitHotelPaymentClaim({
+    orderId,
+    tableNumber,
+    hotelName,
+    devoteeName,
+    amountInr,
+    packageType,
+    selectedLang: lang,
+    claimedMethod,
+    claimedUtr: claimedMethod === "upi_utr" ? cleanUtr : undefined
+  });
+
+  // Notify Cashier / Chief Pandit immediately at spshreepandit@gmail.com (non-blocking)
+  try {
+    const baseUrl = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "http://localhost:5173";
+    void fetch(`${baseUrl}/api/notify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: "spshreepandit@gmail.com",
+        type: "hotel_payment_claim",
+        subject: `[Baggona Cashier Desk] ${claimedMethod === "cash_counter" ? "💵 Cash Request" : "📲 UPI UTR Claim"}: ₹${amountInr} | Table ${tableNumber} | ${devoteeName} (${orderId})`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 2px solid #d97706; border-radius: 12px; background: #fffbeb;">
+            <h2 style="color: #78350f;">${claimedMethod === "cash_counter" ? "💵 Cash Payment Requested at Table" : "📲 Manual UPI UTR Submitted for Confirmation"}</h2>
+            <p><strong>Order Token:</strong> <code>${orderId}</code></p>
+            <p><strong>Table #:</strong> ${tableNumber} (${hotelName})</p>
+            <p><strong>Devotee:</strong> ${devoteeName}</p>
+            <p><strong>Package & Amount:</strong> ${packageType} (<strong>₹${amountInr}</strong>)</p>
+            ${cleanUtr ? `<p><strong>Submitted UTR:</strong> <code>${cleanUtr}</code></p>` : ""}
+            <p><strong>Status:</strong> ${pendingDoc.status}</p>
+            <p>Open <strong>Super Admin → QR QA & Cash Desk</strong> to confirm & unlock this guest's screen in real time.</p>
+          </div>
+        `
+      })
+    }).catch(() => {});
+  } catch {}
+
+  const pendingMsgs: Record<AntarangaLang, string> =
+    claimedMethod === "cash_counter"
+      ? {
+          kn: `💵 ₹${amountInr} ನಗದು ವಿನಂತಿ ಕಳುಹಿಸಲಾಗಿದೆ! ಟೋಕನ್: ${orderId}. ದಯವಿಟ್ಟು ಕೌಂಟರ್‌ನಲ್ಲಿ ನಗದು ಪಾವತಿಸಿ — ದೃಢೀಕರಣವಾದ ತಕ್ಷಣ ನಿಮ್ಮ PDF ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಅನ್‌ಲಾಕ್ ಆಗುತ್ತದೆ.`,
+          en: `💵 Counter Cash request submitted! Order Token: ${orderId}. Please pay ₹${amountInr} Cash at counter — this screen will auto-unlock your PDF immediately once Cashier confirms.`,
+          hi: `💵 नकद भुगतान अनुरोध भेजा गया! ऑर्डर टोकन: ${orderId}। कृपया काउंटर पर ₹${amountInr} नकद दें — पुष्टि होते ही PDF अपने-आप अनलॉक होगी।`,
+          mr: `💵 रोख पेमेंट विनंती पाठवली! ऑर्डर टोकन: ${orderId}. कृपया काउंटरवर ₹${amountInr} रोख द्या — पडताळणी होताच PDF आपोआप अनलॉक होईल.`,
+          te: `💵 కౌంటర్ నగదు అభ్యర్థన పంపబడింది! ఆర్డర్: ${orderId}. దయచేసి కౌంటర్‌లో ₹${amountInr} చెల్లించండి — క్యాషియర్ నిర్ధారించిన వెంటనే PDF అన్‌లాక్ అవుతుంది.`,
+          ta: `💵 கவுண்டர் ரொக்கக் கோரிக்கை அனுப்பப்பட்டது! ஆர்டர்: ${orderId}. கவுண்டரில் ₹${amountInr} செலுத்தவும் — உறுதி செய்தவுடன் PDF தானாகத் திறக்கும்.`,
+          ml: `💵 കൗണ്ടർ ക്യാഷ് അഭ്യർത്ഥന അയച്ചു! ഓർഡർ: ${orderId}. കൗണ്ടറിൽ ₹${amountInr} നൽകുക — സ്ഥിരീകരിച്ചാലുടൻ PDF തനിയെ അൺലോക്ക് ആകും.`
+        }
+      : {
+          kn: `⏳ UTR (${cleanUtr}) ಪರಿಶೀಲನೆಗೆ ಸಲ್ಲಿಸಲಾಗಿದೆ! ಆರ್ಡರ್: ${orderId}. ಕೌಂಟರ್ ದೃಢೀಕರಣವಾದ ತಕ್ಷಣ ನಿಮ್ಮ PDF ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಅನ್‌ಲಾಕ್ ಆಗುತ್ತದೆ.`,
+          en: `⏳ UTR (${cleanUtr}) submitted for verification! Order: ${orderId}. Once Cashier / Bank confirms ₹${amountInr}, your PDF will auto-unlock live.`,
+          hi: `⏳ UTR (${cleanUtr}) सत्यापन हेतु भेजा गया! ऑर्डर: ${orderId}। पुष्टि होते ही आपकी PDF अपने-आप अनलॉक हो जाएगी।`,
+          mr: `⏳ UTR (${cleanUtr}) पडताळणीसाठी पाठवला! ऑर्डर: ${orderId}. पुष्टी होताच आपली PDF आपोआप अनलॉक होईल.`,
+          te: `⏳ UTR (${cleanUtr}) పరిశీలనకు పంపబడింది! ఆర్డర్: ${orderId}. నిర్ధారణ అయిన వెంటనే PDF అన్‌లాక్ అవుతుంది.`,
+          ta: `⏳ UTR (${cleanUtr}) சரிபார்ப்புக்கு அனுப்பப்பட்டது! ஆர்டர்: ${orderId}. உறுதி செய்தவுடன் PDF தானாகத் திறக்கும்.`,
+          ml: `⏳ UTR (${cleanUtr}) പരിശോധനയ്ക്കായി സമർപ്പിച്ചു! ഓർഡർ: ${orderId}. സ്ഥിരീകരിച്ചാൽ ഉടൻ PDF അൺലോക്ക് ആകും.`
+        };
+
+  return {
+    success: false,
+    pendingVerification: true,
+    status: pendingDoc.status === "PENDING_CASHIER" ? "PENDING_CASHIER" : "PENDING_UTR_REVIEW",
+    message: pendingMsgs[lang] || pendingMsgs.en,
+    transactionId: cleanUtr ? `CLAIM_${cleanUtr}` : `CASH_CLAIM_${orderId}`,
+    amountInr,
+    packageType
+  };
+}
+
+async function validateUtrFormatAndReplay(
+  cleanUtr: string,
+  lang: AntarangaLang
+): Promise<{ valid: boolean; errorMessage: string }> {
   const msgs: Record<string, Record<AntarangaLang, string>> = {
     invalidLength: {
       kn: "ದಯವಿಟ್ಟು PhonePe / GPay ರಶೀದಿಯಲ್ಲಿರುವ ೧೨-ಅಂಕಿಯ ಮಾನ್ಯ UTR / UPI Reference ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ.",
@@ -2501,113 +2606,135 @@ export async function verifyHotelPaymentUtr(
       ta: "இந்த UTR எண் ஏற்கனவே பயன்படுத்தப்பட்டுவிட்டது. புதிய ரசீது UTR எண்ணை உள்ளிடவும்.",
       ml: "ഈ UTR നമ്പർ ഇതിനകം ഉപയോഗിച്ചതാണ്. ദയവായി പുതിയ UTR നൽകുക.",
       mr: "हा UTR नंबर आधीच वापरला गेला आहे. कृपया नवीन पावतीवरील UTR नंबर टाका."
-    },
-    success: {
-      kn: `✓ ₹${String(amountInr).replace(/\d/g, (d) => "೦೧೨೩೪೫೬೭೮೯"[Number(d)])} ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! ನಿಮ್ಮ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...`,
-      en: `✓ ₹${amountInr} Payment verified successfully! ${amountInr >= 450 ? "Generating your Master Horoscope & Sacred Remedy PDF..." : "Your report PDF is generating..."}`,
-      hi: `✓ ₹${amountInr} भुगतान सफलतापूर्वक सत्यापित! आपकी रिपोर्ट PDF तैयार हो रही है...`,
-      te: `✓ ₹${amountInr} చెల్లింపు విజయవంతంగా ధృవీకరించబడింది! మీ PDF సిద్ధమవుతోంది...`,
-      ta: `✓ ₹${amountInr} கட்டணம் வெற்றிகரமாக சரிபார்க்கப்பட்டது! உங்கள் PDF தயாராகிறது...`,
-      ml: `✓ ₹${amountInr} പേയ്മെന്റ് വിജയകരമായി സ്ഥിരീകരിച്ചു! നിങ്ങളുടെ PDF തയ്യാറാകുന്നു...`,
-      mr: `✓ ₹${String(amountInr).replace(/\d/g, (d) => "०१२३४५६७८९"[Number(d)])} पेमेंट यशस्वीरीत्या पडताळले गेले! आपली PDF तयार होत आहे...`
     }
   };
 
-  // 1. Length validation (UPI UTR / Bank RRN must be at least 10 and at most 22 characters)
   if (cleanUtr.length < 10 || cleanUtr.length > 22) {
-    return {
-      success: false,
-      message: msgs.invalidLength[lang] || msgs.invalidLength.en
-    };
+    return { valid: false, errorMessage: msgs.invalidLength[lang] || msgs.invalidLength.en };
   }
 
-  // 2. Reject trivial / dummy test patterns
   const dummyPatterns = [
     /^0{8,}$/,
     /^1{8,}$/,
     /^9{8,}$/,
     /^12345678/,
     /^11223344/,
-    /^abcdef/,
+    /^abcdef/i,
     /^test/i
   ];
   if (dummyPatterns.some((pattern) => pattern.test(cleanUtr))) {
-    return {
-      success: false,
-      message: msgs.dummyDetected[lang] || msgs.dummyDetected.en
-    };
+    return { valid: false, errorMessage: msgs.dummyDetected[lang] || msgs.dummyDetected.en };
   }
 
-  // 3. Replay protection (prevent duplicate claiming of the same UTR across sessions)
+  // Check Firestore ledger FIRST (incognito-proof) + localStorage fallback
+  const dbUsed = await isUtrAlreadyClaimedInDb(cleanUtr);
+  if (dbUsed) {
+    return { valid: false, errorMessage: msgs.alreadyUsed[lang] || msgs.alreadyUsed.en };
+  }
+
   try {
     const rawStored = localStorage.getItem(STORAGE_KEY_PAID_UTRS);
-    const storedList: { utr: string; devotee: string; timestamp: string }[] = rawStored ? JSON.parse(rawStored) : [];
-    const alreadyUsed = storedList.find((item) => item.utr.toLowerCase() === cleanUtr.toLowerCase());
-    if (alreadyUsed) {
-      return {
-        success: false,
-        message: msgs.alreadyUsed[lang] || msgs.alreadyUsed.en
-      };
+    const storedList: { utr: string }[] = rawStored ? JSON.parse(rawStored) : [];
+    if (storedList.some((item) => item.utr.toLowerCase() === cleanUtr.toLowerCase())) {
+      return { valid: false, errorMessage: msgs.alreadyUsed[lang] || msgs.alreadyUsed.en };
     }
-  } catch (err) {
-    console.warn("[AntarangaService] LocalStorage read warning:", err);
+  } catch {}
+
+  return { valid: true, errorMessage: "" };
+}
+
+/**
+ * Legacy helper hardened against client bypass:
+ * Validates format/dummy/replay and submits as PENDING_UTR_REVIEW unless explicitly
+ * called by an authenticated Cashier/SuperAdmin (options.authorizationSource).
+ */
+export async function verifyHotelPaymentUtr(
+  rawUtr: string,
+  devoteeName: string = "Hotel Devotee",
+  amountInr: number = HOTEL_PDF_PRICE_INR,
+  lang: AntarangaLang = "kn",
+  orderId?: string,
+  packageType: HotelPackageType =
+    amountInr === 150
+      ? "palm_150"
+      : amountInr === 200
+        ? "prashna_200"
+        : amountInr === 249
+          ? "samudrika_combo_249"
+          : amountInr === 349
+            ? "trinetra_all3_349"
+            : amountInr === 149
+              ? "express_149"
+              : amountInr >= 450
+                ? "remedy_450"
+                : amountInr === 250
+                  ? "family_250"
+                  : "standard_350",
+  options?: PaymentAuthorizationOptions
+): Promise<PaymentVerificationResult> {
+  const cleanUtr = (rawUtr || "").trim().replace(/[^a-zA-Z0-9]/g, "");
+  const effectiveOrderId = orderId || `PP_ORD_${cleanUtr.slice(-6) || Date.now()}`;
+
+  if (!options?.authorizationSource) {
+    return submitHotelPaymentClaimClient({
+      orderId: effectiveOrderId,
+      tableNumber: "1",
+      hotelName: DEFAULT_HOTEL_NAME,
+      devoteeName,
+      amountInr,
+      packageType,
+      lang,
+      claimedMethod: "upi_utr",
+      rawUtr
+    });
   }
 
-  // 4. Update Firebase Firestore database for permanent financial record
-  const effectiveOrderId = orderId || `PP_ORD_${cleanUtr.slice(-6)}`;
-  try {
-    await updateHotelOrderVerified(effectiveOrderId, cleanUtr, amountInr, "UPI_UTR_MANUAL", `PAY_${cleanUtr}`);
-  } catch (dbErr) {
-    console.warn("[AntarangaService] Firestore manual UTR update warning:", dbErr);
+  const check = await validateUtrFormatAndReplay(cleanUtr, lang);
+  if (!check.valid) {
+    return { success: false, status: "REJECTED", message: check.errorMessage };
   }
 
-  // 5. Serverless API verification if online
-  try {
-    const baseUrl = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "http://localhost:5173";
-    const resp = await fetch(`${baseUrl}/api/verify-payment`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: `HOTEL_DEVOTEE_${cleanUtr.slice(-4)}`,
-        priestName: PRIEST_NAME,
-        utr: cleanUtr,
-        orderId: effectiveOrderId,
-        amountInr: amountInr,
-        coins: amountInr * 10,
-        packageKey: packageType === "remedy_450" ? "hotel_antaranga_450" : packageType === "express_149" ? "hotel_express_149" : packageType === "family_250" ? "hotel_family_250" : "hotel_antaranga_350",
-        paymentMethod: "PhonePe / GPay UPI (Hotel Table QR Instant)"
-      })
-    }).catch(() => null);
-    if (resp && resp.ok) {
-      await resp.json().catch(() => null);
-    }
-  } catch {
-    // Offline preview mode or local test environment: valid algorithmic check passes
-  }
-
-  // 6. Store verified UTR in registry
-  const verifiedRecord = {
-    utr: cleanUtr,
-    devotee: devoteeName,
-    amount: amountInr,
-    packageType,
-    timestamp: new Date().toISOString()
-  };
+  await registerClaimedUtrInDb(cleanUtr, effectiveOrderId, amountInr);
+  await approveHotelOrderByCashier({
+    orderId: effectiveOrderId,
+    approvedBy: options.approvedBy || options.authorizationSource,
+    verificationSource: options.authorizationSource,
+    utrOrReceipt: cleanUtr,
+    amountInr,
+    isQaTest: Boolean(options.isQaTest)
+  });
 
   try {
     const rawStored = localStorage.getItem(STORAGE_KEY_PAID_UTRS);
     const storedList: any[] = rawStored ? JSON.parse(rawStored) : [];
-    storedList.push(verifiedRecord);
+    storedList.push({
+      utr: cleanUtr,
+      devotee: devoteeName,
+      amount: amountInr,
+      packageType,
+      timestamp: new Date().toISOString()
+    });
     localStorage.setItem(STORAGE_KEY_PAID_UTRS, JSON.stringify(storedList));
-  } catch (err) {
-    console.warn("[AntarangaService] LocalStorage write warning:", err);
-  }
+  } catch {}
+
+  const knAmt = String(amountInr).replace(/\d/g, (d) => "೦೧೨೩೪೫೬೭೮೯"[Number(d)]);
+  const mrAmt = String(amountInr).replace(/\d/g, (d) => "०१२३४५६७८९"[Number(d)]);
+  const okMsgs: Record<AntarangaLang, string> = {
+    kn: `✓ ₹${knAmt} ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! ನಿಮ್ಮ PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ...`,
+    en: `✓ ₹${amountInr} Payment verified successfully! ${amountInr >= 450 ? "Generating your Master Horoscope & Sacred Remedy PDF..." : "Your report PDF is generating..."}`,
+    hi: `✓ ₹${amountInr} भुगतान सफलतापूर्वक सत्यापित! आपकी रिपोर्ट PDF तैयार हो रही है...`,
+    te: `✓ ₹${amountInr} చెల్లింపు విజయవంతంగా ధృవీకరించబడింది! మీ PDF సిద్ధమవుతోంది...`,
+    ta: `✓ ₹${amountInr} கட்டணம் வெற்றிகரமாக சரிபார்க்கப்பட்டது! உங்கள் PDF தயாராகிறது...`,
+    ml: `✓ ₹${amountInr} പേയ്മെന്റ് വിജയകരമായി സ്ഥിരീകരിച്ചു! നിങ്ങളുടെ PDF തയ്യാറാകുന്നു...`,
+    mr: `✓ ₹${mrAmt} पेमेंट यशस्वीरीत्या पडताळले गेले! आपली PDF तयार होत आहे...`
+  };
 
   return {
     success: true,
-    message: msgs.success[lang] || msgs.success.en,
+    status: "VERIFIED",
+    message: okMsgs[lang] || okMsgs.en,
     transactionId: `TXN_${cleanUtr}`,
-    verifiedAt: verifiedRecord.timestamp,
+    verifiedAt: new Date().toISOString(),
     amountInr,
     packageType
   };

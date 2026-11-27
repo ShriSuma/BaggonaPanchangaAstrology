@@ -307,46 +307,71 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
     });
   });
 
-  describe("4. Frictionless 1-Tap Auto-Verification with Multi-Price Support", () => {
-    it("verifies ₹350 payment in 1 click and updates Firestore", async () => {
+  describe("4. Strict Zero-Hack Authorization vs Authorized Cashier / QA Verification", () => {
+    it("blocks unauthenticated public 1-tap instant unlock attempts while allowing authorized Cashier/SuperAdmin approval", async () => {
       const orderId = "PP_T3_FAST350";
-      const res = await verifyHotelPaymentInstant(orderId, "Pramod", 350, "kn", "standard_350");
+
+      // 1. Public unauthenticated caller MUST be rejected (zero free bypass!)
+      const unauthorizedAttempt = await verifyHotelPaymentInstant(orderId, "Pramod", 350, "kn", "standard_350");
+      expect(unauthorizedAttempt.success).toBe(false);
+      expect(unauthorizedAttempt.status).toBe("REJECTED");
+
+      const fsUnpaid = await verifyHotelOrderPayment(orderId, 350);
+      expect(fsUnpaid.verified).toBe(false);
+
+      // 2. Authorized Cashier / Gateway confirmation succeeds & unlocks in Firestore
+      const res = await verifyHotelPaymentInstant(orderId, "Pramod", 350, "kn", "standard_350", {
+        authorizationSource: "CASHIER_DESK",
+        approvedBy: "ShriSuma"
+      });
 
       expect(res.success).toBe(true);
       expect(res.transactionId).toBe(`TXN_${orderId}`);
       expect(res.message).toContain("₹೩೫೦");
       expect(res.amountInr).toBe(350);
 
-      const fsCheck = await verifyHotelOrderPayment(orderId, 350);
+      const fsCheck = await verifyHotelOrderPayment(orderId, 350, "standard_350");
       expect(fsCheck.verified).toBe(true);
     });
 
-    it("verifies ₹450 remedy package payment in 1 click and mentions sacred remedy", async () => {
+    it("verifies ₹450 remedy package with Super Admin QA / Cashier authorization and mentions sacred remedy", async () => {
       const orderId = "PP_T3_FAST450";
-      const res = await verifyHotelPaymentInstant(orderId, "Pramod", 450, "kn", "remedy_450");
+      const res = await verifyHotelPaymentInstant(orderId, "Pramod", 450, "kn", "remedy_450", {
+        authorizationSource: "SUPERADMIN_QA_TEST",
+        approvedBy: "ShriSuma",
+        isQaTest: true
+      });
 
       expect(res.success).toBe(true);
-      expect(res.transactionId).toBe(`TXN_${orderId}`);
+      expect(res.transactionId).toBe(`QA_${orderId}`);
       expect(res.message).toContain("₹೪೫೦");
       expect(res.message).toContain("ದೈವಿಕ ಪರಿಹಾರ");
       expect(res.amountInr).toBe(450);
 
-      const fsCheck = await verifyHotelOrderPayment(orderId, 450);
+      const fsCheck = await verifyHotelOrderPayment(orderId, 450, "remedy_450");
       expect(fsCheck.verified).toBe(true);
     });
   });
 
-  describe("5. Accurate 12-Digit UTR Payment Verification & Security Checks", () => {
-    it("accepts a valid 12-digit UPI UTR number and generates localized success messages for ₹350 and ₹450", async () => {
+  describe("5. Accurate 12-Digit UTR Payment Verification, Pending Claims & Security Checks", () => {
+    it("places unverified manual UTR submissions into PENDING_UTR_REVIEW and unlocks ONLY after Cashier confirmation", async () => {
       const validUtr = "402319854721";
-      const resultKn = await verifyHotelPaymentUtr(validUtr, "Pramod", 350, "kn");
+      const claimRes = await verifyHotelPaymentUtr(validUtr, "Pramod", 350, "kn", "ORD_CLAIM_350", "standard_350");
 
-      expect(resultKn.success).toBe(true);
-      expect(resultKn.message).toContain("₹೩೫೦ ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ");
+      // Public browser submission must NOT self-unlock PDFs
+      expect(claimRes.success).toBe(false);
+      expect(claimRes.pendingVerification).toBe(true);
+      expect(claimRes.status).toBe("PENDING_UTR_REVIEW");
 
-      // Test ₹450 with remedy in English
+      const beforeApprove = await verifyHotelOrderPayment("ORD_CLAIM_350", 350, "standard_350");
+      expect(beforeApprove.verified).toBe(false);
+
+      // Cashier-confirmed UTR (₹450 remedy) unlocks cleanly in English
       const validUtr450 = "402319854722";
-      const resultEn = await verifyHotelPaymentUtr(validUtr450, "Pramod", 450, "en", undefined, "remedy_450");
+      const resultEn = await verifyHotelPaymentUtr(validUtr450, "Pramod", 450, "en", "ORD_CASHIER_450", "remedy_450", {
+        authorizationSource: "CASHIER_DESK",
+        approvedBy: "ShriSuma"
+      });
       expect(resultEn.success).toBe(true);
       expect(resultEn.message).toContain("₹450 Payment verified successfully");
       expect(resultEn.message).toContain("Remedy");
@@ -379,13 +404,14 @@ describe("Hotel Table Antarangada Satya & QR Payment Architecture Audit (7 Langu
     it("prevents replay attacks by rejecting already claimed duplicate UTRs across languages", async () => {
       const uniqueUtr = "509823417632";
 
-      // First claim should succeed
+      // First claim registers PENDING_UTR_REVIEW & reserves UTR
       const firstAttempt = await verifyHotelPaymentUtr(uniqueUtr, "Pramod", 350, "kn");
-      expect(firstAttempt.success).toBe(true);
+      expect(firstAttempt.pendingVerification).toBe(true);
 
-      // Second attempt with exact same UTR must be rejected
+      // Second attempt with exact same UTR must be rejected as already claimed
       const secondAttempt = await verifyHotelPaymentUtr(uniqueUtr, "Another User", 350, "en");
       expect(secondAttempt.success).toBe(false);
+      expect(secondAttempt.status).toBe("REJECTED");
       expect(secondAttempt.message).toContain("This UTR has already been claimed");
     });
   });

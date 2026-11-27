@@ -17,6 +17,8 @@ import { pick7, type SevenLang } from "../../services/sampoornaMaster25Locale7L"
 const LS_DEVICE_FP_KEY = "baggona_hotel_device_fp_v1";
 const LS_FREE_CLAIMED_KEY = "baggona_hotel_qr_free_claimed_v1";
 const LS_FREE_CLAIMED_SIGS_KEY = "baggona_hotel_qr_free_sigs_v1";
+const SS_FREE_CLAIMED_KEY = "baggona_hotel_qr_free_ss_v1";
+const SS_FREE_CLAIMED_SIGS_KEY = "baggona_hotel_qr_free_sigs_ss_v1";
 const memoryLocalFallback = new Map<string, HotelFreeUsageDoc>();
 
 export interface HotelPersonSignatureInput {
@@ -110,7 +112,7 @@ function buildBrowserFingerprint(): string {
   try {
     const existing = window.localStorage.getItem(LS_DEVICE_FP_KEY);
     if (existing) return existing;
-  } catch {}
+  } catch { }
 
   const rawSignals = [
     typeof navigator !== "undefined" ? navigator.userAgent : "ua",
@@ -127,7 +129,7 @@ function buildBrowserFingerprint(): string {
   const fp = `dev_${hash.toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
   try {
     window.localStorage.setItem(LS_DEVICE_FP_KEY, fp);
-  } catch {}
+  } catch { }
   return fp;
 }
 
@@ -195,6 +197,7 @@ export async function resolveClientNetworkAndDeviceIdentity(options?: {
 export async function checkHotelFreePreviewQuota(params: {
   isPaymentVerified: boolean;
   isPaidFamilyUpsell?: boolean;
+  familyPreviewCreditsRemaining?: number;
   overrideIp?: string;
   overrideDeviceId?: string;
   personSignature?: HotelPersonSignatureInput;
@@ -212,8 +215,11 @@ export async function checkHotelFreePreviewQuota(params: {
   });
   const sigDocIds = buildPersonDetailsDocIds(params.personSignature);
 
-  // Never block paid users or PDF generation / re-downloads
-  if (params.isPaymentVerified || params.isPaidFamilyUpsell) {
+  // Never block paid users or verified 1-time family upsell preview credits
+  const hasFamilyCredit =
+    Boolean(params.isPaidFamilyUpsell) &&
+    (params.familyPreviewCreditsRemaining === undefined || params.familyPreviewCreditsRemaining > 0);
+  if (params.isPaymentVerified || hasFamilyCredit) {
     return {
       allowed: true,
       alreadyUsed: false,
@@ -222,7 +228,7 @@ export async function checkHotelFreePreviewQuota(params: {
     };
   }
 
-  // 1. Check same-person / same-details signature ledger first (in-memory & localStorage)
+  // 1. Check same-person / same-details signature ledger first (in-memory, sessionStorage & localStorage)
   for (const sigId of sigDocIds) {
     if (memoryLocalFallback.has(sigId)) {
       return {
@@ -236,27 +242,32 @@ export async function checkHotelFreePreviewQuota(params: {
     }
   }
   if (typeof window !== "undefined" && sigDocIds.length > 0) {
-    try {
-      const rawSigs = window.localStorage.getItem(LS_FREE_CLAIMED_SIGS_KEY);
-      if (rawSigs) {
-        const sigMap = JSON.parse(rawSigs) as Record<string, HotelFreeUsageDoc>;
-        for (const sigId of sigDocIds) {
-          if (sigMap?.[sigId]?.firstUsedAt) {
-            return {
-              allowed: false,
-              alreadyUsed: true,
-              reason: "same_person_or_details",
-              ip: identity.ip,
-              deviceId: identity.deviceId,
-              priorRecord: sigMap[sigId]
-            };
+    for (const [storageObj, keyName] of [
+      [window.localStorage, LS_FREE_CLAIMED_SIGS_KEY],
+      [window.sessionStorage, SS_FREE_CLAIMED_SIGS_KEY]
+    ] as const) {
+      try {
+        const rawSigs = storageObj.getItem(keyName);
+        if (rawSigs) {
+          const sigMap = JSON.parse(rawSigs) as Record<string, HotelFreeUsageDoc>;
+          for (const sigId of sigDocIds) {
+            if (sigMap?.[sigId]?.firstUsedAt) {
+              return {
+                allowed: false,
+                alreadyUsed: true,
+                reason: "same_person_or_details",
+                ip: identity.ip,
+                deviceId: identity.deviceId,
+                priorRecord: sigMap[sigId]
+              };
+            }
           }
         }
-      }
-    } catch {}
+      } catch { }
+    }
   }
 
-  // 2. Check IP & device in-memory & localStorage mirror
+  // 2. Check IP & device in-memory, localStorage & sessionStorage mirror
   if (identity.ipDocId && memoryLocalFallback.has(identity.ipDocId)) {
     return {
       allowed: false,
@@ -279,22 +290,31 @@ export async function checkHotelFreePreviewQuota(params: {
   }
 
   if (typeof window !== "undefined") {
-    try {
-      const raw = window.localStorage.getItem(LS_FREE_CLAIMED_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as HotelFreeUsageDoc;
-        if (parsed?.firstUsedAt) {
-          return {
-            allowed: false,
-            alreadyUsed: true,
-            reason: "ip_or_device",
-            ip: identity.ip,
-            deviceId: identity.deviceId,
-            priorRecord: parsed
-          };
+    for (const [storageObj, keyName] of [
+      [window.localStorage, LS_FREE_CLAIMED_KEY],
+      [window.sessionStorage, SS_FREE_CLAIMED_KEY]
+    ] as const) {
+      try {
+        const raw = storageObj.getItem(keyName);
+        if (raw) {
+          const parsed = JSON.parse(raw) as HotelFreeUsageDoc;
+          const sameDeviceOrRealSession =
+            !params.overrideDeviceId ||
+            !parsed?.deviceId ||
+            parsed.deviceId === identity.deviceId;
+          if (parsed?.firstUsedAt && sameDeviceOrRealSession) {
+            return {
+              allowed: false,
+              alreadyUsed: true,
+              reason: "ip_or_device",
+              ip: identity.ip,
+              deviceId: identity.deviceId,
+              priorRecord: parsed
+            };
+          }
         }
-      }
-    } catch {}
+      } catch { }
+    }
   }
 
   // 3. Check cross-session IP + Device + Person-Signature ledger in Firestore
@@ -358,17 +378,22 @@ export async function markHotelFreePreviewConsumed(params: {
     memoryLocalFallback.set(id, record);
   }
   if (typeof window !== "undefined") {
-    try {
-      window.localStorage.setItem(LS_FREE_CLAIMED_KEY, JSON.stringify(record));
-      if (sigDocIds.length > 0) {
-        const prevRaw = window.localStorage.getItem(LS_FREE_CLAIMED_SIGS_KEY);
-        const prevMap = prevRaw ? (JSON.parse(prevRaw) as Record<string, HotelFreeUsageDoc>) : {};
-        for (const sigId of sigDocIds) {
-          prevMap[sigId] = { ...record, key: sigId };
+    for (const [claimedKey, sigsKey, storageObj] of [
+      [LS_FREE_CLAIMED_KEY, LS_FREE_CLAIMED_SIGS_KEY, window.localStorage],
+      [SS_FREE_CLAIMED_KEY, SS_FREE_CLAIMED_SIGS_KEY, window.sessionStorage]
+    ] as const) {
+      try {
+        storageObj.setItem(claimedKey, JSON.stringify(record));
+        if (sigDocIds.length > 0) {
+          const prevRaw = storageObj.getItem(sigsKey);
+          const prevMap = prevRaw ? (JSON.parse(prevRaw) as Record<string, HotelFreeUsageDoc>) : {};
+          for (const sigId of sigDocIds) {
+            prevMap[sigId] = { ...record, key: sigId };
+          }
+          storageObj.setItem(sigsKey, JSON.stringify(prevMap));
         }
-        window.localStorage.setItem(LS_FREE_CLAIMED_SIGS_KEY, JSON.stringify(prevMap));
-      }
-    } catch {}
+      } catch { }
+    }
   }
   await saveHotelFreeUsageRecord(docIds, record);
   return record;
@@ -377,6 +402,14 @@ export async function markHotelFreePreviewConsumed(params: {
 export function clearTestHotelQuotaMemory(): void {
   memoryLocalFallback.clear();
   cachedPublicIp = null;
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.removeItem(LS_FREE_CLAIMED_KEY);
+      window.localStorage.removeItem(LS_FREE_CLAIMED_SIGS_KEY);
+      window.sessionStorage.removeItem(SS_FREE_CLAIMED_KEY);
+      window.sessionStorage.removeItem(SS_FREE_CLAIMED_SIGS_KEY);
+    } catch { }
+  }
 }
 
 export function getFreeQuotaExhaustedMessage(
