@@ -43,15 +43,15 @@ import {
   getDeterministicSeparatePersonNoticeReply,
   formatRulingsLedgerForPrompt,
   buildConsultationRulingsLedger,
-  PROMPT_SANSTHANA_BY_LANG,
-  PROMPT_GOKARNA_BY_LANG,
-  PROMPT_VOCATIVE_BY_LANG,
-  sanitizePromptForTargetLanguage,
-  guardAndCleanGeminiScript,
   detectAndResolveUltaPaltaProbe,
   verifyAndHarmonizeWithPreviousAnswers,
   buildLocalizedAstroHighlights
 } from "./consultationAIEngine";
+import {
+  detectIsAskingProofOrReason,
+  detectShadowPresenceFear,
+  detectDirectChartOpenEndedRequest
+} from "./consultationDomainReadings";
 import { askGemini, type AskGeminiChatTurn } from "../../core/GeminiEngine";
 import { useAppStore } from "../../stores/appStore";
 import {
@@ -134,6 +134,8 @@ function localizeAstroParam(
 export type ConsultationQuestionCategory =
   | "SECURITY_SYSTEM_PROBE_BLOCKED"
   | "FAMILY_MEMBER_SEPARATE_LINK_REDIRECT"
+  | "TIMING_PROOF_RATIONALE"
+  | "SHADOW_PRESENCE_FEAR"
   | "ABROAD_VS_INDIA_SETTLEMENT"
   | "PROPERTY_ASSET_ACQUISITION"
   | "GOVERNMENT_JOB_AUTHORITY"
@@ -220,6 +222,45 @@ export function senseAndCategorizeQuestion(
       categoryLabel: "ಕುಟುಂಬ ಸದಸ್ಯರ ಪ್ರತ್ಯೇಕ ಜಾತಕ ಲಿಂಕ್ ನಿರ್ದೇಶನ (Dedicated Family Member Consultation Link)",
       detectedTopicSnippet: "Separate Family Member Birth Data Request",
       priestPersonaTone: "compassionate_grounding"
+    };
+  }
+
+  // 1.56. Astrological Proof / "How Are You Sure About This Timeline?" Follow-Up
+  if (detectIsAskingProofOrReason(q)) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "TIMING_PROOF_RATIONALE",
+      categoryLabel: "ಜಾತಕ ಪ್ರಮಾಣ & ದಶಾ-ಗೋಚಾರ ವಿಶ್ಲೇಷಣೆ (Astrological Timeline Proof & Basis)",
+      detectedTopicSnippet: "Astrological Proof / Timeline Rationale",
+      priestPersonaTone: "erudite_scholar"
+    };
+  }
+
+  // 1.57. Unseen Presence / Shadow / "Someone Is Roaming Around Me" Fear Query
+  if (detectShadowPresenceFear(q)) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "SHADOW_PRESENCE_FEAR",
+      categoryLabel: "ಮನಸ್ಸು-ಚಂದ್ರ, ಛಾಯಾ ಗ್ರಹ & ದೈವ ರಕ್ಷಣೆ (Chandra-Rahu Sensitivity & Peace)",
+      detectedTopicSnippet: "Shadow / Presence Sensitivity",
+      priestPersonaTone: "compassionate_grounding"
+    };
+  }
+
+  // 1.58. Direct Chart Reading Request ("Neenu helu alli naanu gothilla" / "You tell me")
+  if (detectDirectChartOpenEndedRequest(q)) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "ASTROLOGICAL_DEEP",
+      categoryLabel: "ನೇರ ಜಾತಕ ಹಾಗೂ ದಶಾ ಅವಲೋಕನ (Direct Kundli & Dasha Reading)",
+      detectedTopicSnippet: "Direct Open-Ended Chart Overview",
+      priestPersonaTone: "divine_oracle"
     };
   }
 
@@ -433,8 +474,8 @@ export function senseAndCategorizeQuestion(
 
   // 9. Career, Work, Profession, Business & Financial Frustration / Roadblocks
   const isCareerFrustration =
-    // Kannada career & frustration patterns
-    /(ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ವ್ಯಾಪಾರ|ಬಡ್ತಿ|ಸಂಬಳ|ಹಣಕಾಸು|ಸಾಲ).*(ಕಿರಿಕಿರಿ|ಬೇಸರ|ಹತಾಶೆ|ಸಮಸ್ಯೆ|ತೊಂದರೆ|ನಷ್ಟ|ವಿಳಂಬ|ಯಾಕೆ|ಕಾರಣ|ಆಗ್ತಿಲ್ಲ|ಫ್ರಸ್ಟ್ರೇಷನ್|ಶಾಂತಿ ಇಲ್ಲ|ಅಡೆತಡೆ|ಆತಂಕ)/i.test(
+    // Kannada & Kanglish career & frustration patterns
+    /(ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ವ್ಯಾಪಾರ|ಬಡ್ತಿ|ಸಂಬಳ|ಹಣಕಾಸು|ಸಾಲ|kelasa|udyoga|salary|promotion|badthi).*(ಕಿರಿಕಿರಿ|ಬೇಸರ|ಹತಾಶೆ|ಸಮಸ್ಯೆ|ತೊಂದರೆ|ನಷ್ಟ|ವಿಳಂಬ|ಯಾಕೆ|ಕಾರಣ|ಆಗ್ತಿಲ್ಲ|ಫ್ರಸ್ಟ್ರೇಷನ್|ಶಾಂತಿ ಇಲ್ಲ|ಅಡೆತಡೆ|ಆತಂಕ|problem|issue|illa|agthilla|delay)/i.test(
       q
     ) ||
     /(ಕಿರಿಕಿರಿ|ಬೇಸರ|ಹತಾಶೆ|ಫ್ರಸ್ಟ್ರೇಷನ್).*(ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ವ್ಯಾಪಾರ|ಜೀವನ)/i.test(q) ||
@@ -621,7 +662,7 @@ export function senseAndCategorizeQuestion(
 
   // 14d. Debt Relief & Financial Revival
   const isDebtRelief =
-    /ಸಾಲ ಮುಕ್ತಿ|ಸಾಲ ತೀರಿಸ|ಸಾಲದ ಬಾಧೆ|ಸಾಲ ಯಾವಾಗ ತೀರುತ್ತೆ|ಸಾಲದಿಂದ ಮುಕ್ತಿ|ಸಾಲದ ಹೊರೆ|ಹೊಸ ಸಾಲ|debt relief|clear debt|pay off loan|clear loans|clear emis|debt free|loan repayment|overcome debt|fresh loan|another loan|कर्ज मुक्ति|ऋण मुक्ति|कर्ज से छुटकारा|नया कर्ज|కొత్త అప్పు|రుణ విముక్తి|అప్పులు తీరడం|கடன் நிவாரணம்|கடன் தீர|புதிய கடன்|കടബാധ്യത മുക്തി|പുതിയ കടം|कर्जमुक्ती|नवीन कर्ज/i.test(
+    /ಸಾಲ ಮುಕ್ತಿ|ಸಾಲ ತೀರಿಸ|ಸಾಲದ ಬಾಧೆ|ಸಾಲ ಬಾಧೆ|ಸಾಲ ಯಾವಾಗ ತೀರುತ್ತೆ|ಸಾಲದಿಂದ ಮುಕ್ತಿ|ಸಾಲದ ಹೊರೆ|ಹೊಸ ಸಾಲ|sala bade|sala badhe|sala mukti|saala|debt relief|clear debt|pay off loan|clear loans|clear emis|debt free|loan repayment|overcome debt|fresh loan|another loan|कर्ज मुक्ति|ऋण मुक्ति|कर्ज से छुटकारा|नया कर्ज|కొత్త అప్పు|రుణ విముక్తి|అప్పులు తీరడం|கடன் நிவாரணம்|கடன் தீர|புதிய கடன்|കടബാധ്യത മുക്തി|പുതിയ കടം|कर्जमुक्ती|नवीन कर्ज/i.test(
       q
     );
 
@@ -803,8 +844,7 @@ export async function presentConsultationReply(params: {
   const ultaPaltaReply = detectAndResolveUltaPaltaProbe(
     userQuestion,
     session.rulingsLedger,
-    session.language,
-    (conversationHistory || []).map((t) => t.text).join("\n")
+    session.language
   );
   if (ultaPaltaReply) {
     const ultaInfluences: Record<ConsultationLanguage, string[]> = {
@@ -832,9 +872,11 @@ export async function presentConsultationReply(params: {
     };
   }
 
-  // If question is pure deep astrological, career frustration, child inquiry, Santhana, abroad settlement, property, govt job, business, debt, legal, health, or exams, delegate directly to the deep chart math engine
+  // If question is pure deep astrological, proof-seeking, shadow presence sensitivity, career frustration, child inquiry, Santhana, abroad settlement, property, govt job, business, debt, legal, health, or exams, delegate directly to the deep chart math engine
   if (
     sensed.category === "ASTROLOGICAL_DEEP" ||
+    sensed.category === "TIMING_PROOF_RATIONALE" ||
+    sensed.category === "SHADOW_PRESENCE_FEAR" ||
     sensed.category === "CAREER_FRUSTRATION_DISTRESS" ||
     sensed.category === "CHILD_PARENT_INQUIRY" ||
     sensed.category === "SANTHANA_PROGENY_SENSITIVE" ||
@@ -930,37 +972,19 @@ export async function presentConsultationReply(params: {
     });
   } else {
     try {
-      const sanitizedPresenterPrompt = sanitizePromptForTargetLanguage(presenterPrompt, sessionLang);
-      const rawGeminiReply = await askGemini(
+      responseText = await askGemini(
         userQuestion,
-        sanitizedPresenterPrompt,
+        presenterPrompt,
         effectiveApiKey,
         session.language,
         {
           raw: true,
-          temperature: 0.25,
+          temperature: 0.35,
           retries: 3,
           retryDelay: 2000,
           conversationHistory
         }
       );
-      const checked = guardAndCleanGeminiScript(rawGeminiReply, sessionLang);
-      if (checked.ok) {
-        responseText = checked.sanitized;
-      } else {
-        console.warn(`[consultationPresenterEngine] Rejecting off-language Gemini reply for ${sessionLang}, engaging specialized fallback.`);
-        responseText = generateSpecializedFallbackReply({
-          session,
-          userQuestion,
-          sensed,
-          lagnaName,
-          moonRashi,
-          nakshatra,
-          currentDashaText,
-          isSubsequentQuestion,
-          questionIndex
-        });
-      }
     } catch (err) {
       console.warn(
         "[consultationPresenterEngine] Gemini call failed, engaging specialized deterministic fallback:",
@@ -1168,7 +1192,7 @@ The devotee has asked an inappropriate, vulgar, or taboo question:
 - PRIEST PROTOCOL:
   1. Maintain unshakable saintly serenity and dignified fatherly purity.
   2. Strictly DO NOT show anger, disgust, or use vulgar/harsh language.
-  3. With compassionate paternal authority, remind them of the serene holiness of ${PROMPT_GOKARNA_BY_LANG[session.language || "kn"] || "Sri Kshetra Gokarna"} and the dignity of human birth.
+  3. With compassionate paternal authority, remind them of the sacred sanctum of Sri Kshetra Gokarna and the dignity of human birth.
   4. Explain gently that chasing temporary lustful illusions and digital distractions weakens mental clarity, self-esteem, and Dharma.
   5. Encourage them to practice self-discipline (ಇಂದ್ರಿಯ ನಿಗ್ರಹ) and recommend reciting the sacred Shiva Panchakshari or Gayatri mantra to steady the mind.`;
       break;
@@ -1222,7 +1246,7 @@ SPECIFIC GUIDANCE FOR GREETING & GENERAL BLESSING:
   }
 
   return `You are the revered Centenary Sage-Astrologer & Chief Peethadhipati of Sri Baggona Panchanga Jyotishya Sansthana, Sri Kshetra Gokarna (ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪರಂಪರೆಯ ಶತಾಯುಷಿ ದೈವಜ್ಞರು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ), carrying the living grace and calm clarity of over 100 years of unbroken Vedic Parampara wisdom and pastoral counsel.
-The devotee is sitting right across from you face-to-face at ${PROMPT_GOKARNA_BY_LANG[session.language || "kn"] || "Sri Kshetra Gokarna"} for a private 20-minute spiritual conversation. Speak like a deeply wise, serene elder sage: warm, unhurried, neat, deeply reassuring, and 100% focused on the devotee's real well-being.
+The devotee is sitting right across from you face-to-face in the sacred sanctum of Gokarna for a private 20-minute spiritual conversation. Speak like a deeply wise, serene elder sage: warm, unhurried, neat, deeply reassuring, and 100% focused on the devotee's real well-being.
 
 ${NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE}
 
@@ -1271,20 +1295,19 @@ SACRED BEHAVIORAL PROTOCOL (THE 100+ YEAR EXPERIENCED GOKARNA MASTER SAGE - "DAI
    - If silly/playful questions are asked, answer with witty details and fatherly warmth, then warmly invite them to their real life questions.
    - If career or life trouble is asked, connect emotionally, give exact astrological reasons, and guide them out of it.
 3. SACRED INSTITUTION:
-   - Anchor your guidance cleanly in ${targetLang} using ONLY the authentic institution & sanctum names "${PROMPT_SANSTHANA_BY_LANG[session.language || "kn"] || "Sri Baggona Panchanga"}" and "${PROMPT_GOKARNA_BY_LANG[session.language || "kn"] || "Sri Kshetra Gokarna"}".
-   - Address the devotee in natural idiomatic ${targetLang} (e.g. "${PROMPT_VOCATIVE_BY_LANG[session.language || "kn"] || "Dear"}"), NEVER copying words or transliterations from any other Indian language.
-4. LANGUAGE REQUIREMENT (STRICT - ZERO SCRIPT MIXING):
-   - You MUST respond 100% EXCLUSIVELY in the ${targetLang} language using its native script. Even a single character from another Indian script is strictly forbidden.
+   - Anchor your guidance in the traditions of Sri Baggona Panchanga (ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ) and Sri Kshetra Gokarna (ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ).
+4. LANGUAGE REQUIREMENT:
+   - You MUST respond 100% EXCLUSIVELY in the ${targetLang} language using its native script.
    - Absolutely NO Latin transliteration or mixed English words in Indian languages.
 5. TEXT-TO-SPEECH DELIVERY:
    - Do NOT use markdown symbols like * or # as this text will be read aloud by the priest neural voice engine. Provide clean, flowing spoken paragraphs.
 6. ONGOING CONVERSATION FLOW (NO REPEATED GREETINGS):
    - The opening welcome and introduction have ALREADY been delivered at the start of this 20-minute consultation.
    - Directly, respectfully, and compassionately answer this specific question as an ongoing, continuous face-to-face dialogue.
-7. DIRECT WARM GUIDANCE & CONVERSATIONAL HOOK:
+7. DIRECT WARM GUIDANCE & STRICT QUESTION FOCUS:
    - Give the direct conclusion and verdict warmly in Paragraph 1 with fatherly care, avoiding unnecessary robotic delay.
    - Keep each response concise (2 to 3 flowing paragraphs of 3 to 4 lines each). Never produce dense, academic walls of text!
-   - ALWAYS conclude with a warm, caring personal question inviting the devotee to share their next thought or inquiry (e.g. "ಮಗುವೇ, ಈ ವಿಷಯದಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಬೇರೇನಾದರೂ ಗೊಂದಲವಿದೆಯೇ? ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ.").
+   - Answer ONLY the exact question the devotee asked directly and completely. Do NOT ask unrelated counter-questions or invent related questions back at the end of your reply.
 8. STRICT BAN ON ROBOTIC / AI TERMS:
    - Absolutely NEVER mention 'ChatGPT', 'Gemini', 'AI algorithm', 'NASA JPL', 'statistical percentage', or 'speech synthesis'.
    - Speak 100% as the living, revered Chief Priest Sri Shreeram Pandit of Sri Kshetra Gokarna.${isSubsequentQuestion
@@ -1825,33 +1848,33 @@ export function generateSpecializedFallbackReply(params: {
       }
       if (isHi) {
         if (isSubsequent) {
-          return `यात्रा के संदर्भ में ("${userQuestion}"), पंचांग के अनुसार राहुकाल को टालकर शुभ चौघड़िया या अभिजीत मुहूर्त में ही प्रस्थान करना अत्यंत मंगलकारी होता है। जैसे शांत प्रभात में दीपक जलाकर कार्य आरंभ करने से मन स्थिर रहता है, वैसे ही दाहिना पैर आगे रखकर घर से निकलें।\n\nवाहन चलाने अथवा सफर आरंभ करने से पूर्व श्री महागणपति और अपने कुलदेवता का हृदय से स्मरण करें। मार्ग में अनावश्यक जल्दबाजी या क्रोध से बचें और धैर्यपूर्वक चलें; ईश्वरीय कृपा से आपकी यह यात्रा पूर्णतः सुरक्षित एवं सफल सिद्ध होगी।`;
+          return `यात्रा के संदर्भ में ("${userQuestion}"), राहुकाल को टालकर शुभ समय में प्रस्थान करें। यात्रा आरंभ करते समय श्री गणेश जी और कुलदेवता का स्मरण करें। यात्रा मंगलमय होगी।`;
         }
-        return `हरि ॐ ${session.name} जी! श्री क्षेत्र गोकर्ण के पावन सान्निध्य से भगवान महाबलेश्वर एवं महागणपति का आशीर्वाद आपकी आगामी यात्रा को सुखद एवं सुरक्षित बनाए।\n\nयात्रा प्रारंभ करने से पूर्व उस दिन का राहुकाल अवश्य देख लें और राहुकाल बीत जाने के बाद ही दाहिना पैर आगे रखकर घर से निकलें। सफर में धैर्य और शांति बनाए रखें; श्री महागणपति की कृपा से आपकी यात्रा मंगलमय और सफल होगी।`;
+        return `हरि ॐ ${session.name} जी! आपकी आगामी यात्रा सुखद और सुरक्षित रहे। राहुकाल से बचकर शुभ समय में दाहिना पैर आगे रखकर घर से निकलें। श्री महागणपति का स्मरण करें; यात्रा सफल होगी।`;
       }
       if (isTe) {
         if (isSubsequent) {
-          return `ప్రయాణం గురించి ("${userQuestion}"), పంచాంగ రీత్యా ఆ రోజు రాహుకాలాన్ని నివారించి శుభ సమయంలో బయలుదేరడం శ్రేయస్కరం. ప్రశాంతమైన మనస్సుతో కుడికాలు ముందు పెట్టి ఇంటి నుండి బయలుదేరడం వల్ల మార్గంలో ఆటంకాలు తొలగుతాయి.\n\nవాహనం నడిపే ముందు శ్రీ మహాగణపతిని మరియు మీ కులదైవాన్ని భక్తితో స్మరించుకోండి. రోడ్డుపై అనవసరమైన తొందరపాటు లేదా ఆవేశం లేకుండా సంయమనంతో వెళ్ళండి; దైవానుగ్రహంతో మీ ప్రయాణం సురక్షితంగా మరియు విజయవంతంగా సాగుతుంది.`;
+          return `ప్రయాణం గురించి ("${userQuestion}"), రాహుకాలాన్ని నివారించి శుభ సమయంలో బయలుదేరండి. బయలుదేరే ముందు వినాయకుడిని స్మరించుకోండి. ప్రయాణం క్షేమంగా సాగుతుంది.`;
         }
-        return `హరి ఓం ${session.name} గారు! శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి ఆశీస్సులతో మీ ప్రయాణం సురక్షితంగా జరగాలని కోరుకుంటున్నాను.\n\nబయలుదేరే ముందు రాహుకాలం విడిచిపెట్టి శుభ ముహూర్తంలో కుడికాలు ముందు పెట్టి ప్రయాణం ప్రారంభించండి. వాహనంపై సంయమనం పాటించండి; సకల శుభాలు కలుగుతాయి.`;
+        return `హరి ఓం ${session.name} గారు. మీ ప్రయాణం సురక్షితంగా జరగాలని ఆశీర్వదిస్తున్నాను. శుభ ముహూర్తంలో బయలుదేరి శ్రీ గణపతిని ప్రార్థించండి; సకల శుభాలు కలుగుతాయి.`;
       }
       if (isTa) {
         if (isSubsequent) {
-          return `உங்கள் பயணம் குறித்து ("${userQuestion}"), பஞ்சாங்கப்படி நாளை பயணத்தைத் தொடங்கும் முன் அன்றைய ராகு காலத்தைத் தவிர்த்து சுப நேரத்தில் புறப்படுவது மிகவும் சிறந்தது. அமைதியான பிரார்த்தனையுடன் வலது காலை முன்வைத்து வீட்டிலிருந்து கிளம்புங்கள்.\n\nவாகனம் எடுக்கும் முன் ஸ்ரீ மகாகணபதியையும் உங்கள் குலதெய்வத்தையும் மனதார நினைத்துப் புறப்படுங்கள். சாலையில் அவசரமின்றி நிதானமாகப் பயணம் செய்யுங்கள்; இறையருளால் உங்கள் பயணம் இனிதாகவும் வெற்றிகரமாகவும் அமையும்.`;
+          return `பயணம் குறித்து ("${userQuestion}"), ராகு காலத்தைத் தவிர்த்து நல்ல நேரத்தில் புறப்படுங்கள். விநாயகரை வழிபட்டு செல்லுங்கள்; பயணம் இனிதாக அமையும்.`;
         }
-        return `ஹரி ஓம் ${session.name}. ஸ்ரீ க்ஷேத்ர கோகர்ண மகாகணபதி அருளால் உங்கள் பயணம் பாதுகாப்பாகவும் மகிழ்ச்சியாகவும் அமையட்டும்.\n\nராகு காலம் தவிர்த்து நல்ல நேரத்தில் வலது காலை முன்வைத்துப் புறப்படுங்கள்; நிதானத்துடன் பயணித்தால் அனைத்தும் வெற்றியாகும்.`;
+        return `ஹரி ஓம் ${session.name}. உங்கள் பயணம் இனிதாகவும் பாதுகாப்பாகவும் அமையட்டும். நல்ல நேரத்தில் வலது காலை முன்வைத்து புறப்படுங்கள். கோகர்ண கணபதி துணை நிற்பார்.`;
       }
       if (isMl) {
         if (isSubsequent) {
-          return `നിങ്ങളുടെ യാത്രയെക്കുറിച്ച് ("${userQuestion}"), പഞ്ചാംഗപ്രകാരം നാളെ യാത്ര തിരിക്കുന്നതിന് മുൻപ് ആ ദിവസത്തെ രാഹുകാലം ഒഴിവാക്കി ശുഭസമയത്ത് പുറപ്പെടുന്നതാണ് ഉത്തമം. മനസ്സിൽ പ്രാർത്ഥനയോടെ വലതുകാൽ മുൻപോട്ട് വെച്ച് വീട്ടിൽ നിന്നും ഇറങ്ങുക.\n\nവാഹനത്തിൽ കയറുന്നതിന് മുൻപ് ശ്രീ മഹാഗണപതിയെയും കുലദൈവത്തെയും ഭക്തിയോടെ സ്മരിക്കുക. വഴിയിൽ അമിത വേഗതയോ ധൃതിയോ കാണിക്കാതെ ക്ഷമയോടെ യാത്ര ചെയ്യുക; ഈശ്വരാനുഗ്രഹത്താൽ യാത്ര മംഗളകരമാകും.`;
+          return `യാത്രയെക്കുറിച്ച് ("${userQuestion}"), രാഹുകാലം ഒഴിവാക്കി യാത്ര പുറപ്പെടുക. ഗണപതിയെ ഭജിച്ച് തുടങ്ങുക; യാത്ര മംഗളകരമായിരിക്കും.`;
         }
-        return `ഹരി ഓം ${session.name}. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാഗണപതിയുടെ അനുഗ്രഹത്താൽ യാത്ര സുരക്ഷിതവും സന്തോഷകരവുമായിരിക്കട്ടെ.\n\nരാഹുകാലം ഒഴിവാക്കി ശുഭവേളയിൽ പ്രാർത്ഥനയോടെ യാത്ര തിരിക്കുക; സമാധാനത്തോടെ എല്ലാം ശുഭമായി നടക്കും.`;
+        return `ഹരി ഓം ${session.name}. യാത്ര സുരക്ഷിതവും സന്തോഷകരവുമായിരിക്കട്ടെ. ശുഭസമയത്ത് പുറപ്പെടുക; ഗോകർണ്ണ മഹാഗണപതിയുടെ അനുഗ്രഹം കൂടെയുണ്ടാകും.`;
       }
       if (isMr) {
         if (isSubsequent) {
-          return `प्रवासाबाबत ("${userQuestion}"), पंचांगानुसार उद्या प्रवासाला सुरुवात करण्यापूर्वी त्या दिवसाचा राहुकाळ टाळून शुभ मुहूर्तावर निघणे अत्यंत श्रेयस्कर ठरते. शांत चित्ताने कुलदेवतेचे स्मरण करून उजवे पाऊल पुढे टाकून घराबाहेर पडा.\n\nप्रवास किंवा वाहन चालविण्यापूर्वी श्री महागणपतीचे भक्तिभावाने स्मरण करा. रस्त्यात कोणत्याही घाईगडबडीविना व रागाशिवाय संयमाने प्रवास करा; ईश्वराच्या कृपेने आपला प्रवास सुखकर व यशस्वी होईल.`;
+          return `प्रवासाबाबत ("${userQuestion}"), राहुकाळ टाळून प्रवासाला सुरुवात करा. निघताना श्री गणेशाचे स्मरण करा; प्रवास सुखकर होईल.`;
         }
-        return `हरि ॐ ${session.name} जी! श्री क्षेत्र गोकर्ण महागणपतीच्या आशीर्वादाने आपला प्रवास निर्विघ्न व आनंददायी होवो.\n\nराहुकाळ टाळून शुभ वेळी उजवे पाऊल पुढे ठेवून श्री गणेशाला वंदन करून निघा; सर्व प्रवास सुरक्षित पार पडेल.`;
+        return `हरि ॐ ${session.name} जी. आपला प्रवास निर्विघ्न व सुखद होवो. शुभ वेळी श्री गणेशाला नमन करून प्रस्थान करा; सर्व कार्ये सिद्धीस जातील.`;
       }
       // Kannada default
       if (isSubsequent) {

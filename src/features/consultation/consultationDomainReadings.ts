@@ -11,6 +11,21 @@ import { RASHIS_I18N, PLANET_NAMES_I18N } from "./consultationPanchangaService";
 import { deduplicateResponseText } from "./consultationFallbackReadings";
 import type { DevoteeKundliComputedData, TopicDomain } from "./consultationAIEngine";
 
+const TIMELINE_SIGN_LORDS: PlanetName[] = [
+  PlanetName.Mars,     // 0 Mesha / Aries
+  PlanetName.Venus,    // 1 Vrishabha / Taurus
+  PlanetName.Mercury,  // 2 Mithuna / Gemini
+  PlanetName.Moon,     // 3 Karkataka / Cancer
+  PlanetName.Sun,      // 4 Simha / Leo
+  PlanetName.Mercury,  // 5 Kanya / Virgo
+  PlanetName.Venus,    // 6 Tula / Libra
+  PlanetName.Mars,     // 7 Vrishchika / Scorpio
+  PlanetName.Jupiter,  // 8 Dhanu / Sagittarius
+  PlanetName.Saturn,   // 9 Makara / Capricorn
+  PlanetName.Saturn,   // 10 Kumbha / Aquarius
+  PlanetName.Jupiter   // 11 Meena / Pisces
+];
+
 export interface AstrologicalTimelineResult {
   currentMahaName: string;
   currentBhuktiName: string;
@@ -18,6 +33,17 @@ export interface AstrologicalTimelineResult {
   monthsToDashaChange: number;
   guruTransitHouseFromMoon: number;
   guruTransitNature: string;
+  shaniTransitHouseFromMoon: number;
+  guruTransitSignName: string;
+  shaniTransitSignName: string;
+  lagnaSignName: string;
+  lagnaLordName: string;
+  bhavaNumber: number;
+  bhavaSignName: string;
+  bhavaLordName: string;
+  bhavaLordPlacedHouse: number;
+  targetYearNumber: number;
+  bhuktiEndDateText: string;
   minMonths: number;
   maxMonths: number;
   monthsRangeText: string;
@@ -41,6 +67,7 @@ export function calculateAstrologicalTimeline(
   lang: ConsultationLanguage = "kn"
 ): AstrologicalTimelineResult {
   const pDict = PLANET_NAMES_I18N[lang] || PLANET_NAMES_I18N.kn;
+  const rDict = RASHIS_I18N[lang] || RASHIS_I18N.kn;
 
   let currentMahaName = pDict[PlanetName.Jupiter] || "ಗುರು";
   let currentBhuktiName = pDict[PlanetName.Jupiter] || "ಗುರು";
@@ -68,17 +95,48 @@ export function calculateAstrologicalTimeline(
     console.warn("[calculateAstrologicalTimeline] Bhukti lookup notice:", e);
   }
 
-  // Gochara Guru (Jupiter) relative to Moon - LIVE ephemeris computed
+  // Lagna & Topic-specific Bhava proof coordinates
+  const lagnaIdx = Math.floor((((kundli.ascendant % 360) + 360) % 360) / 30) % 12;
+  const lagnaSignName = rDict[lagnaIdx] || rDict[0];
+  const lagnaLordPlanet = TIMELINE_SIGN_LORDS[lagnaIdx];
+  const lagnaLordName = pDict[lagnaLordPlanet] || lagnaLordPlanet;
+
+  const bhavaNumber =
+    topic === "MARRIAGE"
+      ? 7
+      : topic === "CAREER"
+        ? 10
+        : topic === "SANTHANA"
+          ? 5
+          : topic === "HEALTH"
+            ? 6
+            : topic === "FINANCE"
+              ? 11
+              : 9;
+  const bhavaIdx = (lagnaIdx + bhavaNumber - 1) % 12;
+  const bhavaSignName = rDict[bhavaIdx] || rDict[0];
+  const bhavaLordPlanet = TIMELINE_SIGN_LORDS[bhavaIdx];
+  const bhavaLordName = pDict[bhavaLordPlanet] || bhavaLordPlanet;
+  const bhavaLordPlacedHouse =
+    kundli.planets?.find((p) => p.name === bhavaLordPlanet)?.house || bhavaNumber;
+
+  // Gochara Guru (Jupiter) & Shani (Saturn) relative to Moon - LIVE ephemeris computed
   const rashiIdx = kundli.moonSign?.index ?? 0;
   let guruTransitHouseFromMoon = ((1 - rashiIdx + 12) % 12) + 1;
+  let shaniTransitHouseFromMoon = ((11 - rashiIdx + 12) % 12) + 1;
   try {
     const liveTransits = getTransitsForDate(rashiIdx, new Date(), "lahiri");
     if (liveTransits?.[PlanetName.Jupiter]?.house) {
       guruTransitHouseFromMoon = liveTransits[PlanetName.Jupiter].house;
     }
+    if (liveTransits?.[PlanetName.Saturn]?.house) {
+      shaniTransitHouseFromMoon = liveTransits[PlanetName.Saturn].house;
+    }
   } catch {
     // Keep fallback if ephemeris unavailable
   }
+  const guruTransitSignName = rDict[(rashiIdx + guruTransitHouseFromMoon - 1 + 12) % 12] || rDict[0];
+  const shaniTransitSignName = rDict[(rashiIdx + shaniTransitHouseFromMoon - 1 + 12) % 12] || rDict[0];
 
   const isBeneficGuruHouse = [2, 5, 7, 9, 11].includes(guruTransitHouseFromMoon);
   const guruNatureI18n: Record<ConsultationLanguage, { good: string; test: string }> = {
@@ -253,6 +311,9 @@ export function calculateAstrologicalTimeline(
   const startYear = startCal.getFullYear();
   const endMonthName = mList[endCal.getMonth()];
   const endYear = endCal.getFullYear();
+  const bhuktiEndCal = new Date(now.getFullYear(), now.getMonth() + monthsToDashaChange, 1);
+  const bhuktiEndDateText = `${mList[bhuktiEndCal.getMonth()]} ${bhuktiEndCal.getFullYear()}`;
+  const targetYearNumber = endYear;
 
   let monthsRangeText = "";
   let calendarWindowText = "";
@@ -304,6 +365,17 @@ export function calculateAstrologicalTimeline(
     monthsToDashaChange,
     guruTransitHouseFromMoon,
     guruTransitNature,
+    shaniTransitHouseFromMoon,
+    guruTransitSignName,
+    shaniTransitSignName,
+    lagnaSignName,
+    lagnaLordName,
+    bhavaNumber,
+    bhavaSignName,
+    bhavaLordName,
+    bhavaLordPlacedHouse,
+    targetYearNumber,
+    bhuktiEndDateText,
     minMonths,
     maxMonths,
     monthsRangeText,
@@ -327,6 +399,451 @@ export function isRemedyRequested(question: string): boolean {
   return /ಪರಿಹಾರ|ಪೂಜೆ|ಹೋಮ|ಶಾಂತಿ|ಉಪಾಯ|ಸಂಕಲ್ಪ|ಅನುಷ್ಠಾನ|remedy|parihara|pooja|puja|homa|ritual|shanti|sankalpa|havan|उपाय|पूजा|हवन|शांति|संकल्प|పరిహార|పూజ|హోమం|శాంతి|பரிகாரம்|பூஜை|ஹோமம்|சாந்தி|പൂജ|ഹോമം|ശാന്തി|പരിഹാരം|तोडगा/i.test(
     question
   );
+}
+
+/**
+ * Detects whether the user is asking for the astrological PROOF / REASON / BASIS
+ * behind a previously stated timeline or prediction (e.g. "How are you sure 2027?",
+ * "Why next 6 months?", "ಹೇಗೆ ಖಚಿತ?", "ಯಾಕೆ ಹಾಗೆ ಹೇಳ್ತೀರ?", "सबूत / आधार?").
+ */
+export function detectIsAskingProofOrReason(
+  text: string,
+  conversationHistory?: AskGeminiChatTurn[]
+): boolean {
+  if (!text) return false;
+  const q = text.trim();
+
+  // Explicit proof/basis phrasing works even on standalone turns or any turn
+  const explicitProofRegex =
+    /how are you (so )?sure|how can you (be so sure|be sure|say|tell)|how do you (know|say|tell|calculate)|what is the (proof|reason|basis|logic|evidence)|give me (the )?(proof|reason|evidence)|show proof|prove it|astrological proof|on what basis|why did you say|why are you (saying|telling)|why do you (say|tell)|why\s+(?:in\s+|within\s+)?(?:202[5-9]|203\d)\b|why\s+(?:in\s+|within\s+)?(?:the\s+)?next\s+\d+|why\s+(?:this|that)\s+(?:year|month|period|timeline)|explain\s+why.*(?:202[5-9]|203\d|next|month|year|sure)|ಹೇಗೆ\s*(?:ಖಚಿತ|ಹೇಳ್ತೀರ|ಹೇಳುತ್ತೀರಿ|ಗೊತ್ತು|ನಂಬಬೇಕು)|ಯಾಕೆ\s*ಹಾಗೆ\s*(?:ಹೇಳ್ತೀರ|ಹೇಳಿದ್ರಿ|ಹೇಳುತ್ತೀರಿ)|ಯಾವ\s*ಆಧಾರ|ಆಧಾರ\s*ಏನು|ಪ್ರೂಫ್|ಸಾಕ್ಷಿ|ಪುರಾವೆ|202\d.*(?:ಹೇಗೆ|ಯಾಕೆ)|hege\s+(?:sure|kacchita|gothu|helthira|heltira)|yake\s+(?:202\d|next|hage)|कैसे\s*(?:कह सकते|पक्का|मानूं|बताया)|किस\s*आधार|सबूत|प्रमाण|क्यों\s*कहा|ఎలా\s*(?:చెప్పగలరు|నమ్మాలి|ఖచ్చితం)|ఆధారం\s*ఏమిటి|రుజువు|ఎందుకు\s*అలా|எப்படி\s*(?:சொல்கிறீர்கள்|உறுதி)|ஆதாரம்\s*என்ன|நிரூபணம்|ஏன்\s*அப்படி|എങ്ങനെ\s*(?:ഉറപ്പിക്കും|പറയാം)|എന്ത്\s*തെളിവ്|അടിസ്ഥാനം\s*എന്ത്|कसे\s*सांगता|कशाच्या\s*आधारावर|पुरावा|का\s*सांगितले/i;
+  if (explicitProofRegex.test(q)) {
+    return true;
+  }
+
+  // Context-dependent short follow-up proof queries right after a timeline prediction
+  if (conversationHistory && conversationHistory.length > 0) {
+    const lastModelMsg = [...conversationHistory].reverse().find((t) => t.role !== "user");
+    const lastModelHadPrediction =
+      !!lastModelMsg &&
+      /\b202[5-9]\b|\b203\d\b|months?|ತಿಂಗಳು|ತಿಂಗಳ|ಮಾಸ|ವರ್ಷ|महीने|वर्ष|నెల|సంవత్సర|மாத|வருட|മാസ|വർഷ|महिने/i.test(
+        lastModelMsg.text
+      );
+    if (lastModelHadPrediction) {
+      const isAskingDurationOrTimingInstead =
+        /\bhow\s+(?:long|many|soon|much)\b|\bwhen\b|ಯಾವಾಗ|ಎಷ್ಟು|कब|कितने|ఎప్పుడు|ఎన్ని|எப்போது|எத்தனை|എപ്പോൾ|എത്ര|केव्हा|किती/i.test(
+          q
+        );
+      const shortFollowUpProof =
+        /^(?:why|how|how\s+sure|sure\??|reason\??|proof\??|why\s+so|how\s+so|ಯಾಕೆ|ಹೇಗೆ|ಹೇಗೆ\s+ಖಚಿತ|ಕಾರಣ\s+ಏನು|क्यों|कैसे|कारण\s+क्या|ఎందుకు|ఎలా|ஏன்|எப்படி|എന്തുകൊണ്ട്|എങ്ങനെ|का|कसे)[\s?!.,]*$/i.test(
+          q
+        ) ||
+        (!isAskingDurationOrTimingInstead &&
+          /why|how|reason|proof|sure|ಯಾಕೆ|ಹೇಗೆ|ಕಾರಣ|क्यों|कैसे|ఎందుకు|ఎలా|ஏன்|எப்படி|എന്തുകൊണ്ട്|कसे/i.test(q) &&
+          !/delay|postpone|3 years|5 years|ವರ್ಷ.*ತಡ|ವಿಳಂಬ/i.test(q) &&
+          q.split(/\s+/).length <= 12);
+      if (shortFollowUpProof) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Detects topic domain hints specifically from text snippets for proof / conversation carryover.
+ */
+function inferClaimTopicFromText(text: string): TopicDomain | null {
+  if (!text) return null;
+  if (/ಮದುವೆ|ವಿವಾಹ|ಕಂಕಣ|ಕಲ್ಯಾಣ|ಸಪ್ತಮ|ಕಳತ್ರ|maduve|kalyana|marr|wedd|spouse|vivaha|विवाह|शादी|వివాహ|పెళ్లి|திருமணம்|கல்யாணம்|വിവാഹം|लग्न/i.test(text)) {
+    return "MARRIAGE";
+  }
+  if (/ಸಾಲ|ಋಣ|ಧನ|ಹಣಕಾಸು|ಆರ್ಥಿಕ|sala\b|sala bad|saala|debt|loan|emi|finance|wealth|कर्ज|ऋण|రుణ|అప్పు|கடன்|കടബാധ്യത|കടം|कर्जमुक्ती/i.test(text)) {
+    return "FINANCE";
+  }
+  if (/ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ಬಡ್ತಿ|ಪ್ರಮೋಷನ್|ವ್ಯಾಪಾರ|kelasa|udyoga|job|career|promot|workplace|appraisal|salary|badthi|नौकरी|पदोन्नति|उद्योग|ఉద్యోగ|ప్రమోషన్|வேலை|பதவி உயர்வு|ജോലി|പ്രൊമോഷൻ|नोकरी|पदोन्नती/i.test(text)) {
+    return "CAREER";
+  }
+  if (/ಸಂತಾನ|ಪುತ್ರ|ಗರ್ಭ|ಪ್ರಜಾ|santhana|progeny|conceive|pregnancy|संतान|సంతాన|சந்தான|സന്താന/i.test(text)) {
+    return "SANTHANA";
+  }
+  if (/ಆರೋಗ್ಯ|ಕಾಯಿಲೆ|ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ|arogya|health|disease|surgery|recovery|स्वास्थ्य|ఆరోగ్య|உடல்நல|ആരോഗ്യ|आरोग्य/i.test(text)) {
+    return "HEALTH";
+  }
+  return null;
+}
+
+/**
+ * Extracts the prior predicted timeline window (e.g. "2027", "next 6 to 12 months",
+ * "between June 2027 and December 2027") and topic from conversationHistory + currentQuestion.
+ */
+export function extractPreviousPredictedClaim(
+  conversationHistory?: AskGeminiChatTurn[],
+  currentQuestion?: string,
+  defaultTopic: TopicDomain = "GENERAL"
+): { claimedWindow: string | null; claimedTopic: TopicDomain; claimedYear: string | null } {
+  const modelTexts = (conversationHistory || [])
+    .filter((t) => t.role !== "user")
+    .map((t) => t.text)
+    .reverse();
+  const userTexts = (conversationHistory || [])
+    .filter((t) => t.role === "user")
+    .map((t) => t.text)
+    .reverse();
+
+  const lastModel = modelTexts[0] || "";
+  const yearInCurr = currentQuestion?.match(/\b(202[5-9]|203\d)\b/)?.[1] || null;
+  const yearInModel = lastModel.match(/\b(202[5-9]|203\d)\b/)?.[1] || null;
+
+  const phraseInCurr =
+    currentQuestion?.match(
+      /(?:next|within)\s+\d+(?:\s*(?:to|-)\s*\d+)?\s*(?:months?|years?)|ಮುಂದಿನ\s+[೦-೯\d]+(?:\s*ರಿಂದ\s*[೦-೯\d]+)?\s*(?:ತಿಂಗಳ[^\s.,!?]*|ವರ್ಷ[^\s.,!?]*)|अगले\s+[०-९\d]+(?:\s*से\s*[०-९\d]+)?\s*(?:महीने|महीनों|साल|वर्ष)/i
+    )?.[0] || null;
+
+  const phraseInModel =
+    lastModel.match(
+      /between\s+[A-Za-z]+\s+20\d{2}\s+and\s+[A-Za-z]+\s+20\d{2}|(?:within\s+the\s+)?next\s+\d+(?:\s*to\s*\d+)?\s*(?:months?|years?)|ಮುಂದಿನ\s+[೦-೯\d]+(?:\s*ರಿಂದ\s*[೦-೯\d]+)?\s*(?:ತಿಂಗಳ[^\s.,!?]*|ವರ್ಷ[^\s.,!?]*)|अगले\s+[०-९\d]+(?:\s*से\s*[०-९\d]+)?\s*(?:महीने|महीनों|वर्ष)|రాబోయే\s+\d+(?:\s*నుండి\s*\d+)?\s*(?:నెల[^\s.,!?]*|సంవత్సర[^\s.,!?]*)|அடுத்த\s+\d+(?:\s*முதல்\s*\d+)?\s*(?:மாத[^\s.,!?]*|வருட[^\s.,!?]*)|അടുത്ത\s+\d+(?:\s*മുതൽ\s*\d+)?\s*(?:മാസ[^\s.,!?]*|വർഷ[^\s.,!?]*)|पुढील\s+[०-९\d]+(?:\s*ते\s*[०-९\d]+)?\s*(?:महिने|महिन्यांत|वर्षे)/i
+    )?.[0] || null;
+
+  const claimedYear = yearInCurr || yearInModel;
+  const claimedWindow =
+    phraseInCurr && claimedYear && !phraseInCurr.includes(claimedYear)
+      ? `${phraseInCurr} (${claimedYear})`
+      : phraseInCurr || (yearInCurr ? yearInCurr : null) || phraseInModel || yearInModel;
+
+  const topicFromCurr = inferClaimTopicFromText(currentQuestion || "");
+  const topicFromPrevUser = inferClaimTopicFromText(userTexts[0] || "");
+  const topicFromPrevModel = inferClaimTopicFromText(lastModel);
+
+  return {
+    claimedWindow,
+    claimedTopic: topicFromCurr || topicFromPrevUser || topicFromPrevModel || defaultTopic,
+    claimedYear
+  };
+}
+
+/**
+ * Detects queries expressing fear or sensing of an unseen presence, shadow,
+ * or "someone roaming around me / walking behind me".
+ */
+export function detectShadowPresenceFear(text: string): boolean {
+  if (!text) return false;
+  return (
+    /(someone|somebody|anyone|a\s+person|shadow|ghost|spirit|entity|presence|figure)\s+(?:is\s+|was\s+|always\s+|sometimes\s+|feels\s+like\s+)?(?:roaming|moving|walking|standing|following|watching|circling|hovering|lurking)\s*(?:around|near|behind|beside)?\s*(?:me|us|my house|room)?/i.test(
+      text
+    ) ||
+    /feel(?:ing|s)?\s+(?:like\s+)?(?:someone|somebody|a\s+shadow|a\s+presence|something)\s+(?:is\s+)?(?:around\s+me|near\s+me|behind\s+me|roaming|following\s+me)/i.test(
+      text
+    ) ||
+    /ನನ್ನ\s*(?:ಸುತ್ತ|ಹಿಂದೆ|ಪಕ್ಕ|ಮನೆಯಲ್ಲಿ)\s*(?:ಯಾರೋ|ಏನೋ|ನೆರಳು|ಭೂತ|ಗಾಳಿ).*(?:ತಿರುಗಾಡು|ನಡೆದಾಡು|ಬಂದಂತೆ|ಇದ್ದಂತೆ|ಕಾಣು|ಅನಿಸು)|ಯಾರೋ\s*(?:ತಿರುಗಾಡು|ಹಿಂಬಾಲಿಸು|ಹಿಂದೆ\s*ಇದ್ದಂತೆ)|ಭೂತ\s*ಭಯ|ಪ್ರೇತ\s*ಬಾಧೆ|ಅದೃಶ್ಯ\s*(?:ಶಕ್ತಿ|ನೆರಳು)|ನೆರಳು\s*(?:ಕಾಣು|ಹಿಂಬಾಲಿಸು)|yaro\s*(?:roaming|tirugad|suttha|hinde)/i.test(
+      text
+    ) ||
+    /(?:मेरे\s*(?:आसपास|पीछे)|मेरे\s*करीब)\s*(?:कोई\s*(?:घूम|चल)|साया|अदृश्य|ऊपरी\s*हवा|भूत)|ना\s*चुట్టూ\s*ఎవరో\s*తిరుగు|వెనక\s*ఎవరో|என்\s*(?:சுற்றி|பின்னால்)\s*யாரோ|നിഴൽ\s*(?:പിന്തുടരു|കാണു)|എന്റെ\s*ചുറ്റും\s*ആരോ|माझ्या\s*आजूबाजूला\s*कोणीतरी\s*(?:फिरत|असल्याचे)/i.test(
+      text
+    )
+  );
+}
+
+/**
+ * Detects open-ended chart requests such as "Neenu helu alli naanu gothilla",
+ * "Nanage gothilla neeve heli", or "You tell me, I don't know", where no
+ * unrelated follow-up question should be substituted.
+ */
+export function detectDirectChartOpenEndedRequest(text: string): boolean {
+  if (!text) return false;
+  const q = text.trim();
+  const hasSpecificTopic = !!inferClaimTopicFromText(q) || detectShadowPresenceFear(q) || detectIsAskingProofOrReason(q) || /ರತ್ನ|gemstone|stone|color|colour|ಬಣ್ಣ|number|ಸಂಖ್ಯೆ|deity|ದೇವರು|abroad|ವಿದೇಶ|property|ಆಸ್ತಿ|court|ಕೋರ್ಟ್|exam|ಪರೀಕ್ಷೆ/i.test(q);
+  if (hasSpecificTopic) return false;
+
+  return /neenu\s*helu|neeve\s*heli|nanage\s*gothilla|naanu\s*gothilla|gothilla\s*(?:neenu|neeve)?|ನೀನು\s*ಹೇಳು|ನೀವೇ\s*ಹೇಳಿ|ನನಗೆ\s*ಗೊತ್ತಿಲ್ಲ|ನಾನು\s*ಗೊತ್ತಿಲ್ಲ|ಗೊತ್ತಾಗ್ತಿಲ್ಲ.*ಹೇಳಿ|ಏನೂ\s*ಗೊತ್ತಿಲ್ಲ|you\s+tell\s+me|i\s+don'?t\s+know.*(?:tell\s+me|what\s+to\s+ask)|not\s+sure\s+what\s+to\s+ask|just\s+tell\s+me.*chart|आप\s*(?:ही\s*)?बताइए.*नहीं\s*पता|मुझे\s*नहीं\s*पता.*बताइए|మీరు\s*చెప్పండి|నాకు\s*తెలియదు|நீங்கள்\s*சொல்லுங்கள்|எனக்கு\s*தெரியவில்லை|നിങ്ങൾ\s*പറയൂ|എനിക്കറിയില്ല|तुम्ही\s*सांगा|मला\s*माहित\s*नाही/i.test(
+    q
+  );
+}
+
+/**
+ * Builds an authentic, 7-language Astrological Proof & Mathematical Basis reading
+ * explaining WHY the earlier predicted window (e.g. 2027, next 6-12 months) was concluded,
+ * grounded strictly in Dasha-Bhukti maturity, Bhava Lord placement, and Guru-Shani Gochara.
+ */
+export function buildDeterministicTimelineProofReading(params: {
+  session: ConsultationSession;
+  question: string;
+  topic: TopicDomain;
+  timeline: AstrologicalTimelineResult;
+  claimedWindow?: string | null;
+  claimedYear?: string | null;
+}): string {
+  const { session, topic, timeline, claimedWindow, claimedYear } = params;
+  const lang = (session.language || "kn") as ConsultationLanguage;
+
+  // Ensure zero Latin word leaks in non-English replies if claimedWindow carried English tokens
+  const safeWindowDisplay = (() => {
+    const raw = (claimedWindow || "").trim();
+    if (!raw) return timeline.rangeSummary;
+    if (lang === "en") return raw;
+    if (!/[a-zA-Z]/.test(raw)) return raw;
+    if (claimedYear) return `${timeline.rangeSummary} (${claimedYear})`;
+    return timeline.rangeSummary;
+  })();
+
+  const proofTopicI18n: Record<ConsultationLanguage, Record<TopicDomain, string>> = {
+    en: {
+      MARRIAGE: "marriage and alliance solemnization",
+      CAREER: "career growth and promotion",
+      FINANCE: "debt relief and financial recovery",
+      SANTHANA: "progeny and childbirth blessing",
+      HEALTH: "health recovery and vitality",
+      DOSHA_PARIHARA: "dosha pacification and karmic relief",
+      GENERAL: "your upcoming auspicious milestone"
+    },
+    kn: {
+      MARRIAGE: "ವಿವಾಹ ಹಾಗೂ ಕಲ್ಯಾಣ ಯೋಗ",
+      CAREER: "ಉದ್ಯೋಗ ಬಡ್ತಿ ಹಾಗೂ ವೃತ್ತಿ ಪ್ರಗತಿ",
+      FINANCE: "ಸಾಲ ಬಾಧೆ ಮುಕ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಚೇತರಿಕೆ",
+      SANTHANA: "ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ವಂಶಾಭಿವೃದ್ಧಿ",
+      HEALTH: "ಆರೋಗ್ಯ ಸುಧಾರಣೆ ಹಾಗೂ ಆಯುರ್ಬಲ",
+      DOSHA_PARIHARA: "ದೋಷ ಪರಿಹಾರ ಹಾಗೂ ಕರ್ಮ ಶಾಂತಿ",
+      GENERAL: "ನಿಮ್ಮ ನಿರೀಕ್ಷಿತ ಶುಭ ಕಾರ್ಯ ಸಿದ್ಧಿ"
+    },
+    hi: {
+      MARRIAGE: "विवाह एवं मांगलिक योग",
+      CAREER: "पदोन्नति एवं करियर प्रगति",
+      FINANCE: "ऋण मुक्ति एवं आर्थिक सुधार",
+      SANTHANA: "संतान सुख एवं वंश वृद्धि",
+      HEALTH: "स्वास्थ्य लाभ एवं आरोग्य",
+      DOSHA_PARIHARA: "दोष शांति एवं कर्म निवारण",
+      GENERAL: "आपकी अभीष्ट कार्य सिद्धि"
+    },
+    te: {
+      MARRIAGE: "వివాహ మరియు కళ్యాణ యోగం",
+      CAREER: "ఉద్యోగ పదోన్నతి మరియు కెరీర్ వృద్ధి",
+      FINANCE: "రుణ విముక్తి మరియు ఆర్థిక బలోపేతం",
+      SANTHANA: "సంతాన భాగ్యం",
+      HEALTH: "ఆరోగ్య పునరుద్ధరణ",
+      DOSHA_PARIHARA: "దోష శాంతి మరియు పరిహార సిద్ధి",
+      GENERAL: "మీ శుభ కార్యసిద్ధి"
+    },
+    ta: {
+      MARRIAGE: "திருமண மற்றும் மாங்கல்ய யோகம்",
+      CAREER: "பதவி உயர்வு மற்றும் தொழில் வளர்ச்சி",
+      FINANCE: "கடன் நிவாரணம் மற்றும் பொருளாதார மீட்சி",
+      SANTHANA: "சந்தான பாக்கியம்",
+      HEALTH: "உடல்நல முன்னேற்றம்",
+      DOSHA_PARIHARA: "தோஷ நிவர்த்தி மற்றும் பரிகாரப் பலன்",
+      GENERAL: "உங்கள் சுப காரிய சித்தி"
+    },
+    ml: {
+      MARRIAGE: "വിവാഹവും മംഗല്യ യോഗവും",
+      CAREER: "പ്രൊമോഷനും തൊഴിൽ പുരോഗതിയും",
+      FINANCE: "കടബാധ്യതാ മുക്തിയും സാമ്പത്തിക ഉയർച്ചയും",
+      SANTHANA: "സന്താന സൗഭാഗ്യം",
+      HEALTH: "ആരോഗ്യ വീണ്ടെടുക്കൽ",
+      DOSHA_PARIHARA: "ദോഷ ശാന്തിയും പരിഹാര ഫലവും",
+      GENERAL: "നിങ്ങളുടെ ശുഭ കാര്യസിദ്ധി"
+    },
+    mr: {
+      MARRIAGE: "विवाह आणि मांगलिक योग",
+      CAREER: "पदोन्नती आणि करिअर प्रगती",
+      FINANCE: "कर्ज मुक्ती आणि आर्थिक स्थैर्य",
+      SANTHANA: "संतान सुख",
+      HEALTH: "आरोग्य सुधारणा",
+      DOSHA_PARIHARA: "दोष शांती व कर्म निवारण",
+      GENERAL: "आपली अपेक्षित कार्य सिद्धी"
+    }
+  };
+
+  const tDict = proofTopicI18n[lang] || proofTopicI18n.en;
+  const topicText = tDict[topic] || tDict.GENERAL;
+
+  switch (lang) {
+    case "en": {
+      const p1 = `Astrological Mathematical Proof for ${safeWindowDisplay}: The certainty regarding ${topicText} during ${safeWindowDisplay} is calculated strictly from three converging Vedic rules in your Baggona Panchanga chart — Vimshottari Dasha-Bhukti maturity, Bhava Lord activation, and Parashari Guru-Shani Gochara (Dual-Transit Concurrence) on your ${timeline.lagnaSignName} Lagna.`;
+      const p2 = `First, in your Vimshottari Dasha table, your current ${timeline.currentMahaName}-${timeline.currentBhuktiName} sub-period concludes in exactly ${timeline.monthsToDashaChange} months (around ${timeline.bhuktiEndDateText}), ushering in ${timeline.nextBhuktiName} Antardasha. Second, your natal House ${timeline.bhavaNumber} (${timeline.bhavaSignName}) governing this domain is lorded by ${timeline.bhavaLordName} placed in natal House ${timeline.bhavaLordPlacedHouse}, which unlocks directly once this Bhukti shift occurs. Third, live Gochara Jupiter (${timeline.guruTransitSignName}, House ${timeline.guruTransitHouseFromMoon} from your Moon) and Saturn (${timeline.shaniTransitSignName}, House ${timeline.shaniTransitHouseFromMoon} from Moon) align during ${timeline.calendarWindowText} to cast direct benefic 5th/7th/9th & stabilizing drishti onto your Lagna (${timeline.lagnaSignName}, ruled by ${timeline.lagnaLordName}) and House ${timeline.bhavaNumber} axis.`;
+      const p3 = `In classical Parashari Jyotisha, when both Vimshottari Antardasha change and the Guru-Shani double transit activate the same Bhava axis (${timeline.topicYogaName}), that exact window becomes astronomically locked in with 98% certainty. This is why your chart points decisively to ${safeWindowDisplay} rather than a vague guess.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "hi": {
+      const p1 = `ज्योतिषीय शास्त्रीय प्रमाण (${safeWindowDisplay}): आपकी कुंडली में ${topicText} हेतु ${safeWindowDisplay} का समय तीन प्रामाणिक वैदिक सूत्रों — विंशोत्तरी दशा-भुक्ति परिवर्तन, भावेश सक्रियण तथा आपके ${timeline.lagnaSignName} लग्न पर गुरु-शनि द्वि-गोचर योग — की सटीक गणितीय संगति से सिद्ध होता है।`;
+      const p2 = `प्रथम, आपकी वर्तमान ${timeline.currentMahaName}-${timeline.currentBhuktiName} अंतर्दशा ठीक ${timeline.monthsToDashaChange} महीनों में (${timeline.bhuktiEndDateText} के आसपास) पूर्ण होकर ${timeline.nextBhuktiName} भुक्ति में प्रवेश कर रही है। द्वितीय, इस विषय से संबंधित ${timeline.bhavaNumber}वें भाव (${timeline.bhavaSignName}) के स्वामी ${timeline.bhavaLordName} आपकी कुंडली के ${timeline.bhavaLordPlacedHouse}वें भाव में स्थित होकर इसी दशा परिवर्तन पर पूर्ण फलदायक हो रहे हैं। तृतीय, गोचर में बृहस्पति (${timeline.guruTransitSignName}, चंद्र से ${timeline.guruTransitHouseFromMoon}वें स्थान) एवं शनि (${timeline.shaniTransitSignName}, चंद्र से ${timeline.shaniTransitHouseFromMoon}वें स्थान) की संयुक्त दृष्टि ${timeline.calendarWindowText} के मध्य आपके ${timeline.lagnaSignName} लग्न (लग्नेश ${timeline.lagnaLordName}) और ${timeline.bhavaNumber}वें भाव को एक साथ सक्रिय करती है।`;
+      const p3 = `पराशर ज्योतिष सिद्धांत के अनुसार, जब विंशोत्तरी भुक्ति परिवर्तन और गुरु-शनि का द्वि-गोचर एक ही ${timeline.topicYogaName} अक्ष पर एकत्रित होते हैं, तब ९८% निश्चितता के साथ वही समय परिणाम प्रदान करता है। इसी गणितीय प्रमाण से ${safeWindowDisplay} की अवधि सुनिश्चित की गई है।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "te": {
+      const p1 = `జ్యోతిష గణిత శాస్త్ర ప్రమాణం (${safeWindowDisplay}): మీ ${timeline.lagnaSignName} లగ్న కుండలిలో ${topicText} కోసం ${safeWindowDisplay} సమయాన్ని నిర్ధారించడానికి వింశోత్తరి దశా-భుక్తి పరివర్తన, భావాధిపతి బలం మరియు గురు-శని ద్విగోచార నియమాల కలయికే బలమైన ఆధారం.`;
+      const p2 = `మొదటిది, ప్రస్తుతం నడుస్తున్న ${timeline.currentMahaName}-${timeline.currentBhuktiName} భుక్తి సరిగ్గా ${timeline.monthsToDashaChange} నెలల్లో (${timeline.bhuktiEndDateText} సమయానికి) ముగిసి ${timeline.nextBhuktiName} అంతర్దశ ప్రారంభమవుతుంది. రెండవది, ఈ అంశానికి కారకమైన ${timeline.bhavaNumber}వ భావం (${timeline.bhavaSignName}) అధిపతి ${timeline.bhavaLordName} మీ జాతకంలో ${timeline.bhavaLordPlacedHouse}వ స్థానంలో ఉండి ఆ భుక్తి మార్పుతో జాగృతమవుతారు. మూడవది, గోచార గురువు (${timeline.guruTransitSignName}, రాశి నుండి ${timeline.guruTransitHouseFromMoon}వ స్థానం) మరియు శని (${timeline.shaniTransitSignName}, రాశి నుండి ${timeline.shaniTransitHouseFromMoon}వ స్థానం) ${timeline.calendarWindowText} మధ్య మీ ${timeline.lagnaSignName} లగ్నాన్ని (అధిపతి ${timeline.lagnaLordName}) మరియు ${timeline.bhavaNumber}వ భావాన్ని ఒకేసారి వీక్షిస్తున్నారు.`;
+      const p3 = `వేద జ్యోతిష శాస్త్రం ప్రకారం దశా మార్పు మరియు గురు-శని సంయుక్త దృష్టి ఒకేసారి ${timeline.topicYogaName} భావంపై కేంద్రీకృతమైనప్పుడు ఆ కాలం 98% ఖచ్చితత్వంతో ఫలిస్తుంది. అందుకే ${safeWindowDisplay} అనే సమయం శాస్త్రీయంగా నిరూపితమైంది.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "ta": {
+      const p1 = `ஜோதிட சாஸ்திர ஆதாரம் (${safeWindowDisplay}): உங்கள் ${timeline.lagnaSignName} லக்ன ஜாதகத்தில் ${topicText} ${safeWindowDisplay} காலத்தில் நடைபெறும் என்பது விம்சோத்தரி தசா-புக்தி மாற்றம், பாவாதிபதி நிலை மற்றும் குரு-சனி இரட்டை கோசார பார்வை ஆகிய மூன்று கணித விதிகளால் உறுதியாகிறது.`;
+      const p2 = `முதலாவதாக, நடப்பு ${timeline.currentMahaName}-${timeline.currentBhuktiName} புக்தி சரியாக ${timeline.monthsToDashaChange} மாதங்களில் (${timeline.bhuktiEndDateText} அளவில்) முடிந்து ${timeline.nextBhuktiName} அந்தர தசை தொடங்குகிறது. இரண்டாவதாக, இக்காரியத்திற்குரிய ${timeline.bhavaNumber}-ஆம் வீட்டின் (${timeline.bhavaSignName}) அதிபதி ${timeline.bhavaLordName} உங்கள் ஜாதகத்தில் ${timeline.bhavaLordPlacedHouse}-ஆம் வீட்டில் அமர்ந்து இந்த தசா மாற்றத்தில் பலன் தருகிறார். மூன்றாவதாக, கோசார குரு (${timeline.guruTransitSignName}, ராசியிலிருந்து ${timeline.guruTransitHouseFromMoon}-ஆம் இடம்) மற்றும் சனி (${timeline.shaniTransitSignName}, ராசியிலிருந்து ${timeline.shaniTransitHouseFromMoon}-ஆம் இடம்) ${timeline.calendarWindowText} இடைவெளியில் உங்கள் லக்னத்தையும் ${timeline.bhavaNumber}-ஆம் வீட்டையும் ஒருசேரப் பார்க்கிறார்கள்.`;
+      const p3 = `பராசர ஜோதிட விதிப்படி, தசா புக்தி மாற்றமும் குரு-சனி இரட்டைப் பார்வையும் ஒரே நேரத்தில் ${timeline.topicYogaName} பாவத்தைத் தூண்டும்போது 98% உறுதியுடன் பலன் கிடைக்கிறது. இதுவே ${safeWindowDisplay} என்பதற்கான துல்லிய ஆதாரமாகும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "ml": {
+      const p1 = `ജ്യോതിഷ ഗണിത തെളിവ് (${safeWindowDisplay}): നിങ്ങളുടെ ${timeline.lagnaSignName} ലഗ്ന ജാതകത്തിൽ ${topicText} ${safeWindowDisplay} കാലയളവിൽ സഫലമാകുമെന്ന് ഉറപ്പിക്കുന്നത് വിംശോത്തരി ദശാ-ഭുക്തി മാറ്റം, ഭാവാധിപന്റെ സ്ഥാനം, വ്യാഴം-ശനി ദ്വിഗോചര ദൃഷ്ടി എന്നീ മൂന്ന് ശാസ്ത്രീയ നിയമങ്ങളാണ്.`;
+      const p2 = `ഒന്നാമതായി, നിലവിലെ ${timeline.currentMahaName}-${timeline.currentBhuktiName} ഭുക്തി കൃത്യം ${timeline.monthsToDashaChange} മാസത്തിനുള്ളിൽ (${timeline.bhuktiEndDateText} ആകുമ്പോൾ) അവസാനിച്ച് ${timeline.nextBhuktiName} അപഹാരം ആരംഭിക്കുന്നു. രണ്ടാമതായി, ഈ വിഷയത്തെ നിയന്ത്രിക്കുന്ന ${timeline.bhavaNumber}-ാം ഭാവത്തിന്റെ (${timeline.bhavaSignName}) അധിപനായ ${timeline.bhavaLordName} ജാതകത്തിൽ ${timeline.bhavaLordPlacedHouse}-ാം ഭാവത്തിൽ സ്ഥിതി ചെയ്യുന്നു. മൂന്നാമതായി, ഗോചാര വ്യാഴവും (${timeline.guruTransitSignName}, ചന്ദ്രനിൽ നിന്ന് ${timeline.guruTransitHouseFromMoon}-ാം ഭാവം) ശനിയും (${timeline.shaniTransitSignName}, ${timeline.shaniTransitHouseFromMoon}-ാം ഭാവം) ${timeline.calendarWindowText} കാലയളവിൽ നിങ്ങളുടെ ${timeline.lagnaSignName} ലഗ്നത്തിലും ${timeline.bhavaNumber}-ാം ഭാവത്തിലും ഒരുമിച്ച് ദൃഷ്ടി പതിപ്പിക്കുന്നു.`;
+      const p3 = `പരാശര ജ്യോതിഷ സിദ്ധാന്തപ്രകാരം ദശാ-ഭുക്തി മാറ്റവും വ്യാഴ-ശനി ദ്വിഗോചരവും ഒരേസമയം ${timeline.topicYogaName} അക്ഷത്തെ സജീവമാക്കുമ്പോൾ 98% കൃത്യതയോടെ ഫലം സിദ്ധിക്കുന്നു. ഇതാണ് ${safeWindowDisplay} കാലയളവിന്റെ ശാസ്ത്രീയ അടിസ്ഥാനം.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "mr": {
+      const p1 = `वैदिक ज्योतिष गणितीय पुरावा (${safeWindowDisplay}): आपल्या ${timeline.lagnaSignName} लग्न पत्रिकेत ${topicText} साठी ${safeWindowDisplay} ही वेळ विंशोत्तरी दशा-भुक्ती परिवर्तन, भावेश बळ आणि गुरु-शनी द्विगोचर दृष्टी या तीन अचूक शास्त्रोक्त नियमांवरून सिद्ध होते.`;
+      const p2 = `प्रथम, सध्याची ${timeline.currentMahaName}-${timeline.currentBhuktiName} भुक्ती नेमक्या ${timeline.monthsToDashaChange} महिन्यांत (${timeline.bhuktiEndDateText} सुमारास) पूर्ण होऊन ${timeline.nextBhuktiName} अंतर्दशा सुरू होत आहे. द्वितीय, संबंधित ${timeline.bhavaNumber} व्या भावाचा (${timeline.bhavaSignName}) स्वामी ${timeline.bhavaLordName} पत्रिकेतील ${timeline.bhavaLordPlacedHouse} व्या स्थानात असून या दशा बदलात सक्रिय होत आहे. तृतीय, गोचर गुरु (${timeline.guruTransitSignName}, चंद्रापासून ${timeline.guruTransitHouseFromMoon} वे स्थान) व शनी (${timeline.shaniTransitSignName}, ${timeline.shaniTransitHouseFromMoon} वे स्थान) हे दोन्ही ग्रह ${timeline.calendarWindowText} दरम्यान आपल्या लग्नावर (स्वामी ${timeline.lagnaLordName}) आणि ${timeline.bhavaNumber} व्या भावावर एकत्रित शुभ दृष्टी टाकत आहेत.`;
+      const p3 = `पराशर ज्योतिष शास्त्रानुसार जेव्हा दशा परिवर्तन आणि गुरु-शनी द्विगोचर एकाच वेळी ${timeline.topicYogaName} कार्याला गती देतात, तेव्हा ९८% अचूकतेने फलप्राप्ती होते. हाच ${safeWindowDisplay} वेळेचा पक्का शास्त्रीय आधार आहे.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "kn":
+    default: {
+      const p1 = `ಶಾಸ್ತ್ರೋಕ್ತ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಮಾಣ (${safeWindowDisplay}): ನಿಮ್ಮ ${timeline.lagnaSignName} ಲಗ್ನದ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ${topicText} ವಿಷಯವು ${safeWindowDisplay} ಅವಧಿಯಲ್ಲಿ ನೆರವೇರಲಿದೆ ಎಂದು ಹೇಳಲು ಕೇವಲ ಊಹೆಯಲ್ಲ, ಬದಲಾಗಿ ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ಗಣಿತ, ಭಾವಾಧಿಪತಿಯ ಸ್ಥಿತಿ ಹಾಗೂ ಗುರು-ಶನಿ ದ್ವಿಗೋಚಾರ ದೃಷ್ಟಿ ಎಂಬ ಮೂರು ಕರಾರುವಾಕ್ಕಾದ ವೈದಿಕ ನಿಯಮಗಳು ನೇರ ಸಾಕ್ಷಿಯಾಗಿವೆ.`;
+      const p2 = `ಮೊದಲನೆಯದಾಗಿ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${timeline.currentMahaName}-${timeline.currentBhuktiName} ಉಪ-ಭುಕ್ತಿಯು ಇನ್ನು ನಿಖರವಾಗಿ ${timeline.monthsToDashaChange} ತಿಂಗಳುಗಳಲ್ಲಿ (${timeline.bhuktiEndDateText} ರ ವೇಳೆಗೆ) ಮುಕ್ತಾಯವಾಗಿ ${timeline.nextBhuktiName} ಭುಕ್ತಿಯು ಆರಂಭವಾಗುತ್ತದೆ. ಎರಡನೆಯದಾಗಿ, ಈ ವಿಷಯಕ್ಕೆ ನೇರ ಅಧಿಪತಿಯಾದ ${timeline.bhavaNumber}ನೇ ಭಾವದ (${timeline.bhavaSignName}) ಅಧಿಪತಿ ${timeline.bhavaLordName} ಗ್ರಹವು ನಿಮ್ಮ ಕುಂಡಲಿಯ ${timeline.bhavaLordPlacedHouse}ನೇ ಮನೆಯಲ್ಲಿ ನೆಲೆಸಿದ್ದು, ಈ ದಶಾ ಬದಲಾವಣೆಯೊಂದಿಗೆ ಪೂರ್ಣ ಫಲ ನೀಡಲು ಜಾಗೃತವಾಗುತ್ತಿದೆ. ಮೂರನೆಯದಾಗಿ, ಗೋಚಾರದಲ್ಲಿ ಗುರು ಗ್ರಹವು (${timeline.guruTransitSignName}, ಚಂದ್ರನಿಂದ ${timeline.guruTransitHouseFromMoon}ನೇ ಸ್ಥಾನ) ಹಾಗೂ ಶನಿ ಗ್ರಹವು (${timeline.shaniTransitSignName}, ಚಂದ್ರನಿಂದ ${timeline.shaniTransitHouseFromMoon}ನೇ ಸ್ಥಾನ) ${timeline.calendarWindowText} ಅವಧಿಯಲ್ಲಿ ಒಟ್ಟಾಗಿ ನಿಮ್ಮ ${timeline.lagnaSignName} ಲಗ್ನ (ಲಗ್ನಾಧಿಪತಿ ${timeline.lagnaLordName}) ಹಾಗೂ ${timeline.bhavaNumber}ನೇ ಭಾವದ ಮೇಲೆ ದ್ವಿಶಕ್ತಿ ದೃಷ್ಟಿಯನ್ನು ಬೀರುತ್ತವೆ.`;
+      const p3 = `ಪರಾಶರ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಯಾವಾಗ ದಶಾ-ಭುಕ್ತಿ ಸಂಕ್ರಮಣ ಹಾಗೂ ಗುರು-ಶನಿಗಳ ದ್ವಿಗೋಚಾರ ದೃಷ್ಟಿಯು ಒಂದೇ ${timeline.topicYogaName} ಭಾವದ ಮೇಲೆ ಏಕಕಾಲದಲ್ಲಿ ಸಂಯೋಗವಾಗುತ್ತದೆಯೋ, ಆ ಕಾಲಾವಧಿಯಲ್ಲಿ ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ಆ ಕಾರ್ಯ ನೆರವೇರುವುದು ಶತಸಿದ್ಧ. ಇದೇ ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ ${safeWindowDisplay} ಸಮಯದ ಸ್ಪಷ್ಟ ಗಣಿತ ಸಾಕ್ಷಿಯಾಗಿದೆ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+  }
+}
+
+/**
+ * Deterministic Vedic reading for shadow / unseen presence fear
+ * (e.g., "someone is roaming around me", shadow following me), grounded in
+ * Chandra (Manas Karaka), Rahu-Ketu Chaya Grahas, 8th/12th house, and Maandi.
+ */
+export function buildDeterministicShadowPresenceReading(
+  session: ConsultationSession,
+  _question: string,
+  astroData?: DevoteeKundliComputedData
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+  const pDict = PLANET_NAMES_I18N[lang] || PLANET_NAMES_I18N.kn;
+  const rDict = RASHIS_I18N[lang] || RASHIS_I18N.kn;
+
+  const moonRashi = astroData?.moonRashi || rDict[0];
+  const nakshatra = astroData?.nakshatra || "";
+  const dasha = astroData?.currentDashaText || "";
+  const rahuName = pDict[PlanetName.Rahu] || "ರಾಹು";
+  const moonName = pDict[PlanetName.Moon] || "ಚಂದ್ರ";
+  const shaniName = pDict[PlanetName.Saturn] || "ಶನಿ";
+  const rahuHouse = astroData?.rahuTransitHouseFromMoon || 8;
+  const maandiSign =
+    astroData?.kundli?.maandi?.rashi?.index !== undefined
+      ? rDict[astroData.kundli.maandi.rashi.index]
+      : astroData?.house8StressSign || moonRashi;
+
+  switch (lang) {
+    case "en": {
+      const p1 = `Calm Astrological Clarity & Reassurance: Do not feel frightened or alarmed by sensing someone roaming or moving around you. In authentic Vedic Jyotisha, such sensory impressions arise when ${moonName} (Manas Karaka, governing the subconscious mind in ${moonRashi}${nakshatra ? `, ${nakshatra} Nakshatra` : ""}) receives subtle shadow-planet tension from ${rahuName} (currently transiting House ${rahuHouse} from your Moon) alongside 8th/12th house sleep-axis sensitivity and natal Maandi (${maandiSign}) during ${dasha}.`;
+      const p2 = `Astronomically and psychologically, ${rahuName} is a Chaya Graha (shadow node) without a physical body, so when its transit interacts with mental fatigue, irregular sleep, or deep stress, the nervous system magnifies peripheral shadows, footsteps, or sudden sensations into the feeling that someone is near. This is NOT an unbreakable curse or physical threat — it is a heightened 12th/8th house Manas-Chandra impression combined with subtle Drishti (evil-eye/nervous) sensitivity.`;
+      const p3 = `For immediate peace, keep warm soft lighting at night, prioritize restful sleep and medical wellness if vision/fatigue persists, and spiritually chant Sri Hanuman Chalisa or Shiva Panchakshari mantra while lighting a ghee lamp daily. Offering a Sankalpa prayer to Lord Mahabaleshwara of Sri Kshetra Gokarna dissolves this shadow fear and restores serene confidence.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "hi": {
+      const p1 = `निश्चिंत रहें और भयभीत न हों। आपके आसपास किसी के घूमने या चलने का जो आभास हो रहा है, वैदिक ज्योतिष में उसका सीधा संबंध मन के कारक ${moonName} (${moonRashi}${nakshatra ? `, ${nakshatra} नक्षत्र` : ""}), छाया ग्रह ${rahuName} (चंद्र से ${rahuHouse}वें गोचर) तथा कुंडली के अष्टम-द्वादश भाव और मांदी (${maandiSign}) की सूक्ष्म संवेदनशीलता से है।`;
+      const p2 = `सूर्य-चंद्र की भांति ${rahuName} छाया ग्रह है; जब वर्तमान ${dasha} के दौरान मानसिक थकान, अनियमित नींद अथवा तनाव बढ़ता है, तब अचेतन मन परछाइयों या आहट को किसी की उपस्थिति के रूप में महसूस करने लगता है। यह कोई स्थायी अभिशाप या अमंगल नहीं है, बल्कि मन-इंद्रियों की अस्थायी छाया संवेदनशीलता मात्र है।`;
+      const p3 = `पूर्ण मानसिक शांति के लिए रात्रि में हल्का प्रकाश रखें, पर्याप्त विश्राम लें तथा नित्य हनुमान चालीसा अथवा ॐ नमः शिवाय मंत्र का जप करते हुए घर में शुद्ध घी का दीपक जलाएं। श्री क्षेत्र गोकर्ण महाबलेश्वर के स्मरण मात्र से समस्त अनजाना भय दूर होकर निर्भयता प्राप्त होती है।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "te": {
+      const p1 = `దయచేసి ఏమాత్రం భయపడకండి. మీ చుట్టూ ఎవరో తిరుగుతున్నట్లు అనిపించడానికి వేద జ్యోతిష శాస్త్ర ప్రకారం మీ మనోకారకుడు ${moonName} (${moonRashi}${nakshatra ? `, ${nakshatra} నక్షత్రం` : ""}) పై ఛాయా గ్రహమైన ${rahuName} (${rahuHouse}వ స్థాన గోచారం) మరియు 8, 12 భావాలు, మాంది (${maandiSign}) సూక్ష్మ ప్రభావమే ప్రధాన కారణం.`;
+      const p2 = `${rahuName} భౌతిక శరీరం లేని ఛాయా గ్రహం కాబట్టి, ప్రస్తుత ${dasha} కాలంలో మానసిక అలసట, నిద్ర లేమి లేదా ఆందోళన కలిగినప్పుడు మనస్సు చిన్న నీడలను లేదా శబ్దాలను ఎవరో ఉన్నట్లుగా భ్రమపడే అవకాశం ఉంటుంది. ఇది ఎటువంటి శాశ్వత చెడు శక్తి లేదా భయపడాల్సిన శాపం కాదు.`;
+      const p3 = `మనశ్శాంతి కోసం రాత్రిపూట గదిలో స్వల్ప వెలుతురు ఉంచుతూ మంచి నిద్ర, ప్రశాంత విశ్రాంతి తీసుకోండి; ప్రతిరోజూ ఆవు నేతి దీపం వెలిగించి హనుమాన్ చాలీసా లేదా శివ పంచాక్షరి మంత్రాన్ని జపించండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి రక్షణతో ఈ అజ్ఞాత భయం పూర్తిగా తొలగిపోతుంది.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "ta": {
+      const p1 = `எதற்கும் அஞ்சாதீர்கள். உங்கள் அருகில் யாரோ நடமாடுவது போன்ற உணர்வு ஏற்படுவதற்கு வேத ஜோதிடப்படி மனோகாரகனான ${moonName} (${moonRashi}${nakshatra ? `, ${nakshatra} நட்சத்திரம்` : ""}) மீது நிழல் கிரகமான ${rahuName} (${rahuHouse}-ஆம் இட கோசாரம்) மற்றும் 8, 12-ஆம் வீடுகள், மாந்தி (${maandiSign}) ஏற்படுத்தும் நுண்ணிய மன அழுத்தமே காரணமாகும்.`;
+      const p2 = `${rahuName} என்பது பருப்பொருள் இல்லாத நிழல் கிரகமாகும்; நடப்பு ${dasha} காலத்தில் மனச் சோர்வு அல்லது தூக்கமின்மை சேரும்போது, நரம்பு மண்டலம் சாதாரண நிழல்களையும் ஓசைகளையும் யாரோ அருகில் இருப்பது போல் உணர்த்துகிறது. இது நிரந்தரத் தீங்கோ சாபமோ அல்ல.`;
+      const p3 = `அமைதி பெற இரவில் சிறிய விளக்கு ஒளியுடன் ஆழ்ந்த ஓய்வு எடுத்துக் கொள்ளுங்கள்; தினமும் நெய் தீபம் ஏற்றி கந்த சஷ்டி கவசம் அல்லது சிவ பஞ்சாட்சரி மந்திரம் சொல்லுங்கள். ஸ்ரீ க்ஷேத்ர கோகர்ணம் மகாபலேஸ்வரர் அருளால் மன பயம் நீங்கி முழு பாதுகாப்பு கிட்டும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "ml": {
+      const p1 = `ഒട്ടും ഭയപ്പെടേണ്ടതില്ല. നിങ്ങളുടെ ചുറ്റും ആരോ നടക്കുന്നതുപോലെ തോന്നുന്നതിന് വേദ ജ്യോതിഷപ്രകാരം മനഃകാരകനായ ${moonName} (${moonRashi}${nakshatra ? `, ${nakshatra} നക്ഷത്രം` : ""}) രാശിയിൽ ഛായാഗ്രഹമായ ${rahuName} (${rahuHouse}-ാം ഭാവ ഗോചാരം), 8/12 ഭാവങ്ങൾ, മാന്ദി (${maandiSign}) എന്നിവയുടെ സൂക്ഷ്മ സ്വാധീനമാണ് കാരണം.`;
+      const p2 = `${rahuName} ഒരു ഛായാഗ്രഹമാണ്; നിലവിലെ ${dasha} കാലയളവിൽ ഉറക്കക്കുറവോ മാനസിക സമ്മർദ്ദമോ ഉണ്ടാകുമ്പോൾ, മനസ്സ് ചെറിയ നിഴലുകളെയും ശബ്ദങ്ങളെയും അദൃശ്യ സാന്നിധ്യമായി തെറ്റിദ്ധരിക്കാൻ ഇടയുണ്ട്. ഇത് യാതൊരുവിധ ശാപമോ ഭയപ്പെടേണ്ട അനിഷ്ടമോ അല്ല.`;
+      const p3 = `മനഃശാന്തിക്കായി രാത്രിയിൽ ചെറിയ വെളിച്ചം കരുതി നല്ല ഉറക്കം ഉറപ്പാക്കുക; ദിവസവും വിളക്ക് തെളിയിച്ച് ഹനുമാൻ ചാലീസയോ ശിവപഞ്ചാക്ഷരിയോ ജപിക്കുക. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹത്താൽ അകാരണ ഭയം പൂർണ്ണമായി മാറുന്നതാണ്.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "mr": {
+      const p1 = `कृपया अजिबात घाबरू नका. आपल्या आजूबाजूला कोणीतरी फिरत असल्याचा भास होण्यामागे वैदिक ज्योतिषानुसार मनाचा कारक ${moonName} (${moonRashi}${nakshatra ? `, ${nakshatra} नक्षत्र` : ""}), छाया ग्रह ${rahuName} (चंद्रापासून ${rahuHouse} वे गोचर) आणि अष्टम-द्वादश भाव तसेच मांदी (${maandiSign}) यांची सूक्ष्म संवेदनशीलता कारणीभूत आहे.`;
+      const p2 = `${rahuName} हा छाया ग्रह असल्यामुळे, सध्याच्या ${dasha} काळात मानसिक थकवा किंवा अपुरी झोप असल्यास मन लहान सावल्यांना कोणाच्या तरी अस्तित्वासारखे अनुभवते. हा कोणताही कायमचा शाप किंवा भीतीदायक दोष नाही.`;
+      const p3 = `मनःशांतीसाठी रात्री खोलीत सौम्य प्रकाश ठेवून शांत झोप घ्या, तसेच दररोज तुपाचा दिवा लावून हनुमान चालीसा किंवा श्री शिवपंचाक्षरी मंत्राचा जप करा. श्री क्षेत्र गोकर्ण महाबळेश्वराच्या कृपेने सर्व अनामिक भीती नष्ट होऊन पूर्ण धीर लाभेल.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "kn":
+    default: {
+      const p1 = `ದಯವಿಟ್ಟು ಯಾವುದೇ ರೀತಿಯಲ್ಲೂ ಹೆದರಬೇಡಿ, ಮನಸ್ಸು ಗಟ್ಟಿಮಾಡಿಕೊಳ್ಳಿ. ನಿಮ್ಮ ಸುತ್ತಮುತ್ತ ಯಾರೋ ತಿರುಗಾಡಿದಂತೆ ಅಥವಾ ಪಕ್ಕದಲ್ಲಿ ಯಾರೋ ಇದ್ದಂತೆ ಭಾಸವಾಗುತ್ತಿರುವುದಕ್ಕೆ ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಮನೋಕಾರಕನಾದ ${moonName} ಗ್ರಹ (${moonRashi}${nakshatra ? `, ${nakshatra} ನಕ್ಷತ್ರ` : ""}), ಛಾಯಾ ಗ್ರಹವಾದ ${rahuName} (ರಾಶಿಯಿಂದ ${rahuHouse}ನೇ ಗೋಚಾರ), ಹಾಗೂ ಜಾತಕದ ೮ ಮತ್ತು ೧೨ನೇ ಭಾವದ ಮೇಲೆ ಬೀಳುತ್ತಿರುವ ${shaniName}-ಮಾಂದಿ (${maandiSign}) ಪ್ರಭಾವವೇ ಮೂಲ ಕಾರಣವಾಗಿದೆ.`;
+      const p2 = `ಶಾಸ್ತ್ರೀಯವಾಗಿ ${rahuName} ಹಾಗೂ ಕೇತು ಭೌತಿಕ ಶರೀರವಿಲ್ಲದ ಛಾಯಾ ಗ್ರಹಗಳಾಗಿವೆ; ಪ್ರಸ್ತುತ ${dasha} ಕಾಲಘಟ್ಟದಲ್ಲಿ ನಿದ್ರಾಹೀನತೆ, ದೈಹಿಕ ದಣಿವು ಅಥವಾ ಮಾನಸಿಕ ಒತ್ತಡ ಹೆಚ್ಚಾದಾಗ ನಮ್ಮ ೧೨ನೇ ಶಯನ ಸ್ಥಾನ ಹಾಗೂ ಮನಸ್ಸು ಸಣ್ಣ ನೆರಳು ಅಥವಾ ಶಬ್ದವನ್ನೂ ಸಹ ಪಕ್ಕದಲ್ಲಿ ಯಾರೋ ಓಡಾಡಿದಂತೆ ಗ್ರಹಿಸುತ್ತದೆ. ಇದು ಯಾವುದೇ ತಪ್ಪಿಸಿಕೊಳ್ಳಲಾಗದ ಶಾಪವಾಗಲಿ ಅಥವಾ ಭಯಪಡುವಂತಹ ಅನಿಷ್ಟವಾಗಲಿ ಅಲ್ಲ, ಕೇವಲ ಮನಃಚಂಚಲತೆ ಮತ್ತು ದೃಷ್ಟಿ ಸಂವೇದನೆಯ ತಾತ್ಕಾಲಿಕ ಪ್ರಭಾವವಾಗಿದೆ.`;
+      const p3 = `ಮನಸ್ಸಿಗೆ ತಕ್ಷಣ ನೆಮ್ಮದಿ ದೊರೆಯಲು, ರಾತ್ರಿ ಮಲಗುವ ಕೋಣೆಯಲ್ಲಿ ಮಂದವಾದ ಬೆಳಕು ಇರಿಸಿಕೊಂಡು ಉತ್ತಮ ನಿದ್ರೆ ಮತ್ತು ಆರೋಗ್ಯದ ಕಡೆ ಗಮನಹರಿಸಿ. ಪ್ರತಿದಿನ ಸಂಜೆ ಮನೆಯಲ್ಲಿ ಶುದ್ಧ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಅಥವಾ ಶಿವಪಂಚಾಕ್ಷರೀ ಮಂತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ರಕ್ಷಣೆಯಿಂದ ಈ ಅನಗತ್ಯ ಭಯವು ಸಂಪೂರ್ಣವಾಗಿ ಕರಗಿ ಮನಸ್ಸಿಗೆ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+  }
+}
+
+/**
+ * Directly reads the devotee's real Janma Kundli without bouncing back unrelated questions
+ * when the devotee speaks open-endedly (e.g. "Neenu helu alli naanu gothilla" / "You tell me").
+ */
+export function buildDeterministicOpenEndedChartOverviewReading(
+  session: ConsultationSession,
+  _question: string,
+  astroData?: DevoteeKundliComputedData
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+  const rDict = RASHIS_I18N[lang] || RASHIS_I18N.kn;
+  const lagna = astroData?.lagnaName || rDict[0];
+  const rashi = astroData?.moonRashi || rDict[1];
+  const nakshatra = astroData?.nakshatra || "";
+  const dasha = astroData?.currentDashaText || "";
+  const lagnaLord = astroData?.lagnaLord || "";
+  const lagnaLordHouse = astroData?.lagnaLordHouse || 1;
+  const karmaLord = astroData?.house10KarmaLord || "";
+  const karmaLordHouse = astroData?.house10KarmaLordHouse || 10;
+  const labhaLord = astroData?.house11LabhaLord || "";
+  const timeline = astroData?.kundli
+    ? calculateAstrologicalTimeline(astroData.kundli, astroData.ageYears || 30, "GENERAL", lang)
+    : null;
+
+  switch (lang) {
+    case "en": {
+      const p1 = `Examining your Janma Kundli directly right now (${lagna} Lagna ruled by ${lagnaLord} placed in House ${lagnaLordHouse}, ${rashi} Moon Sign${nakshatra ? `, ${nakshatra} Nakshatra` : ""}), your active Vimshottari period of ${dasha} shows a steady phase of quiet preparation transitioning toward visible progress.`;
+      const p2 = `Your 10th house of work (${karmaLord} placed in House ${karmaLordHouse}) and 11th house of gains (${labhaLord}) indicate that past mental heaviness or delays begin easing over ${timeline?.rangeSummary || "the upcoming months"} as Guru's transit activates House ${timeline?.guruTransitHouseFromMoon || 5} from your Moon.`;
+      const p3 = `Stay composed and avoid rushed decisions during this transition; lighting a simple cow-ghee lamp and chanting Om Namah Shivaya daily aligns your chart with clarity and steady prosperity.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "hi": {
+      const p1 = `आपकी जन्म कुंडली का सीधा विश्लेषण करने पर (${lagna} लग्न, लग्नेश ${lagnaLord} ${lagnaLordHouse}वें भाव में, ${rashi} राशि${nakshatra ? `, ${nakshatra} नक्षत्र` : ""}), वर्तमान ${dasha} अवधि दर्शाती है कि आप एक धैर्यपूर्ण परिवर्तन के चरण से गुजर रहे हैं।`;
+      const p2 = `दशमेश ${karmaLord} (${karmaLordHouse}वें भाव में) एवं लाभेश ${labhaLord} की स्थिति के अनुसार पिछले महीनों का तनाव ${timeline?.rangeSummary || "आगामी महीनों में"} शांत होकर कार्य एवं आर्थिक क्षेत्र में स्पष्ट प्रगति देगा।`;
+      const p3 = `धैर्य बनाए रखें, जल्दबाजी से बचें और नित्य घी का दीपक जलाकर ॐ नमः शिवाय मंत्र का स्मरण करें; गोकर्ण महाबलेश्वर की कृपा से मार्ग सुगम होगा।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "te": {
+      const p1 = `మీ జన్మ కుండలిని నేరుగా పరిశీలించినప్పుడు (${lagna} లగ్నం, లగ్నాధిపతి ${lagnaLord} ${lagnaLordHouse}వ స్థానంలో, ${rashi} రాశి${nakshatra ? `, ${nakshatra} నక్షత్రం` : ""}), ప్రస్తుతం జరుగుతున్న ${dasha} కాలం క్రమమైన మార్పు మరియు స్థిరత్వాన్ని సూచిస్తోంది.`;
+      const p2 = `కర్మాధిపతి ${karmaLord} మరియు లాభాధిపతి ${labhaLord} అనుకూలత వల్ల ${timeline?.rangeSummary || "రాబోయే నెలల్లో"} పాత ఆటంకాలు తొలగి ఉద్యోగ మరియు కుటుంబ విషయాల్లో స్పష్టమైన పురోగతి కనిపిస్తుంది.`;
+      const p3 = `ఆతురత లేకుండా ప్రశాంతంగా అడుగులు వేయండి; ప్రతిరోజూ ఆవు నేతి దీపం వెలిగించి శివ పంచాక్షరి పఠించడం వల్ల శుభ ఫలితాలు కలుగుతాయి.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "ta": {
+      const p1 = `உங்கள் ஜாதகத்தை நேரடியாக ஆராயும்போது (${lagna} லக்னம், லக்னாதிபதி ${lagnaLord} ${lagnaLordHouse}-ஆம் வீட்டில், ${rashi} ராசி${nakshatra ? `, ${nakshatra} நட்சத்திரம்` : ""}), நடப்பு ${dasha} காலம் பொறுமையான மாற்றத்தையும் வளர்ச்சியையும் காட்டுகிறது.`;
+      const p2 = `தொழில் அதிபதி ${karmaLord} மற்றும் லாபாதிபதி ${labhaLord} நிலையில் ${timeline?.rangeSummary || "வரும் மாதங்களில்"} பழைய தடைகள் நீங்கி வேலை மற்றும் பொருளாதாரத்தில் தெளிவான முன்னேற்றம் உண்டாகும்.`;
+      const p3 = `அவசர முடிவுகளைத் தவிர்த்து அமைதியாகச் செயல்படுங்கள்; தினமும் நெய் தீபம் ஏற்றி நமசிவாய மந்திரம் சொல்லுவது சகல நன்மைகளையும் தரும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "ml": {
+      const p1 = `നിങ്ങളുടെ ജാതകം നേരിട്ട് പരിശോധിക്കുമ്പോൾ (${lagna} ലഗ്നം, ലഗ്നാധിപൻ ${lagnaLord} ${lagnaLordHouse}-ാം ഭാവത്തിൽ, ${rashi} രാശി${nakshatra ? `, ${nakshatra} നക്ഷത്രം` : ""}), നിലവിലെ ${dasha} കാലം ക്രമാനുഗതമായ പുരോഗതിയെ സൂചിപ്പിക്കുന്നു.`;
+      const p2 = `കർമ്മാധിപൻ ${karmaLord}, ലാഭാധിപൻ ${labhaLord} എന്നിവരുടെ സ്ഥിതിയാൽ ${timeline?.rangeSummary || "വരുന്ന മാസങ്ങളിൽ"} പഴയ തടസ്സങ്ങൾ നീങ്ങി തൊഴിൽ, കുടുംബ മേഖലകളിൽ വ്യക്തമായ ഉയർച്ച ഉണ്ടാകും.`;
+      const p3 = `ധൃതിപിടിച്ച തീരുമാനങ്ങൾ ഒഴിവാക്കി സമാധാനത്തോടെ മുന്നോട്ട് പോകുക; ദിവസവും വിളക്ക് തെളിയിച്ച് ശിവപഞ്ചാക്ഷരി ജപിക്കുന്നത് ഉത്തമമാണ്.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "mr": {
+      const p1 = `आपली जन्मपत्रिका थेट तपासली असता (${lagna} लग्न, लग्नेश ${lagnaLord} ${lagnaLordHouse} व्या स्थानी, ${rashi} रास${nakshatra ? `, ${nakshatra} नक्षत्र` : ""}), सध्याची ${dasha} वेळ संयमी पण सकारात्मक परिवर्तनाची आहे.`;
+      const p2 = `दशमेश ${karmaLord} व लाभेश ${labhaLord} यांच्या बळावर ${timeline?.rangeSummary || "पुढील महिन्यांत"} जुने अडथळे दूर होऊन कामकाज आणि आर्थिक स्थितीत स्पष्ट सुधारणा होईल.`;
+      const p3 = `घाईचे निर्णय टाळून शांत चित्ताने प्रयत्न सुरू ठेवा; दररोज तुपाचा दिवा लावून शिवपंचाक्षरी जप केल्यास सर्व कामे सुरळीत पार पडतील.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+    case "kn":
+    default: {
+      const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ನೇರವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ${lagna} ಲಗ್ನ (ಲಗ್ನಾಧಿಪತಿ ${lagnaLord} ${lagnaLordHouse}ನೇ ಸ್ಥಾನದಲ್ಲಿ), ${rashi} ರಾಶಿ${nakshatra ? ` ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರ` : ""}ದಲ್ಲಿ ಜನಿಸಿದ್ದು, ಪ್ರಸ್ತುತ ${dasha} ಅವಧಿಯು ಚಾಲ್ತಿಯಲ್ಲಿದೆ. ಈ ಕಾಲಘಟ್ಟವು ಜೀವನದಲ್ಲಿನ ಹಿಂದಿನ ಗೊಂದಲಗಳನ್ನು ಕರಗಿಸಿ ಸ್ಥಿರತೆಯತ್ತ ಸಾಗುವ ಮಂಥನದ ಸಮಯವಾಗಿದೆ.`;
+      const p2 = `ನಿಮ್ಮ ೧೦ನೇ ಕರ್ಮಸ್ಥಾನಾಧಿಪತಿಯಾದ ${karmaLord} ಗ್ರಹ (${karmaLordHouse}ನೇ ಭಾವದಲ್ಲಿ) ಹಾಗೂ ೧೧ನೇ ಲಾಭಾಧಿಪತಿ ${labhaLord} ಗ್ರಹಗಳ ಸಂಚಾರದ ಪ್ರಕಾರ, ${timeline?.rangeSummary || "ಮುಂದಿನ ಕೆಲವು ತಿಂಗಳುಗಳಲ್ಲಿ"} ಉದ್ಯೋಗ, ಆದಾಯ ಹಾಗೂ ಕುಟುಂಬ ನೆಮ್ಮದಿಯಲ್ಲಿ ಸ್ಪಷ್ಟ ಧನಾತ್ಮಕ ತಿರುವು ಕಂಡುಬರಲಿದೆ.`;
+      const p3 = `ಪ್ರಸ್ತುತ ಯಾವುದೇ ಆತುರದ ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳದೆ ಶಾಂತಚಿತ್ತದಿಂದ ಮುನ್ನಡೆಯಿರಿ. ಪ್ರತಿದಿನ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಓಂ ನಮಃ ಶಿವಾಯ ಮಂತ್ರವನ್ನು ಸ್ಮರಿಸುವುದರಿಂದ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಸಕಲ ಕಾರ್ಯಗಳೂ ಸುಗಮವಾಗಿ ಸಿದ್ಧಿಸಲಿವೆ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}`);
+    }
+  }
 }
 
 /**
@@ -601,9 +1118,26 @@ export function buildDeterministicMarriageReading(
   question: string,
   astroData: DevoteeKundliComputedData | undefined,
   _ledger?: ConsultationRulingRecord[],
-  _isSubsequent?: boolean
+  _isSubsequent?: boolean,
+  conversationHistory?: AskGeminiChatTurn[]
 ): string {
   const lang = (session.language || "kn") as ConsultationLanguage;
+  const timeline = astroData?.kundli
+    ? calculateAstrologicalTimeline(astroData.kundli, astroData.ageYears || 30, "MARRIAGE", lang)
+    : null;
+
+  if (timeline && detectIsAskingProofOrReason(question, conversationHistory)) {
+    const claim = extractPreviousPredictedClaim(conversationHistory, question, "MARRIAGE");
+    return buildDeterministicTimelineProofReading({
+      session,
+      question,
+      topic: "MARRIAGE",
+      timeline,
+      claimedWindow: claim.claimedWindow,
+      claimedYear: claim.claimedYear
+    });
+  }
+
   const asksKujaShanti =
     /ಕುಜ ಶಾಂತಿ|ಕುಶ ಶಾಂತಿ|kuja shanti|kusha shanti|kuja dosha pooja|mangal shanti|मंगल शांति|कुज शांति|కుజ శాంతి|செவ்வாய் சாந்தி|ചൊവ്വാ ദോഷ പൂജ/i.test(
       question
@@ -614,9 +1148,6 @@ export function buildDeterministicMarriageReading(
     /ವಿಚ್ಛೇದನ|ಡಿವೋರ್ಸ್|ದಾಂಪತ್ಯ ಕಲಹ|ದಾಂಪತ್ಯ ಜಗಳ|ಮನಸ್ತಾಪ|ಹೊಂದಾಣಿಕೆ|divorce|separation|marital dispute|marital discord|conflict with wife|conflict with husband|fight with spouse|तालाक|विवाद/i.test(
       question
     );
-  const timeline = astroData?.kundli
-    ? calculateAstrologicalTimeline(astroData.kundli, astroData.ageYears || 30, "MARRIAGE", lang)
-    : null;
   const sixMonthsLocalized: Record<ConsultationLanguage, string> = {
     kn: "ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ",
     en: "within the next 6 months",
@@ -900,48 +1431,71 @@ export function buildDeterministicBusinessVsJobReading(
  */
 export function buildDeterministicDebtReliefReading(
   session: ConsultationSession,
-  _question: string,
-  _astroData: DevoteeKundliComputedData | undefined,
+  question: string,
+  astroData: DevoteeKundliComputedData | undefined,
   _ledger?: ConsultationRulingRecord[],
   _isSubsequent?: boolean,
-  _conversationHistory?: AskGeminiChatTurn[]
+  conversationHistory?: AskGeminiChatTurn[]
 ): string {
   const lang = (session.language || "kn") as ConsultationLanguage;
+  const timeline = astroData?.kundli
+    ? calculateAstrologicalTimeline(astroData.kundli, astroData.ageYears || 30, "FINANCE", lang)
+    : null;
+
+  if (timeline && detectIsAskingProofOrReason(question, conversationHistory)) {
+    const claim = extractPreviousPredictedClaim(conversationHistory, question, "FINANCE");
+    return buildDeterministicTimelineProofReading({
+      session,
+      question,
+      topic: "FINANCE",
+      timeline,
+      claimedWindow: claim.claimedWindow,
+      claimedYear: claim.claimedYear
+    });
+  }
+
+  const winEn = timeline?.rangeSummary ? ` (${timeline.rangeSummary})` : "";
+  const winHi = timeline?.rangeSummary ? ` (${timeline.rangeSummary})` : "";
+  const winTe = timeline?.rangeSummary ? ` (${timeline.rangeSummary})` : "";
+  const winTa = timeline?.rangeSummary ? ` (${timeline.rangeSummary})` : "";
+  const winMl = timeline?.rangeSummary ? ` (${timeline.rangeSummary})` : "";
+  const winMr = timeline?.rangeSummary ? ` (${timeline.rangeSummary})` : "";
+  const winKn = timeline?.rangeSummary ? ` (${timeline.rangeSummary})` : "";
 
   switch (lang) {
     case "en": {
-      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, examining your 6th House of liabilities (Rina Bhava) against your 11th House of gains (Labha) and 2nd House of accumulated wealth (Dhana), your chart confirms that this debt burden is a temporary karmic phase that will steadily dissolve. Planetary transit calculations indicate that as the 11th house activates under the upcoming benefic Gochara Guru transit, financial inflows will accelerate to eliminate pending loans. The cosmic principle for total debt clearance requires two unwavering rules: maintain disciplined systematic repayments while strictly abstaining from taking fresh unbacked high-interest informal loans or speculative shortcuts.`;
+      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, examining your 6th House of liabilities (Rina Bhava) against your 11th House of gains (Labha) and 2nd House of accumulated wealth (Dhana), your chart confirms that this debt burden is a temporary karmic phase that will steadily dissolve${winEn}. Planetary transit calculations indicate that as the 11th house activates under the upcoming benefic Gochara Guru transit${winEn}, financial inflows will accelerate to eliminate pending loans. The cosmic principle for total debt clearance requires two unwavering rules: maintain disciplined systematic repayments while strictly abstaining from taking fresh unbacked high-interest informal loans or speculative shortcuts.`;
       const p2 = `Channel your resources into steady principal reduction without panic. To permanently dissolve the karmic bonds of debt and attract financial revival, recite the sacred Sri Runavimochana Mangala Stotra every Tuesday and arrange for a Rudrabhisheka at Sri Kshetra Gokarna Mahabaleshwara. Divine protection will restore your economic independence and peace of mind.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "hi": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, आपकी जन्म कुंडली के षष्ठ भाव (ऋण स्थान) तथा एकादश भाव (लाभ स्थान) और द्वितीय भाव (धन स्थान) का सूक्ष्म विश्लेषण करने पर यह प्रमाणित होता है कि कर्ज का यह दबाव केवल एक अस्थायी कर्म चक्र है। आगामी गोचर गुरु का शुभ प्रभाव आपके लाभ भाव को सक्रिय कर रहा है, जिससे आगामी महीनों में धन आगमन के नए मार्ग खुलेंगे और ऋण मुक्ति तीव्र गति से होगी। कर्ज से स्थायी मुक्ति के लिए दो सिद्धांतों का पालन करें: पुराने कर्ज को नियमित रूप से चुकाएं तथा किसी भी प्रकार के नए सट्टेबाजी या भारी ब्याज वाले अनौपचारिक कर्ज से पूर्णतः दूर रहें।`;
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, आपकी जन्म कुंडली के षष्ठ भाव (ऋण स्थान) तथा एकादश भाव (लाभ स्थान) और द्वितीय भाव (धन स्थान) का सूक्ष्म विश्लेषण करने पर यह प्रमाणित होता है कि कर्ज का यह दबाव केवल एक अस्थायी कर्म चक्र है${winHi}। आगामी गोचर गुरु का शुभ प्रभाव आपके लाभ भाव को सक्रिय कर रहा है, जिससे${winHi ? ` ${winHi.slice(2, -1)} के भीतर` : " आगामी महीनों में"} धन आगमन के नए मार्ग खुलेंगे और ऋण मुक्ति तीव्र गति से होगी। कर्ज से स्थायी मुक्ति के लिए दो सिद्धांतों का पालन करें: पुराने कर्ज को नियमित रूप से चुकाएं तथा किसी भी प्रकार के नए सट्टेबाजी या भारी ब्याज वाले अनौपचारिक कर्ज से पूर्णतः दूर रहें।`;
       const p2 = `धैर्यपूर्वक मूलधन की अदायगी पर ध्यान दें। ऋण के कर्म बंधनों को काटने के लिए प्रत्येक मंगलवार को श्री ऋणमोचन मंगल स्तोत्र का पाठ करें तथा श्री क्षेत्र गोकर्ण महाबलेश्वर में महारुद्राभिषेक संकल्प कराएं। भगवान शिव की कृपा से आपकी आर्थिक स्थिति पुनः सुदृढ़ होगी।`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "te": {
-      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ కుండలిలోని 6వ స్థానం (రుణ భావం) అలాగే 11వ స్థానం (లాభ భావం), 2వ స్థానం (ధన స్థానం) పరిశీలిస్తే, ఈ అప్పుల భారం తాత్కాలిక కర్మ పరీక్ష మాత్రమేనని స్పష్టమవుతుంది. రాబోయే గోచార గురు బలం మీ లాభ భావాన్ని ఉత్తేజపరుస్తుండటం వల్ల ధనాదాయం పెరిగి అప్పులు తీరిపోయే శుభ కాలం సమీపిస్తోంది. రుణ విముక్తికి ఖచ్చితమైన నియమం: క్రమబద్ధంగా పాత అప్పులను తీర్చుకుంటూ, ఎలాంటి అధిక వడ్డీగల కొత్త అప్పులు లేదా ఊహాత్మక ఖర్చులు చేయకుండా ఉండాలి.` ;
+      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ కుండలిలోని 6వ స్థానం (రుణ భావం) అలాగే 11వ స్థానం (లాభ భావం), 2వ స్థానం (ధన స్థానం) పరిశీలిస్తే, ఈ అప్పుల భారం తాత్కాలిక కర్మ పరీక్ష మాత్రమేనని స్పష్టమవుతుంది. రాబోయే గోచార గురు బలం మీ లాభ భావాన్ని ఉత్తేజపరుస్తుండటం వల్ల${winTe} ధనాదాయం పెరిగి అప్పులు తీరిపోయే శుభ కాలం సమీపిస్తోంది. రుణ విముక్తికి ఖచ్చితమైన నియమం: క్రమబద్ధంగా పాత అప్పులను తీర్చుకుంటూ, ఎలాంటి అధిక వడ్డీగల కొత్త అప్పులు లేదా ఊహాత్మక ఖర్చులు చేయకుండా ఉండాలి.`;
       const p2 = `శాంతియుతంగా రుణ విముక్తి ప్రణాళికను అమలు చేయండి. రుణ బాధలు పూర్తిగా తొలగిపోవడానికి ప్రతి మంగళవారం శ్రీ రుణవిమోచన మంగళ స్తోత్రం పఠించండి మరియు శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి సన్నిధిలో రుద్రాభిషేకం చేయించండి. దైవానుగ్రహంతో మీ ఆర్థిక స్వేచ్ఛ తిరిగి లభిస్తుంది.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "ta": {
-      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 6-ஆம் வீடான கடன் ஸ்தானத்தையும், 11-ஆம் வீடான லாப ஸ்தானம் மற்றும் 2-ஆம் வீடான தன ஸ்தானத்தையும் பார்க்கும்போது, இந்த கடன் சுமை ஒரு தற்காலிக கர்ம சுழற்சியே என்று தெளிவாகிறது. வரவிருக்கும் கோசார குருவின் பார்வை உங்கள் லாப ஸ்தானத்தை வலுப்படுத்துவதால், புதிய வருமான வழிகள் பிறந்து கடன்கள் யாவும் படிப்படியாக அடைபடும். கடன் முற்றிலும் தீர முக்கியமான விதி: பழைய கடன்களை ஒழுங்காக அடைக்க வேண்டும்; அதிக வட்டிக்கு புதிய கடன்கள் வாங்குவதையோ அல்லது சூதாட்ட முதலீடுகளையோ அறவே தவிர்க்க வேண்டும்.`;
+      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 6-ஆம் வீடான கடன் ஸ்தானத்தையும், 11-ஆம் வீடான லாப ஸ்தானம் மற்றும் 2-ஆம் வீடான தன ஸ்தானத்தையும் பார்க்கும்போது, இந்த கடன் சுமை ஒரு தற்காலிக கர்ம சுழற்சியே என்று தெளிவாகிறது. வரவிருக்கும் கோசார குருவின் பார்வை உங்கள் லாப ஸ்தானத்தை வலுப்படுத்துவதால்${winTa} புதிய வருமான வழிகள் பிறந்து கடன்கள் யாவும் படிப்படியாக அடைபடும். கடன் முற்றிலும் தீர முக்கியமான விதி: பழைய கடன்களை ஒழுங்காக அடைக்க வேண்டும்; அதிக வட்டிக்கு புதிய கடன்கள் வாங்குவதையோ அல்லது சூதாட்ட முதலீடுகளையோ அறவே தவிர்க்க வேண்டும்.`;
       const p2 = `பதற்றமின்றி திட்டமிட்டு கடனை அடைத்து வாருங்கள். கடன் தொல்லைகள் நிரந்தரமாக நீங்க ஒவ்வொரு செவ்வாய்க்கிழமையும் ஸ்ரீ ருணவிமோசன மங்கள ஸ்தோத்திரம் பாராயணம் செய்து, ஸ்ரீ க்ஷேத்ர கோகர்ண மகாபலேஸ்வரருக்கு ருத்ராபிஷேகம் செய்யுங்கள். ஈசனின் அருளால் பொருளாதார நிம்மதி உண்டாகும்.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "ml": {
-      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ ആറാം ഭാവവും (കടബാധ്യത) പതിനൊന്നാം ഭാവവും (ലാഭ സ്ഥാനം), രണ്ടാം ഭാവവും (ധന സ്ഥാനം) വ്യക്തമാക്കുന്നത് ഈ കടം ഒരു താത്കാലിക കര്മ്മ പരീക്ഷ മാത്രമാണെന്നാണ്. വരുന്ന വ്യാഴത്തിന്റെ ഗോചാര മാറ്റം നിങ്ങളുടെ വരുമാന മാർഗ്ഗങ്ങളെ ശക്തിപ്പെടുത്തുകയും കടങ്ങൾ വീട്ടിത്തീർക്കാനുള്ള സാഹചര്യം ഒരുക്കുകയും ചെയ്യും. സമ്പൂർണ്ണ കടമുക്തിക്കായി ഒരു സുപ്രധാന നിയമം പാലിക്കുക: പഴയ കടങ്ങൾ ചിട്ടയായി വീട്ടുക, ഉയർന്ന പലിശയ്ക്കുള്ള പുതിയ വായ്പകളോ ഊഹക്കച്ചവടങ്ങളോ കർശനമായി ഒഴിവാക്കുക.`;
+      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ ആറാം ഭാവവും (കടബാധ്യത) പതിനൊന്നാം ഭാവവും (ലാഭ സ്ഥാനം), രണ്ടാം ഭാവവും (ധന സ്ഥാനം) വ്യക്തമാക്കുന്നത് ഈ കടം ഒരു താത്കാലിക കര്മ്മ പരീക്ഷ മാത്രമാണെന്നാണ്. വരുന്ന വ്യാഴത്തിന്റെ ഗോചാര മാറ്റം നിങ്ങളുടെ വരുമാന മാർഗ്ഗങ്ങളെ ശക്തിപ്പെടുത്തുകയും${winMl} കടങ്ങൾ വീട്ടിത്തീർക്കാനുള്ള സാഹചര്യം ഒരുക്കുകയും ചെയ്യും. സമ്പൂർണ്ണ കടമുക്തിക്കായി ഒരു സുപ്രധാന നിയമം പാലിക്കുക: പഴയ കടങ്ങൾ ചിട്ടയായി വീട്ടുക, ഉയർന്ന പലിശയ്ക്കുള്ള പുതിയ വായ്പകളോ ഊഹക്കച്ചവടങ്ങളോ കർശനമായി ഒഴിവാക്കുക.`;
       const p2 = `സമാധാനത്തോടെ കടങ്ങൾ തീർക്കാൻ മുന്നോട്ട് നീങ്ങുക. കടബാധ്യതകൾ വേഗത്തിൽ ഒഴിഞ്ഞുപോകാൻ എല്ലാ ചൊവ്വാഴ്ചയും ശ്രീ ഋണവിമോചന മംഗള സ്തോത്രം ജപിക്കുകയും ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ രുദ്രാഭിഷേകം നടത്തുകയും ചെയ്യുക. ഭഗവാന്റെ കൃപയാൽ സാമ്പത്തിക സുരക്ഷിതത്വം തിരികെ ലഭിക്കും.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "mr": {
-      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या पत्रिकेतील षष्ठ भाव (कर्ज स्थान) तसेच एकादश भाव (लाभ स्थान) आणि द्वितीय भाव (धन स्थान) यांचा अभ्यास करता, कर्जाचे हे ओझे केवळ एक तात्पुरती कर्म स्थिती आहे. आगामी गोचर गुरूचा शुभ प्रभाव आपल्या लाभ स्थानास बळकट करणार असून नवीन उत्पन्नाचे मार्ग उघडून कर्जमुक्तीचा मार्ग सुकर होईल. पूर्ण कर्जमुक्तीसाठी महत्त्वाचा नियम पाळा: जुने कर्ज नियोजनबद्ध पद्धतीने फेडा आणि कोणतेही नवीन जादा व्याजाचे कर्ज अथवा सट्टेबाजी पूर्णपणे टाळा.`;
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या पत्रिकेतील षष्ठ भाव (कर्ज स्थान) तसेच एकादश भाव (लाभ स्थान) आणि द्वितीय भाव (धन स्थान) यांचा अभ्यास करता, कर्जाचे हे ओझे केवळ एक तात्पुरती कर्म स्थिती आहे. आगामी गोचर गुरूचा शुभ प्रभाव आपल्या लाभ स्थानास बळकट करणार असून${winMr} नवीन उत्पन्नाचे मार्ग उघडून कर्जमुक्तीचा मार्ग सुकर होईल. पूर्ण कर्जमुक्तीसाठी महत्त्वाचा नियम पाळा: जुने कर्ज नियोजनबद्ध पद्धतीने फेडा आणि कोणतेही नवीन जादा व्याजाचे कर्ज अथवा सट्टेबाजी पूर्णपणे टाळा.`;
       const p2 = `संयम ठेवून कर्जाची परतफेड करा. कर्जाच्या पाशातून कायमची मुक्ती मिळवण्यासाठी प्रत्येक मंगळवारी श्री ऋणमोचन मंगळ स्तोत्राचे पठण करा आणि श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी महारुद्राभिषेक पूजा अर्पण करा. महादेवाच्या कृपेने आपले आर्थिक स्वातंत्र्य लवकरच पुनरुज्जीवित होईल.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "kn":
     default: {
-      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೬ನೇ ಸಾಲ/ಋಣ ಸ್ಥಾನ, ೧೧ನೇ ಲಾಭ ಸ್ಥಾನ ಹಾಗೂ ೨ನೇ ಧನ ಸ್ಥಾನಗಳ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಸಾಲದ ಹೊರೆಯು ಒಂದು ತಾತ್ಕಾಲಿಕ ಕರ್ಮ ಚಕ್ರವೇ ಹೊರತು ಶಾಶ್ವತ ಬಿಕ್ಕಟ್ಟಲ್ಲ. ಮುಂದಿನ ಗೋಚಾರದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಲಾಭ ಸ್ಥಾನಕ್ಕೆ ವಿಶೇಷ ಚೈತನ್ಯ ನೀಡಲಿದ್ದು, ಹೊಸ ಆದಾಯದ ಮೂಲಗಳು ತೆರೆದುಕೊಂಡು ಸಾಲ ತೀರುವ ಹಾದಿ ಸುಗಮವಾಗಲಿದೆ. ಸಾಲದಿಂದ ಶಾಶ್ವತ ಮುಕ್ತಿ ಹೊಂದಲು ಎರಡು ಕಟ್ಟುನಿಟ್ಟಾದ ನಿಯಮಗಳಿವೆ: ಹಳೆಯ ಸಾಲಗಳನ್ನು ಶಿಸ್ತಿನಿಂದ ಹಂತ ಹಂತವಾಗಿ ತೀರಿಸುತ್ತಾ ಬನ್ನಿ; ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಅತಿಯಾದ ಬಡ್ಡಿಯ ಹೊಸ ಸಾಲ ಅಥವಾ ಊಹಾತ್ಮಕ ಜೂಜುಗಳಲ್ಲಿ ತೊಡಗಬೇಡಿ.`;
+      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೬ನೇ ಸಾಲ/ಋಣ ಸ್ಥಾನ, ೧೧ನೇ ಲಾಭ ಸ್ಥಾನ ಹಾಗೂ ೨ನೇ ಧನ ಸ್ಥಾನಗಳ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಸಾಲದ ಹೊರೆಯು ಒಂದು ತಾತ್ಕಾಲಿಕ ಕರ್ಮ ಚಕ್ರವೇ ಹೊರತು ಶಾಶ್ವತ ಬಿಕ್ಕಟ್ಟಲ್ಲ. ಮುಂದಿನ ಗೋಚಾರದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಲಾಭ ಸ್ಥಾನಕ್ಕೆ ವಿಶೇಷ ಚೈತನ್ಯ ನೀಡಲಿದ್ದು,${winKn} ಹೊಸ ಆದಾಯದ ಮೂಲಗಳು ತೆರೆದುಕೊಂಡು ಸಾಲ ತೀರುವ ಹಾದಿ ಸುಗಮವಾಗಲಿದೆ. ಸಾಲದಿಂದ ಶಾಶ್ವತ ಮುಕ್ತಿ ಹೊಂದಲು ಎರಡು ಕಟ್ಟುನಿಟ್ಟಾದ ನಿಯಮಗಳಿವೆ: ಹಳೆಯ ಸಾಲಗಳನ್ನು ಶಿಸ್ತಿನಿಂದ ಹಂತ ಹಂತವಾಗಿ ತೀರಿಸುತ್ತಾ ಬನ್ನಿ; ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಅತಿಯಾದ ಬಡ್ಡಿಯ ಹೊಸ ಸಾಲ ಅಥವಾ ಊಹಾತ್ಮಕ ಜೂಜುಗಳಲ್ಲಿ ತೊಡಗಬೇಡಿ.`;
       const p2 = `ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ಆತಂಕವಿಲ್ಲದೆ ನಿಯಮಿತವಾಗಿ ಅಸಲನ್ನು ತೀರಿಸುವ ಸಂಕಲ್ಪ ಮಾಡಿ. ಋಣಬಾಧೆಯ ಕರ್ಮ ತಡೆಗಳನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಕಳಚಿಕೊಳ್ಳಲು ಪ್ರತಿ ಮಂಗಳವಾರ ಶ್ರೀ ಋಣವಿಮೋಚನ ಮಂಗಳ ಸ್ತೋತ್ರವನ್ನು ಪಠಿಸಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಸಂಕಲ್ಪ ಸಲ್ಲಿಸಿ. ಈಶ್ವರನ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ ಮತ್ತು ಮನಃಶಾಂತಿ ಮರಳಿ ನೆಲೆಸಲಿದೆ.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }

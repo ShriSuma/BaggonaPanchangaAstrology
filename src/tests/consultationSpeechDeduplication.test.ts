@@ -336,5 +336,61 @@ describe("Consultation Speech Service - Anti-Duplication & Deduplication Engine"
       expect(await refineSpokenConsultationQuestion({ spokenQuestion: "", language: "kn" })).toBe("");
       expect(await refineSpokenConsultationQuestion({ spokenQuestion: "ಹಲೋ", language: "kn" })).toBe("ಹಲೋ");
     });
+
+    it("preserves Kanglish/open-ended transcripts verbatim even if an API key is supplied", async () => {
+      const kanglishOpen = "Neenu helu alli naanu gothilla";
+      const refined = await refineSpokenConsultationQuestion({
+        spokenQuestion: kanglishOpen,
+        language: "kn",
+        apiKey: "AIzaFakeKeyThatMustNotRewriteKanglish"
+      });
+      expect(refined).toBe(kanglishOpen);
+
+      const kanglishDebt = "Sala bade yavaga tirithe";
+      expect(
+        await refineSpokenConsultationQuestion({
+          spokenQuestion: kanglishDebt,
+          language: "kn",
+          apiKey: "AIzaFakeKeyThatMustNotRewriteKanglish"
+        })
+      ).toBe(kanglishDebt);
+    });
+
+    it("preserves trailing interim words inside ContinuousSpeechEngine during auto-restart pauses", () => {
+      const mockRec: any = {
+        continuous: false,
+        interimResults: false,
+        lang: "",
+        maxAlternatives: 1,
+        start: vi.fn(),
+        stop: vi.fn(),
+        abort: vi.fn(),
+        onresult: null as any,
+        onerror: null as any,
+        onend: null as any
+      };
+      (window as any).SpeechRecognition = vi.fn().mockImplementation(() => mockRec);
+      (window as any).webkitSpeechRecognition = (window as any).SpeechRecognition;
+
+      const engine = new ContinuousSpeechEngine("en");
+      const updates: string[] = [];
+      engine.start("", {
+        onTranscriptUpdate: (t) => updates.push(t)
+      });
+
+      mockRec.onresult({
+        resultIndex: 0,
+        results: [
+          { isFinal: true, 0: { transcript: "when will I get" } },
+          { isFinal: false, 0: { transcript: "married in 2027" } }
+        ]
+      });
+
+      // Browser fires onend before finalization completes during a pause
+      mockRec.onend();
+
+      const captured = engine.stop();
+      expect(captured).toBe("when will I get married in 2027");
+    });
   });
 });

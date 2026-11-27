@@ -391,9 +391,10 @@ export class ContinuousSpeechEngine {
       this.isListening = false;
       if (this.isExplicitlyActive) {
         // Automatically restart to fulfill 3-4 minute continuous speaking requirement!
-        // Commit current finalized transcript into baseText before starting new session cleanly
-        if (this.currentSessionFinal) {
-          this.baseText = mergeSpeechSegments(this.baseText, this.currentSessionFinal);
+        // Commit BOTH finalized text and any trailing interim hypothesis into baseText so final words are never dropped on pause/restart.
+        const pendingTail = cleanJoin(this.currentSessionFinal, this.currentInterim);
+        if (pendingTail) {
+          this.baseText = mergeSpeechSegments(this.baseText, pendingTail);
           this.currentSessionFinal = "";
         }
         this.currentInterim = "";
@@ -540,6 +541,20 @@ export async function refineSpokenConsultationQuestion(params: {
     return sanitized;
   }
 
+  // Never rewrite short/direct questions, Kanglish voice input inside a regional language session,
+  // or open-ended / proof-seeking / presence-fear questions into a different unrelated question.
+  const wordCount = sanitized.split(/\s+/).filter(Boolean).length;
+  const hasLatinLetters = /[a-z]/i.test(sanitized);
+  const isKanglishInRegionalSession = language !== "en" && hasLatinLetters;
+  const isDirectOrSensitiveVoice =
+    /neenu\s+helu|neeve\s+heli|nanage\s+gothilla|naanu\s+gothilla|gothilla|gottilla|sala\s*bad|maduve|kelasa|how are you (so )?sure|why 202\d|roaming around|following me|ನೀನು ಹೇಳು|ನೀವೇ ಹೇಳಿ|ನನಗೆ ಗೊತ್ತಿಲ್ಲ|ಹೇಗೆ ಖಚಿತ|ಯಾಕೆ ಹಾಗೆ|ಸುತ್ತ ಯಾರೋ/i.test(
+      sanitized
+    );
+
+  if (isKanglishInRegionalSession || isDirectOrSensitiveVoice || wordCount <= 14) {
+    return sanitized;
+  }
+
   // Resolve API Key (respect explicit apiKey parameter if provided)
   const effectiveKey = (
     apiKey !== undefined
@@ -561,14 +576,13 @@ Spoken transcript:
 "${sanitized}"
 
 TASK:
-Politely refine this spoken question into a single, respectful, natural devotee inquiry addressed to revered Sri Shreeram Pandit in ${targetLang}.
+Clean only speech recognition duplicates or missing punctuation in this exact spoken transcript in ${targetLang}.
 
 RULES:
-1. Smooth out any speech recognition glitches, accidental repeated words, or choppy fragments.
-2. Faithfully preserve the devotee's heartfelt dilemma or question (career, marriage timing, family health, finance, mental peace).
-3. Return ONLY the polished single question string in the authentic native script of ${targetLang}.
-4. Zero prefixes, zero quotation marks, zero robotic introductions.
-5. Length: exactly 1 clear, respectful sentence.`;
+1. Smooth out ONLY speech recognition glitches, accidental repeated words, or broken punctuation.
+2. Faithfully preserve 100% of the devotee's exact original intent and words. NEVER invent a new topic, NEVER replace an open-ended query with another question, and NEVER ask a related question back.
+3. Return ONLY the lightly cleaned question string in ${targetLang}.
+4. Zero prefixes, zero quotation marks, zero robotic introductions.`;
 
   try {
     const genAI = new GoogleGenerativeAI(effectiveKey);

@@ -948,7 +948,7 @@ export function detectTopicDomain(text: string): TopicDomain {
 
 export function detectIsAskingTiming(text: string): boolean {
   if (!text) return false;
-  return /ಯಾವಾಗ|ಎಷ್ಟು ದಿನ|ಎಷ್ಟು ತಿಂಗಳು|ಯಾವ ವರ್ಷ|ಯಾವ ತಿಂಗಳು|ಕಾಲಾವಕಾಶ|ಸಮಯ ಯಾವಾಗ|ಯಾವಾಗ ಆಗಬಹುದು|ಯಾವಾಗ ಆಗುತ್ತೆ|ಯಾವಾಗ ಆಗುತ್ತದೆ|ಯಾವಾಗ ಸಿಗುತ್ತೆ|ಯಾವಾಗ ಸಿಗುತ್ತದೆ|ಯಾವಾಗ ನೆರವೇರ|ಯಾವಾಗ ಬಗೆಹರಿ|ಎಲ್ಲಿಯವರೆಗೆ|when\b|which month|how many months|how long|what year|what time|timeline|exact time|how soon|when will|when can|कब होगा|कब तक|कितने महीने|कितने समय|कब विवाह|कब शादी|कब नौकरी|ఎప్పుడు|ఎన్ని నెలలు|ఎప్పుడు జరుగుతుంది|ఎప్పుడు వస్తుంది|எப்போது|எத்தனை மாதம்|எப்போது நடக்கும்|എപ്പോൾ|എത്ര മാസം|എപ്പോൾ നടക്കും|कधी होईल|कधीपर्यंत|किती महिने/i.test(
+  return /ಯಾವಾಗ|ಎಷ್ಟು ದಿನ|ಎಷ್ಟು ತಿಂಗಳು|ಯಾವ ವರ್ಷ|ಯಾವ ತಿಂಗಳು|ಕಾಲಾವಕಾಶ|ಸಮಯ ಯಾವಾಗ|ಯಾವಾಗ ಆಗಬಹುದು|ಯಾವಾಗ ಆಗುತ್ತೆ|ಯಾವಾಗ ಆಗುತ್ತದೆ|ಯಾವಾಗ ಸಿಗುತ್ತೆ|ಯಾವಾಗ ಸಿಗುತ್ತದೆ|ಯಾವಾಗ ನೆರವೇರ|ಯಾವಾಗ ಬಗೆಹರಿ|ಎಲ್ಲಿಯವರೆಗೆ|yavaga|yaavaga|yavag|eshtu dina|eshtu tingalu|yava varsha|yava tingalu|eppudu|enni nelalu|eppo|eppothu|eppol|kab tak|kab hoga|kitne mahine|kitne din|kevha|kadhi|when\b|which month|how many months|how long|what year|what time|timeline|exact time|how soon|when will|when can|कब होगा|कब तक|कितने महीने|कितने समय|कब विवाह|कब शादी|कब नौकरी|ఎప్పుడు|ఎన్ని నెలలు|ఎప్పుడు జరుగుతుంది|ఎప్పుడు వస్తుంది|எப்போது|எத்தனை மாதம்|எப்போது நடக்கும்|എപ്പോൾ|എത്ര മാസം|എപ്പോൾ നടക്കും|कधी होईल|कधीपर्यंत|किती महिने/i.test(
     text
   );
 }
@@ -958,6 +958,9 @@ export interface ConversationTurnAnalysis {
   isSameTopicFollowUp: boolean;
   isTopicSwitch: boolean;
   isAskingTiming: boolean;
+  isAskingProof?: boolean;
+  previousClaimedWindow?: string | null;
+  previousClaimedYear?: string | null;
   previousTopic: TopicDomain;
   currentTopic: TopicDomain;
   referencedDoshaFromHistory?: string;
@@ -2250,6 +2253,13 @@ import {
   buildDeterministicHealthReading,
   buildDeterministicCompetitiveExamReading,
   calculateAstrologicalTimeline,
+  detectIsAskingProofOrReason,
+  extractPreviousPredictedClaim,
+  detectShadowPresenceFear,
+  detectDirectChartOpenEndedRequest,
+  buildDeterministicTimelineProofReading,
+  buildDeterministicShadowPresenceReading,
+  buildDeterministicOpenEndedChartOverviewReading,
   type AstrologicalTimelineResult
 } from "./consultationDomainReadings";
 
@@ -2277,6 +2287,13 @@ export {
   buildDeterministicHealthReading,
   buildDeterministicCompetitiveExamReading,
   calculateAstrologicalTimeline,
+  detectIsAskingProofOrReason,
+  extractPreviousPredictedClaim,
+  detectShadowPresenceFear,
+  detectDirectChartOpenEndedRequest,
+  buildDeterministicTimelineProofReading,
+  buildDeterministicShadowPresenceReading,
+  buildDeterministicOpenEndedChartOverviewReading,
   type AstrologicalTimelineResult,
   detectAndResolveUltaPaltaProbe,
   verifyAndHarmonizeWithPreviousAnswers,
@@ -3701,15 +3718,34 @@ export async function generateConsultationAnswer(params: {
   } = astroData;
 
   // 1b. Conversational Intelligence & Astrological Timeline
-  const convIntel = detectConversationIntelligence(
+  const convIntelRaw = detectConversationIntelligence(
     userQuestion,
     conversationHistory,
     session.language
   );
+  const isAskingProof = detectIsAskingProofOrReason(userQuestion, conversationHistory);
+  const previousClaim = extractPreviousPredictedClaim(
+    conversationHistory,
+    userQuestion,
+    convIntelRaw.currentTopic
+  );
+  const effectiveTopic: TopicDomain =
+    isAskingProof && previousClaim.claimedTopic !== "GENERAL"
+      ? previousClaim.claimedTopic
+      : previousClaim.claimedTopic !== "GENERAL" && convIntelRaw.currentTopic === "GENERAL"
+        ? previousClaim.claimedTopic
+        : convIntelRaw.currentTopic;
+  const convIntel: ConversationTurnAnalysis = {
+    ...convIntelRaw,
+    currentTopic: effectiveTopic,
+    isAskingProof,
+    previousClaimedWindow: previousClaim.claimedWindow,
+    previousClaimedYear: previousClaim.claimedYear
+  };
   const timeline = calculateAstrologicalTimeline(
     kundli,
     ageYears,
-    convIntel.currentTopic,
+    effectiveTopic,
     session.language
   );
 
@@ -3771,11 +3807,12 @@ export async function generateConsultationAnswer(params: {
     ) &&
     !rulingsLedger.some((r) => r.domain === "MARRIAGE")
   ) {
+    const p = timeline.topicLabel;
     rulingsLedger.push({
       domain: "MARRIAGE",
       questionSummary: userQuestion,
       primaryVerdict:
-        "100% Confident Astrological Prediction: Within the next 6 months, marriage is confirmed and solemnized. 7th house and incoming Gochara Guru drishti guarantee this sacred union.",
+        `100% Confident Astrological Prediction: Within ${timeline.rangeSummary || "the next 6 to 12 months"} (building across the next 6 months), ${p} is confirmed and solemnized. 7th house and incoming Gochara Guru drishti guarantee this sacred union.`,
       approvedOptions: [
         "Solemnizing marriage within next 6 months",
         "Alliance finalization under favorable Gochara Guru transit window"
@@ -3967,19 +4004,53 @@ export async function generateConsultationAnswer(params: {
     complexityAnalysis.complexity !== "QUICK_SPECIFIC" &&
     asksAboutDoshaDirectly;
 
-  const timingInstruction = convIntel.isAskingTiming
+  const isShadowPresence = detectShadowPresenceFear(userQuestion);
+  const isDirectOpenChart = detectDirectChartOpenEndedRequest(userQuestion);
+
+  const timingInstruction = convIntel.isAskingProof
+    ? `
+MANDATORY ASTROLOGICAL PROOF & MATHEMATICAL RATIONALE DIRECTIVE (DO NOT REPEAT PREVIOUS PREDICTION VERBATIM):
+- The devotee is asking WHY / HOW YOU ARE SO SURE regarding "${convIntel.previousClaimedWindow || timeline.rangeSummary}" for ${timeline.topicLabel} ("${userQuestion}").
+- CRITICAL ANTI-REPLAY RULE: DO NOT replay, repeat, or paraphrase your earlier surface prediction ("You will get married in 2027" etc.). Instead, prove the exact astrological arithmetic behind "${convIntel.previousClaimedWindow || timeline.rangeSummary}":
+  1) Vimshottari Dasha–Bhukti Transition Proof: Current ${timeline.currentMahaName}-${timeline.currentBhuktiName} matures in ${timeline.monthsToDashaChange} months (around ${timeline.bhuktiEndDateText}), shifting directly into ${timeline.nextBhuktiName} Antardasha.
+  2) Parashari Bhava & Lord Proof: Natal House ${timeline.bhavaNumber} (${timeline.bhavaSignName}) governing ${timeline.topicLabel} is ruled by ${timeline.bhavaLordName} (placed in House ${timeline.bhavaLordPlacedHouse}), which gets unlocked by this exact Bhukti shift.
+  3) Gochara Guru–Shani Double-Transit (Dvishaktya) Proof: Live Jupiter (${timeline.guruTransitSignName}, House ${timeline.guruTransitHouseFromMoon} from Moon) and Saturn (${timeline.shaniTransitSignName}, House ${timeline.shaniTransitHouseFromMoon} from Moon) converge across ${timeline.calendarWindowText} to aspect your ${timeline.lagnaSignName} Lagna (Lord ${timeline.lagnaLordName}) and House ${timeline.bhavaNumber} axis.
+- Explain these 3 converging Vedic proofs clearly, step by step, without asking unrelated questions back!`
+    : convIntel.isAskingTiming
     ? `
 MANDATORY ASTROLOGICAL TIMELINE WINDOW (ACCURATE TIMING WITH 98% PROBABILITY):
 - The devotee is asking WHEN or what is the timeline for ${timeline.topicLabel} ("${userQuestion}").
 - You MUST provide a concrete, specific astrological timeline window based on:
-  1) Dasha-Bhukti transition: Current ${timeline.currentMahaName}-${timeline.currentBhuktiName} transition matures in approximately ${timeline.monthsToDashaChange} months into ${timeline.nextBhuktiName}.
-  2) Gochara Guru: Guru completes its 1-year transit cycle to cast direct divine aspect (drishti) on the native's chart.
+  1) Dasha-Bhukti transition: Current ${timeline.currentMahaName}-${timeline.currentBhuktiName} transition matures in approximately ${timeline.monthsToDashaChange} months (${timeline.bhuktiEndDateText}) into ${timeline.nextBhuktiName}.
+  2) Gochara Guru: Guru (${timeline.guruTransitSignName}, House ${timeline.guruTransitHouseFromMoon} from Moon) aligns with House ${timeline.bhavaNumber} (${timeline.bhavaSignName}, Lord ${timeline.bhavaLordName}) over ${timeline.calendarWindowText}.
   3) 98% Probability Auspicious Window: ${timeline.rangeSummary}.
 - State this EXACT calculated timeline range (${timeline.rangeSummary}) clearly and reassuringly in the reading!`
+    : isShadowPresence
+    ? `
+MANDATORY SHADOW / UNSEEN PRESENCE ("SOMEONE ROAMING AROUND ME") VEDIC PROTOCOL:
+- The devotee is sensing an unseen presence / shadow roaming near them ("${userQuestion}").
+- Explain calmly through authentic Jyotisha with ZERO fear-mongering:
+  1) Analyze Manas-Karaka Moon (${moonRashi}, ${nakshatra}) interacting with Chaya Graha Rahu (transiting House ${astroData.rahuTransitHouseFromMoon} from Moon) / Ketu, 8th/12th sleep-subconscious houses, and Maandi sensitivity.
+  2) Clarify reassuringly that Rahu-Ketu are shadow nodes without physical bodies — sleep deprivation, mental fatigue, or deep stress amplifies peripheral shadows/sensations.
+  3) Recommend soft night lighting, restful sleep/wellness care, and Sri Hanuman Chalisa / Shiva Panchakshari protection prayer. Never bounce unrelated questions back.`
+    : isDirectOpenChart
+    ? `
+MANDATORY DIRECT CHART OVERVIEW PROTOCOL ("NEENU HELU / YOU TELL ME"):
+- The devotee asked open-endedly ("${userQuestion}") wanting you to read their horoscope directly.
+- Immediately analyze THIS native's real ${lagnaName} Lagna (Lord ${astroData.lagnaLord} in House ${astroData.lagnaLordHouse}), ${moonRashi} Rashi, ${nakshatra} Nakshatra, active ${currentDashaText} (changing in ${timeline.monthsToDashaChange} months), and 10th/7th/11th Bhavas.
+- STRICTLY DO NOT bounce unrelated questions back or ask "what else do you want to ask?" — directly deliver a complete, helpful chart overview.`
     : "";
 
   let doshaSectionPrompt = "";
-  if (complexityAnalysis.complexity === "QUICK_SPECIFIC") {
+  if (convIntel.isAskingProof || isShadowPresence || isDirectOpenChart) {
+    doshaSectionPrompt = `
+${timingInstruction}
+
+CRITICAL STRUCTURE DIRECTIVE (2-3 CLEAR PARAGRAPHS - STRICT QUESTION FOCUS):
+- Answer ONLY this devotee inquiry ("${userQuestion}") directly using authentic mathematical & scriptural reasoning from the chart coordinates above.
+- ABSOLUTELY DO NOT repeat Turn 1's earlier timeline summary verbatim when proving why!
+- ZERO unrelated counter-questions at the end of your reply ("what else do you want to ask?" is FORBIDDEN here).`;
+  } else if (complexityAnalysis.complexity === "QUICK_SPECIFIC") {
     doshaSectionPrompt = `
 ${complexityAnalysis.promptDirective}
 
@@ -4073,6 +4144,7 @@ The devotee is sitting right across from you face-to-face at ${PROMPT_GOKARNA_BY
 CRITICAL MANDATORY INSTRUCTION: 100% EXCLUSIVE FOCUS ON THIS QUESTION
 ========================================================================
 - CURRENT QUESTION TO ANSWER RIGHT NOW: "${userQuestion}"
+- STRICT ANTI-TANGENT RULE: Answer ONLY this exact question without substituting a different topic and without asking unrelated counter-questions back at the end.
 ${
   isSubsequent
     ? convIntel.isSameTopicFollowUp
@@ -4445,23 +4517,83 @@ function generateDeterministicFallbackReading(
   const ultaPaltaFallback = detectAndResolveUltaPaltaProbe(
     question,
     session.rulingsLedger,
-    session.language
+    session.language,
+    (conversationHistory || []).map((t) => t.text).join("\n")
   );
   if (ultaPaltaFallback) {
     return ultaPaltaFallback;
   }
 
-  if (complexityAnalysis.domain === "MARRIAGE") {
+  const convIntelRawEarly = detectConversationIntelligence(
+    question,
+    conversationHistory,
+    session.language
+  );
+  const isAskingProofEarly = detectIsAskingProofOrReason(question, conversationHistory);
+  const prevClaimEarly = extractPreviousPredictedClaim(
+    conversationHistory,
+    question,
+    convIntelRawEarly.currentTopic
+  );
+  const effectiveTopicEarly: TopicDomain =
+    isAskingProofEarly && prevClaimEarly.claimedTopic !== "GENERAL"
+      ? prevClaimEarly.claimedTopic
+      : prevClaimEarly.claimedTopic !== "GENERAL" && convIntelRawEarly.currentTopic === "GENERAL"
+        ? prevClaimEarly.claimedTopic
+        : convIntelRawEarly.currentTopic;
+
+  if (isAskingProofEarly && astroData?.kundli) {
+    const proofTimeline = calculateAstrologicalTimeline(
+      astroData.kundli,
+      astroData.ageYears,
+      effectiveTopicEarly,
+      session.language
+    );
+    return buildDeterministicTimelineProofReading({
+      session,
+      question,
+      topic: effectiveTopicEarly,
+      timeline: proofTimeline,
+      claimedWindow: prevClaimEarly.claimedWindow,
+      claimedYear: prevClaimEarly.claimedYear
+    });
+  }
+
+  if (detectShadowPresenceFear(question)) {
+    return buildDeterministicShadowPresenceReading(session, question, astroData);
+  }
+
+  if (detectDirectChartOpenEndedRequest(question)) {
+    return buildDeterministicOpenEndedChartOverviewReading(session, question, astroData);
+  }
+
+  const isCurrentQuestionDebtKanglish =
+    !astroData?.isMinorChild &&
+    /ಸಾಲ|ಋಣ|\bsala\b|sala\s*bad|saala|debt|loan|emi|कर्ज|ऋण|రుణ|అప్పు|கடன்|കട|कर्जमुक्ती/i.test(q);
+  const isCurrentQuestionMarriageKanglish =
+    !astroData?.isMinorChild &&
+    /\bmaduve\b|\bkalyana\b/i.test(q);
+
+  const effectiveDomainEarly =
+    isCurrentQuestionDebtKanglish &&
+    (complexityAnalysis.domain === "GENERAL" || complexityAnalysis.domain === "TIMING_WINDOW")
+      ? "DEBT_FINANCIAL_RELIEF"
+      : isCurrentQuestionMarriageKanglish && complexityAnalysis.domain === "GENERAL"
+        ? "MARRIAGE"
+        : complexityAnalysis.domain;
+
+  if (effectiveDomainEarly === "MARRIAGE") {
     return buildDeterministicMarriageReading(
       session,
       question,
       astroData,
       session.rulingsLedger,
-      isSubsequent
+      isSubsequent,
+      conversationHistory
     );
   }
 
-  if (complexityAnalysis.domain === "SANTHANA") {
+  if (effectiveDomainEarly === "SANTHANA") {
     return buildDeterministicSanthanaReading(
       session,
       question,
@@ -4516,7 +4648,7 @@ function generateDeterministicFallbackReading(
     );
   }
 
-  if (complexityAnalysis.domain === "DEBT_FINANCIAL_RELIEF") {
+  if (effectiveDomainEarly === "DEBT_FINANCIAL_RELIEF") {
     return buildDeterministicDebtReliefReading(
       session,
       question,
@@ -4538,7 +4670,7 @@ function generateDeterministicFallbackReading(
     );
   }
 
-  if (complexityAnalysis.domain === "HEALTH_LONGEVITY") {
+  if (effectiveDomainEarly === "HEALTH_LONGEVITY") {
     return buildDeterministicHealthReading(
       session,
       question,
@@ -4612,16 +4744,35 @@ function generateDeterministicFallbackReading(
     }
   }
 
-  const convIntel = detectConversationIntelligence(
+  const convIntelRaw = detectConversationIntelligence(
     question,
     conversationHistory,
     session.language
   );
+  const isAskingProof = detectIsAskingProofOrReason(question, conversationHistory);
+  const prevClaim = extractPreviousPredictedClaim(
+    conversationHistory,
+    question,
+    convIntelRaw.currentTopic
+  );
+  const effectiveTopic: TopicDomain =
+    isAskingProof && prevClaim.claimedTopic !== "GENERAL"
+      ? prevClaim.claimedTopic
+      : prevClaim.claimedTopic !== "GENERAL" && convIntelRaw.currentTopic === "GENERAL"
+        ? prevClaim.claimedTopic
+        : convIntelRaw.currentTopic;
+  const convIntel: ConversationTurnAnalysis = {
+    ...convIntelRaw,
+    currentTopic: effectiveTopic,
+    isAskingProof,
+    previousClaimedWindow: prevClaim.claimedWindow,
+    previousClaimedYear: prevClaim.claimedYear
+  };
   const timeline = astroData?.kundli
     ? calculateAstrologicalTimeline(
         astroData.kundli,
         astroData.ageYears,
-        convIntel.currentTopic,
+        effectiveTopic,
         session.language
       )
     : undefined;

@@ -2095,6 +2095,207 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       expect(readingEn.fullText).not.toMatch(/^Namaste/);
     });
   });
+
+  describe("9. Astrological Proof Follow-Up, Shadow Presence Fear, & Kanglish Open-Ended Chart Safety", () => {
+    const baseSession: ConsultationSession = {
+      id: "sess_proof_audit_01",
+      name: "Karthik",
+      dob: "1994-05-14",
+      tob: "08:30",
+      place: "Gokarna, Karnataka",
+      lat: 14.5479,
+      lng: 74.3188,
+      timezone: 5.5,
+      language: "en",
+      status: "active",
+      durationMinutes: 20,
+      graceDeleteMinutes: 20,
+      createdAt: "2026-11-27T08:00:00.000Z",
+      messages: []
+    };
+
+    it("never replays Turn 1 prediction when user asks 'How are you sure I will get married in 2027?' — delivers Dasha + Bhava + Gochara proof", async () => {
+      const r1 = await presentConsultationReply({
+        session: { ...baseSession, messages: [] },
+        userQuestion: "When will I get married?",
+        conversationHistory: [],
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+
+      const history = [
+        { role: "user" as const, text: "When will I get married?" },
+        { role: "model" as const, text: r1.fullText }
+      ];
+
+      const r2 = await presentConsultationReply({
+        session: { ...baseSession, messages: [] },
+        userQuestion: "How are you sure I will get married in 2027?",
+        conversationHistory: history,
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 1
+      });
+
+      expect(r2.sensedContext.category).toBe("TIMING_PROOF_RATIONALE");
+      expect(r2.fullText).not.toBe(r1.fullText);
+      expect(r2.fullText).toContain("2027");
+      expect(r2.fullText).toMatch(/Proof|Vimshottari|Antardasha/i);
+      expect(r2.fullText).toMatch(/House 7/i);
+      expect(r2.fullText).toMatch(/Jupiter|Gochara/i);
+      expect(r2.fullText).toMatch(/Saturn/i);
+    });
+
+    it("delivers concrete promotion and Sala Bade (debt relief) proof on follow-up 'why' without repeating Turn 1", async () => {
+      // Promotion proof
+      const career1 = await presentConsultationReply({
+        session: { ...baseSession, messages: [] },
+        userQuestion: "When will I get promoted in my job?",
+        conversationHistory: [],
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+      const career2 = await presentConsultationReply({
+        session: { ...baseSession, messages: [] },
+        userQuestion: "Why are you saying next 6 months for my promotion?",
+        conversationHistory: [
+          { role: "user", text: "When will I get promoted in my job?" },
+          { role: "model", text: career1.fullText }
+        ],
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 1
+      });
+      expect(career2.fullText).not.toBe(career1.fullText);
+      expect(career2.fullText).toMatch(/House 10/i);
+      expect(career2.fullText).toMatch(/Proof|Antardasha|Vimshottari/i);
+
+      // Kanglish Sala Bade (debt relief) Turn 1 + Turn 2 proof
+      const debt1 = await presentConsultationReply({
+        session: { ...baseSession, language: "kn", messages: [] },
+        userQuestion: "Sala bade yavaga mugiyutte?",
+        conversationHistory: [],
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+      expect(debt1.sensedContext.category).toBe("DEBT_RELIEF_FINANCE");
+      expect(debt1.fullText).toMatch(/ಋಣವಿಮೋಚನ/);
+
+      const debt2 = await presentConsultationReply({
+        session: { ...baseSession, language: "kn", messages: [] },
+        userQuestion: "ಹೇಗೆ ಖಚಿತವಾಗಿ ಹೇಳ್ತೀರ?",
+        conversationHistory: [
+          { role: "user", text: "Sala bade yavaga mugiyutte?" },
+          { role: "model", text: debt1.fullText }
+        ],
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 1
+      });
+      expect(debt2.fullText).not.toBe(debt1.fullText);
+      expect(debt2.fullText).toMatch(/ಪ್ರಮಾಣ|ದಶಾ|ಭುಕ್ತಿ/);
+      expect(debt2.fullText).toMatch(/11ನೇ ಭಾವ|೧೧ನೇ ಭಾವ|ಸಾಲ ಬಾಧೆ/);
+    });
+
+    it("handles unseen shadow / 'someone roaming around me' fear calmly through Moon-Rahu-Maandi Jyotisha", async () => {
+      const qEn =
+        "Sometimes I feel someone is roaming around me. I am not sure why I am seeing this, what is the issue?";
+      const rEn = await presentConsultationReply({
+        session: { ...baseSession, messages: [] },
+        userQuestion: qEn,
+        conversationHistory: [],
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+      expect(rEn.sensedContext.category).toBe("SHADOW_PRESENCE_FEAR");
+      expect(rEn.fullText).toMatch(/Moon|Manas/i);
+      expect(rEn.fullText).toMatch(/Rahu|shadow/i);
+      expect(rEn.fullText).toMatch(/Maandi|12th|8th/i);
+      expect(rEn.fullText).not.toMatch(/what else/i);
+
+      const qKn = "ನನ್ನ ಸುತ್ತ ಯಾರೋ ತಿರುಗಾಡಿದಂತೆ ಅನಿಸುತ್ತದೆ, ಇದಕ್ಕೆ ಕಾರಣ ಏನು?";
+      const rKn = await presentConsultationReply({
+        session: { ...baseSession, language: "kn", messages: [] },
+        userQuestion: qKn,
+        conversationHistory: [],
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+      expect(rKn.sensedContext.category).toBe("SHADOW_PRESENCE_FEAR");
+      expect(rKn.fullText).toMatch(/ಚಂದ್ರ|ರಾಹು|ಮಾಂದಿ/);
+    });
+
+    it("reads real Kundli directly for 'Neenu helu alli naanu gothilla' without asking unrelated questions back", async () => {
+      const rKanglish = await presentConsultationReply({
+        session: { ...baseSession, language: "kn", messages: [] },
+        userQuestion: "Neenu helu alli naanu gothilla",
+        conversationHistory: [],
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+      expect(rKanglish.sensedContext.category).toBe("ASTROLOGICAL_DEEP");
+      expect(rKanglish.fullText).toMatch(/ಲಗ್ನ|ರಾಶಿ|ದಶ|ಮಹಾದಶಾ/);
+      expect(rKanglish.fullText.trim().endsWith("?")).toBe(false);
+    });
+
+    it("enforces pure native script (zero Latin word or markdown leakage) across all 7 languages for proof, shadow fear, and direct chart overview", async () => {
+      const langs: ConsultationLanguage[] = ["kn", "hi", "te", "ta", "ml", "mr"];
+      const proofQByLang: Record<ConsultationLanguage, string> = {
+        en: "How are you sure 2027?",
+        kn: "2027ರಲ್ಲಿ ಮದುವೆ ಆಗುತ್ತೆ ಅಂತ ಹೇಗೆ ಖಚಿತ?",
+        hi: "2027 में विवाह होगा यह आप कैसे कह सकते हैं?",
+        te: "2027 లో వివాహం జరుగుతుందని ఎలా చెప్పగలరు?",
+        ta: "2027 இல் திருமணம் நடக்கும் என்று எப்படி சொல்கிறீர்கள்?",
+        ml: "2027-ൽ വിവാഹം നടക്കുമെന്ന് എങ്ങനെ ഉറപ്പിക്കും?",
+        mr: "2027 मध्ये लग्न होईल हे आपण कसे सांगता?"
+      };
+
+      for (const lang of langs) {
+        const sess: ConsultationSession = { ...baseSession, language: lang, messages: [] };
+        const proofReply = await presentConsultationReply({
+          session: sess,
+          userQuestion: proofQByLang[lang],
+          conversationHistory: [
+            { role: "user", text: "marriage timing?" },
+            { role: "model", text: "2027" }
+          ],
+          apiKey: "",
+          isSubsequentQuestion: true,
+          questionIndex: 1
+        });
+        expect(proofReply.fullText).not.toMatch(/[a-zA-Z]/);
+        expect(proofReply.fullText).not.toMatch(/[*#]/);
+
+        const shadowReply = await presentConsultationReply({
+          session: sess,
+          userQuestion: "feel someone is roaming around me",
+          conversationHistory: [],
+          apiKey: "",
+          isSubsequentQuestion: false,
+          questionIndex: 0
+        });
+        expect(shadowReply.fullText).not.toMatch(/[a-zA-Z]/);
+        expect(shadowReply.fullText).not.toMatch(/[*#]/);
+
+        const overviewReply = await presentConsultationReply({
+          session: sess,
+          userQuestion: "Neenu helu alli naanu gothilla",
+          conversationHistory: [],
+          apiKey: "",
+          isSubsequentQuestion: false,
+          questionIndex: 0
+        });
+        expect(overviewReply.fullText).not.toMatch(/[a-zA-Z]/);
+        expect(overviewReply.fullText).not.toMatch(/[*#]/);
+      }
+    });
+  });
 });
 
 

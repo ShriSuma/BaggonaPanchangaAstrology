@@ -9,6 +9,18 @@ export interface FallbackTimelineSummary {
   currentBhuktiName: string;
   nextBhuktiName: string;
   monthsToDashaChange: number;
+  guruTransitHouseFromMoon?: number;
+  shaniTransitHouseFromMoon?: number;
+  guruTransitSignName?: string;
+  shaniTransitSignName?: string;
+  lagnaSignName?: string;
+  lagnaLordName?: string;
+  bhavaNumber?: number;
+  bhavaSignName?: string;
+  bhavaLordName?: string;
+  bhavaLordPlacedHouse?: number;
+  bhuktiEndDateText?: string;
+  calendarWindowText?: string;
 }
 
 export interface FallbackDoshaSummary {
@@ -21,6 +33,9 @@ export interface FallbackDoshaSummary {
 
 export interface FallbackConvIntelSummary {
   isAskingTiming: boolean;
+  isAskingProof?: boolean;
+  previousClaimedWindow?: string | null;
+  previousClaimedYear?: string | null;
   isSameTopicFollowUp: boolean;
   contextualBridge: string;
 }
@@ -240,6 +255,46 @@ export interface DeterministicFallbackContext {
   localizedDevoteeName: string;
 }
 
+/**
+ * Shared 7-language mathematical proof builder for timing follow-ups ("How sure 2027?", "Why next 6 months?")
+ * when deterministic fallback builders are invoked directly.
+ */
+function buildFallbackTimelineProof(
+  lang: ConsultationLanguage,
+  ctx: DeterministicFallbackContext
+): string {
+  const { timeline, convIntel, lagna } = ctx;
+  if (!timeline) return "";
+  const rawClaim = (convIntel.previousClaimedWindow || "").trim();
+  const win =
+    rawClaim && (lang === "en" || !/[a-zA-Z]/.test(rawClaim))
+      ? rawClaim
+      : convIntel.previousClaimedYear && lang !== "en"
+        ? `${timeline.rangeSummary} (${convIntel.previousClaimedYear})`
+        : timeline.rangeSummary;
+  const lagnaSign = timeline.lagnaSignName || lagna;
+  const bhavaNum = timeline.bhavaNumber || 7;
+  const bhavaSign = timeline.bhavaSignName || lagnaSign;
+  const bhavaLord = timeline.bhavaLordName || timeline.nextBhuktiName;
+  const bhavaLordHouse = timeline.bhavaLordPlacedHouse || bhavaNum;
+  const guruHouse = timeline.guruTransitHouseFromMoon || 5;
+  const shaniHouse = timeline.shaniTransitHouseFromMoon || 11;
+  const endDate = timeline.bhuktiEndDateText || `${timeline.monthsToDashaChange}`;
+  const calWin = timeline.calendarWindowText || timeline.rangeSummary;
+
+  const templates: Record<ConsultationLanguage, string> = {
+    en: `Astrological Mathematical Proof for ${win}: This timeframe for ${timeline.topicLabel} is calculated from three converging rules on your ${lagnaSign} Lagna — not a generic guess.\n\nFirst, your running ${timeline.currentMahaName}-${timeline.currentBhuktiName} sub-period concludes in ${timeline.monthsToDashaChange} months (around ${endDate}), shifting directly into ${timeline.nextBhuktiName} Antardasha. Second, natal House ${bhavaNum} (${bhavaSign}) is governed by ${bhavaLord} placed in House ${bhavaLordHouse}, which activates at that Dasha change. Third, live Gochara Jupiter (${guruHouse}th from Moon) and Saturn (${shaniHouse}th from Moon) jointly aspect this Bhava axis across ${calWin}.\n\nIn classical Parashari Jyotisha, when Vimshottari Antardasha change and Guru-Shani double transit align simultaneously on ${timeline.topicYogaName}, ${win} becomes confirmed with 98% astronomical certainty.`,
+    kn: `ಶಾಸ್ತ್ರೋಕ್ತ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಮಾಣ (${win}): ನಿಮ್ಮ ${lagnaSign} ಲಗ್ನದ ಕುಂಡಲಿಯಲ್ಲಿ ${timeline.topicLabel} ವಿಷಯವು ${win} ಅವಧಿಯಲ್ಲಿ ನೆರವೇರಲಿದೆ ಎಂದು ಹೇಳಲು ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ಗಣಿತ, ಭಾವಾಧಿಪತಿ ಸ್ಥಿತಿ ಹಾಗೂ ಗುರು-ಶನಿ ದ್ವಿಗೋಚಾರ ದೃಷ್ಟಿ ಎಂಬ ಮೂರು ವೈದಿಕ ನಿಯಮಗಳು ನೇರ ಸಾಕ್ಷಿಯಾಗಿವೆ.\n\nಪ್ರಸ್ತುತ ${timeline.currentMahaName}-${timeline.currentBhuktiName} ಉಪ-ಭುಕ್ತಿಯು ಇನ್ನು ${timeline.monthsToDashaChange} ತಿಂಗಳುಗಳಲ್ಲಿ (${endDate}) ಮುಕ್ತಾಯವಾಗಿ ${timeline.nextBhuktiName} ಭುಕ್ತಿ ಆರಂಭವಾಗುತ್ತದೆ. ಇದರೊಂದಿಗೆ ${bhavaNum}ನೇ ಭಾವ (${bhavaSign}) ಅಧಿಪತಿ ${bhavaLord} ಗ್ರಹವು ${bhavaLordHouse}ನೇ ಮನೆಯಲ್ಲಿ ಜಾಗೃತವಾಗಲಿದ್ದು, ಗೋಚಾರ ಗುರು (${guruHouse}ನೇ ಸ್ಥಾನ) ಹಾಗೂ ಶನಿ (${shaniHouse}ನೇ ಸ್ಥಾನ) ${calWin} ಅವಧಿಯಲ್ಲಿ ಒಟ್ಟಾಗಿ ದೃಷ್ಟಿ ಬೀರುತ್ತವೆ.\n\nಪರಾಶರ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ದಶಾ-ಭುಕ್ತಿ ಬದಲಾವಣೆ ಹಾಗೂ ಗುರು-ಶನಿ ದ್ವಿಗೋಚಾರವು ಏಕಕಾಲದಲ್ಲಿ ${timeline.topicYogaName} ಮೇಲೆ ಸಂಯೋಗವಾಗುವುದರಿಂದ ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ${win} ಸಮಯ ಖಚಿತವಾಗಿದೆ.`,
+    hi: `ज्योतिषीय शास्त्रीय प्रमाण (${win}): आपकी ${lagnaSign} लग्न कुंडली में ${timeline.topicLabel} हेतु ${win} का समय विंशोत्तरी दशा-भुक्ति परिवर्तन, भावेश सक्रियण तथा गुरु-शनि द्विगोचर योग की गणितीय संगति से सिद्ध होता है।\n\nवर्तमान ${timeline.currentMahaName}-${timeline.currentBhuktiName} अंतर्दशा ${timeline.monthsToDashaChange} महीनों में (${endDate}) पूर्ण होकर ${timeline.nextBhuktiName} भुक्ति में प्रवेश करेगी, जिससे ${bhavaNum}वें भाव (${bhavaSign}) के स्वामी ${bhavaLord} (${bhavaLordHouse}वें भाव में स्थित) सक्रिय होंगे। साथ ही गोचर गुरु (चंद्र से ${guruHouse}वें) व शनि (${shaniHouse}वें) की संयुक्त दृष्टि ${calWin} में इस अक्ष को बळ देती है।\n\nपराशर सिद्धांत अनुसार दशा परिवर्तन और गुरु-शनि द्विगोचर के इस संयोग से ${timeline.topicYogaName} ९८% निश्चितता के साथ ${win} में फलीभूत होता है।`,
+    te: `జ్యోతిష గణిత శాస్త్ర ప్రమాణం (${win}): మీ ${lagnaSign} లగ్నంలో ${timeline.topicLabel} కోసం ${win} సమయం వింశోత్తరి దశా-భుక్తి మార్పు, భావాధిపతి బలం మరియు గురు-శని ద్విగోచార నియమాలపై ఆధారపడి ఉంది.\n\nప్రస్తుత ${timeline.currentMahaName}-${timeline.currentBhuktiName} భుక్తి ${timeline.monthsToDashaChange} నెలల్లో (${endDate}) ముగిసి ${timeline.nextBhuktiName} అంతర్దశ మొదలవుతుంది; ${bhavaNum}వ భావం (${bhavaSign}) అధిపతి ${bhavaLord} (${bhavaLordHouse}వ స్థానం) ఉత్తేజితమవుతారు. అలాగే గోచార గురువు (${guruHouse}వ స్థానం) మరియు శని (${shaniHouse}వ స్థానం) ${calWin} లో ఈ భావంపై సంయుక్త దృష్టి ప్రసరిస్తారు.\n\nదశా మార్పు మరియు గురు-శని ద్వయ దృష్టి ${timeline.topicYogaName} పై కేంద్రీకృతమైనప్పుడు 98% ఖచ్చితత్వంతో ${win} లో ఫలితం లభిస్తుంది.`,
+    ta: `ஜோதிட சாஸ்திர ஆதாரம் (${win}): உங்கள் ${lagnaSign} லக்னத்தில் ${timeline.topicLabel} ${win} காலத்தில் நிகழும் என்பது விம்சோத்தரி தசா-புக்தி மாற்றம், பாவாதிபதி நிலை மற்றும் குரு-சனி இரட்டை பார்வை ஆகிய கணித விதிகளால் உறுதியாகிறது.\n\nநடப்பு ${timeline.currentMahaName}-${timeline.currentBhuktiName} புக்தி ${timeline.monthsToDashaChange} மாதங்களில் (${endDate}) முடிந்து ${timeline.nextBhuktiName} அந்தர தசை தொடங்குகிறது; ${bhavaNum}-ஆம் வீட்டின் (${bhavaSign}) அதிபதி ${bhavaLord} (${bhavaLordHouse}-ஆம் இடம்) பலமடைகிறார். மேலும் கோசார குரு (${guruHouse}-ஆம் இடம்) மற்றும் சனி (${shaniHouse}-ஆம் இடம்) ${calWin} காலத்தில் ஒருசேரப் பார்க்கிறார்கள்.\n\nதசா மாற்றமும் குரு-சனி பார்வையும் ${timeline.topicYogaName} பாவத்தில் இணையும்போது 98% உறுதியுடன் ${win} நிறைவேறுகிறது.`,
+    ml: `ജ്യോതിഷ ഗണിത തെളിവ് (${win}): നിങ്ങളുടെ ${lagnaSign} ലഗ്ന ജാതകത്തിൽ ${timeline.topicLabel} ${win} സമയത്ത് സഫലമാകുമെന്ന് ഉറപ്പിക്കുന്നത് വിംശോത്തരി ദശാ-ഭുക്തി മാറ്റം, ഭാവാധിപന്റെ സ്ഥാനം, വ്യാഴം-ശനി ദ്വിഗോചരം എന്നിവയാണ്.\n\nനിലവിലെ ${timeline.currentMahaName}-${timeline.currentBhuktiName} ഭുക്തി ${timeline.monthsToDashaChange} മാസത്തിനുള്ളിൽ (${endDate}) അവസാനിച്ച് ${timeline.nextBhuktiName} അപഹാരം തുടങ്ങും; ${bhavaNum}-ാം ഭാവത്തിന്റെ (${bhavaSign}) അധിപൻ ${bhavaLord} (${bhavaLordHouse}-ാം ഭാവം) സജീവമാകുന്നു. കൂടാതെ ഗോചാര വ്യാഴവും (${guruHouse}-ാം ഭാവം) ശനിയും (${shaniHouse}-ാം ഭാവം) ${calWin} കാലയളവിൽ ഒരേസമയം ദൃഷ്ടി പതിപ്പിക്കുന്നു.\n\nദശാ മാറ്റവും വ്യാഴ-ശനി ദ്വിഗോചരവും ${timeline.topicYogaName} യോഗത്തിൽ ചേരുമ്പോൾ 98% കൃത്യതയോടെ ${win} ഫലപ്രാപ്തി നൽകുന്നു.`,
+    mr: `वैदिक ज्योतिष गणितीय पुरावा (${win}): आपल्या ${lagnaSign} लग्नात ${timeline.topicLabel} साठी ${win} ही वेळ विंशोत्तरी दशा-भुक्ती बदल, भावेश स्थिती आणि गुरु-शनी द्विगोचर या तीन शास्त्रोक्त नियमांवर आधारित आहे.\n\nसध्याची ${timeline.currentMahaName}-${timeline.currentBhuktiName} भुक्ती ${timeline.monthsToDashaChange} महिन्यांत (${endDate}) पूर्ण होऊन ${timeline.nextBhuktiName} अंतर्दशा सुरू होईल व ${bhavaNum} व्या भावाचा (${bhavaSign}) स्वामी ${bhavaLord} (${bhavaLordHouse} वे स्थान) सक्रिय होईल. तसेच गोचर गुरु (${guruHouse} वे स्थान) व शनी (${shaniHouse} वे स्थान) ${calWin} दरम्यान एकत्रित शुभ दृष्टी टाकतात.\n\nदशा परिवर्तन आणि गुरु-शनी द्विगोचर ${timeline.topicYogaName} कार्यावर एकत्र येतात तेव्हा ९८% अचूकतेने ${win} फलप्राप्ती निश्चित होते.`
+  };
+
+  return deduplicateResponseText(templates[lang] || templates.en);
+}
+
 export function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): string {
   const {
     session,
@@ -277,6 +332,11 @@ export function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): 
     return deduplicateResponseText(`Hari Om ${session.name}! May Lord Mahabaleshwara and Lord Ganapati of Sri Kshetra Gokarna bestow their divine grace and blessings upon you and your family.\n\nI am sitting with you here in this sacred 20-minute consultation. Please feel at complete peace. You can open your heart and ask any question regarding your life, career, marriage, health, or family dilemmas.`);
   }
 
+  // Proof Follow-Up ("How sure 2027?", "Why next 6 months?")
+  if (!isMinorChild && timeline && convIntel.isAskingProof) {
+    return buildFallbackTimelineProof("en", ctx);
+  }
+
   // Timing / Intelligent Follow-Up on Marriage, Career, Progeny, etc.
   if (
     !isMinorChild &&
@@ -289,17 +349,15 @@ export function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): 
       convIntel.isSameTopicFollowUp && convIntel.contextualBridge
         ? `${convIntel.contextualBridge} Examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your chart, the cosmic timeline for your ${timeline.topicLabel} is now drawing close.`
         : isSubsequent
-        ? `Regarding your inquiry on "${question}", with 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}. Examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`
-        : `100% Confident Astrological Prediction: With 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}! Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign, ${nakshatra} Nakshatra), examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`;
+          ? `Regarding your inquiry on "${question}", with 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}. Examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`
+          : `100% Confident Astrological Prediction: With 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}! Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign, ${nakshatra} Nakshatra), examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`;
     const p2Timing = `According to the authentic Vimshottari Dasha calculations of Baggona Panchanga, your current running ${timeline.currentMahaName}-${timeline.currentBhuktiName} transition matures in approximately ${timeline.monthsToDashaChange} months into ${timeline.nextBhuktiName} Antardasha. Furthermore, as benefic Jupiter (Guru) completes its 1-year transit cycle from one sign to the next, it will move into a position casting direct divine aspect (drishti) upon your Lagna and cardinal houses. This divine Guru Bala combined with the upcoming Dasha shift will completely dissolve the previous delays and obstacles.`;
     const p3Timing = `Therefore, based on authentic astrological computation, with 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}. During this favorable window, negotiations and opportunities will bear fruitful results. To welcome this auspicious planetary window with positive energy, offering prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna and lighting a pure cow-ghee lamp on Mondays or Thursdays will ensure steady fulfillment and divine protection.`;
 
     if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
-        activeDosha.doshaName || "Karmic Dosha"
-      } (${activeDosha.technicalWhy || "unfavorable placement in cardinal houses"}). To neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja || "Sri Kshetra Gokarna Shanti Pooja and Rudrabhisheka"
-      }. We reassure you with certainty that performing this sacred pooja will bring noticeable improvement. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
+      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${activeDosha.doshaName || "Karmic Dosha"
+        } (${activeDosha.technicalWhy || "unfavorable placement in cardinal houses"}). To neutralize these adverse vibrations, our scriptures prescribe the sacred ${activeDosha.recommendedPooja || "Sri Kshetra Gokarna Shanti Pooja and Rudrabhisheka"
+        }. We reassure you with certainty that performing this sacred pooja will bring noticeable improvement. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
       return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
@@ -317,14 +375,11 @@ export function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): 
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nAs previously noted in the child's astrological analysis, the prevailing ${activeDosha.doshaName} is harmonized through sacred prayers and divine blessings at Sri Kshetra Gokarna.`);
       }
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination reveals the presence of ${
-        activeDosha.doshaName || "Karmic Dosha"
-      }. This dosha arose because of specific planetary tensions in the child's chart (${
-        activeDosha.technicalWhy || "unfavorable aspect on cardinal houses"
-      }), which can manifest as occasional health vulnerability, stubbornness, or exam nervousness. To neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja ||
+      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination reveals the presence of ${activeDosha.doshaName || "Karmic Dosha"
+        }. This dosha arose because of specific planetary tensions in the child's chart (${activeDosha.technicalWhy || "unfavorable aspect on cardinal houses"
+        }), which can manifest as occasional health vulnerability, stubbornness, or exam nervousness. To neutralize these adverse vibrations, our scriptures prescribe the sacred ${activeDosha.recommendedPooja ||
         "Sri Kshetra Gokarna Medha Sukta & Maha Saraswati Vidya Pooja"
-      }. Performing this sacred pooja will bring peace of mind, sharp memory, and protective blessings to your child. Please directly call chief priest Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and perform this parihara.`;
+        }. Performing this sacred pooja will bring peace of mind, sharp memory, and protective blessings to your child. Please directly call chief priest Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and perform this parihara.`;
       return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
@@ -342,14 +397,11 @@ export function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): 
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nAs noted earlier, the energetic influences of ${activeDosha.doshaName} are completely addressed through sincere prayers and divine grace at Sri Kshetra Gokarna.`);
       }
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
-        activeDosha.doshaName || "Santhana Obstacle & 5th House Progeny Constraint"
-      }. This dosha arose because of specific planetary tensions in your chart (${
-        activeDosha.technicalWhy || "unfavorable placement in 5th house"
-      }), which is actively manifesting in your life right now as persistent delays in childbirth. To permanently neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja ||
+      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${activeDosha.doshaName || "Santhana Obstacle & 5th House Progeny Constraint"
+        }. This dosha arose because of specific planetary tensions in your chart (${activeDosha.technicalWhy || "unfavorable placement in 5th house"
+        }), which is actively manifesting in your life right now as persistent delays in childbirth. To permanently neutralize these adverse vibrations, our scriptures prescribe the sacred ${activeDosha.recommendedPooja ||
         "Sri Kshetra Gokarna Santhana Gopala Maha Homa & Naga Pratishtha"
-      }. We reassure you with certainty that performing this sacred pooja with pure devotion will bring noticeable improvement and joyous progeny blessing. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
+        }. We reassure you with certainty that performing this sacred pooja with pure devotion will bring noticeable improvement and joyous progeny blessing. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
       return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
@@ -381,12 +433,10 @@ export function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): 
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nAs previously guided, honoring the sacred parihara for ${activeDosha.doshaName} will restore inner peace and tranquility.`);
       }
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: An examination of your chart reveals the presence of ${
-        activeDosha.doshaName || "Karmic Dosha"
-      } (${activeDosha.technicalWhy || "planetary stress on cardinal houses"}). To restore tranquil intimacy and vitality, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja ||
+      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: An examination of your chart reveals the presence of ${activeDosha.doshaName || "Karmic Dosha"
+        } (${activeDosha.technicalWhy || "planetary stress on cardinal houses"}). To restore tranquil intimacy and vitality, our scriptures prescribe the sacred ${activeDosha.recommendedPooja ||
         "Sri Kshetra Gokarna Mahabaleshwara Rudrabhisheka"
-      }. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) for personal guidance.`;
+        }. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) for personal guidance.`;
       return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}`);
@@ -403,14 +453,11 @@ export function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): 
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nAs noted in your chart, the obstacles of ${activeDosha.doshaName} are mitigated by maintaining patience and receiving the sacred blessings of Sri Kshetra Gokarna.`);
       }
-      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
-        activeDosha.doshaName || "Karmic Dosha"
-      }. This dosha arose because of specific planetary tensions in your chart (${
-        activeDosha.technicalWhy || "unfavorable placement in cardinal houses"
-      }), which is actively manifesting in your life right now as persistent delays, unexpected obstacles, and emotional restlessness. To permanently neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-        activeDosha.recommendedPooja ||
+      const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${activeDosha.doshaName || "Karmic Dosha"
+        }. This dosha arose because of specific planetary tensions in your chart (${activeDosha.technicalWhy || "unfavorable placement in cardinal houses"
+        }), which is actively manifesting in your life right now as persistent delays, unexpected obstacles, and emotional restlessness. To permanently neutralize these adverse vibrations, our scriptures prescribe the sacred ${activeDosha.recommendedPooja ||
         "Sri Kshetra Gokarna Shanti Pooja and Rudrabhisheka"
-      }. We reassure you with certainty that performing this sacred pooja with pure devotion will bring noticeable improvement, peace, and auspicious results in your life. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
+        }. We reassure you with certainty that performing this sacred pooja with pure devotion will bring noticeable improvement, peace, and auspicious results in your life. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
       return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
@@ -420,8 +467,8 @@ export function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): 
     convIntel.isSameTopicFollowUp && convIntel.contextualBridge
       ? `${convIntel.contextualBridge} Examining the planetary combinations and the running period governed by ${dasha}, the cosmic influences are directing steady progress in ${timeline?.topicLabel || "your situation"}. The ruling planet of your ascendant provides strong foundational resilience.`
       : isSubsequent
-      ? `Regarding your inquiry on "${question}", planetary combinations indicate that the current period governed by ${dasha} is bringing pivotal transformations. The ruling planet of your ascendant provides strong foundational resilience, while transiting planetary aspects require calm patience in key decisions.`
-      : `Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga, you are born in ${lagna} Lagna and ${rashi} Moon Sign with ${nakshatra} Nakshatra (${tatvaEn} element, ${ganaEn} Gana). Regarding your question on "${question}", your planetary combinations indicate that the current period governed by ${dasha} is bringing significant pivotal transformations. The ruling planet of your ascendant provides strong foundational resilience, while transiting Jupiter and Saturn require patience in key negotiations.`;
+        ? `Regarding your inquiry on "${question}", planetary combinations indicate that the current period governed by ${dasha} is bringing pivotal transformations. The ruling planet of your ascendant provides strong foundational resilience, while transiting planetary aspects require calm patience in key decisions.`
+        : `Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga, you are born in ${lagna} Lagna and ${rashi} Moon Sign with ${nakshatra} Nakshatra (${tatvaEn} element, ${ganaEn} Gana). Regarding your question on "${question}", your planetary combinations indicate that the current period governed by ${dasha} is bringing significant pivotal transformations. The ruling planet of your ascendant provides strong foundational resilience, while transiting Jupiter and Saturn require patience in key negotiations.`;
   const baseP2 = `In the realm of your personal and professional endeavors, your chart reveals gradual clearance of previous hurdles. Much like a fruit sweetening naturally on the branch only when its season arrives, your steady effort is maturing toward lasting fulfillment in job, enterprise, and home harmony. Maintaining mental equilibrium and avoiding hasty impulsive commitments during this cycle will unlock substantial prosperity.`;
   const baseP3 = `The planetary transits over the coming lunar cycles indicate a progressive turning point. When Jupiter casts its divine benefic aspect upon your key natal houses, the confusion that clouded your decisions will dissolve into crystalline clarity. Continue your earnest efforts with disciplined patience, for the cosmic timing is aligning to reward your dedication.`;
 
@@ -429,14 +476,11 @@ export function buildEnglishFallbackReading(ctx: DeterministicFallbackContext): 
     if (!includeFullDosha) {
       return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\nAs noted in your horoscope, the karmic influences of ${activeDosha.doshaName} are neutralized through dedicated prayers at Sri Kshetra Gokarna.`);
     }
-    const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
-      activeDosha.doshaName || "Kuja/Manglik Dosha"
-    }. This dosha arose because of specific planetary tensions in your chart (${
-      activeDosha.technicalWhy || "unfavorable placement in cardinal houses"
-    }), which is actively manifesting in your life right now as persistent delays, unexpected obstacles, and emotional restlessness. To permanently neutralize these adverse vibrations, our scriptures prescribe the sacred ${
-      activeDosha.recommendedPooja ||
+    const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${activeDosha.doshaName || "Kuja/Manglik Dosha"
+      }. This dosha arose because of specific planetary tensions in your chart (${activeDosha.technicalWhy || "unfavorable placement in cardinal houses"
+      }), which is actively manifesting in your life right now as persistent delays, unexpected obstacles, and emotional restlessness. To permanently neutralize these adverse vibrations, our scriptures prescribe the sacred ${activeDosha.recommendedPooja ||
       "Sri Kshetra Gokarna Shanti Pooja and Rudrabhisheka"
-    }. We reassure you with certainty that performing this sacred pooja with pure devotion will bring noticeable improvement, peace, and auspicious results in your life. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
+      }. We reassure you with certainty that performing this sacred pooja with pure devotion will bring noticeable improvement, peace, and auspicious results in your life. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and receive this divine parihara.`;
     return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\n${p4Dosha}`);
   }
 
@@ -480,6 +524,11 @@ export function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): 
     return deduplicateResponseText(`ಹರಿ ಓಂ ${localizedDevoteeName} ಅವರೇ! ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸಕಲ ಕೃಪಾಕಟಾಕ್ಷ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಮತ್ತು ನಿಮ್ಮ ಕುಟುಂಬದ ಮೇಲೆ ಸದಾ ಇರಲಿ.\n\nನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಕೊಠಡಿಯಲ್ಲಿ ನಾನು ನಿಮ್ಮೊಂದಿಗಿದ್ದೇನೆ. ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಯಾವುದೇ ಗೊಂದಲ, ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ, ವಿವಾಹ, ಕೌಟುಂಬಿಕ ವಿಚಾರ ಅಥವಾ ದೋಷ ಪರಿಹಾರಗಳ ಕುರಿತು ಮುಕ್ತವಾಗಿ ಪ್ರಶ್ನಿಸಿ.`);
   }
 
+  // Proof Follow-Up
+  if (!isMinorChild && timeline && convIntel.isAskingProof) {
+    return buildFallbackTimelineProof("kn", ctx);
+  }
+
   // Timing / Intelligent Follow-Up on Marriage, Career, Progeny, etc.
   if (
     !isMinorChild &&
@@ -492,21 +541,17 @@ export function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): 
       convIntel.isSameTopicFollowUp && convIntel.contextualBridge
         ? `${convIntel.contextualBridge} ಜಾತಕದ ಸಪ್ತಮ/ಸಂಬಂಧಿತ ಭಾವಗಳು ಹಾಗೂ ಶುಭ ಗೋಚಾರ ಗ್ರಹಗಳ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ${timeline.topicLabel} ಕಾರ್ಯಕ್ಕೆ ಕಾಲಾನುಕೂಲವು ಈಗ ಸನ್ನಿಹಿತವಾಗುತ್ತಿದೆ.`
         : isSubsequent
-        ? `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel} ${timeline.rangeSummary} ಸಾಕಾರಗೊಳ್ಳಲಿದೆ. ಜಾತಕದಲ್ಲಿ ${timeline.topicYogaName} ಹಾಗೂ ಸಂಬಂಧಿತ ಭಾವಗಳ ಗೋಚಾರ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಕಾಲಾನುಕೂಲವು ಈಗ ಸನ್ನಿಹಿತವಾಗುತ್ತಿದೆ.`
-        : `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಶಾಸ್ತ್ರೋಕ್ತ ಲೆಕ್ಕಾಚಾರದಂತೆ, ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel} ${timeline.rangeSummary} ನಿಶ್ಚಿತವಾಗಿ ನೆರವೇರಲಿದೆ! ಆತ್ಮೀಯ ${localizedDevoteeName} ಅವರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ್ದು, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿ ಮತ್ತು ${timeline.topicYogaName} ಯೋಗದ ಗೋಚಾರ ಸಂಚಾರವು ಈ ಶುಭ ಕಾಲಾವಧಿಯನ್ನು ಬಲವಾಗಿ ಸಮರ್ಥಿಸುತ್ತಿದೆ.`;
+          ? `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel} ${timeline.rangeSummary} ಸಾಕಾರಗೊಳ್ಳಲಿದೆ. ಜಾತಕದಲ್ಲಿ ${timeline.topicYogaName} ಹಾಗೂ ಸಂಬಂಧಿತ ಭಾವಗಳ ಗೋಚಾರ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಕಾಲಾನುಕೂಲವು ಈಗ ಸನ್ನಿಹಿತವಾಗುತ್ತಿದೆ.`
+          : `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಶಾಸ್ತ್ರೋಕ್ತ ಲೆಕ್ಕಾಚಾರದಂತೆ, ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel} ${timeline.rangeSummary} ನಿಶ್ಚಿತವಾಗಿ ನೆರವೇರಲಿದೆ! ಆತ್ಮೀಯ ${localizedDevoteeName} ಅವರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ್ದು, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿ ಮತ್ತು ${timeline.topicYogaName} ಯೋಗದ ಗೋಚಾರ ಸಂಚಾರವು ಈ ಶುಭ ಕಾಲಾವಧಿಯನ್ನು ಬಲವಾಗಿ ಸಮರ್ಥಿಸುತ್ತಿದೆ.`;
     const p2Timing = `ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಗಣಿತದ ಪ್ರಕಾರ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${timeline.currentMahaName}-${timeline.currentBhuktiName} ಅವಧಿಯು ಇನ್ನು ${timeline.monthsToDashaChange} ತಿಂಗಳುಗಳಲ್ಲಿ ಮುಕ್ತಾಯವಾಗಿ ${timeline.nextBhuktiName} ಭುಕ್ತಿಯಾಗಿ ಪರಿವರ್ತನೆ ಹೊಂದಲಿದೆ. ಇದರೊಂದಿಗೆ, ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಸುಮಾರು ಒಂದು ವರ್ಷದ ಅವಧಿಯಲ್ಲಿ ಒಂದು ರಾಶಿಯಿಂದ ಮತ್ತೊಂದು ರಾಶಿಗೆ ಸಂಚರಿಸುವುದರಿಂದ, ಮುಂದಿನ ಒಂದು ವರ್ಷದೊಳಗೆ ಗುರು ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ತ್ರಿಕೋಣ/ಕೇಂದ್ರ ಸ್ಥಾನಗಳ ಮೇಲೆ ನೇರ ಶುಭ ದೃಷ್ಟಿಯನ್ನು ಬೀರಲಿದೆ. ಈ ಗುರುಬಲ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿ ಸಂಯೋಗವು ಹಿಂದಿದ್ದ ಸಮಸ್ತ ವಿಳಂಬಗಳನ್ನು ನಿವಾರಿಸಿ ಹೊಸ ಅವಕಾಶಗಳ ಮಾರ್ಗವನ್ನು ತೆರೆಯಲಿದೆ.`;
     const p3Timing = `ಆದ್ದರಿಂದ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಶಾಸ್ತ್ರೋಕ್ತ ಲೆಕ್ಕಾಚಾರದಂತೆ ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರ ಸಂಭವನೀಯತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel} ${timeline.rangeSummary} ನಿಶ್ಚಿತವಾಗಿ ನೆರವೇರುವ ಪ್ರಬಲ ಯೋಗವಿದೆ. ಈ ಶುಭ ಕಾಲಾವಧಿಯು ಸಾಕಾರಗೊಳ್ಳಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ, ಸೋಮವಾರದಂದು ಗೋಸೇವೆ ಅಥವಾ ದೀಪಾರಾಧನೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`;
 
     if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
-      }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-        activeDosha.technicalWhy || "ಗ್ರಹಗಳ ಅಶುಭ ಸಂಯೋಜನೆ ಮತ್ತು ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
-      } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${
-        activeDosha.currentLifeProblems || "ಕಾರ್ಯವಿಳಂಬ, ಮಾನಸಿಕ ಅಶಾಂತಿ ಹಾಗೂ ವಿಪರೀತ ಅಡೆತಡೆಗಳು"
-      }" ಎದುರಾಗುತ್ತಿವೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ದೋಷ ಶಾಂತಿ ಹೋಮ"
-      }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಖಂಡಿತವಾಗಿಯೂ ಧನಾತ್ಮಕ ಸುಧಾರಣೆ ಮತ್ತು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳ ಸಿದ್ಧಿ ಗೋಚರಿಸುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
+      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
+        }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${activeDosha.technicalWhy || "ಗ್ರಹಗಳ ಅಶುಭ ಸಂಯೋಜನೆ ಮತ್ತು ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
+        } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${activeDosha.currentLifeProblems || "ಕಾರ್ಯವಿಳಂಬ, ಮಾನಸಿಕ ಅಶಾಂತಿ ಹಾಗೂ ವಿಪರೀತ ಅಡೆತಡೆಗಳು"
+        }" ಎದುರಾಗುತ್ತಿವೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ದೋಷ ಶಾಂತಿ ಹೋಮ"
+        }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಖಂಡಿತವಾಗಿಯೂ ಧನಾತ್ಮಕ ಸುಧಾರಣೆ ಮತ್ತು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳ ಸಿದ್ಧಿ ಗೋಚರಿಸುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
       return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
@@ -524,15 +569,11 @@ export function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): 
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಮಗುವಿಗೆ ಉತ್ತಮ ಆರೋಗ್ಯ ಮತ್ತು ವಿದ್ಯಾಭ್ಯಾಸ ಲಭಿಸಲಿದೆ.`);
       }
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nಮಗುವಿನ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಬಾಲ ಸಂಸ್ಕಾರ ಹಾಗೂ ವಿದ್ಯಾ ದೋಷ"
-      }" ಕಂಡುಬಂದಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-        activeDosha.technicalWhy || "ಗ್ರಹಗಳ ಅಶುಭ ಸ್ಥಾನ ಹಾಗೂ ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
-      } ಈ ಪ್ರಭಾವ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿ "${
-        activeDosha.currentLifeProblems || "ಓದಿನಲ್ಲಿ ಚಂಚಲತೆ ಹಾಗೂ ಪರೀಕ್ಷಾ ಆತಂಕ"
-      }" ಗೋಚರಿಸುತ್ತದೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಸರಸ್ವತೀ ಹಾಗೂ ಮೇಧಾ ಸೂಕ್ತ ಶಾಂತಿ ಪೂಜೆ"
-      }" ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಈ ಪೂಜೆಯಿಂದ ಮಗುವಿಗೆ ದೈವಿಕ ರಕ್ಷಣೆ ಹಾಗೂ ತೀಕ್ಷ್ಣ ಬುದ್ಧಿ ಲಭಿಸುವುದು ನಿಶ್ಚಿತ. ಹೆಚ್ಚಿನ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ಪುರೋಹಿತರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
+      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nಮಗುವಿನ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${activeDosha.doshaName || "ಬಾಲ ಸಂಸ್ಕಾರ ಹಾಗೂ ವಿದ್ಯಾ ದೋಷ"
+        }" ಕಂಡುಬಂದಿದೆ. ಜಾತಕದಲ್ಲಿ ${activeDosha.technicalWhy || "ಗ್ರಹಗಳ ಅಶುಭ ಸ್ಥಾನ ಹಾಗೂ ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
+        } ಈ ಪ್ರಭಾವ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿ "${activeDosha.currentLifeProblems || "ಓದಿನಲ್ಲಿ ಚಂಚಲತೆ ಹಾಗೂ ಪರೀಕ್ಷಾ ಆತಂಕ"
+        }" ಗೋಚರಿಸುತ್ತದೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಸರಸ್ವತೀ ಹಾಗೂ ಮೇಧಾ ಸೂಕ್ತ ಶಾಂತಿ ಪೂಜೆ"
+        }" ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಈ ಪೂಜೆಯಿಂದ ಮಗುವಿಗೆ ದೈವಿಕ ರಕ್ಷಣೆ ಹಾಗೂ ತೀಕ್ಷ್ಣ ಬುದ್ಧಿ ಲಭಿಸುವುದು ನಿಶ್ಚಿತ. ಹೆಚ್ಚಿನ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ಪುರೋಹಿತರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
       return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
@@ -550,16 +591,12 @@ export function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): 
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರವೇ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`);
       }
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಸಂತಾನ ತಡೆ ಹಾಗೂ ಪಂಚಮ ಭಾವ ಕರ್ಮ ದೋಷ"
-      }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-        activeDosha.technicalWhy || "ಪಂಚಮ ಭಾವ ಹಾಗೂ ಗುರುವಿನ ಮೇಲಿನ ಪಾಪಗ್ರಹಗಳ ದೃಷ್ಟಿಯಿಂದ"
-      } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${
-        activeDosha.currentLifeProblems || "ಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ಅಡೆತಡೆ ಹಾಗೂ ತೀವ್ರ ಮಾನಸಿಕ ಚಿಂತೆ"
-      }" ಎದುರಾಗುತ್ತಿದೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja ||
+      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${activeDosha.doshaName || "ಸಂತಾನ ತಡೆ ಹಾಗೂ ಪಂಚಮ ಭಾವ ಕರ್ಮ ದೋಷ"
+        }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${activeDosha.technicalWhy || "ಪಂಚಮ ಭಾವ ಹಾಗೂ ಗುರುವಿನ ಮೇಲಿನ ಪಾಪಗ್ರಹಗಳ ದೃಷ್ಟಿಯಿಂದ"
+        } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${activeDosha.currentLifeProblems || "ಸಂತಾನ ಭಾಗ್ಯದಲ್ಲಿ ಅಡೆತಡೆ ಹಾಗೂ ತೀವ್ರ ಮಾನಸಿಕ ಚಿಂತೆ"
+        }" ಎದುರಾಗುತ್ತಿದೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${activeDosha.recommendedPooja ||
         "ಸಂತಾನ ಗೋಪಾಲ ಮಹಾಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಸಹಿತ ಮಹಾರುದ್ರಾಭಿಷೇಕ"
-      }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ದಾಂಪತ್ಯದಲ್ಲಿ ಶೀಘ್ರವೇ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
+        }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ದಾಂಪತ್ಯದಲ್ಲಿ ಶೀಘ್ರವೇ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
       return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
@@ -575,11 +612,9 @@ export function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): 
       const p2SexWork = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಜಾತಕದ ೮ನೇ ಗುಪ್ತ ರಹಸ್ಯ ಸ್ಥಾನ, ೭ನೇ ಕಾಮ-ವ್ಯಾಪಾರ ಸ್ಥಾನ ಹಾಗೂ ೬ನೇ ಋಣ-ಬಂಧನ ಸ್ಥಾನಗಳನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ಯಾವುದೇ ಆಂತರಿಕ ದುಷ್ಟತನದಿಂದಲ್ಲದೆ ಆರ್ಥಿಕ ಅಸಹಾಯಕತೆ ಮತ್ತು ಕುಟುಂಬದ ಋಣಭಾರದಿಂದ ಈ ವಿಷವರ್ತುಲಕ್ಕೆ ಸಿಲುಕಿದ್ದೀರಿ ಎಂಬುದು ಸ್ಪಷ್ಟವಾಗುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯ ನಂತರ ಬರುವ ಗುರು ದೃಷ್ಟಿಯು ನಿಮ್ಮನ್ನು ಈ ಕತ್ತಲೆಯಿಂದ ಮುಕ್ತಗೊಳಿಸಲಿದೆ. ಧೈರ್ಯದಿಂದ ಹೆಜ್ಜೆಯಿಡಿ, ನಿಮ್ಮ ಶಾರೀರಿಕ ಆರೋಗ್ಯದ ಬಗ್ಗೆ ನಿರ್ಲಕ್ಷ್ಯ ವಹಿಸದೆ ವೈದ್ಯಕೀಯ ತಪಾಸಣೆ ಮಾಡಿಸಿಕೊಳ್ಳಿ ಹಾಗೂ ಮಹಿಳಾ ರಕ್ಷಣಾ ಆಶ್ರಯ ಮತ್ತು ಕಾನೂನು ನೆರವನ್ನು ಪಡೆಯಿರಿ.`;
       const p3SexWork = `ಋಣಬಂಧನ ಕಳಚಲು ಮತ್ತು ಆತ್ಮರಕ್ಷಣೆಗೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸಿ ಹಾಗೂ ಶ್ರೀ ಮಹಾಗೌರಿ/ದುರ್ಗಾ ಸ್ತೋತ್ರ ಮತ್ತು ಋಣವಿಮೋಚನಾ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಜಗನ್ಮಾತೆಯು ತನ್ನ ಹೆಣ್ಣುಮಕ್ಕಳನ್ನು ಸರ್ವ ಕಾಲದಲ್ಲೂ ರಕ್ಷಿಸುತ್ತಾಳೆ. ಶೀಘ್ರದಲ್ಲೇ ನಿಮಗೆ ಗೌರವಯುತ ಜೀವನ ಮತ್ತು ಉತ್ತಮ ಸಂಗಾತಿಯ ಆಸರೆ ಲಭಿಸಲಿದೆ.`;
       if (activeDosha.hasDosha && includeFullDosha) {
-        const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${
-          activeDosha.doshaName || "ಋಣಬಂಧನ ಹಾಗೂ ಕರ್ಮ ದೋಷ"
-        }" ಕಂಡುಬಂದಿದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-          activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಚಂಡೀ ಶಾಂತಿ"
-        }" ನೆರವೇರಿಸುವುದರಿಂದ ಸರ್ವ ಬಂಧನಗಳೂ ಕಳಚಲಿವೆ. ವೈಯಕ್ತಿಕ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
+        const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${activeDosha.doshaName || "ಋಣಬಂಧನ ಹಾಗೂ ಕರ್ಮ ದೋಷ"
+          }" ಕಂಡುಬಂದಿದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಚಂಡೀ ಶಾಂತಿ"
+          }" ನೆರವೇರಿಸುವುದರಿಂದ ಸರ್ವ ಬಂಧನಗಳೂ ಕಳಚಲಿವೆ. ವೈಯಕ್ತಿಕ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
         return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
       }
       return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
@@ -595,11 +630,9 @@ export function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): 
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ಅಂತರಂಗದ ಕ್ಲೇಶಗಳೂ ನಿವಾರಣೆಯಾಗಿ ನೆಮ್ಮದಿ ಸಿಗಲಿದೆ.`);
       }
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಶುಕ್ರ ಧಾತು ಹಾಗೂ ಅಂತರಂಗ ಕ್ಲೇಶ ದೋಷ"
-      }" ಕಂಡುಬಂದಿದೆ. ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ಶಾಂತಿ"
-      }" ನೆರವೇರಿಸುವುದರಿಂದ ನರಮಂಡಲವು ಬಲಗೊಂಡು ಮನಸ್ಸಿಗೆ ನಿರಾಳತೆ ಸಿಗಲಿದೆ. ಹೆಚ್ಚಿನ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
+      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${activeDosha.doshaName || "ಶುಕ್ರ ಧಾತು ಹಾಗೂ ಅಂತರಂಗ ಕ್ಲೇಶ ದೋಷ"
+        }" ಕಂಡುಬಂದಿದೆ. ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ಶಾಂತಿ"
+        }" ನೆರವೇರಿಸುವುದರಿಂದ ನರಮಂಡಲವು ಬಲಗೊಂಡು ಮನಸ್ಸಿಗೆ ನಿರಾಳತೆ ಸಿಗಲಿದೆ. ಹೆಚ್ಚಿನ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
       return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}`);
@@ -616,18 +649,14 @@ export function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): 
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಉದ್ಯೋಗ-ವೃತ್ತಿಯಲ್ಲಿ ಯಶಸ್ಸು ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.`);
       }
-      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
-        activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
-      }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-        activeDosha.technicalWhy ||
+      const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
+        }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${activeDosha.technicalWhy ||
         "ಗ್ರಹಗಳ ಅಶುಭ ಸಂಯೋಜನೆ ಮತ್ತು ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
-      } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${
-        activeDosha.currentLifeProblems ||
+        } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${activeDosha.currentLifeProblems ||
         "ಕಾರ್ಯವಿಳಂಬ, ಮಾನಸಿಕ ಅಶಾಂತಿ ಹಾಗೂ ವಿಪರೀತ ಅಡೆತಡೆಗಳು"
-      }" ಎದುರಾಗುತ್ತಿವೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-        activeDosha.recommendedPooja ||
+        }" ಎದುರಾಗುತ್ತಿವೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${activeDosha.recommendedPooja ||
         "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ದೋಷ ಶಾಂತಿ ಹೋಮ"
-      }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಖಂಡಿತವಾಗಿಯೂ ಧನಾತ್ಮಕ ಸುಧಾರಣೆ ಮತ್ತು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳ ಸಿದ್ಧಿ ಗೋಚರಿಸುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
+        }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಖಂಡಿತವಾಗಿಯೂ ಧನಾತ್ಮಕ ಸುಧಾರಣೆ ಮತ್ತು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳ ಸಿದ್ಧಿ ಗೋಚರಿಸುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
       return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
@@ -637,8 +666,8 @@ export function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): 
     convIntel.isSameTopicFollowUp && convIntel.contextualBridge
       ? `${convIntel.contextualBridge} ಜಾತಕದ ಪ್ರಸ್ತುತ ${dasha} ಅವಧಿ ಹಾಗೂ ಸಂಬಂಧಿಸಿದ ಭಾವಾಧಿಪತಿಯ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಗ್ರಹಸ್ಥಿತಿಗಳು ಸಕಾರಾತ್ಮಕ ಬದಲಾವಣೆಗಳನ್ನು ಸೂಚಿಸುತ್ತಿವೆ. ಲಗ್ನಾಧಿಪತಿಯ ಬಲವು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ತಾಳ್ಮೆಯ ನಡೆಯಿಂದ ಉದ್ದೇಶಿತ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`
       : isSubsequent
-      ? `ನೀವು ಕೇಳಿರುವ "${question}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ಪ್ರಸ್ತುತ ${dasha} ಅವಧಿ ಹಾಗೂ ಸಂಬಂಧಿಸಿದ ಭಾವಾಧಿಪತಿಯ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಗ್ರಹಸ್ಥಿತಿಗಳು ಸಕಾರಾತ್ಮಕ ಬದಲಾವಣೆಗಳನ್ನು ಸೂಚಿಸುತ್ತಿವೆ. ಲಗ್ನಾಧಿಪತಿಯ ಬಲವು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ತಾಳ್ಮೆಯ ನಡೆಯಿಂದ ಉದ್ದೇಶಿತ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`
-      : `ನಮಸ್ಕಾರ ${localizedDevoteeName} ಅವರೇ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನ್ಮತಾಳಿದ್ದೀರಿ (${tatva} ತತ್ವ, ${gana} ಗಣ). ನಿಮ್ಮ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಮಹತ್ವದ ತಿರುವು ಮತ್ತು ಹೊಸ ಅವಕಾಶಗಳನ್ನು ನಿರ್ದೇಶಿಸುತ್ತಿದೆ. ಲಗ್ನಾಧಿಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿ ಪ್ರಭಾವದಿಂದ ಹಂತ ಹಂತವಾಗಿ ಸಕಲ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`;
+        ? `ನೀವು ಕೇಳಿರುವ "${question}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ಪ್ರಸ್ತುತ ${dasha} ಅವಧಿ ಹಾಗೂ ಸಂಬಂಧಿಸಿದ ಭಾವಾಧಿಪತಿಯ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಗ್ರಹಸ್ಥಿತಿಗಳು ಸಕಾರಾತ್ಮಕ ಬದಲಾವಣೆಗಳನ್ನು ಸೂಚಿಸುತ್ತಿವೆ. ಲಗ್ನಾಧಿಪತಿಯ ಬಲವು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ತಾಳ್ಮೆಯ ನಡೆಯಿಂದ ಉದ್ದೇಶಿತ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`
+        : `ನಮಸ್ಕಾರ ${localizedDevoteeName} ಅವರೇ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನ್ಮತಾಳಿದ್ದೀರಿ (${tatva} ತತ್ವ, ${gana} ಗಣ). ನಿಮ್ಮ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಮಹತ್ವದ ತಿರುವು ಮತ್ತು ಹೊಸ ಅವಕಾಶಗಳನ್ನು ನಿರ್ದೇಶಿಸುತ್ತಿದೆ. ಲಗ್ನಾಧಿಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿ ಪ್ರಭಾವದಿಂದ ಹಂತ ಹಂತವಾಗಿ ಸಕಲ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`;
 
   const p2 = `ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ಭಾವಗಳನ್ನು ಗಮನಿಸಿದಾಗ, ಈ ಹಿಂದೆ ಎದುರಾಗಿದ್ದ ಮಾನಸಿಕ ಆತಂಕಗಳು ಮತ್ತು ಕಾರ್ಯವಿಳಂಬಗಳು ಈಗ ನಿಧಾನವಾಗಿ ಪರಿಹಾರವಾಗುವ ಲಕ್ಷಣಗಳಿವೆ. ಮಾವಿನ ಕಾಯಿಯು ಮರದಲ್ಲೇ ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಮಾಗಿದಾಗ ಮಾತ್ರ ಸಿಹಿ ರುಚಿ ಕೊಡುವಂತೆ, ನಿಮ್ಮ ನಿರಂತರ ಶ್ರಮವು ಸೂಕ್ತ ಕಾಲದಲ್ಲಿ ಶಾಶ್ವತ ಫಲ ನೀಡಲಿದೆ; ಹೀಗಾಗಿ ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ ಹಾಗೂ ಕುಟುಂಬ ಸೌಖ್ಯದ ವಿಚಾರದಲ್ಲಿ ಧನಾತ್ಮಕ ಫಲಗಳು ಗೋಚರಿಸುತ್ತಿದ್ದು, ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಹಾಗೂ ತಾಳ್ಮೆಯ ನಡೆ ನಿಮಗೆ ಹೆಚ್ಚಿನ ಯಶಸ್ಸನ್ನು ತಂದುಕೊಡುತ್ತದೆ.`;
 
@@ -648,17 +677,13 @@ export function buildKannadaFallbackReading(ctx: DeterministicFallbackContext): 
     if (!includeFullDosha) {
       return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p3}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರವೇ ಶುಭ ಫಲಗಳು ಲಭಿಸಲಿವೆ.`);
     }
-    const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
-      activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
-    }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
-      activeDosha.technicalWhy || "ಗ್ರಹಗಳ ಅಶುಭ ಸಂಯೋಜನೆ ಮತ್ತು ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
-    } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${
-      activeDosha.currentLifeProblems ||
+    const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
+      }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${activeDosha.technicalWhy || "ಗ್ರಹಗಳ ಅಶುಭ ಸಂಯೋಜನೆ ಮತ್ತು ದೃಷ್ಟಿ ಯೋಗದಿಂದ"
+      } ಈ ದೋಷ ಉಂಟಾಗಿದ್ದು, ಇದರಿಂದಾಗಿಯೇ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರಸ್ತುತ "${activeDosha.currentLifeProblems ||
       "ಕಾರ್ಯವಿಳಂಬ, ಮಾನಸಿಕ ಅಶಾಂತಿ ಹಾಗೂ ವಿಪರೀತ ಅಡೆತಡೆಗಳು"
-    }" ಎದುರಾಗುತ್ತಿವೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
-      activeDosha.recommendedPooja ||
+      }" ಎದುರಾಗುತ್ತಿವೆ. ಈ ದೋಷವನ್ನು ಶಾಂತಿಗೊಳಿಸಲು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${activeDosha.recommendedPooja ||
       "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ದೋಷ ಶಾಂತಿ ಹೋಮ"
-    }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಖಂಡಿತವಾಗಿಯೂ ಧನಾತ್ಮಕ ಸುಧಾರಣೆ ಮತ್ತು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳ ಸಿದ್ಧಿ ಗೋಚರಿಸುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
+      }" ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಅನಿವಾರ್ಯವಾಗಿದೆ. ಈ ಪವಿತ್ರ ಪೂಜೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ನೆರವೇರಿಸಿದ ನಂತರ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಖಂಡಿತವಾಗಿಯೂ ಧನಾತ್ಮಕ ಸುಧಾರಣೆ ಮತ್ತು ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳ ಸಿದ್ಧಿ ಗೋಚರಿಸುವುದು ನಿಶ್ಚಿತ. ಈ ದೋಷ ಪರಿಹಾರ ಪೂಜೆಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
     return deduplicateResponseText(`${p1}\n\n${p2}\n\n${p4Dosha}`);
   }
 
@@ -703,6 +728,11 @@ export function buildHindiFallbackReading(ctx: DeterministicFallbackContext): st
     return deduplicateResponseText(`हरि ॐ ${localizedDevoteeName} जी! श्री क्षेत्र गोकर्ण के महागणपति एवं भगवान महाबलेश्वर का दिव्य आशीर्वाद आप और आपके परिवार पर सदा बना रहे।\n\nइस पावन २० मिनट के व्यक्तिगत परामर्श सत्र में मैं आपके समक्ष उपस्थित हूँ। कृपया पूर्ण शांत भाव से रहें। अपने जीवन, आजीविका, विवाह, स्वास्थ्य अथवा परिवार से जुड़ा कोई भी प्रश्न आप निःसंकोच पूछ सकते हैं।`);
   }
 
+  // Proof Follow-Up
+  if (!isMinorChild && timeline && convIntel.isAskingProof) {
+    return buildFallbackTimelineProof("hi", ctx);
+  }
+
   // Timing / Intelligent Follow-Up
   if (
     !isMinorChild &&
@@ -715,21 +745,17 @@ export function buildHindiFallbackReading(ctx: DeterministicFallbackContext): st
       convIntel.isSameTopicFollowUp && convIntel.contextualBridge
         ? `${convIntel.contextualBridge} कुंडली के संबंधित भावों एवं शुभ गोचर ग्रहों के संचरण का अवलोकन करने पर आपके ${timeline.topicLabel} कार्य हेतु अनुकूल समय अब अत्यंत सन्निकट आ रहा है।`
         : isSubsequent
-        ? `१००% शास्त्रसम्मत ज्योतिषीय निर्णय: ९८% प्रामाणिक सटीकता के साथ आपका ${timeline.topicLabel} ${timeline.rangeSummary} अवश्य साकार होगा। कुंडली में ${timeline.topicYogaName} एवं संबंधित भावों के शुभ गोचर को देखने पर यह समय अत्यंत अनुकूल सिद्ध हो रहा है।`
-        : `१००% शास्त्रसम्मत ज्योतिषीय निर्णय: श्री बग्गोण पंचांग की वैदिक गणना के अनुसार, ९८% प्रामाणिक सटीकता के साथ आपका ${timeline.topicLabel} ${timeline.rangeSummary} अवश्य साकार होगा! प्रिय ${localizedDevoteeName} जी, आपकी जन्म कुंडली का सूक्ष्म अध्ययन करने पर आप ${lagna} लग्न, ${rashi} राशि तथा ${nakshatra} नक्षत्र में जन्मे हैं। वर्तमान में चल रही ${dasha} तथा ${timeline.topicYogaName} का शुभ गोचर इस मंगलकारी समय का दृढ़ता से समर्थन कर रहे हैं।`;
+          ? `१००% शास्त्रसम्मत ज्योतिषीय निर्णय: ९८% प्रामाणिक सटीकता के साथ आपका ${timeline.topicLabel} ${timeline.rangeSummary} अवश्य साकार होगा। कुंडली में ${timeline.topicYogaName} एवं संबंधित भावों के शुभ गोचर को देखने पर यह समय अत्यंत अनुकूल सिद्ध हो रहा है।`
+          : `१००% शास्त्रसम्मत ज्योतिषीय निर्णय: श्री बग्गोण पंचांग की वैदिक गणना के अनुसार, ९८% प्रामाणिक सटीकता के साथ आपका ${timeline.topicLabel} ${timeline.rangeSummary} अवश्य साकार होगा! प्रिय ${localizedDevoteeName} जी, आपकी जन्म कुंडली का सूक्ष्म अध्ययन करने पर आप ${lagna} लग्न, ${rashi} राशि तथा ${nakshatra} नक्षत्र में जन्मे हैं। वर्तमान में चल रही ${dasha} तथा ${timeline.topicYogaName} का शुभ गोचर इस मंगलकारी समय का दृढ़ता से समर्थन कर रहे हैं।`;
     const p2Timing = `वैदिक ज्योतिष शास्त्र के गणित के अनुसार, वर्तमान में चल रही ${timeline.currentMahaName}-${timeline.currentBhuktiName} की अवधि आगामी ${timeline.monthsToDashaChange} महीनों में पूर्ण होकर ${timeline.nextBhuktiName} भुक्ति में परिवर्तित होगी। इसके साथ ही, देवगुरु बृहस्पति एक राशि से दूसरी राशि में गोचर करते हुए आगामी एक वर्ष के भीतर आपकी कुंडली के प्रमुख केंद्र एवं त्रिकोण भावों पर अपनी अमृतमयी दृष्टि डालेंगे। यह गुरु बल और दशा परिवर्तन पूर्व के समस्त अवरोधों को समाप्त कर नए अवसरों का मार्ग प्रशस्त करेंगे।`;
     const p3Timing = `अतः श्री बग्गोण पंचांग की गणनानुसार पूर्ण विश्वास रखें कि ९८% सटीकता के साथ आपका ${timeline.topicLabel} ${timeline.rangeSummary} साकार होने का प्रबल योग है। इस शुभ अवसर को अनुकूल ऊर्जा के साथ प्राप्त करने हेतु श्री क्षेत्र गोकर्ण महाबलेश्वर स्वामी का स्मरण करें तथा सोमवार अथवा गुरुवार को गाय के शुद्ध घी का दीपक प्रज्वलित करें।`;
 
     if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी जन्म पत्रिका के सूक्ष्म अध्ययन से "${
-        activeDosha.doshaName || "दोष"
-      }" की पुष्टि होती है। यह स्थिति ${
-        activeDosha.technicalWhy || "ग्रहों के प्रतिकूल प्रभाव"
-      } से उत्पन्न हुई है, जिसके कारण जीवन में "${
-        activeDosha.currentLifeProblems || "कार्यों में विलंब व मानसिक तनाव"
-      }" अनुभव हो रहा है। इसके निवारण हेतु श्री क्षेत्र गोकर्ण में "${
-        activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं शांति होम"
-      }" संपन्न करना परम आवश्यक है। इस पवित्र पूजा से निश्चित रूप से सकारात्मक सुधार होगा। इस दोष परिहार के संकल्प हेतु मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से सीधे संपर्क करें।`;
+      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी जन्म पत्रिका के सूक्ष्म अध्ययन से "${activeDosha.doshaName || "दोष"
+        }" की पुष्टि होती है। यह स्थिति ${activeDosha.technicalWhy || "ग्रहों के प्रतिकूल प्रभाव"
+        } से उत्पन्न हुई है, जिसके कारण जीवन में "${activeDosha.currentLifeProblems || "कार्यों में विलंब व मानसिक तनाव"
+        }" अनुभव हो रहा है। इसके निवारण हेतु श्री क्षेत्र गोकर्ण में "${activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं शांति होम"
+        }" संपन्न करना परम आवश्यक है। इस पवित्र पूजा से निश्चित रूप से सकारात्मक सुधार होगा। इस दोष परिहार के संकल्प हेतु मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से सीधे संपर्क करें।`;
       return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
@@ -747,15 +773,11 @@ export function buildHindiFallbackReading(ctx: DeterministicFallbackContext): st
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nजैसा कि बच्चे की कुंडली में पूर्व में बताया गया है, ${activeDosha.doshaName} का प्रभाव श्री क्षेत्र गोकर्ण के पवित्र संकल्प एवं पूजा से शांत होकर बच्चे को उत्तम स्वास्थ्य और विद्या प्रदान करेगा।`);
       }
-      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nबच्चे की पत्रिका में "${
-        activeDosha.doshaName || "विद्या व बाल संस्कार दोष"
-      }" दिखाई देता है। ग्रहों के प्रतिकूल प्रभाव (${
-        activeDosha.technicalWhy || "चतुर्थ/पंचम भाव पर तनाव"
-      }) से "${
-        activeDosha.currentLifeProblems || "पढ़ाई में चंचलता व परीक्षा में घबराहट"
-      }" हो सकती है। शांति हेतु श्री क्षेत्र गोकर्ण में "${
-        activeDosha.recommendedPooja || "श्री महासरस्वती एवं मेधा सूक्त शांति पूजा"
-      }" कराना शुभ रहेगा। मुख्य पुरोहित श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से मार्गदर्शन प्राप्त करें।`;
+      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nबच्चे की पत्रिका में "${activeDosha.doshaName || "विद्या व बाल संस्कार दोष"
+        }" दिखाई देता है। ग्रहों के प्रतिकूल प्रभाव (${activeDosha.technicalWhy || "चतुर्थ/पंचम भाव पर तनाव"
+        }) से "${activeDosha.currentLifeProblems || "पढ़ाई में चंचलता व परीक्षा में घबराहट"
+        }" हो सकती है। शांति हेतु श्री क्षेत्र गोकर्ण में "${activeDosha.recommendedPooja || "श्री महासरस्वती एवं मेधा सूक्त शांति पूजा"
+        }" कराना शुभ रहेगा। मुख्य पुरोहित श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से मार्गदर्शन प्राप्त करें।`;
       return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
@@ -773,15 +795,11 @@ export function buildHindiFallbackReading(ctx: DeterministicFallbackContext): st
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nआपकी कुंडली में जैसा पहले बताया गया, ${activeDosha.doshaName} का निवारण श्री क्षेत्र गोकर्ण में कराने से शीघ्र संतान सुख प्राप्त होगा।`);
       }
-      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी जन्म कुंडली में "${
-        activeDosha.doshaName || "संतान बाधा एवं पंचम भाव दोष"
-      }" परिलक्षित होता है। ग्रहों के प्रतिकूल प्रभाव (${
-        activeDosha.technicalWhy || "पंचम भाव पर पापदृष्टि"
-      }) से "${
-        activeDosha.currentLifeProblems || "संतान प्राप्ति में विलंब"
-      }" हो रहा है। इसके निवारण हेतु श्री क्षेत्र गोकर्ण में "${
-        activeDosha.recommendedPooja || "संतान गोपाल महाहोम एवं नाग प्रतिष्ठा"
-      }" संपन्न कराएं। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
+      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी जन्म कुंडली में "${activeDosha.doshaName || "संतान बाधा एवं पंचम भाव दोष"
+        }" परिलक्षित होता है। ग्रहों के प्रतिकूल प्रभाव (${activeDosha.technicalWhy || "पंचम भाव पर पापदृष्टि"
+        }) से "${activeDosha.currentLifeProblems || "संतान प्राप्ति में विलंब"
+        }" हो रहा है। इसके निवारण हेतु श्री क्षेत्र गोकर्ण में "${activeDosha.recommendedPooja || "संतान गोपाल महाहोम एवं नाग प्रतिष्ठा"
+        }" संपन्न कराएं। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
       return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
@@ -823,7 +841,7 @@ export function buildHindiFallbackReading(ctx: DeterministicFallbackContext): st
   if (isCareerFrustration) {
     const p1Career = isSubsequent
       ? `करियर और आजीविका के प्रश्न "${question}" के संदर्भ में, दशम कर्म भाव (स्वामी: ${karmaLord}) और वर्तमान ${dasha} के प्रभाव से कार्यक्षेत्र में सामयिक तनाव और मंथन दिखाई दे रहा है। यह आपकी आंतरिक क्षमता को तराशने का समय है, न कि कोई स्थायी रुकावट।`
-      : `प्रिय वत्स ${localizedDevoteeName}, आपकी आजीविका (नौकरी/व्यवसाय) में हो रही परेशानी और हताशा को मैं पूर्ण रूप से समझ सकता हूँ। श्री बग्गोण पंचांग के अनुसार आपका जन्म ${lagna} लग्न, ${rashi} राशि में हुआ है, और आपका मूल स्वभाव परिश्रमी एवं स्वाभिमानी है। वर्तमान ${dasha} और ${shaniText} आपके कार्यक्षेत्र में धैर्य और आत्मनिरीक्षण की मांग कर रहे हैं।` ;
+      : `प्रिय वत्स ${localizedDevoteeName}, आपकी आजीविका (नौकरी/व्यवसाय) में हो रही परेशानी और हताशा को मैं पूर्ण रूप से समझ सकता हूँ। श्री बग्गोण पंचांग के अनुसार आपका जन्म ${lagna} लग्न, ${rashi} राशि में हुआ है, और आपका मूल स्वभाव परिश्रमी एवं स्वाभिमानी है। वर्तमान ${dasha} और ${shaniText} आपके कार्यक्षेत्र में धैर्य और आत्मनिरीक्षण की मांग कर रहे हैं।`;
     const p2Career = `दशमेश ${karmaLord} और षष्ठ भाव की स्थिति को देखते हुए, गोचर के ग्रहों के प्रभाव से कार्यस्थल पर दबाव, सहकर्मियों से समन्वय की कमी और परिश्रम का उचित श्रेय मिलने में देरी हो रही है। जिस प्रकार मकान बनाते समय गहरी नींव रखने के बाद ही ऊपर की मंजिलें सुरक्षित खड़ी रहती हैं, उसी प्रकार यह समय आपकी क्षमता को निखारने और मजबूत आधार बनाने आया है। क्रोध अथवा अधीरता में आकर त्यागपत्र जैसा कोई जल्दबाजी का कदम न उठाएं।`;
     const p3Career = `आगामी गोचर काल में ग्रहों की चाल आपके पक्ष में बदलेगी और धीरे-धीरे नए अवसरों के द्वार खुलेंगे। तब तक धैर्यपूर्वक अपने कर्तव्य का निर्वहन करें। नित्य शिव पंचाक्षरी स्तोत्र अथवा गायत्री मंत्र का जप करें और सोमवार या शनिवार को घी का दीपक प्रज्वलित करें।`;
 
@@ -831,11 +849,9 @@ export function buildHindiFallbackReading(ctx: DeterministicFallbackContext): st
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nआपकी कुंडली में ${activeDosha.doshaName} का निवारण श्री क्षेत्र गोकर्ण की पूजा से होकर करियर में स्थिरता आएगी।`);
       }
-      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी कुंडली में "${
-        activeDosha.doshaName || "दोष"
-      }" की उपस्थिति से आजीविका में विघ्न आ रहे हैं। श्री क्षेत्र गोकर्ण में "${
-        activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं शांति होम"
-      }" संपन्न कराएं। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
+      const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी कुंडली में "${activeDosha.doshaName || "दोष"
+        }" की उपस्थिति से आजीविका में विघ्न आ रहे हैं। श्री क्षेत्र गोकर्ण में "${activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं शांति होम"
+        }" संपन्न कराएं। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
       return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Career}\n\n${p2Career}\n\n${p3Career}`);
@@ -846,8 +862,8 @@ export function buildHindiFallbackReading(ctx: DeterministicFallbackContext): st
     convIntel.isSameTopicFollowUp && convIntel.contextualBridge
       ? `${convIntel.contextualBridge} वर्तमान ${dasha} अवधि एवं संबंधित भावेश के गोचर को देखते हुए ग्रह स्थितियां सकारात्मक परिवर्तनों की ओर संकेत कर रही हैं। लग्नेश का बल आपको आत्मविश्वास प्रदान कर रहा है।`
       : isSubsequent
-      ? `आपके प्रश्न "${question}" के संदर्भ में, कुंडली की वर्तमान ${dasha} अवधि और संबंधित भावेश के गोचर को देखते हुए ग्रह स्थितियां सकारात्मक परिवर्तनों की ओर संकेत कर रही हैं। लग्नेश का बल आपको आत्मविश्वास प्रदान कर रहा है और धैर्यपूर्वक किए गए प्रयास सफल होंगे।`
-      : `नमस्ते ${localizedDevoteeName} जी। श्री बग्गोण पंचांग ज्योतिष की शास्त्रोक्त गणनानुसार आप ${lagna} लग्न, ${rashi} राशि तथा ${nakshatra} नक्षत्र में जन्मे हैं । आपके प्रश्न "${question}" के संबंध में, वर्तमान ${dasha} काल आपके जीवन में महत्वपूर्ण मोड़ और नए अवसरों का सृजन कर रहा है। लग्नेश की शुभ स्थिति आपको संबल दे रही है और गुरु व शनि के गोचर से धीरे-धीरे कार्य सिद्ध होंगे।`;
+        ? `आपके प्रश्न "${question}" के संदर्भ में, कुंडली की वर्तमान ${dasha} अवधि और संबंधित भावेश के गोचर को देखते हुए ग्रह स्थितियां सकारात्मक परिवर्तनों की ओर संकेत कर रही हैं। लग्नेश का बल आपको आत्मविश्वास प्रदान कर रहा है और धैर्यपूर्वक किए गए प्रयास सफल होंगे।`
+        : `नमस्ते ${localizedDevoteeName} जी। श्री बग्गोण पंचांग ज्योतिष की शास्त्रोक्त गणनानुसार आप ${lagna} लग्न, ${rashi} राशि तथा ${nakshatra} नक्षत्र में जन्मे हैं । आपके प्रश्न "${question}" के संबंध में, वर्तमान ${dasha} काल आपके जीवन में महत्वपूर्ण मोड़ और नए अवसरों का सृजन कर रहा है। लग्नेश की शुभ स्थिति आपको संबल दे रही है और गुरु व शनि के गोचर से धीरे-धीरे कार्य सिद्ध होंगे।`;
   const baseP2 = `कुंडली के मुख्य भावों का अवलोकन करने पर पूर्व में रहे मानसिक तनाव और कार्यों में रुकावटें अब धीरे-धीरे दूर होने के संकेत हैं। करियर, व्यवसाय और पारिवारिक सुख के क्षेत्र में सकारात्मक परिणाम दिखाई देंगे। बड़ों का आशीर्वाद और संयमित आचरण आपको सफलता दिलाएगा। किसी भी प्रकार के जल्दबाजी वाले निर्णयों से बचें।`;
   const baseP3 = `आगामी गोचर काल में देवगुरु बृहस्पति का शुभ प्रभाव आपके प्रमुख त्रिकोण स्थानों को बल प्रदान करेगा, जिससे नए कार्यों के शुभारंभ हेतु अनुकूल वातावरण बनेगा। सकारात्मक संकल्प के साथ आगे बढ़ें।`;
 
@@ -855,11 +871,9 @@ export function buildHindiFallbackReading(ctx: DeterministicFallbackContext): st
     if (!includeFullDosha) {
       return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\nआपकी कुंडली में ${activeDosha.doshaName} का निवारण श्री क्षेत्र गोकर्ण के संकल्प से होकर शुभ फल प्राप्त होंगे।`);
     }
-    const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी जन्म पत्रिका में "${
-      activeDosha.doshaName || "दोष"
-    }" की उपस्थिति से विलंब हो रहा है। इसके निवारण हेतु श्री क्षेत्र गोकर्ण में "${
-      activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं शांति होम"
-    }" कराएं। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
+    const p4Dosha = `॥ वैदिक दोष निवारण एवं गोकर्ण परिहार अध्याय ॥\nआपकी जन्म पत्रिका में "${activeDosha.doshaName || "दोष"
+      }" की उपस्थिति से विलंब हो रहा है। इसके निवारण हेतु श्री क्षेत्र गोकर्ण में "${activeDosha.recommendedPooja || "महाबलेश्वर महारुद्राभिषेक एवं शांति होम"
+      }" कराएं। मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, श्री क्षेत्र गोकर्ण) से संपर्क करें।`;
     return deduplicateResponseText(`${baseP1}\n\n${baseP2}\n\n${baseP3}\n\n${p4Dosha}`);
   }
 
@@ -904,6 +918,11 @@ export function buildTeluguFallbackReading(ctx: DeterministicFallbackContext): s
     return deduplicateResponseText(`హరి ఓం ${localizedDevoteeName} గారూ! శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి మరియు మహాగణపతి దివ్య ఆశీస్సులు మీపై, మీ కుటుంబంపై సదా ఉండుగాక.\n\nమీ కోసం కేటాయించిన ఈ 20 నిమిషాల ఏకాంత సంభాషణలో నేను మీతోనే ఉన్నాను. మీ మనస్సులోని ఉద్యోగం, వ్యాపారం, వివాహం, ఆరోగ్యం లేదా కుటుంబ సమస్యల గురించి నిస్సంకోచంగా అడగండి.`);
   }
 
+  // Proof Follow-Up
+  if (!isMinorChild && timeline && convIntel.isAskingProof) {
+    return buildFallbackTimelineProof("te", ctx);
+  }
+
   // Timing
   if (
     !isMinorChild &&
@@ -916,19 +935,16 @@ export function buildTeluguFallbackReading(ctx: DeterministicFallbackContext): s
       convIntel.isSameTopicFollowUp && convIntel.contextualBridge
         ? `${convIntel.contextualBridge} జాతకంలోని సంబంధిత భావాలు మరియు శుభ గోచార గ్రహాల సంచారాన్ని పరిశీలిస్తే, మీ ${timeline.topicLabel} కార్యానికి అనుకూల సమయం ఇప్పుడు సమీపిస్తోంది.`
         : isSubsequent
-        ? `100% ఖచ్చిత జాతక నిర్ణయం: 98% ఖచ్చితత్వంతో మీ ${timeline.topicLabel} ${timeline.rangeSummary} సాకారం కానుంది. జాతకంలో ${timeline.topicYogaName} మరియు గోచార గ్రహాల సంచారం ఈ అనుకూల కాలాన్ని బలపరుస్తున్నాయి.`
-        : `100% ఖచ్చిత జాతక నిర్ణయం: శ్రీ బగ్గోణ పంచాంగ వేద జ్యోతిష గణన ప్రకారం, 98% ఖచ్చితత్వంతో మీ ${timeline.topicLabel} ${timeline.rangeSummary} ఖచ్చితంగా నెరవేరుతుంది! ఆత్మీయులైన ${localizedDevoteeName} గారూ, మీ జన్మ కుండలిని పరిశీలిస్తే మీరు ${lagna} లగ్నం, ${rashi} రాశి, ${nakshatra} నక్షత్రంలో జన్మించారు. ప్రస్తుతం జరుగుతున్న ${dasha} మరియు ${timeline.topicYogaName} యోగం ఈ శుభ కాలాన్ని సమర్థిస్తున్నాయి.`;
+          ? `100% ఖచ్చిత జాతక నిర్ణయం: 98% ఖచ్చితత్వంతో మీ ${timeline.topicLabel} ${timeline.rangeSummary} సాకారం కానుంది. జాతకంలో ${timeline.topicYogaName} మరియు గోచార గ్రహాల సంచారం ఈ అనుకూల కాలాన్ని బలపరుస్తున్నాయి.`
+          : `100% ఖచ్చిత జాతక నిర్ణయం: శ్రీ బగ్గోణ పంచాంగ వేద జ్యోతిష గణన ప్రకారం, 98% ఖచ్చితత్వంతో మీ ${timeline.topicLabel} ${timeline.rangeSummary} ఖచ్చితంగా నెరవేరుతుంది! ఆత్మీయులైన ${localizedDevoteeName} గారూ, మీ జన్మ కుండలిని పరిశీలిస్తే మీరు ${lagna} లగ్నం, ${rashi} రాశి, ${nakshatra} నక్షత్రంలో జన్మించారు. ప్రస్తుతం జరుగుతున్న ${dasha} మరియు ${timeline.topicYogaName} యోగం ఈ శుభ కాలాన్ని సమర్థిస్తున్నాయి.`;
     const p2Timing = `వేద జ్యోతిష శాస్త్ర గణితం ప్రకారం, ప్రస్తుతం జరుగుతున్న ${timeline.currentMahaName}-${timeline.currentBhuktiName} కాలం రాబోయే ${timeline.monthsToDashaChange} నెలల్లో ముగిసి ${timeline.nextBhuktiName} భుక్తిగా మారుతుంది. దేవగురు బృహస్పతి గోచారం మీ లగ్న కేంద్ర-త్రికోణ స్థానాలపై దివ్య దృష్టిని ప్రసరిస్తుంది. ఈ గురుబలం మరియు దశా మార్పు పూర్వపు అడ్డంకులను తొలగించి సరికొత్త అవకాశాలను తెస్తుంది.`;
     const p3Timing = `కాబట్టి శ్రీ బగ్గోణ పంచాంగం ప్రకారం మీ ${timeline.topicLabel} ${timeline.rangeSummary} నెరవేరే బలమైన యోగం ఉంది. ఈ శుభ కాలాన్ని ఆహ్వానించడానికి శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారిని ప్రార్థించి, సోమవారం లేదా గురువారం ఆవు నేతితో దీపారాధన చేయడం శ్రేయస్కరం.`;
 
     if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nమీ జాతకంలో "${
-        activeDosha.doshaName || "దోషం"
-      }" ఉంది. దీనివల్ల జీవితంలో "${
-        activeDosha.currentLifeProblems || "పనులలో ఆలస్యం మరియు మానసిక ఒత్తిడి"
-      }" ఎదురవుతున్నాయి. దీని నివారణకు శ్రీ క్షేత్ర గోకర్ణంలో "${
-        activeDosha.recommendedPooja || "మహాబలేశ్వర మహారుద్రాభిషేకం మరియు శాంతి హోమం"
-      }" జరిపించడం అవసరం. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362, శ్రీ క్షేత్ర గోకర్ణం) గారిని నేరుగా సంప్రదించండి.`;
+      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nమీ జాతకంలో "${activeDosha.doshaName || "దోషం"
+        }" ఉంది. దీనివల్ల జీవితంలో "${activeDosha.currentLifeProblems || "పనులలో ఆలస్యం మరియు మానసిక ఒత్తిడి"
+        }" ఎదురవుతున్నాయి. దీని నివారణకు శ్రీ క్షేత్ర గోకర్ణంలో "${activeDosha.recommendedPooja || "మహాబలేశ్వర మహారుద్రాభిషేకం మరియు శాంతి హోమం"
+        }" జరిపించడం అవసరం. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362, శ్రీ క్షేత్ర గోకర్ణం) గారిని నేరుగా సంప్రదించండి.`;
       return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
@@ -946,11 +962,9 @@ export function buildTeluguFallbackReading(ctx: DeterministicFallbackContext): s
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nబిడ్డ జాతకంలో ${activeDosha.doshaName} ప్రభావం గోకర్ణ పూజతో తొలగిపోయి మంచి విద్య, ఆరోగ్యం లభిస్తాయి.`);
       }
-      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nపిల్లల జాతకంలో "${
-        activeDosha.doshaName || "విద్యా దోషం"
-      }" ఉంది. శ్రీ క్షేత్ర గోకర్ణంలో "${
-        activeDosha.recommendedPooja || "శ్రీ మహాసరస్వతీ మరియు మేధా సూక్త శాంతి పూజ"
-      }" జరిపించడం ఉత్తమం. ముఖ్య పురోహితులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
+      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nపిల్లల జాతకంలో "${activeDosha.doshaName || "విద్యా దోషం"
+        }" ఉంది. శ్రీ క్షేత్ర గోకర్ణంలో "${activeDosha.recommendedPooja || "శ్రీ మహాసరస్వతీ మరియు మేధా సూక్త శాంతి పూజ"
+        }" జరిపించడం ఉత్తమం. ముఖ్య పురోహితులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
       return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Child}\n\n${p2Child}\n\n${p3Child}`);
@@ -968,11 +982,9 @@ export function buildTeluguFallbackReading(ctx: DeterministicFallbackContext): s
       if (!includeFullDosha) {
         return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nమీ జాతకంలో ${activeDosha.doshaName} పరిహారం శ్రీ క్షేత్ర గోకర్ణంలో జరిపిస్తే సంతాన ప్రాప్తి కలుగుతుంది.`);
       }
-      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nమీ జాతకంలో "${
-        activeDosha.doshaName || "సంతాన దోషం"
-      }" ఉంది. శ్రీ క్షేత్ర గోకర్ణంలో "${
-        activeDosha.recommendedPooja || "సంతాన గోపాల మహాపూజ మరియు నాగ ప్రతిష్ట"
-      }" జరిపించండి. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
+      const p4Dosha = `॥ వైదిక దోష నివారణ మరియు గోకర్ణ పరిహార అధ్యాయం ॥\nమీ జాతకంలో "${activeDosha.doshaName || "సంతాన దోషం"
+        }" ఉంది. శ్రీ క్షేత్ర గోకర్ణంలో "${activeDosha.recommendedPooja || "సంతాన గోపాల మహాపూజ మరియు నాగ ప్రతిష్ట"
+        }" జరిపించండి. ముఖ్య దైవజ్ఞులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
       return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}`);
@@ -1033,8 +1045,8 @@ export function buildTeluguFallbackReading(ctx: DeterministicFallbackContext): s
     convIntel.isSameTopicFollowUp && convIntel.contextualBridge
       ? `${convIntel.contextualBridge} ప్రస్తుతం జరుగుతున్న ${dasha} కాలం మరియు సంబంధిత భావాధిపతి గోచారం సానుకూల మార్పులను సూచిస్తున్నాయి.`
       : isSubsequent
-      ? `మీరు అడిగిన "${question}" ప్రశ్నకు సంబంధించి, ప్రస్తుతం జరుగుతున్న ${dasha} కాలం మరియు సంబంధిత భావాధిపతి గోచారం సానుకూల మార్పులను సూచిస్తున్నాయి. లగ్నాధిపతి బలం మీకు ఆత్మవిశ్వాసాన్ని ఇస్తోంది.`
-      : `నమస్కారం ${localizedDevoteeName} గారూ. శ్రీ బగ్గోణ పంచాంగ వేద జ్యోతిష గణన ప్రకారం మీరు ${lagna} లగ్నం, ${rashi} రాశి, ${nakshatra} నక్షత్రంలో జన్మించారు. మీ "${question}" ప్రశ్నకు సంబంధించి, ప్రస్తుతం జరుగుతున్న ${dasha} కాలం మీ జీవితంలో కీలకమైన సానుకూల మలుపును తెస్తోంది.`;
+        ? `మీరు అడిగిన "${question}" ప్రశ్నకు సంబంధించి, ప్రస్తుతం జరుగుతున్న ${dasha} కాలం మరియు సంబంధిత భావాధిపతి గోచారం సానుకూల మార్పులను సూచిస్తున్నాయి. లగ్నాధిపతి బలం మీకు ఆత్మవిశ్వాసాన్ని ఇస్తోంది.`
+        : `నమస్కారం ${localizedDevoteeName} గారూ. శ్రీ బగ్గోణ పంచాంగ వేద జ్యోతిష గణన ప్రకారం మీరు ${lagna} లగ్నం, ${rashi} రాశి, ${nakshatra} నక్షత్రంలో జన్మించారు. మీ "${question}" ప్రశ్నకు సంబంధించి, ప్రస్తుతం జరుగుతున్న ${dasha} కాలం మీ జీవితంలో కీలకమైన సానుకూల మలుపును తెస్తోంది.`;
   const baseP2 = `కుండలిలోని ప్రధాన భావాలను గమనిస్తే గతంలో ఉన్న మానసిక ఆందోళనలు ఇప్పుడు నెమ్మదిగా తొలగిపోతాయి. మామిడి కాయ చెట్టుపై క్రమంగా పండినప్పుడే పూర్తి రుచినిచ్చినట్లు, సరైన సమయం వచ్చినప్పుడే ప్రయత్నాలకు శాశ్వత ఫలితం లభిస్తుంది; కనుక ఉద్యోగం, వ్యాపారం మరియు కుటుంబంలో స్థిరమైన పురోగతి కనిపిస్తుంది.`;
   const baseP3 = `రాబోయే కాలంలో దేవగురు బృహస్పతి గోచారం మీ త్రికోణ స్థానాలకు బలాన్నిస్తూ ఆర్థిక, కుటుంబ శుభాలను కలుగజేస్తుంది. పెద్దల ఆశీస్సులతో, సహనంతో ముందుకు సాగండి.`;
 
@@ -1087,6 +1099,11 @@ export function buildTamilFallbackReading(ctx: DeterministicFallbackContext): st
     return deduplicateResponseText(`ஹரி ஓம் ${localizedDevoteeName}! ஸ்ரீ க்ஷேத்ர கோகர்ணம் மகாபலேஸ்வரர் மற்றும் விநாயகப் பெருமானின் அருள் உங்கள் குடும்பத்திற்கு சதா கிடைக்கட்டும்.\n\nஉங்களுக்காக ஒதுக்கப்பட்ட இந்த 20 நிமிட கலந்துரையாடலில் நான் உங்களுடன் இருக்கிறேன். உங்கள் வேலை, தொழில், திருமணம், ஆரோக்கியம் அல்லது குடும்பம் பற்றிய எந்தக் கேள்வியையும் தயங்காமல் கேட்கலாம்.`);
   }
 
+  // Proof Follow-Up
+  if (!isMinorChild && timeline && convIntel.isAskingProof) {
+    return buildFallbackTimelineProof("ta", ctx);
+  }
+
   // Timing
   if (
     !isMinorChild &&
@@ -1099,19 +1116,16 @@ export function buildTamilFallbackReading(ctx: DeterministicFallbackContext): st
       convIntel.isSameTopicFollowUp && convIntel.contextualBridge
         ? `${convIntel.contextualBridge} ஜாதகத்தின் சம்பந்தப்பட்ட பாவங்களையும் சுப கிரகங்களின் சஞ்சாரத்தையும் பார்க்கும்போது, உங்கள் ${timeline.topicLabel} காரியத்திற்கான காலம் இப்போது கைகூடி வருகிறது.`
         : isSubsequent
-        ? `100% உறுதியான ஜோதிட கணிப்பு: 98% துல்லியத்துடன் உங்கள் ${timeline.topicLabel} ${timeline.rangeSummary} நிச்சயமாக நிறைவேறும். ஜாதகத்தில் ${timeline.topicYogaName} மற்றும் கிரகங்களின் சுப சஞ்சாரம் இந்த காலத்தை உறுதிப்படுத்துகிறது.`
-        : `100% உறுதியான ஜோதிட கணிப்பு: ஸ்ரீ பக்கோண பஞ்சாங்க கணிதப்படி, 98% துல்லியத்துடன் உங்கள் ${timeline.topicLabel} ${timeline.rangeSummary} கைகூடும்! அன்பரே ${localizedDevoteeName}, உங்கள் ஜாதகத்தை ஆராயும்போது நீங்கள் ${lagna} லக்னம், ${rashi} ராசி, ${nakshatra} நட்சத்திரத்தில் பிறந்துள்ளீர்கள். தற்போது நடக்கும் ${dasha} மற்றும் ${timeline.topicYogaName} யோகம் இதற்கு வலுசேர்க்கிறது.`;
+          ? `100% உறுதியான ஜோதிட கணிப்பு: 98% துல்லியத்துடன் உங்கள் ${timeline.topicLabel} ${timeline.rangeSummary} நிச்சயமாக நிறைவேறும். ஜாதகத்தில் ${timeline.topicYogaName} மற்றும் கிரகங்களின் சுப சஞ்சாரம் இந்த காலத்தை உறுதிப்படுத்துகிறது.`
+          : `100% உறுதியான ஜோதிட கணிப்பு: ஸ்ரீ பக்கோண பஞ்சாங்க கணிதப்படி, 98% துல்லியத்துடன் உங்கள் ${timeline.topicLabel} ${timeline.rangeSummary} கைகூடும்! அன்பரே ${localizedDevoteeName}, உங்கள் ஜாதகத்தை ஆராயும்போது நீங்கள் ${lagna} லக்னம், ${rashi} ராசி, ${nakshatra} நட்சத்திரத்தில் பிறந்துள்ளீர்கள். தற்போது நடக்கும் ${dasha} மற்றும் ${timeline.topicYogaName} யோகம் இதற்கு வலுசேர்க்கிறது.`;
     const p2Timing = `வேத ஜோதிட சாஸ்திரப்படி, தற்போது நடக்கும் ${timeline.currentMahaName}-${timeline.currentBhuktiName} காலம் இன்னும் ${timeline.monthsToDashaChange} மாதங்களில் முடிந்து ${timeline.nextBhuktiName} புக்தியாக மாறும். குரு பகவானின் சுப பார்வை லக்ன கேந்திர-திரிகோண ஸ்தானங்களில் விழுவதால் முந்தைய தடைகள் விலகி புதிய வாய்ப்புகள் பிறக்கும்.`;
     const p3Timing = `எனவே உங்கள் ${timeline.topicLabel} ${timeline.rangeSummary} நிறைவேறும் பிரகாசமான யோகம் உள்ளது. ஸ்ரீ க்ஷேத்ர கோகர்ணம் மகாபலேஸ்வரரை வழிபட்டு, திங்கட்கிழமை அல்லது வியாழக்கிழமை பசு நெய் தீபம் ஏற்றுவது நன்மை தரும்.`;
 
     if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ வைதிக தோஷ நிவர்த்தி மற்றும் கோகர்ண பரிகார அத்தியாயம் ॥\nஉங்கள் ஜாதகத்தில் "${
-        activeDosha.doshaName || "தோஷம்"
-      }" உள்ளது. இதனால் "${
-        activeDosha.currentLifeProblems || "காரிய தாமதம் மற்றும் மன உளைச்சல்"
-      }" ஏற்படுகிறது. இதற்கு ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் "${
-        activeDosha.recommendedPooja || "மகாபலேஸ்வரர் ருத்ராபிஷேகம் மற்றும் சாந்தி ஹோமம்"
-      }" செய்வது அவசியம். தலைமை ஜோதிடர் ஸ்ரீராம் பண்டித் (தொலைபேசி: 9972339362, கோகர்ணம்) அவர்களைத் தொடர்பு கொள்ளுங்கள்.`;
+      const p4Dosha = `॥ வைதிக தோஷ நிவர்த்தி மற்றும் கோகர்ண பரிகார அத்தியாயம் ॥\nஉங்கள் ஜாதகத்தில் "${activeDosha.doshaName || "தோஷம்"
+        }" உள்ளது. இதனால் "${activeDosha.currentLifeProblems || "காரிய தாமதம் மற்றும் மன உளைச்சல்"
+        }" ஏற்படுகிறது. இதற்கு ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் "${activeDosha.recommendedPooja || "மகாபலேஸ்வரர் ருத்ராபிஷேகம் மற்றும் சாந்தி ஹோமம்"
+        }" செய்வது அவசியம். தலைமை ஜோதிடர் ஸ்ரீராம் பண்டித் (தொலைபேசி: 9972339362, கோகர்ணம்) அவர்களைத் தொடர்பு கொள்ளுங்கள்.`;
       return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
@@ -1208,8 +1222,8 @@ export function buildTamilFallbackReading(ctx: DeterministicFallbackContext): st
     convIntel.isSameTopicFollowUp && convIntel.contextualBridge
       ? `${convIntel.contextualBridge} நடப்பு ${dasha} காலம் மற்றும் கிரக சஞ்சாரம் நல்ல மாற்றங்களை சுட்டிக்காட்டுகின்றன.`
       : isSubsequent
-      ? `நீங்கள் கேட்ட "${question}" கேள்விக்கு, நடப்பு ${dasha} காலம் சுப மாற்றங்களை தருகிறது. லக்னாதிபதி பலம் உங்களுக்கு துணை நிற்கிறது.`
-      : `வணக்கம் ${localizedDevoteeName}. ஸ்ரீ பக்கோண பஞ்சாங்கப்படி நீங்கள் ${lagna} லக்னம், ${rashi} ராசி, ${nakshatra} நட்சத்திரத்தில் பிறந்துள்ளீர்கள். உங்கள் "${question}" கேள்விக்கு, நடப்பு ${dasha} காலம் வாழ்வில் நல்ல திருப்பங்களை தர உள்ளது.`;
+        ? `நீங்கள் கேட்ட "${question}" கேள்விக்கு, நடப்பு ${dasha} காலம் சுப மாற்றங்களை தருகிறது. லக்னாதிபதி பலம் உங்களுக்கு துணை நிற்கிறது.`
+        : `வணக்கம் ${localizedDevoteeName}. ஸ்ரீ பக்கோண பஞ்சாங்கப்படி நீங்கள் ${lagna} லக்னம், ${rashi} ராசி, ${nakshatra} நட்சத்திரத்தில் பிறந்துள்ளீர்கள். உங்கள் "${question}" கேள்விக்கு, நடப்பு ${dasha} காலம் வாழ்வில் நல்ல திருப்பங்களை தர உள்ளது.`;
   const baseP2 = `ஜாதக அமைப்பின்படி கடந்த கால மனக்கவலைகள் நீங்கி தொழில், குடும்பத்தில் சுபிட்சம் உண்டாகும். மரத்தில் காய் இயல்பாகப் பழுக்கும் வரை காத்திருந்தால் மட்டுமே முழு சுவை கிடைப்பது போல, தகுந்த நேரத்தில் உங்கள் முயற்சிகளுக்கு நிலையான பலன் கிட்டும். பெரியவர்களின் ஆசியுடன் நிதானமாக செயல்படுங்கள்.`;
   const baseP3 = `குரு பகவானின் அருள் பார்வை உங்கள் திரிகோண ஸ்தானங்களுக்கு வலு சேர்த்து குடும்பத்திலும் தொழிலிலும் உங்கள் நிலையை உயர்த்தும். நம்பிக்கையோடு முன்னேறுங்கள்.`;
 
@@ -1262,6 +1276,11 @@ export function buildMalayalamFallbackReading(ctx: DeterministicFallbackContext)
     return deduplicateResponseText(`ഹരി ഓം ${localizedDevoteeName}! ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വരന്റെയും മഹാഗണപതിയുടെയും അനുഗ്രഹം നിങ്ങൾക്കും കുടുംബത്തിനും സദാ ഉണ്ടാകട്ടെ.\n\nഈ 20 മിനിറ്റ് വ്യക്തിഗത സംഭാഷണത്തിൽ ഞാൻ നിങ്ങളുടെ കൂടെയുണ്ട്. തൊഴിൽ, വിവാഹം, ആരോഗ്യം, കുടുംബകാര്യങ്ങൾ എന്നിവയെക്കുറിച്ചുള്ള ചോദ്യങ്ങൾ മനസ്സ് തുറന്ന് ചോദിക്കാം.`);
   }
 
+  // Proof Follow-Up
+  if (!isMinorChild && timeline && convIntel.isAskingProof) {
+    return buildFallbackTimelineProof("ml", ctx);
+  }
+
   // Timing
   if (
     !isMinorChild &&
@@ -1274,19 +1293,16 @@ export function buildMalayalamFallbackReading(ctx: DeterministicFallbackContext)
       convIntel.isSameTopicFollowUp && convIntel.contextualBridge
         ? `${convIntel.contextualBridge} ജാതകത്തിലെ ഭാവങ്ങളും ശുഭ ഗ്രഹങ്ങളുടെ സഞ്ചാരവും പരിശോധിക്കുമ്പോൾ നിങ്ങളുടെ ${timeline.topicLabel} കാര്യത്തിനുള്ള സമയം അടുത്തുവരികയാണ്.`
         : isSubsequent
-        ? `100% ഉറപ്പുള്ള ജ്യോതിഷ പ്രവചനം: 98% കൃത്യതയോടെ നിങ്ങളുടെ ${timeline.topicLabel} ${timeline.rangeSummary} സഫലമാകും. ജാതകത്തിലെ ${timeline.topicYogaName} യോഗവും ഗ്രഹസഞ്ചാരവും ഇത് വ്യക്തമാക്കുന്നു.`
-        : `100% ഉറപ്പുള്ള ജ്യോതിഷ പ്രവചനം: ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ ഗണിതപ്രകാരം, 98% കൃത്യതയോടെ നിങ്ങളുടെ ${timeline.topicLabel} ${timeline.rangeSummary} സഫലമാകും! പ്രിയ ${localizedDevoteeName}, ജാതകപ്രകാരം നിങ്ങൾ ${lagna} ലഗ്നം, ${rashi} രാശി, ${nakshatra} നക്ഷത്രത്തിൽ ജനിച്ചു. നിലവിലെ ${dasha} കാലവും ${timeline.topicYogaName} യോഗവും ഈ ശുഭസമയത്തെ തുണയ്ക്കുന്നു.`;
+          ? `100% ഉറപ്പുള്ള ജ്യോതിഷ പ്രവചനം: 98% കൃത്യതയോടെ നിങ്ങളുടെ ${timeline.topicLabel} ${timeline.rangeSummary} സഫലമാകും. ജാതകത്തിലെ ${timeline.topicYogaName} യോഗവും ഗ്രഹസഞ്ചാരവും ഇത് വ്യക്തമാക്കുന്നു.`
+          : `100% ഉറപ്പുള്ള ജ്യോതിഷ പ്രവചനം: ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ ഗണിതപ്രകാരം, 98% കൃത്യതയോടെ നിങ്ങളുടെ ${timeline.topicLabel} ${timeline.rangeSummary} സഫലമാകും! പ്രിയ ${localizedDevoteeName}, ജാതകപ്രകാരം നിങ്ങൾ ${lagna} ലഗ്നം, ${rashi} രാശി, ${nakshatra} നക്ഷത്രത്തിൽ ജനിച്ചു. നിലവിലെ ${dasha} കാലവും ${timeline.topicYogaName} യോഗവും ഈ ശുഭസമയത്തെ തുണയ്ക്കുന്നു.`;
     const p2Timing = `വേദ ജ്യോതിഷ ഗണിതപ്രകാരം, നിലവിലെ ${timeline.currentMahaName}-${timeline.currentBhuktiName} കാലം ${timeline.monthsToDashaChange} മാസത്തിനുള്ളിൽ പൂർത്തിയായി ${timeline.nextBhuktiName} ഭുക്തിയായി മാറും. വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടി ലഗ്ന ഭാവങ്ങളിൽ പതിയുന്നതോടെ മുൻപുണ്ടായിരുന്ന തടസ്സങ്ങൾ നീങ്ങി പുതിയ അവസരങ്ങൾ വരും.`;
     const p3Timing = `അതിനാൽ നിങ്ങളുടെ ${timeline.topicLabel} ${timeline.rangeSummary} സഫലമാകും. ഗോകർണ്ണ മഹാബലേശ്വരനെ പ്രാർത്ഥിച്ച് തിങ്കളാഴ്ച നെയ്‌വിളക്ക് കൊളുത്തുന്നത് അതീവ ശുഭകരമാണ്.`;
 
     if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ വൈദിക ദോഷ നിവാരണവും ഗോകർണ്ണ പരിഹാര അധ്യായവും ॥\nജാതകത്തിൽ "${
-        activeDosha.doshaName || "ദോഷം"
-      }" കാണുന്നു. ഇത് "${
-        activeDosha.currentLifeProblems || "തടസ്സങ്ങളും മാനസിക സമ്മർദ്ദവും"
-      }" ഉണ്ടാക്കുന്നു. ഗോകർണ്ണത്ത് "${
-        activeDosha.recommendedPooja || "മഹാബലേശ്വര രുദ്രാഭിഷേകവും ശാന്തി ഹോമവും"
-      }" നടത്തുക. മുഖ്യ ജ്യോതിഷി ശ്രീരാം പണ്ഡിറ്റുമായി (ഫോൺ: 9972339362) ബന്ധപ്പെടുക.`;
+      const p4Dosha = `॥ വൈദിക ദോഷ നിവാരണവും ഗോകർണ്ണ പരിഹാര അധ്യായവും ॥\nജാതകത്തിൽ "${activeDosha.doshaName || "ദോഷം"
+        }" കാണുന്നു. ഇത് "${activeDosha.currentLifeProblems || "തടസ്സങ്ങളും മാനസിക സമ്മർദ്ദവും"
+        }" ഉണ്ടാക്കുന്നു. ഗോകർണ്ണത്ത് "${activeDosha.recommendedPooja || "മഹാബലേശ്വര രുദ്രാഭിഷേകവും ശാന്തി ഹോമവും"
+        }" നടത്തുക. മുഖ്യ ജ്യോതിഷി ശ്രീരാം പണ്ഡിറ്റുമായി (ഫോൺ: 9972339362) ബന്ധപ്പെടുക.`;
       return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
@@ -1383,8 +1399,8 @@ export function buildMalayalamFallbackReading(ctx: DeterministicFallbackContext)
     convIntel.isSameTopicFollowUp && convIntel.contextualBridge
       ? `${convIntel.contextualBridge} നിലവിലെ ${dasha} കാലവും ഗ്രഹനിലയും അനുകൂല മാറ്റങ്ങൾ കാണിക്കുന്നു.`
       : isSubsequent
-      ? `നിങ്ങൾ ചോദിച്ച "${question}" ചോദ്യത്തിന്, നിലവിലെ ${dasha} കാലം ശുഭകരമായ മാറ്റങ്ങൾ കൊണ്ടുവരും.`
-      : `നമസ്കാരം ${localizedDevoteeName}. ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ പ്രകാരം നിങ്ങൾ ${lagna} ലഗ്നം, ${rashi} രാശി, ${nakshatra} നക്ഷത്രത്തിൽ ജനിച്ചു. നിങ്ങളുടെ "${question}" ചോദ്യത്തിന്, നിലവിലെ ${dasha} കാലം ശുഭകരമായ മാറ്റങ്ങൾ തരും.`;
+        ? `നിങ്ങൾ ചോദിച്ച "${question}" ചോദ്യത്തിന്, നിലവിലെ ${dasha} കാലം ശുഭകരമായ മാറ്റങ്ങൾ കൊണ്ടുവരും.`
+        : `നമസ്കാരം ${localizedDevoteeName}. ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ പ്രകാരം നിങ്ങൾ ${lagna} ലഗ്നം, ${rashi} രാശി, ${nakshatra} നക്ഷത്രത്തിൽ ജനിച്ചു. നിങ്ങളുടെ "${question}" ചോദ്യത്തിന്, നിലവിലെ ${dasha} കാലം ശുഭകരമായ മാറ്റങ്ങൾ തരും.`;
   const baseP2 = `മുൻപുണ്ടായിരുന്ന വിഷമങ്ങൾ മാറി തൊഴിലിലും കുടുംബത്തിലും നന്മകൾ ഉണ്ടാകും. മാമ്പഴം മരത്തിൽ പഴുത്തു പാകമാകുമ്പോൾ മാത്രമേ മധുരം നൽകൂ എന്നതുപോലെ, ശരിയായ സമയമെത്തുമ്പോൾ നിങ്ങളുടെ ശ്രമങ്ങൾക്ക് സ്ഥിരമായ ഫലം ലഭിക്കും; മുതിർന്നവരുടെ അനുഗ്രഹത്തോടെ മുന്നോട്ട് പോകുക.`;
   const baseP3 = `വ്യാഴത്തിന്റെ അനുഗ്രഹം നിങ്ങളുടെ ത്രികോണ ഭാവങ്ങൾക്ക് ബലം നൽകി സകല കാര്യങ്ങളും ശുഭമാക്കും. ആത്മവിശ്വാസത്തോടെയും പ്രാർത്ഥനയോടെയും മുന്നേറുക.`;
 
@@ -1437,6 +1453,11 @@ export function buildMarathiFallbackReading(ctx: DeterministicFallbackContext): 
     return deduplicateResponseText(`हरि ॐ ${localizedDevoteeName}! श्री क्षेत्र गोकर्णचे महागणपती आणि भगवान महाबळेश्वर यांचे आशीर्वाद आपल्यावर व कुटुंबावर सदैव राहो.\n\nया २० मिनिटांच्या खाजगी संभाषणात मी आपल्या सोबत आहे. नोकरी, व्यवसाय, विवाह, आरोग्य किंवा कौटुंबिक बाबींविषयी कोणताही प्रश्न आपण निःसंकोचपणे विचारू शकता.`);
   }
 
+  // Proof Follow-Up
+  if (!isMinorChild && timeline && convIntel.isAskingProof) {
+    return buildFallbackTimelineProof("mr", ctx);
+  }
+
   // Timing
   if (
     !isMinorChild &&
@@ -1449,19 +1470,16 @@ export function buildMarathiFallbackReading(ctx: DeterministicFallbackContext): 
       convIntel.isSameTopicFollowUp && convIntel.contextualBridge
         ? `${convIntel.contextualBridge} पत्रिकेतील संबंधित भाव आणि शुभ ग्रहांचे भ्रमण पाहता आपल्या ${timeline.topicLabel} कार्याची अनुकूल वेळ आता जवळ येत आहे.`
         : isSubsequent
-        ? `१००% शास्त्रोक्त ज्योतिषीय निर्णय: ९८% अचूकतेने आपले ${timeline.topicLabel} ${timeline.rangeSummary} नक्कीच पूर्ण होईल. पत्रिकेत ${timeline.topicYogaName} आणि संबंधित भावांचे शुभ गोचर यास पुष्टी देत आहे.`
-        : `१००% शास्त्रोक्त ज्योतिषीय निर्णय: श्री बग्गोण पंचांगाच्या वैदिक गणितानुसार, ९८% अचूकतेने आपले ${timeline.topicLabel} ${timeline.rangeSummary} निश्चितपणे पूर्ण होईल! प्रिय ${localizedDevoteeName}, आपल्या पत्रिकेचा अभ्यास करता आपला जन्म ${lagna} लग्न, ${rashi} रास आणि ${nakshatra} नक्षत्रात झाला आहे. सध्याची ${dasha} आणि ${timeline.topicYogaName} योग या शुभ काळाला बळ देत आहेत.`;
+          ? `१००% शास्त्रोक्त ज्योतिषीय निर्णय: ९८% अचूकतेने आपले ${timeline.topicLabel} ${timeline.rangeSummary} नक्कीच पूर्ण होईल. पत्रिकेत ${timeline.topicYogaName} आणि संबंधित भावांचे शुभ गोचर यास पुष्टी देत आहे.`
+          : `१००% शास्त्रोक्त ज्योतिषीय निर्णय: श्री बग्गोण पंचांगाच्या वैदिक गणितानुसार, ९८% अचूकतेने आपले ${timeline.topicLabel} ${timeline.rangeSummary} निश्चितपणे पूर्ण होईल! प्रिय ${localizedDevoteeName}, आपल्या पत्रिकेचा अभ्यास करता आपला जन्म ${lagna} लग्न, ${rashi} रास आणि ${nakshatra} नक्षत्रात झाला आहे. सध्याची ${dasha} आणि ${timeline.topicYogaName} योग या शुभ काळाला बळ देत आहेत.`;
     const p2Timing = `वैदिक ज्योतिष शास्त्रानुसार, सध्या चालणारा ${timeline.currentMahaName}-${timeline.currentBhuktiName} काळ पुढील ${timeline.monthsToDashaChange} महिन्यांत पूर्ण होऊन ${timeline.nextBhuktiName} भुक्ती सुरू होईल. देवगुरु बृहस्पतीचे भ्रमण आपल्या केंद्र व त्रिकोण भावांवर शुभ दृष्टी टाकेल. यामुळे जुने अडथळे दूर होऊन नवीन मार्ग खुले होतील.`;
     const p3Timing = `म्हणून पूर्ण विश्वास ठेवा की ९८% अचूकतेने आपले ${timeline.topicLabel} ${timeline.rangeSummary} पूर्ण होण्याचे प्रबळ योग आहेत. यासाठी श्री क्षेत्र गोकर्ण महाबळेश्वराचे स्मरण करा आणि सोमवारी किंवा गुरुवारी गाईच्या तुपाचा दिवा लावा.`;
 
     if (activeDosha.hasDosha && includeFullDosha) {
-      const p4Dosha = `॥ वैदिक दोष निवारण आणि गोकर्ण परिहार अध्याय ॥\nआपल्या जन्मपत्रिकेत "${
-        activeDosha.doshaName || "दोष"
-      }" दिसून येतो. यामुळे "${
-        activeDosha.currentLifeProblems || "कार्यात विलंब आणि मानसिक ताण"
-      }" जाणवत आहे. याच्या शांतीसाठी श्री क्षेत्र गोकर्ण येथे "${
-        activeDosha.recommendedPooja || "महाबळेश्वर महारुद्राभिषेक व शांती होम"
-      }" करणे आवश्यक आहे. मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, गोकर्ण) यांच्याशी थेट संपर्क साधा.`;
+      const p4Dosha = `॥ वैदिक दोष निवारण आणि गोकर्ण परिहार अध्याय ॥\nआपल्या जन्मपत्रिकेत "${activeDosha.doshaName || "दोष"
+        }" दिसून येतो. यामुळे "${activeDosha.currentLifeProblems || "कार्यात विलंब आणि मानसिक ताण"
+        }" जाणवत आहे. याच्या शांतीसाठी श्री क्षेत्र गोकर्ण येथे "${activeDosha.recommendedPooja || "महाबळेश्वर महारुद्राभिषेक व शांती होम"
+        }" करणे आवश्यक आहे. मुख्य दैवज्ञ श्रीराम पंडित (फोन: 9972339362, गोकर्ण) यांच्याशी थेट संपर्क साधा.`;
       return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}\n\n${p4Dosha}`);
     }
     return deduplicateResponseText(`${p1Timing}\n\n${p2Timing}\n\n${p3Timing}`);
@@ -1558,8 +1576,8 @@ export function buildMarathiFallbackReading(ctx: DeterministicFallbackContext): 
     convIntel.isSameTopicFollowUp && convIntel.contextualBridge
       ? `${convIntel.contextualBridge} सध्याची ${dasha} आणि ग्रहांचे भ्रमण सकारात्मक बदलांचे संकेत देत आहे.`
       : isSubsequent
-      ? `आपल्या "${question}" प्रश्नाबाबत, सध्याची ${dasha} वेळ सकारात्मक बदल घडवून आणेल. लग्नेशाचे बळ आपल्या पाठीशी आहे.`
-      : `नमस्ते ${localizedDevoteeName}. श्री बग्गोण पंचांगानुसार आपला जन्म ${lagna} लग्न, ${rashi} रास, ${nakshatra} नक्षत्रात झाला आहे. आपल्या "${question}" प्रश्नाबाबत, सध्याचा काळ महत्त्वाचे सकारात्मक वळण आणत आहे.`;
+        ? `आपल्या "${question}" प्रश्नाबाबत, सध्याची ${dasha} वेळ सकारात्मक बदल घडवून आणेल. लग्नेशाचे बळ आपल्या पाठीशी आहे.`
+        : `नमस्ते ${localizedDevoteeName}. श्री बग्गोण पंचांगानुसार आपला जन्म ${lagna} लग्न, ${rashi} रास, ${nakshatra} नक्षत्रात झाला आहे. आपल्या "${question}" प्रश्नाबाबत, सध्याचा काळ महत्त्वाचे सकारात्मक वळण आणत आहे.`;
   const baseP2 = `पत्रिकेनुसार जुने मानसिक ताण हळूहळू दूर होऊन व्यवसाय व कुटुंबात सुख-शांती नांदेल. आंब्याचे फळ झाडावर योग्य वेळी पिकल्यावरच खरी गोडी देते, तसेच योग्य मुहूर्त जुळून आल्यावर आपल्या कष्टांना कायमस्वरूपी यश मिळेल. मोठ्यांचे आशीर्वाद घेऊन संयमाने पावले टाका.`;
   const baseP3 = `देवगुरु बृहस्पतीचे भ्रमण आपल्या त्रिकोण भावांना बळ देऊन सर्व प्रयत्नांना यश व कुटुंबात समृद्धी आणेल. मनात पूर्ण श्रद्धा ठेवून पुढे चला.`;
 

@@ -73,12 +73,18 @@ export function detectAndResolveUltaPaltaProbe(
   }
 
   // 2. MARRIAGE DELAY PROBE (User asks "Will marriage take 3 years?", "Is marriage delayed?", or probes opposite)
+  // Do NOT hijack genuine proof/why follow-up queries ("How are you sure 2027?", "Why next 6 months?").
+  const isAskingProofQuestion =
+    /how are you (so )?sure|how can you (be so sure|be sure|say|tell)|what is the (proof|reason|basis)|give me proof|prove it|on what basis|why (did you say|are you saying|do you say|202[5-9]|203\d|next \d+)|ಹೇಗೆ ಖಚಿತ|ಹೇಗೆ ಹೇಳ್ತೀರ|ಹೇಗೆ ಹೇಳುತ್ತೀರಿ|ಹೇಗೆ ಗೊತ್ತು|ಯಾಕೆ ಹಾಗೆ|ಆಧಾರ ಏನು|ಪ್ರೂಫ್|ಸಾಕ್ಷಿ|ಕैसे कह सकते|सबूत|कारण क्या|ఎలా చెప్పగలరు|ఆధారం|எப்படி சொல்கிறீர்கள்|ஆதாரம்|എങ്ങനെ ഉറപ്പിക്കും|കसे सांगता|पुरावा/i.test(
+      qLower
+    );
   const isMarriageQuery =
-    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|marriage|wedding|shadi|विवाह|शादी|వివాహ|పెళ్లి|కళ్యాణ|திருமணம்|கல்யாணம்|വിവാഹം|കല്യാണം|लग्न/i.test(
+    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|maduve|kalyana|marriage|wedding|shadi|विवाह|शादी|వివాహ|పెళ్లి|కళ్యాణ|திருமணம்|கல்யாணம்|വിവാഹം|കല്യാണം|लग्न/i.test(
       qLower
     );
   const isDelayOrDoubtProbe =
-    /delay|postpone|3 years|5 years|late|not happen|will not get married|ಆಗಲ್ವಾ|ತಡವಾಗುತ್ತಾ|೩ ವರ್ಷ|೫ ವರ್ಷ|ವಿಳಂಬ|ಸಂದೇಹ|ಖಚಿತವೇ|నిజంగా|ఆలస్యం|3 ఏళ్ల|5 ఏళ్ల|కాదా|జరగదా|देरी|विलंब|तमाम|நடக்காதா|தாமதம்|3 வருடம்|5 வருடம்|தள்ளிப்போகுமா|വൈകുമോ|താമസം|3 വർഷം|5 വർഷം|നടക്കില്ലേ|उशीर|३ वर्षे|५ वर्षे|होणार नाही का/i.test(
+    !isAskingProofQuestion &&
+    /delay|postpone|3 years|5 years|late|not happen|will not get married|ಆಗಲ್ವಾ|ತಡವಾಗುತ್ತಾ|೩ ವರ್ಷ|೫ ವರ್ಷ|ವಿಳಂಬ|ಸಂದೇಹ|ಖಚಿತವೇ|ನಿಜంగా|ఆలస్యం|3 ఏళ్ల|5 ఏళ్ల|కాదా|జరగదా|देरी|विलंब|तमाम|நடக்காதா|தாமதம்|3 வருடம்|5 வருடம்|தள்ளிப்போகுமா|വൈകുമോ|താമസം|3 വർഷം|5 വർഷം|നടക്കില്ലേ|उशीर|३ वर्षे|५ वर्षे|होणार नाही का/i.test(
       qLower
     );
   const marriageRecord = ledger.find((r) => r.domain === "MARRIAGE");
